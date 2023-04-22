@@ -1,3 +1,4 @@
+import { Result } from "declarations/b3_user/b3_user.did"
 import { useState } from "react"
 
 // Dfinity
@@ -6,23 +7,27 @@ import { makeHelloActor } from "service/actor-locator"
 export const GreetingSection = () => {
   const [name, setName] = useState("")
   const [loading, setLoading] = useState("")
-  const [greetingMessage, setGreetingMessage] = useState("")
+  const [greetingMessage, setGreetingMessage] = useState<Result>()
 
-  function onChangeName(e) {
+  function onChangeName(e: React.ChangeEvent<HTMLInputElement>) {
     const newName = e.target.value
     setName(newName)
   }
 
   async function sayGreeting() {
-    setGreetingMessage("")
+    setGreetingMessage(undefined)
     setLoading("Loading...")
 
     const helloActor = makeHelloActor()
-    const greeting = await helloActor.greet(name)
+    const greeting = await helloActor.create_account({ Development: null }, [
+      name
+    ])
 
     setLoading("")
     setGreetingMessage(greeting)
   }
+
+  console.log("greetingMessage", greetingMessage)
 
   return (
     <div>
@@ -41,7 +46,7 @@ export const GreetingSection = () => {
       <section>
         <label>Response: &nbsp;</label>
         {loading}
-        {greetingMessage}
+        {JSON.stringify(greetingMessage)}
       </section>
     </div>
   )

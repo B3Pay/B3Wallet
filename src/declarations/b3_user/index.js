@@ -1,11 +1,11 @@
 import { Actor, HttpAgent } from "@dfinity/agent";
 
 // Imports and re-exports candid interface
-import { idlFactory } from "./hello_assets.did.js";
-export { idlFactory } from "./hello_assets.did.js";
+import { idlFactory } from "./b3_user.did.js";
+export { idlFactory } from "./b3_user.did.js";
 
 // CANISTER_ID is replaced by webpack based on node environment
-export const canisterId = process.env.HELLO_ASSETS_CANISTER_ID;
+export const canisterId = process.env.B3_USER_CANISTER_ID;
 
 export const createActor = (canisterId, options = {}) => {
   const agent = options.agent || new HttpAgent({ ...options.agentOptions });
@@ -33,5 +33,3 @@ export const createActor = (canisterId, options = {}) => {
     ...options.actorOptions,
   });
 };
-
-export const hello_assets = createActor(canisterId);

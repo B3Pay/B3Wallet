@@ -1,16 +1,16 @@
 {
   "canisters": {
-    "hello": {
+    "b3_user": {
       "type": "rust",
-      "package": "hello",
-      "candid": "backend/hello/hello.did",
+      "package": "b3_user",
+      "candid": "backend/b3_user/b3_user.did",
       "declarations": {
-        "output": "src/declarations/hello",
+        "output": "src/declarations/b3_user",
         "node_compatibility": true
       }
     },
-    "hello_assets": {
-      "dependencies": ["hello"],
+    "wallet_assets": {
+      "dependencies": ["b3_user"],
       "frontend": {
         "entrypoint": "out/index.html"
       },

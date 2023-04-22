@@ -1,4 +1,4 @@
-import { canisterId, createActor } from "declarations/hello"
+import { canisterId, createActor } from "declarations/b3_user"
 
 export function makeHelloActor() {
   return createActor(canisterId, {
