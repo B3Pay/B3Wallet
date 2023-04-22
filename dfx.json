@@ -1,0 +1,23 @@
+{
+  "canisters": {
+    "hello": {
+      "type": "rust",
+      "package": "hello",
+      "candid": "backend/hello/hello.did",
+      "declarations": {
+        "output": "src/declarations/hello",
+        "node_compatibility": true
+      }
+    },
+    "hello_assets": {
+      "dependencies": ["hello"],
+      "frontend": {
+        "entrypoint": "out/index.html"
+      },
+      "source": ["out"],
+      "type": "assets"
+    }
+  },
+  "dfx": "0.13.1",
+  "version": 1
+}
