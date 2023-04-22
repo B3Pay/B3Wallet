@@ -1,0 +1,30 @@
+type Account = record {
+  derivation : Derivation;
+  public_key : PublicKey;
+  name : text;
+  chain_data : vec record { nat64; ChainData };
+};
+type ChainData = record { nonce : nat64; transactions : vec SignedTransaction };
+type Config = record {
+  env : Environment;
+  sign_cycles : nat64;
+  key_name : text;
+};
+type Derivation = record { path : vec nat8; config : Config };
+type Environment = variant { Production; Development; Staging };
+type PublicKey = record { address : text; bytes : vec nat8 };
+type Result = variant { Ok : PublicKey; Err : text };
+type Result_1 = variant { Ok : SignedTransaction; Err : text };
+type SignedTransaction = record {
+  status : Status;
+  data : vec nat8;
+  timestamp : nat64;
+};
+type Status = variant { Failed; Success; Pending };
+service : () -> {
+  create_account : (Environment, opt text) -> (Result);
+  get_account : (nat8) -> (Account) query;
+  get_accounts : () -> (vec Account) query;
+  get_public_key : (nat8) -> (PublicKey) query;
+  sign_transaction : (nat8, nat64, vec nat8) -> (Result_1);
+}
