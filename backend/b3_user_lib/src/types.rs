@@ -2,8 +2,7 @@ use candid::{CandidType, Principal};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    allowance::CanisterId, identifier::AccountIdentifier, public_key::PublicKey,
-    subaccount::Subaccount,
+    allowance::CanisterId, identifier::AccountIdentifier, keys::Keys, subaccount::Subaccount,
 };
 
 pub const MAINNET_LEDGER_CANISTER_ID: Principal =
@@ -22,11 +21,11 @@ pub struct SignRequest {
     pub data: Vec<u8>,
     pub chain_id: u64,
     pub deadline: u64,
-    pub public_key: PublicKey,
+    pub public_key: Keys,
     pub destination: CanisterId,
 }
 
-#[derive(Debug, Clone, CandidType, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, CandidType, Default, PartialEq, Serialize, Deserialize)]
 pub enum Status {
     #[default]
     Pending,

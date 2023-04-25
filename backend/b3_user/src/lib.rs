@@ -4,7 +4,7 @@ use ic_cdk::{init, post_upgrade, pre_upgrade, query, update};
 use b3_user_lib::{
     account::Account,
     config::Environment,
-    public_key::PublicKey,
+    keys::Keys,
     signed::SignedTransaction,
     state::{State, STATE},
 };
@@ -30,11 +30,11 @@ pub fn get_account(account_id: u8) -> Account {
 
 #[query]
 #[candid_method(query)]
-pub fn get_public_key(account_id: u8) -> PublicKey {
+pub fn get_public_key(account_id: u8) -> Keys {
     STATE.with(|s| {
         let state = s.borrow();
 
-        state.public_key(account_id).unwrap()
+        state.account_key(account_id).unwrap()
     })
 }
 
@@ -50,7 +50,7 @@ pub fn get_accounts() -> Vec<Account> {
 
 #[update]
 #[candid_method(update)]
-pub async fn create_account(env: Environment, name: Option<String>) -> Result<PublicKey, String> {
+pub async fn create_account(env: Environment, name: Option<String>) -> Result<Keys, String> {
     let drivation_path = STATE.with(|s| s.borrow().new_drivation_path());
 
     let account = Account::new(drivation_path, env).await;
@@ -60,7 +60,7 @@ pub async fn create_account(env: Environment, name: Option<String>) -> Result<Pu
 
         let id = state.insert_account(account, name);
 
-        state.public_key(id)
+        state.account_key(id)
     });
 
     if let Some(public_data) = public_data {

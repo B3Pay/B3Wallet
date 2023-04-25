@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 use crate::account::Account;
 use crate::allowance::{Allowance, CanisterId, SetAllowance};
-use crate::public_key::PublicKey;
+use crate::keys::Keys;
 use crate::subaccount::Subaccount;
 use crate::types::SignRequest;
 
@@ -30,6 +30,10 @@ impl Default for State {
 
 impl State {
     pub fn init(&mut self, caller: Principal) {
+        if self.accounts.len() > 0 {
+            trap("State already initialized!");
+        }
+
         self.subaccount = Subaccount::new(&caller);
     }
 
@@ -49,20 +53,6 @@ impl State {
         self.accounts.push(account);
 
         id
-    }
-
-    pub fn drivation_path(&self, id: u8) -> Vec<u8> {
-        self.subaccount.derive_hd_path(id)
-    }
-
-    pub fn new_drivation_path(&self) -> Vec<u8> {
-        if self.accounts.len() == self.accounts.capacity() {
-            trap("Maximum number of accounts reached!");
-        }
-
-        let id = self.next_account_id();
-
-        self.subaccount.derive_hd_path(id)
     }
 
     pub fn connect_canister(&mut self, canister_id: CanisterId, new_allowance: &SetAllowance) {
@@ -104,6 +94,20 @@ impl State {
         }
     }
 
+    pub fn drivation_path(&self, id: u8) -> Vec<u8> {
+        self.subaccount.derive_hd_path(id)
+    }
+
+    pub fn new_drivation_path(&self) -> Vec<u8> {
+        if self.accounts.len() == self.accounts.capacity() {
+            trap("Maximum number of accounts reached!");
+        }
+
+        let id = self.next_account_id();
+
+        self.subaccount.derive_hd_path(id)
+    }
+
     fn next_account_id(&self) -> u8 {
         self.accounts.len() as u8
     }
@@ -112,8 +116,12 @@ impl State {
         self.accounts.get(id as usize).cloned()
     }
 
-    pub fn public_key(&self, id: u8) -> Option<PublicKey> {
-        self.account(id).map(|account| account.public_data())
+    pub fn account_key(&self, id: u8) -> Option<Keys> {
+        self.account(id).map(|account| account.keys())
+    }
+
+    pub fn account_keys(&self) -> Vec<Keys> {
+        self.accounts.iter().map(|account| account.keys()).collect()
     }
 
     pub fn connected_canister(&self, canister_id: CanisterId) -> Option<Allowance> {

@@ -1,6 +1,6 @@
 use candid::{CandidType, Deserialize};
 
-use crate::ecdsa::request::{EcdsaCurve, EcdsaKeyId};
+use crate::ecdsa::{EcdsaCurve, EcdsaKeyId};
 
 #[derive(CandidType, Deserialize, Debug, Clone, PartialEq, Default)]
 pub enum Environment {

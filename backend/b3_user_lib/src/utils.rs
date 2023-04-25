@@ -16,22 +16,6 @@ pub fn get_address_from_public_key(public_key: Vec<u8>) -> Result<String, String
 
     Ok(address)
 }
-#[cfg(test)]
-pub fn get_transfer_data(address: &str, amount: u64) -> Result<String, String> {
-    if address.len() != 42 {
-        return Err("Invalid address".to_string());
-    }
-    let method_sig = "transfer(address,uint256)";
-    let keccak256 = easy_hasher::raw_keccak256(method_sig.as_bytes().to_vec());
-    let method_id = &keccak256.to_hex_string()[..8];
-
-    let address_64 = format!("{:0>64}", &address[2..]);
-
-    let amount_hex = format!("{:02x}", amount);
-    let amount_64 = format!("{:0>64}", amount_hex);
-
-    Ok(method_id.to_owned() + &address_64 + &amount_64)
-}
 
 pub fn string_to_vec_u8(str: &str) -> Vec<u8> {
     let starts_from: usize;
@@ -72,6 +56,23 @@ pub fn vec_u8_to_u64(vec: &Vec<u8>) -> u64 {
     let mut _vec = [0; 8];
     _vec[8 - vec.len()..].copy_from_slice(&vec);
     u64::from_be_bytes(_vec).try_into().unwrap()
+}
+
+#[cfg(test)]
+pub fn get_transfer_data(address: &str, amount: u64) -> Result<String, String> {
+    if address.len() != 42 {
+        return Err("Invalid address".to_string());
+    }
+    let method_sig = "transfer(address,uint256)";
+    let keccak256 = easy_hasher::raw_keccak256(method_sig.as_bytes().to_vec());
+    let method_id = &keccak256.to_hex_string()[..8];
+
+    let address_64 = format!("{:0>64}", &address[2..]);
+
+    let amount_hex = format!("{:02x}", amount);
+    let amount_64 = format!("{:0>64}", amount_hex);
+
+    Ok(method_id.to_owned() + &address_64 + &amount_64)
 }
 
 #[cfg(test)]

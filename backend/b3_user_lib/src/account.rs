@@ -1,42 +1,40 @@
-use crate::{derivation::Derivation, transaction::get_transaction};
+use crate::{ecdsa::Ecdsa, transaction::get_transaction};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 use std::collections::HashMap;
 
-use crate::{
-    chain::ChainData, config::Environment, public_key::PublicKey, signed::SignedTransaction,
-};
+use crate::{chain::Chain, config::Environment, keys::Keys, signed::SignedTransaction};
 
 #[derive(Clone, Debug, CandidType, Deserialize)]
 pub struct Account {
     name: String,
-    public_key: PublicKey,
-    derivation: Derivation,
-    chain_data: HashMap<u64, ChainData>,
+    keys: Keys,
+    ecdsa: Ecdsa,
+    chains: HashMap<u64, Chain>,
 }
 
 impl Default for Account {
     fn default() -> Self {
         Account {
             name: String::new(),
-            public_key: PublicKey::default(),
-            derivation: Derivation::default(),
-            chain_data: HashMap::new(),
+            keys: Keys::default(),
+            ecdsa: Ecdsa::default(),
+            chains: HashMap::new(),
         }
     }
 }
 
 impl Account {
     pub async fn new(path: Vec<u8>, env: Environment) -> Self {
-        let derivation = Derivation::new(path, env);
+        let ecdsa = Ecdsa::new(path, env);
 
-        let bytes = derivation.public_key().await;
+        let bytes = ecdsa.public_key().await;
 
         Account {
-            derivation,
+            ecdsa,
             name: String::new(),
-            chain_data: HashMap::new(),
-            public_key: PublicKey::new(bytes),
+            keys: Keys::new(bytes),
+            chains: HashMap::new(),
         }
     }
 
@@ -47,24 +45,24 @@ impl Account {
 
         assert!(message.len() == 32);
 
-        let signature = self.derivation.sign_message(message).await;
+        let signature = self.ecdsa.sign_message(message).await;
 
-        let signed_tx = tx.sign(signature, self.public_key.key()).unwrap();
+        let signed_tx = tx.sign(signature, self.keys.key()).unwrap();
 
         SignedTransaction::new(signed_tx)
     }
 
     pub fn insert_transaction(&mut self, chain_id: u64, transaction: SignedTransaction) {
-        if self.chain_data.contains_key(&chain_id) {
-            self.chain_data
+        if self.chains.contains_key(&chain_id) {
+            self.chains
                 .get_mut(&chain_id)
                 .unwrap()
                 .add_transaction(transaction);
         } else {
-            let mut chain_data = ChainData::default();
+            let mut chain_data = Chain::default();
             chain_data.add_transaction(transaction);
 
-            self.chain_data.insert(chain_id, chain_data);
+            self.chains.insert(chain_id, chain_data);
         }
     }
 
@@ -72,15 +70,15 @@ impl Account {
         self.name = name;
     }
 
-    pub fn remove_transactions(&mut self, chain_id: u64) {
-        if self.chain_data.contains_key(&chain_id) {
-            self.chain_data.remove(&chain_id);
+    pub fn remove_chain(&mut self, chain_id: u64) {
+        if self.chains.contains_key(&chain_id) {
+            self.chains.remove(&chain_id);
         }
     }
 
     pub fn remove_transaction(&mut self, chain_id: u64, index: u64) {
-        if self.chain_data.contains_key(&chain_id) {
-            self.chain_data
+        if self.chains.contains_key(&chain_id) {
+            self.chains
                 .get_mut(&chain_id)
                 .unwrap()
                 .remove_transaction(index);
@@ -88,36 +86,36 @@ impl Account {
     }
 
     pub fn nonce(&self, chain_id: u64) -> u64 {
-        if self.chain_data.contains_key(&chain_id) {
-            self.chain_data.get(&chain_id).unwrap().nonce()
+        if self.chains.contains_key(&chain_id) {
+            self.chains.get(&chain_id).unwrap().nonce()
         } else {
             0
         }
     }
 
-    pub fn public_data(&self) -> PublicKey {
-        self.public_key.clone()
+    pub fn keys(&self) -> Keys {
+        self.keys.clone()
     }
 
     pub fn transactions(&self, chain_id: u64) -> Vec<SignedTransaction> {
-        if self.chain_data.contains_key(&chain_id) {
-            self.chain_data.get(&chain_id).unwrap().transactions()
+        if self.chains.contains_key(&chain_id) {
+            self.chains.get(&chain_id).unwrap().transactions()
         } else {
             vec![]
         }
     }
 
     pub fn transaction(&self, chain_id: u64, index: u64) -> Option<SignedTransaction> {
-        if self.chain_data.contains_key(&chain_id) {
-            self.chain_data.get(&chain_id).unwrap().transaction(index)
+        if self.chains.contains_key(&chain_id) {
+            self.chains.get(&chain_id).unwrap().transaction(index)
         } else {
             None
         }
     }
 
     pub fn last_transaction(&self, chain_id: u64) -> Option<SignedTransaction> {
-        if self.chain_data.contains_key(&chain_id) {
-            self.chain_data.get(&chain_id).unwrap().last_transaction()
+        if self.chains.contains_key(&chain_id) {
+            self.chains.get(&chain_id).unwrap().last_transaction()
         } else {
             None
         }

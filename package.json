@@ -37,6 +37,7 @@
     "assert": "^2.0.0",
     "buffer": "^6.0.3",
     "compressorjs": "^1.2.1",
+    "ethers": "^6.3.0",
     "events": "^3.3.0",
     "next": "^13.3",
     "react": "^18.2",

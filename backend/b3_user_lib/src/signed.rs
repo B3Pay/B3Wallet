@@ -23,4 +23,16 @@ impl SignedTransaction {
             timestamp: ic_timestamp(),
         }
     }
+
+    pub fn set_status(&mut self, status: Status) {
+        self.status = status;
+    }
+
+    pub fn set_timestamp(&mut self, timestamp: u64) {
+        self.timestamp = timestamp;
+    }
+
+    pub fn is_pending(&self) -> bool {
+        self.status == Status::Pending
+    }
 }

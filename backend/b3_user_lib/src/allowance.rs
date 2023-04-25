@@ -63,6 +63,16 @@ impl Allowance {
         self.expires_at = new_allowance.expires_at;
     }
 
+    pub fn decrease_limit(&mut self) -> Option<u8> {
+        if let Some(limit) = self.limit {
+            self.limit = Some(limit - 1);
+
+            self.limit
+        } else {
+            None
+        }
+    }
+
     pub fn is_allowed(&self) -> bool {
         !self.is_expired()
     }
@@ -71,16 +81,6 @@ impl Allowance {
         match self.expires_at {
             None => false,
             Some(expires_at) => expires_at < time(),
-        }
-    }
-
-    pub fn decrease_limit(&mut self) -> Option<u8> {
-        if let Some(limit) = self.limit {
-            self.limit = Some(limit - 1);
-
-            self.limit
-        } else {
-            None
         }
     }
 }
