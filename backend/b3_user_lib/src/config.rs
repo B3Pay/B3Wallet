@@ -1,6 +1,6 @@
 use candid::{CandidType, Deserialize};
 
-use crate::ecdsa::{EcdsaCurve, EcdsaKeyId};
+use crate::types::{EcdsaCurve, EcdsaKeyId};
 
 #[derive(CandidType, Deserialize, Debug, Clone, PartialEq, Default)]
 pub enum Environment {
@@ -25,17 +25,17 @@ impl Default for Config {
 
 impl From<Environment> for Config {
     fn from(env: Environment) -> Self {
-        if env == Environment::Staging {
-            Self {
-                env: Environment::Staging,
-                key_name: "test_key_1".to_string(),
-                sign_cycles: 10_000_000_000,
-            }
-        } else if env == Environment::Production {
+        if env == Environment::Production {
             Self {
                 env: Environment::Staging,
                 key_name: "key_1".to_string(),
                 sign_cycles: 26_153_846_153,
+            }
+        } else if env == Environment::Staging {
+            Self {
+                env: Environment::Staging,
+                key_name: "test_key_1".to_string(),
+                sign_cycles: 10_000_000_000,
             }
         } else {
             Self {

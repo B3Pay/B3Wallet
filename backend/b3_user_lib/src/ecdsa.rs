@@ -1,9 +1,5 @@
 use ic_cdk::{
-    export::{
-        candid::CandidType,
-        serde::{Deserialize, Serialize},
-        Principal,
-    },
+    export::{candid::CandidType, serde::Deserialize, Principal},
     trap,
 };
 
@@ -13,79 +9,58 @@ use crate::mocks::ic_call;
 #[cfg(not(test))]
 use ic_cdk::api::call::call_with_payment as ic_call;
 
-use crate::config::{Config, Environment};
-
-type CanisterId = Principal;
-
-#[derive(CandidType, Serialize, Debug)]
-pub struct PublicKeyReply {
-    pub public_key: Vec<u8>,
-}
-
-#[derive(CandidType, Deserialize, Debug)]
-pub struct ECDSAPublicKeyResponse {
-    pub public_key: Vec<u8>,
-    pub chain_code: Vec<u8>,
-}
-
-#[derive(CandidType, Deserialize, Debug)]
-pub struct SignWithECDSAResponse {
-    pub signature: Vec<u8>,
-}
-
-#[derive(CandidType, Serialize, Debug)]
-pub struct ECDSAPublicKeyArgs {
-    pub canister_id: Option<CanisterId>,
-    pub derivation_path: Vec<Vec<u8>>,
-    pub key_id: EcdsaKeyId,
-}
-
-#[derive(CandidType, Serialize, Debug, Deserialize)]
-pub struct SignWithECDSAArgs {
-    pub message_hash: Vec<u8>,
-    pub derivation_path: Vec<Vec<u8>>,
-    pub key_id: EcdsaKeyId,
-}
-
-#[derive(CandidType, Serialize, Debug, Clone, Deserialize)]
-pub struct EcdsaKeyId {
-    pub curve: EcdsaCurve,
-    pub name: String,
-}
-
-#[derive(CandidType, Serialize, Debug, Clone, Deserialize)]
-pub enum EcdsaCurve {
-    #[serde(rename = "secp256k1")]
-    Secp256k1,
-}
+use crate::{
+    config::{Config, Environment},
+    types::{
+        ECDSAPublicKeyArgs, ECDSAPublicKeyResponse, EcdsaKeyId, SignWithECDSAArgs,
+        SignWithECDSAResponse,
+    },
+};
 
 #[derive(Clone, Debug, CandidType, Deserialize)]
 pub struct Ecdsa {
-    path: Vec<u8>,
-    config: Config,
+    pub path: Vec<u8>,
+    pub env: Environment,
 }
 
 impl Default for Ecdsa {
     fn default() -> Self {
         Ecdsa {
             path: Vec::new(),
-            config: Config::default(),
+            env: Environment::default(),
         }
     }
 }
 
 impl Ecdsa {
     pub fn new(path: Vec<u8>, env: Environment) -> Self {
-        let config = Config::from(env);
+        Ecdsa { path, env }
+    }
 
-        Ecdsa { path, config }
+    pub fn path_id(&self) -> String {
+        let last = self.path.len() - 1;
+
+        match self.env {
+            Environment::Production => format!("key_{:x}", self.path[last]),
+            _ => format!("test_key_{:x}", self.path[last]),
+        }
+    }
+
+    pub fn config(&self) -> Config {
+        Config::from(self.env.clone())
+    }
+
+    pub fn key_id(&self) -> EcdsaKeyId {
+        let config = self.config();
+
+        config.key_id()
     }
 
     pub async fn public_key(&self) -> Vec<u8> {
         let request = ECDSAPublicKeyArgs {
             canister_id: None,
             derivation_path: vec![self.path.clone()],
-            key_id: self.config.key_id(),
+            key_id: self.key_id(),
         };
 
         let (res,): (ECDSAPublicKeyResponse,) = ic_call(
@@ -104,7 +79,7 @@ impl Ecdsa {
     pub async fn sign_message(&self, message_hash: Vec<u8>) -> Vec<u8> {
         let request = SignWithECDSAArgs {
             derivation_path: vec![self.path.clone()],
-            key_id: self.config.key_id(),
+            key_id: self.key_id(),
             message_hash,
         };
 

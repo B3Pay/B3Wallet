@@ -30,7 +30,17 @@ pub fn get_account(account_id: u8) -> Account {
 
 #[query]
 #[candid_method(query)]
-pub fn get_public_key(account_id: u8) -> Keys {
+pub fn number_of_accounts() -> u8 {
+    STATE.with(|s| {
+        let state = s.borrow();
+
+        state.accounts_len() as u8
+    })
+}
+
+#[query]
+#[candid_method(query)]
+pub fn get_public_key(account_id: String) -> Keys {
     STATE.with(|s| {
         let state = s.borrow();
 
@@ -50,21 +60,21 @@ pub fn get_accounts() -> Vec<Account> {
 
 #[update]
 #[candid_method(update)]
-pub async fn create_account(env: Environment, name: Option<String>) -> Result<Keys, String> {
-    let drivation_path = STATE.with(|s| s.borrow().new_drivation_path());
+pub async fn create_account(env: Environment, name: Option<String>) -> Result<Account, String> {
+    let drivation_path = STATE.with(|s| s.borrow().new_drivation_path(&env));
 
     let account = Account::new(drivation_path, env).await;
 
-    let public_data = STATE.with(|s| {
+    let state_account = STATE.with(|s| {
         let mut state = s.borrow_mut();
 
-        let id = state.insert_account(account, name);
+        let index = state.insert_account(account, name);
 
-        state.account_key(id)
+        state.account(index)
     });
 
-    if let Some(public_data) = public_data {
-        Ok(public_data)
+    if let Some(state_account) = state_account {
+        Ok(state_account.clone())
     } else {
         Err("Failed to create account".to_string())
     }
@@ -84,15 +94,7 @@ pub async fn sign_transaction(
     });
 
     if let Some(account) = account {
-        let tx = account.new_transaction(hex_raw_tx, chain_id).await;
-
-        STATE.with(|s| {
-            let state = s.borrow_mut();
-
-            let mut account = state.account(account_id).unwrap();
-
-            account.insert_transaction(chain_id, tx.clone());
-        });
+        let tx = account.sign_transaction(hex_raw_tx, chain_id).await;
 
         Ok(tx)
     } else {

@@ -1,25 +1,32 @@
-use crate::{ecdsa::Ecdsa, transaction::get_transaction};
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
-
 use std::collections::HashMap;
 
-use crate::{chain::Chain, config::Environment, keys::Keys, signed::SignedTransaction};
+use crate::{
+    ecdsa::Ecdsa, signed::SignedTransaction, transaction::get_transaction, types::SignRequest,
+};
+use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+
+use crate::allowance::{Allowance, CanisterId, SetAllowance};
+use crate::{config::Environment, keys::Keys};
 
 #[derive(Clone, Debug, CandidType, Deserialize)]
 pub struct Account {
+    id: String,
     name: String,
     keys: Keys,
     ecdsa: Ecdsa,
-    chains: HashMap<u64, Chain>,
+    requests: Vec<SignRequest>,
+    canisters: HashMap<CanisterId, Allowance>,
 }
 
 impl Default for Account {
     fn default() -> Self {
         Account {
+            id: String::new(),
             name: String::new(),
             keys: Keys::default(),
             ecdsa: Ecdsa::default(),
-            chains: HashMap::new(),
+            requests: Vec::new(),
+            canisters: HashMap::new(),
         }
     }
 }
@@ -29,16 +36,19 @@ impl Account {
         let ecdsa = Ecdsa::new(path, env);
 
         let bytes = ecdsa.public_key().await;
+        let id = ecdsa.path_id();
 
         Account {
+            id,
             ecdsa,
             name: String::new(),
             keys: Keys::new(bytes),
-            chains: HashMap::new(),
+            requests: Vec::new(),
+            canisters: HashMap::new(),
         }
     }
 
-    pub async fn new_transaction(&self, hex_raw_tx: Vec<u8>, chain_id: u64) -> SignedTransaction {
+    pub async fn sign_transaction(&self, hex_raw_tx: Vec<u8>, chain_id: u64) -> SignedTransaction {
         let mut tx = get_transaction(&hex_raw_tx, chain_id).unwrap();
 
         let message = tx.get_message_to_sign().unwrap();
@@ -52,72 +62,55 @@ impl Account {
         SignedTransaction::new(signed_tx)
     }
 
-    pub fn insert_transaction(&mut self, chain_id: u64, transaction: SignedTransaction) {
-        if self.chains.contains_key(&chain_id) {
-            self.chains
-                .get_mut(&chain_id)
-                .unwrap()
-                .add_transaction(transaction);
-        } else {
-            let mut chain_data = Chain::default();
-            chain_data.add_transaction(transaction);
+    pub fn insert_canister(&mut self, canister_id: CanisterId, new_allowance: &SetAllowance) {
+        let allowance = Allowance::new(new_allowance);
 
-            self.chains.insert(chain_id, chain_data);
+        self.canisters.insert(canister_id, allowance);
+    }
+
+    pub fn canister_allowance(&self, canister_id: CanisterId) -> Option<Allowance> {
+        self.canisters.get(&canister_id).cloned()
+    }
+
+    pub fn update_canister_allowance(
+        &mut self,
+        canister_id: CanisterId,
+        new_allowance: &SetAllowance,
+    ) {
+        if let Some(allowance) = self.canisters.get_mut(&canister_id) {
+            allowance.update(new_allowance);
         }
+    }
+
+    pub fn sign_requests(&self) -> Vec<SignRequest> {
+        self.requests.clone()
+    }
+
+    pub fn connected_canisters(&self) -> HashMap<CanisterId, Allowance> {
+        self.canisters.clone()
+    }
+
+    pub fn insert_request(&mut self, sign_request: SignRequest) {
+        self.requests.push(sign_request);
     }
 
     pub fn update_name(&mut self, name: String) {
         self.name = name;
     }
 
-    pub fn remove_chain(&mut self, chain_id: u64) {
-        if self.chains.contains_key(&chain_id) {
-            self.chains.remove(&chain_id);
-        }
-    }
-
-    pub fn remove_transaction(&mut self, chain_id: u64, index: u64) {
-        if self.chains.contains_key(&chain_id) {
-            self.chains
-                .get_mut(&chain_id)
-                .unwrap()
-                .remove_transaction(index);
-        }
-    }
-
-    pub fn nonce(&self, chain_id: u64) -> u64 {
-        if self.chains.contains_key(&chain_id) {
-            self.chains.get(&chain_id).unwrap().nonce()
-        } else {
-            0
-        }
-    }
-
     pub fn keys(&self) -> Keys {
         self.keys.clone()
     }
 
-    pub fn transactions(&self, chain_id: u64) -> Vec<SignedTransaction> {
-        if self.chains.contains_key(&chain_id) {
-            self.chains.get(&chain_id).unwrap().transactions()
-        } else {
-            vec![]
-        }
+    pub fn name(&self) -> String {
+        self.name.clone()
     }
 
-    pub fn transaction(&self, chain_id: u64, index: u64) -> Option<SignedTransaction> {
-        if self.chains.contains_key(&chain_id) {
-            self.chains.get(&chain_id).unwrap().transaction(index)
-        } else {
-            None
-        }
+    pub fn id(&self) -> String {
+        self.id.clone()
     }
 
-    pub fn last_transaction(&self, chain_id: u64) -> Option<SignedTransaction> {
-        if self.chains.contains_key(&chain_id) {
-            self.chains.get(&chain_id).unwrap().last_transaction()
-        } else {
-            None
-        }
+    pub fn env(&self) -> Environment {
+        self.ecdsa.env.clone()
     }
 }

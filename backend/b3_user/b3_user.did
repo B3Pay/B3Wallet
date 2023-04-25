@@ -1,30 +1,39 @@
 type Account = record {
-  derivation : Derivation;
-  public_key : PublicKey;
+  id : text;
+  keys : Keys;
   name : text;
-  chain_data : vec record { nat64; ChainData };
+  ecdsa : Ecdsa;
+  canisters : vec record { principal; Allowance };
+  requests : vec SignRequest;
 };
-type ChainData = record { nonce : nat64; transactions : vec SignedTransaction };
-type Config = record {
-  env : Environment;
-  sign_cycles : nat64;
-  key_name : text;
+type Allowance = record {
+  updated_at : nat64;
+  metadata : vec record { text; text };
+  created_at : nat64;
+  limit : opt nat8;
+  expires_at : opt nat64;
 };
-type Derivation = record { path : vec nat8; config : Config };
+type Ecdsa = record { env : Environment; path : vec nat8 };
 type Environment = variant { Production; Development; Staging };
-type PublicKey = record { address : text; bytes : vec nat8 };
-type Result = variant { Ok : PublicKey; Err : text };
+type Keys = record { address : text; bytes : vec nat8 };
+type Result = variant { Ok : Account; Err : text };
 type Result_1 = variant { Ok : SignedTransaction; Err : text };
-type SignedTransaction = record {
-  status : Status;
+type SignRequest = record {
+  id : nat64;
+  destination : principal;
+  public_key : Keys;
   data : vec nat8;
-  timestamp : nat64;
+  deadline : nat64;
+  cycles : nat64;
+  chain_id : nat64;
+  nonce : nat64;
 };
-type Status = variant { Failed; Success; Pending };
+type SignedTransaction = record { data : vec nat8; timestamp : nat64 };
 service : () -> {
   create_account : (Environment, opt text) -> (Result);
   get_account : (nat8) -> (Account) query;
   get_accounts : () -> (vec Account) query;
-  get_public_key : (nat8) -> (PublicKey) query;
+  get_public_key : (text) -> (Keys) query;
+  number_of_accounts : () -> (nat8) query;
   sign_transaction : (nat8, nat64, vec nat8) -> (Result_1);
 }

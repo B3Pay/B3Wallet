@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 // Dfinity
 import { B3User, makeB3UserActor } from "service/actor"
 
-export const CreateAccount = () => {
+const CreateAccount = () => {
   const [name, setName] = useState<string>()
   const [loading, setLoading] = useState("")
   const [response, setResponse] = useState<Result>()
@@ -75,3 +75,5 @@ export const CreateAccount = () => {
     </div>
   )
 }
+
+export default CreateAccount

@@ -3,7 +3,6 @@ mod mocks;
 
 pub mod account;
 pub mod allowance;
-pub mod chain;
 pub mod config;
 pub mod ecdsa;
 pub mod identifier;
