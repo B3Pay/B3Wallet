@@ -25,7 +25,9 @@ function initCanisterIds() {
   canisters = network === "local" ? localCanisters : prodCanisters
 
   const envList = {
-    DFX_NETWORK: "local"
+    DFX_NETWORK: network,
+    NEXT_PUBLIC_IC_HOST:
+      network === "ic" ? "https://ic0.app" : "http://localhost:8080"
   }
 
   for (const canister in canisters) {
@@ -36,7 +38,7 @@ function initCanisterIds() {
   }
 
   writeFileSync(
-    path.resolve(".env.local"),
+    path.resolve(".env"),
     Object.entries(envList)
       .map(([key, value]) => `${key}=${value}`)
       .join("\n")
@@ -47,4 +49,10 @@ function initCanisterIds() {
 
 module.exports = {
   initCanisterIds: initCanisterIds
+}
+
+const callArg = process.argv[2]
+
+if (callArg == "init") {
+  initCanisterIds()
 }

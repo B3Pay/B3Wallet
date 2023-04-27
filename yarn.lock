@@ -33,12 +33,28 @@
     simple-cbor "^0.4.1"
     ts-node "^10.8.2"
 
+"@dfinity/auth-client@^0.15.6":
+  version "0.15.6"
+  resolved "https://registry.yarnpkg.com/@dfinity/auth-client/-/auth-client-0.15.6.tgz#ae2702c4be6dcfe8808680b449a89429511dab52"
+  integrity sha512-UpqJ2qab8IlijUiXR0ig4Ww4ymXzE6auSXHf8fXcLSIT8NTAD/7U8+VLUcPj8rkqrExcNMCskeipKxnqHINJYw==
+  dependencies:
+    idb "^7.0.2"
+
 "@dfinity/candid@^0.15":
   version "0.15.5"
   resolved "https://registry.yarnpkg.com/@dfinity/candid/-/candid-0.15.5.tgz#f108bd6e4f7568a0db758d18111011c03eb270da"
   integrity sha512-SWf70AuFJ+SphvOHPiyCXE2s5b63c8U/UVGIRhnxSR/xi8iiP3tjPL6Cfe+TPsuXQShX8pPJBJhKC9O20cua2Q==
   dependencies:
     ts-node "^10.8.2"
+
+"@dfinity/identity@^0.15.6":
+  version "0.15.6"
+  resolved "https://registry.yarnpkg.com/@dfinity/identity/-/identity-0.15.6.tgz#9ce81c8ae1793d26cfaf95825bf7a49d161bf4fb"
+  integrity sha512-hzTyKXAWPHxkZkOWxGj4JUITwdv92VEKnh3l334Yk9h6aw3m7Gi/ujEBLfszsl0LUA82tV4W2MDIz99KMAuW+g==
+  dependencies:
+    borc "^2.1.1"
+    js-sha256 "^0.9.0"
+    tweetnacl "^1.0.1"
 
 "@dfinity/principal@^0.15":
   version "0.15.5"
@@ -1318,6 +1334,11 @@ has@^1.0.3:
   dependencies:
     function-bind "^1.1.1"
 
+idb@^7.0.2:
+  version "7.1.1"
+  resolved "https://registry.yarnpkg.com/idb/-/idb-7.1.1.tgz#d910ded866d32c7ced9befc5bfdf36f572ced72b"
+  integrity sha512-gchesWBzyvGHRO9W8tzUWFDycow5gwjvFKfyV9FF32Y7F50yZMp7mP+T2mJIWFx49zicqyC4uefHM17o6xKIVQ==
+
 ieee754@^1.1.13, ieee754@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/ieee754/-/ieee754-1.2.1.tgz#8eb7a10a63fff25d15a57b001586d177d1b0d352"
@@ -2277,6 +2298,11 @@ tsutils@^3.21.0:
   integrity sha512-mHKK3iUXL+3UF6xL5k0PEhKRUBKPBCv/+RkEOpjRWxxx27KKRBmmA60A9pgOUvMi8GKhRMPEmjBRPzs2W7O1OA==
   dependencies:
     tslib "^1.8.1"
+
+tweetnacl@^1.0.1:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/tweetnacl/-/tweetnacl-1.0.3.tgz#ac0af71680458d8a6378d0d0d050ab1407d35596"
+  integrity sha512-6rt+RN7aOi1nGMyC4Xa5DdYiukl2UWCbcJft7YhxReBGQD7OAM8Pbxw6YMo4r2diNEA8FEmu32YOn9rhaiE5yw==
 
 type-check@^0.4.0, type-check@~0.4.0:
   version "0.4.0"

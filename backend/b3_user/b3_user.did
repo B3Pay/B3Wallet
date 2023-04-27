@@ -5,6 +5,7 @@ type Account = record {
   ecdsa : Ecdsa;
   canisters : vec record { principal; Allowance };
   requests : vec SignRequest;
+  signed : SignedTransaction;
 };
 type Allowance = record {
   updated_at : nat64;
@@ -30,10 +31,14 @@ type SignRequest = record {
 };
 type SignedTransaction = record { data : vec nat8; timestamp : nat64 };
 service : () -> {
-  create_account : (Environment, opt text) -> (Result);
-  get_account : (nat8) -> (Account) query;
+  change_owner : (principal) -> ();
+  create_account : (opt Environment, opt text) -> (Result);
+  get_account : (text) -> (Account) query;
   get_accounts : () -> (vec Account) query;
+  get_caller : () -> (principal) query;
+  get_owner : () -> (principal) query;
   get_public_key : (text) -> (Keys) query;
+  get_signed : (text) -> (SignedTransaction) query;
   number_of_accounts : () -> (nat8) query;
-  sign_transaction : (nat8, nat64, vec nat8) -> (Result_1);
+  sign_transaction : (text, nat64, vec nat8) -> (Result_1);
 }

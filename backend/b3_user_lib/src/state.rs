@@ -1,111 +1,122 @@
-use ic_cdk::export::{candid::CandidType, serde::Deserialize, Principal};
+use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use ic_cdk::trap;
 use std::cell::RefCell;
+use std::collections::HashMap;
 
 use crate::account::Account;
 use crate::config::Environment;
+use crate::ecdsa::Ecdsa;
 use crate::keys::Keys;
-use crate::subaccount::Subaccount;
 
 #[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct State {
-    subaccount: Subaccount,
-    accounts: Vec<Account>,
     dev_counter: u8,
     prod_counter: u8,
+    accounts: HashMap<String, Account>,
 }
 
 impl Default for State {
     fn default() -> Self {
         State {
-            subaccount: Subaccount::default(),
-            accounts: Vec::with_capacity(512),
-            prod_counter: 0,
             dev_counter: 0,
+            prod_counter: 0,
+            accounts: HashMap::new(),
         }
     }
 }
 
 impl State {
-    pub fn init(&mut self, caller: Principal) {
-        if self.accounts.len() > 0 {
-            trap("State already initialized!");
-        }
-
-        self.subaccount = Subaccount::new(&caller);
-    }
-
-    pub fn insert_account(&mut self, mut account: Account, name: Option<String>) -> u8 {
-        if self.accounts.len() == self.accounts.capacity() {
-            trap("Maximum number of accounts reached!");
-        }
-
-        let id = match account.env() {
+    pub fn insert_account(&mut self, mut account: Account, name: Option<String>) -> String {
+        let default_name = match account.env() {
             Environment::Production => {
+                if self.prod_counter == 255 {
+                    trap("Maximum number of production accounts reached!");
+                }
+
                 self.prod_counter += 1;
 
-                self.prod_counter
+                format!("Account {}", self.prod_counter)
             }
             _ => {
+                if self.dev_counter == 255 {
+                    trap("Maximum number of development accounts reached!");
+                }
+
                 self.dev_counter += 1;
 
-                self.dev_counter
+                format!("Dev Account {}", self.dev_counter)
             }
         };
 
         if let Some(name) = name {
             account.update_name(name)
         } else {
-            account.update_name(format!("Account {}", id));
+            account.update_name(default_name);
         }
 
-        self.accounts.push(account);
+        let id = account.id();
 
-        self.accounts.len() as u8
+        self.accounts.insert(id.clone(), account);
+
+        id
     }
 
-    pub fn drivation_path(&self, env: &Environment, id: u8) -> Vec<u8> {
-        self.subaccount.derive_hd_path(env, id)
+    pub fn ecdsa_path(&self, env: Environment, index: u8) -> Ecdsa {
+        let mut path = Vec::new();
+
+        if env == Environment::Production {
+            path.extend_from_slice(&index.to_be_bytes());
+        } else {
+            path.extend_from_slice(&0_u8.to_be_bytes());
+            path.extend_from_slice(&index.to_be_bytes());
+        }
+
+        Ecdsa::new(path, env.clone())
     }
 
-    pub fn new_drivation_path(&self, env: &Environment) -> Vec<u8> {
-        if self.accounts.len() == self.accounts.capacity() {
+    pub fn new_ecdsa_path(&self, env: Option<Environment>) -> Ecdsa {
+        if self.accounts.len() == 512 {
             trap("Maximum number of accounts reached!");
         }
 
-        let id = self.next_account_id(env);
+        let env = env.unwrap_or(Environment::Production);
 
-        self.subaccount.derive_hd_path(env, id)
+        let counter = self.account_counter(&env);
+
+        self.ecdsa_path(env, counter)
     }
 
-    pub fn next_account_id(&self, env: &Environment) -> u8 {
+    pub fn account_counter(&self, env: &Environment) -> u8 {
         match env {
-            Environment::Production => self.prod_counter + 1,
-            _ => self.dev_counter + 1,
+            Environment::Production => self.prod_counter,
+            _ => self.dev_counter,
         }
     }
 
-    pub fn account(&self, index: u8) -> Option<Account> {
-        self.accounts.get(index as usize).cloned()
+    pub fn account(&self, id: &String) -> Option<Account> {
+        self.accounts.get(id).cloned()
     }
 
-    pub fn account_key(&self, id: String) -> Option<Keys> {
-        self.accounts
-            .iter()
-            .find(|account| account.id() == id)
-            .map(|account| account.keys())
+    pub fn account_mut(&mut self, id: &String) -> Option<&mut Account> {
+        self.accounts.get_mut(id)
     }
 
     pub fn account_keys(&self) -> Vec<Keys> {
-        self.accounts.iter().map(|account| account.keys()).collect()
+        self.accounts
+            .iter()
+            .map(|(_, account)| account.keys())
+            .collect()
+    }
+
+    pub fn accounts(&self) -> Vec<Account> {
+        self.accounts
+            .iter()
+            .map(|(_, account)| account.clone())
+            .collect()
     }
 
     pub fn accounts_len(&self) -> u8 {
         self.accounts.len() as u8
-    }
-
-    pub fn accounts(&self) -> Vec<Account> {
-        self.accounts.clone()
     }
 }
 

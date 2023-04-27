@@ -1,15 +1,13 @@
 use candid::{CandidType, Principal};
 use serde::{Deserialize, Serialize};
 
-use crate::{identifier::AccountIdentifier, keys::Keys, subaccount::Subaccount};
+use crate::keys::Keys;
 
 pub const MAINNET_LEDGER_CANISTER_ID: Principal =
     Principal::from_slice(&[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x01, 0x01]);
 
 pub const MAINNET_CYCLES_MINTING_CANISTER_ID: Principal =
     Principal::from_slice(&[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x01, 0x01]);
-
-pub type UserId = Principal;
 
 #[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct SignRequest {
@@ -61,15 +59,6 @@ pub struct Tokens {
     pub e8s: u64,
 }
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
-pub struct TransferArgs {
-    pub memo: Memo,
-    pub amount: Tokens,
-    pub fee: Tokens,
-    pub from_subaccount: Option<Subaccount>,
-    pub to: AccountIdentifier,
-    pub created_at_time: Option<Timestamp>,
-}
 // pub const DEFAULT_SUBACCOUNT: Subaccount = Subaccount([0; 32]);
 
 #[derive(CandidType, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
@@ -116,10 +105,6 @@ pub struct TransferFee {
 }
 #[derive(Debug, CandidType, Deserialize)]
 pub struct TransferFeeArgs {}
-#[derive(CandidType)]
-pub struct AccountBalanceArgs {
-    pub account: AccountIdentifier,
-}
 
 type CanisterId = Principal;
 

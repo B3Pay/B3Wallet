@@ -14,6 +14,7 @@ pub struct Account {
     name: String,
     keys: Keys,
     ecdsa: Ecdsa,
+    signed: SignedTransaction,
     requests: Vec<SignRequest>,
     canisters: HashMap<CanisterId, Allowance>,
 }
@@ -27,14 +28,13 @@ impl Default for Account {
             ecdsa: Ecdsa::default(),
             requests: Vec::new(),
             canisters: HashMap::new(),
+            signed: SignedTransaction::default(),
         }
     }
 }
 
 impl Account {
-    pub async fn new(path: Vec<u8>, env: Environment) -> Self {
-        let ecdsa = Ecdsa::new(path, env);
-
+    pub async fn new(ecdsa: Ecdsa) -> Self {
         let bytes = ecdsa.public_key().await;
         let id = ecdsa.path_id();
 
@@ -45,6 +45,7 @@ impl Account {
             keys: Keys::new(bytes),
             requests: Vec::new(),
             canisters: HashMap::new(),
+            signed: SignedTransaction::default(),
         }
     }
 
@@ -96,6 +97,10 @@ impl Account {
 
     pub fn update_name(&mut self, name: String) {
         self.name = name;
+    }
+
+    pub fn signed(&self) -> SignedTransaction {
+        self.signed.clone()
     }
 
     pub fn keys(&self) -> Keys {

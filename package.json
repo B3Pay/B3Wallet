@@ -12,14 +12,15 @@
   ],
   "scripts": {
     "dev": "next dev",
+    "ic:dev": "DFX_NETWORK=ic next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "export": "next build",
-    "generate": "cargo test && dfx generate",
-    "sync:hello": "DFX_NETWORK=local && rsync -avr .dfx/$(echo ${DFX_NETWORK:-'**'})/canisters/hello --exclude='idl/' --exclude='*.wasm' --delete ui/declarations",
-    "sync:image": "DFX_NETWORK=local && rsync -avr .dfx/$(echo ${DFX_NETWORK:-'**'})/canisters/image --exclude='idl/' --exclude='*.wasm' --delete ui/declarations"
+    "ic:deploy": "dfx generate && dfx deploy b3_user --network ic",
+    "env": "node dfx.webpack.config.js init",
+    "generate": "cargo test && dfx generate"
   },
   "devDependencies": {
     "@types/node": "^18.15.13",
@@ -32,7 +33,9 @@
   },
   "dependencies": {
     "@dfinity/agent": "^0.15",
+    "@dfinity/auth-client": "^0.15.6",
     "@dfinity/candid": "^0.15",
+    "@dfinity/identity": "^0.15.6",
     "@dfinity/principal": "^0.15",
     "assert": "^2.0.0",
     "buffer": "^6.0.3",

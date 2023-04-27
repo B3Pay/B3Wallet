@@ -1,26 +1,32 @@
-import { Account, Result } from "declarations/b3_user/b3_user.did"
-import { useEffect, useState } from "react"
-
-// Dfinity
-import { B3User, makeB3UserActor } from "service/actor"
+import { Account, Environment, Result } from "declarations/b3_user/b3_user.did"
+import useAuthClient from "hooks/useAuthClient"
+import { useCallback, useEffect, useState } from "react"
+import EthAccount from "./EthAccount"
 
 const CreateAccount = () => {
   const [name, setName] = useState<string>()
+  const [environment, setEnvironment] = useState<Environment>({
+    Production: null
+  })
+
   const [loading, setLoading] = useState("")
   const [response, setResponse] = useState<Result>()
-  const [actor, setActor] = useState<B3User>()
   const [accounts, setAccounts] = useState<Account[]>([])
+  const { isAuthenticated, login, logout, actor } = useAuthClient()
 
-  useEffect(() => {
-    const b3UserActor = makeB3UserActor()
-    setActor(b3UserActor)
-  }, [])
+  const fetchAccounts = useCallback(async () => {
+    if (!actor) {
+      return
+    }
 
-  useEffect(() => {
-    actor?.get_accounts().then((accounts: any) => {
-      setAccounts(accounts)
-    })
+    const accounts = await actor.get_accounts()
+
+    setAccounts(accounts)
   }, [actor])
+
+  useEffect(() => {
+    fetchAccounts()
+  }, [fetchAccounts])
 
   function onChangeName(e: React.ChangeEvent<HTMLInputElement>) {
     const newName = e.target.value
@@ -28,20 +34,23 @@ const CreateAccount = () => {
   }
 
   async function createAccount() {
+    if (!actor) {
+      return
+    }
+
     setResponse(undefined)
     setLoading("Loading...")
 
-    const b3UserActor = makeB3UserActor()
-    const greeting = await b3UserActor.create_account(
-      { Development: null },
+    const account = await actor.create_account(
+      [environment],
       name ? [name] : []
     )
 
-    setLoading("")
-    setResponse(greeting)
-  }
+    fetchAccounts()
 
-  console.log("acciybt response", response)
+    setLoading("")
+    setResponse(account)
+  }
 
   return (
     <div>
@@ -55,6 +64,18 @@ const CreateAccount = () => {
           value={name}
           onChange={onChangeName}
         />
+        <select
+          value={Object.keys(environment)[0]}
+          onChange={e => {
+            const env = e.target.value
+
+            setEnvironment({ [env]: null } as Environment)
+          }}
+        >
+          <option value="Development">Development</option>
+          <option value="Production">Production</option>
+          <option value="Staging">Staging</option>
+        </select>
         <button onClick={createAccount}>Create</button>
       </section>
       <section>
@@ -62,16 +83,19 @@ const CreateAccount = () => {
         {loading}
         {JSON.stringify(response)}
       </section>
-      <section>
-        <label>Accounts: &nbsp;</label>
-        {accounts.map(account => {
-          return (
-            <div key={account.name}>
-              {account.name}: {account.public_key.address}
-            </div>
-          )
-        })}
-      </section>
+      {!isAuthenticated ? (
+        <section>
+          <button onClick={login}>Login</button>
+        </section>
+      ) : (
+        <section>
+          <label>Accounts: &nbsp;</label>
+          {accounts.map((account, index) => (
+            <EthAccount key={index} {...account} actor={actor} />
+          ))}
+          <button onClick={logout}>Logout</button>
+        </section>
+      )}
     </div>
   )
 }

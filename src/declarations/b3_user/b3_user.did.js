@@ -4,48 +4,58 @@ export const idlFactory = ({ IDL }) => {
     'Development' : IDL.Null,
     'Staging' : IDL.Null,
   });
-  const PublicKey = IDL.Record({
+  const Keys = IDL.Record({
     'address' : IDL.Text,
     'bytes' : IDL.Vec(IDL.Nat8),
   });
-  const Result = IDL.Variant({ 'Ok' : PublicKey, 'Err' : IDL.Text });
-  const Config = IDL.Record({
-    'env' : Environment,
-    'sign_cycles' : IDL.Nat64,
-    'key_name' : IDL.Text,
+  const Ecdsa = IDL.Record({ 'env' : Environment, 'path' : IDL.Vec(IDL.Nat8) });
+  const Allowance = IDL.Record({
+    'updated_at' : IDL.Nat64,
+    'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
+    'created_at' : IDL.Nat64,
+    'limit' : IDL.Opt(IDL.Nat8),
+    'expires_at' : IDL.Opt(IDL.Nat64),
   });
-  const Derivation = IDL.Record({
-    'path' : IDL.Vec(IDL.Nat8),
-    'config' : Config,
-  });
-  const Status = IDL.Variant({
-    'Failed' : IDL.Null,
-    'Success' : IDL.Null,
-    'Pending' : IDL.Null,
+  const SignRequest = IDL.Record({
+    'id' : IDL.Nat64,
+    'destination' : IDL.Principal,
+    'public_key' : Keys,
+    'data' : IDL.Vec(IDL.Nat8),
+    'deadline' : IDL.Nat64,
+    'cycles' : IDL.Nat64,
+    'chain_id' : IDL.Nat64,
+    'nonce' : IDL.Nat64,
   });
   const SignedTransaction = IDL.Record({
-    'status' : Status,
     'data' : IDL.Vec(IDL.Nat8),
     'timestamp' : IDL.Nat64,
   });
-  const ChainData = IDL.Record({
-    'nonce' : IDL.Nat64,
-    'transactions' : IDL.Vec(SignedTransaction),
-  });
   const Account = IDL.Record({
-    'derivation' : Derivation,
-    'public_key' : PublicKey,
+    'id' : IDL.Text,
+    'keys' : Keys,
     'name' : IDL.Text,
-    'chain_data' : IDL.Vec(IDL.Tuple(IDL.Nat64, ChainData)),
+    'ecdsa' : Ecdsa,
+    'canisters' : IDL.Vec(IDL.Tuple(IDL.Principal, Allowance)),
+    'requests' : IDL.Vec(SignRequest),
+    'signed' : SignedTransaction,
   });
+  const Result = IDL.Variant({ 'Ok' : Account, 'Err' : IDL.Text });
   const Result_1 = IDL.Variant({ 'Ok' : SignedTransaction, 'Err' : IDL.Text });
   return IDL.Service({
-    'create_account' : IDL.Func([Environment, IDL.Opt(IDL.Text)], [Result], []),
-    'get_account' : IDL.Func([IDL.Nat8], [Account], ['query']),
+    'change_owner' : IDL.Func([IDL.Principal], [], []),
+    'create_account' : IDL.Func(
+        [IDL.Opt(Environment), IDL.Opt(IDL.Text)],
+        [Result],
+        [],
+      ),
+    'get_account' : IDL.Func([IDL.Text], [Account], ['query']),
     'get_accounts' : IDL.Func([], [IDL.Vec(Account)], ['query']),
-    'get_public_key' : IDL.Func([IDL.Nat8], [PublicKey], ['query']),
+    'get_caller' : IDL.Func([], [IDL.Principal], ['query']),
+    'get_owner' : IDL.Func([], [IDL.Principal], ['query']),
+    'get_public_key' : IDL.Func([IDL.Text], [Keys], ['query']),
+    'number_of_accounts' : IDL.Func([], [IDL.Nat8], ['query']),
     'sign_transaction' : IDL.Func(
-        [IDL.Nat8, IDL.Nat64, IDL.Vec(IDL.Nat8)],
+        [IDL.Text, IDL.Nat64, IDL.Vec(IDL.Nat8)],
         [Result_1],
         [],
       ),

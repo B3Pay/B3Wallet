@@ -1,30 +1,58 @@
-use candid::{candid_method, Principal};
-use ic_cdk::{init, post_upgrade, pre_upgrade, query, update};
+use std::cell::RefCell;
+
+use b3_user_lib::state::STATE;
+use ic_cdk::api::call::arg_data;
+use ic_cdk::export::{candid::candid_method, Principal};
+use ic_cdk::{caller, init, post_upgrade, pre_upgrade, query, update};
 
 use b3_user_lib::{
-    account::Account,
-    config::Environment,
-    keys::Keys,
-    signed::SignedTransaction,
-    state::{State, STATE},
+    account::Account, config::Environment, keys::Keys, signed::SignedTransaction, state::State,
 };
+
+thread_local! {
+    static OWNER: RefCell<Principal> = RefCell::new(Principal::anonymous());
+}
+
+pub fn caller_is_owner() -> Result<(), String> {
+    let caller = caller();
+    let controllers: Principal = OWNER.with(|state| state.borrow().clone());
+
+    if caller == controllers {
+        Ok(())
+    } else {
+        Err("Caller is not the owner.".to_string())
+    }
+}
 
 #[init]
 #[candid_method(init)]
 pub fn init() {
-    STATE.with(|s| {
-        let mut state = s.borrow_mut();
-        state.init(Principal::anonymous());
+    let owner = arg_data::<(Principal,)>().0;
+
+    OWNER.with(|s| {
+        *s.borrow_mut() = owner;
     });
 }
 
 #[query]
 #[candid_method(query)]
-pub fn get_account(account_id: u8) -> Account {
+pub fn get_caller() -> Principal {
+    caller()
+}
+
+#[query]
+#[candid_method(query)]
+pub fn get_owner() -> Principal {
+    OWNER.with(|s| s.borrow().clone())
+}
+
+#[query]
+#[candid_method(query)]
+pub fn get_account(account_id: String) -> Account {
     STATE.with(|s| {
         let state = s.borrow();
 
-        state.account(account_id).unwrap()
+        state.account(&account_id).unwrap()
     })
 }
 
@@ -44,7 +72,17 @@ pub fn get_public_key(account_id: String) -> Keys {
     STATE.with(|s| {
         let state = s.borrow();
 
-        state.account_key(account_id).unwrap()
+        state.account(&account_id).unwrap().keys()
+    })
+}
+
+#[query]
+#[candid_method(query)]
+pub fn get_signed(account_id: String) -> SignedTransaction {
+    STATE.with(|s| {
+        let state = s.borrow();
+
+        state.account(&account_id).unwrap().signed()
     })
 }
 
@@ -58,19 +96,30 @@ pub fn get_accounts() -> Vec<Account> {
     })
 }
 
-#[update]
+#[update(guard = "caller_is_owner")]
 #[candid_method(update)]
-pub async fn create_account(env: Environment, name: Option<String>) -> Result<Account, String> {
-    let drivation_path = STATE.with(|s| s.borrow().new_drivation_path(&env));
+pub fn change_owner(new_owner: Principal) {
+    OWNER.with(|s| {
+        *s.borrow_mut() = new_owner;
+    });
+}
 
-    let account = Account::new(drivation_path, env).await;
+#[update(guard = "caller_is_owner")]
+#[candid_method(update)]
+pub async fn create_account(
+    env: Option<Environment>,
+    name: Option<String>,
+) -> Result<Account, String> {
+    let ecdsa_path = STATE.with(|s| s.borrow().new_ecdsa_path(env));
+
+    let account = Account::new(ecdsa_path).await;
 
     let state_account = STATE.with(|s| {
         let mut state = s.borrow_mut();
 
-        let index = state.insert_account(account, name);
+        let id = state.insert_account(account, name);
 
-        state.account(index)
+        state.account(&id)
     });
 
     if let Some(state_account) = state_account {
@@ -80,23 +129,23 @@ pub async fn create_account(env: Environment, name: Option<String>) -> Result<Ac
     }
 }
 
-#[update]
+#[update(guard = "caller_is_owner")]
 #[candid_method(update)]
 pub async fn sign_transaction(
-    account_id: u8,
+    account_id: String,
     chain_id: u64,
     hex_raw_tx: Vec<u8>,
 ) -> Result<SignedTransaction, String> {
     let account = STATE.with(|s| {
         let state = s.borrow();
 
-        state.account(account_id)
+        state.account(&account_id)
     });
 
     if let Some(account) = account {
         let tx = account.sign_transaction(hex_raw_tx, chain_id).await;
 
-        Ok(tx)
+        Ok(tx.clone())
     } else {
         Err(format!("account does not exist: {}", account_id))
     }
@@ -104,16 +153,21 @@ pub async fn sign_transaction(
 
 #[pre_upgrade]
 pub fn pre_upgrade() {
+    let owner = OWNER.with(|s| s.borrow().clone());
     STATE.with(|s| {
-        ic_cdk::storage::stable_save((s,)).unwrap();
+        ic_cdk::storage::stable_save((s, owner)).unwrap();
     });
 }
 
 #[post_upgrade]
 pub fn post_upgrade() {
-    let (s_prev,): (State,) = ic_cdk::storage::stable_restore().unwrap();
+    let (s_prev, owner_prev): (State, Principal) = ic_cdk::storage::stable_restore().unwrap();
     STATE.with(|s| {
         *s.borrow_mut() = s_prev;
+    });
+
+    OWNER.with(|s| {
+        *s.borrow_mut() = owner_prev;
     });
 }
 

@@ -2,50 +2,55 @@ import type { Principal } from '@dfinity/principal';
 import type { ActorMethod } from '@dfinity/agent';
 
 export interface Account {
-  'derivation' : Derivation,
-  'public_key' : PublicKey,
+  'id' : string,
+  'keys' : Keys,
   'name' : string,
-  'chain_data' : Array<[bigint, ChainData]>,
+  'ecdsa' : Ecdsa,
+  'canisters' : Array<[Principal, Allowance]>,
+  'requests' : Array<SignRequest>,
+  'signed' : SignedTransaction,
 }
-export interface ChainData {
-  'nonce' : bigint,
-  'transactions' : Array<SignedTransaction>,
+export interface Allowance {
+  'updated_at' : bigint,
+  'metadata' : Array<[string, string]>,
+  'created_at' : bigint,
+  'limit' : [] | [number],
+  'expires_at' : [] | [bigint],
 }
-export interface Config {
-  'env' : Environment,
-  'sign_cycles' : bigint,
-  'key_name' : string,
-}
-export interface Derivation {
-  'path' : Uint8Array | number[],
-  'config' : Config,
-}
+export interface Ecdsa { 'env' : Environment, 'path' : Uint8Array | number[] }
 export type Environment = { 'Production' : null } |
   { 'Development' : null } |
   { 'Staging' : null };
-export interface PublicKey {
-  'address' : string,
-  'bytes' : Uint8Array | number[],
-}
-export type Result = { 'Ok' : PublicKey } |
+export interface Keys { 'address' : string, 'bytes' : Uint8Array | number[] }
+export type Result = { 'Ok' : Account } |
   { 'Err' : string };
 export type Result_1 = { 'Ok' : SignedTransaction } |
   { 'Err' : string };
+export interface SignRequest {
+  'id' : bigint,
+  'destination' : Principal,
+  'public_key' : Keys,
+  'data' : Uint8Array | number[],
+  'deadline' : bigint,
+  'cycles' : bigint,
+  'chain_id' : bigint,
+  'nonce' : bigint,
+}
 export interface SignedTransaction {
-  'status' : Status,
   'data' : Uint8Array | number[],
   'timestamp' : bigint,
 }
-export type Status = { 'Failed' : null } |
-  { 'Success' : null } |
-  { 'Pending' : null };
 export interface _SERVICE {
-  'create_account' : ActorMethod<[Environment, [] | [string]], Result>,
-  'get_account' : ActorMethod<[number], Account>,
+  'change_owner' : ActorMethod<[Principal], undefined>,
+  'create_account' : ActorMethod<[[] | [Environment], [] | [string]], Result>,
+  'get_account' : ActorMethod<[string], Account>,
   'get_accounts' : ActorMethod<[], Array<Account>>,
-  'get_public_key' : ActorMethod<[number], PublicKey>,
+  'get_caller' : ActorMethod<[], Principal>,
+  'get_owner' : ActorMethod<[], Principal>,
+  'get_public_key' : ActorMethod<[string], Keys>,
+  'number_of_accounts' : ActorMethod<[], number>,
   'sign_transaction' : ActorMethod<
-    [number, bigint, Uint8Array | number[]],
+    [string, bigint, Uint8Array | number[]],
     Result_1
   >,
 }

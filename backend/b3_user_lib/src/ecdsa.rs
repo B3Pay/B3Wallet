@@ -3,10 +3,6 @@ use ic_cdk::{
     trap,
 };
 
-#[cfg(test)]
-use crate::mocks::ic_call;
-
-#[cfg(not(test))]
 use ic_cdk::api::call::call_with_payment as ic_call;
 
 use crate::{
