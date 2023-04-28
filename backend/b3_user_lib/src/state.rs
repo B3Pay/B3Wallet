@@ -1,7 +1,7 @@
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use ic_cdk::trap;
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use crate::account::Account;
 use crate::config::Environment;
@@ -12,7 +12,7 @@ use crate::keys::Keys;
 pub struct State {
     dev_counter: u8,
     prod_counter: u8,
-    accounts: HashMap<String, Account>,
+    accounts: BTreeMap<String, Account>,
 }
 
 impl Default for State {
@@ -20,7 +20,7 @@ impl Default for State {
         State {
             dev_counter: 0,
             prod_counter: 0,
-            accounts: HashMap::new(),
+            accounts: BTreeMap::new(),
         }
     }
 }

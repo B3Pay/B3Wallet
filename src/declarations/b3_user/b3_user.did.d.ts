@@ -24,7 +24,9 @@ export type Environment = { 'Production' : null } |
 export interface Keys { 'address' : string, 'bytes' : Uint8Array | number[] }
 export type Result = { 'Ok' : Account } |
   { 'Err' : string };
-export type Result_1 = { 'Ok' : SignedTransaction } |
+export type Result_1 = { 'Ok' : Uint8Array | number[] } |
+  { 'Err' : string };
+export type Result_2 = { 'Ok' : SignedTransaction } |
   { 'Err' : string };
 export interface SignRequest {
   'id' : bigint,
@@ -48,9 +50,11 @@ export interface _SERVICE {
   'get_caller' : ActorMethod<[], Principal>,
   'get_owner' : ActorMethod<[], Principal>,
   'get_public_key' : ActorMethod<[string], Keys>,
+  'get_signature' : ActorMethod<[string, Uint8Array | number[]], Result_1>,
+  'get_signed' : ActorMethod<[string], SignedTransaction>,
   'number_of_accounts' : ActorMethod<[], number>,
   'sign_transaction' : ActorMethod<
     [string, bigint, Uint8Array | number[]],
-    Result_1
+    Result_2
   >,
 }

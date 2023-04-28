@@ -40,7 +40,8 @@ export const idlFactory = ({ IDL }) => {
     'signed' : SignedTransaction,
   });
   const Result = IDL.Variant({ 'Ok' : Account, 'Err' : IDL.Text });
-  const Result_1 = IDL.Variant({ 'Ok' : SignedTransaction, 'Err' : IDL.Text });
+  const Result_1 = IDL.Variant({ 'Ok' : IDL.Vec(IDL.Nat8), 'Err' : IDL.Text });
+  const Result_2 = IDL.Variant({ 'Ok' : SignedTransaction, 'Err' : IDL.Text });
   return IDL.Service({
     'change_owner' : IDL.Func([IDL.Principal], [], []),
     'create_account' : IDL.Func(
@@ -53,12 +54,14 @@ export const idlFactory = ({ IDL }) => {
     'get_caller' : IDL.Func([], [IDL.Principal], ['query']),
     'get_owner' : IDL.Func([], [IDL.Principal], ['query']),
     'get_public_key' : IDL.Func([IDL.Text], [Keys], ['query']),
+    'get_signature' : IDL.Func([IDL.Text, IDL.Vec(IDL.Nat8)], [Result_1], []),
+    'get_signed' : IDL.Func([IDL.Text], [SignedTransaction], ['query']),
     'number_of_accounts' : IDL.Func([], [IDL.Nat8], ['query']),
     'sign_transaction' : IDL.Func(
         [IDL.Text, IDL.Nat64, IDL.Vec(IDL.Nat8)],
-        [Result_1],
+        [Result_2],
         [],
       ),
   });
 };
-export const init = ({ IDL }) => { return []; };
+export const init = ({ IDL }) => { return [IDL.Principal]; };

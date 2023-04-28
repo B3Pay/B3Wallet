@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 
 use b3_user_lib::state::STATE;
-use ic_cdk::api::call::arg_data;
+// use ic_cdk::api::call::arg_data;
 use ic_cdk::export::{candid::candid_method, Principal};
 use ic_cdk::{caller, init, post_upgrade, pre_upgrade, query, update};
 
@@ -26,8 +26,8 @@ pub fn caller_is_owner() -> Result<(), String> {
 
 #[init]
 #[candid_method(init)]
-pub fn init() {
-    let owner = arg_data::<(Principal,)>().0;
+pub fn init(owner: Principal) {
+    // let owner = arg_data::<(Principal,)>().0;
 
     OWNER.with(|s| {
         *s.borrow_mut() = owner;
@@ -131,10 +131,28 @@ pub async fn create_account(
 
 #[update(guard = "caller_is_owner")]
 #[candid_method(update)]
+pub async fn sign_message(account_id: String, message_hash: Vec<u8>) -> Result<Vec<u8>, String> {
+    let account = STATE.with(|s| {
+        let state = s.borrow();
+
+        state.account(&account_id)
+    });
+
+    if let Some(account) = account {
+        let signature = account.sign_message(message_hash).await;
+
+        Ok(signature)
+    } else {
+        Err(format!("account does not exist: {}", account_id))
+    }
+}
+
+#[update(guard = "caller_is_owner")]
+#[candid_method(update)]
 pub async fn sign_transaction(
     account_id: String,
-    chain_id: u64,
     hex_raw_tx: Vec<u8>,
+    chain_id: u64,
 ) -> Result<SignedTransaction, String> {
     let account = STATE.with(|s| {
         let state = s.borrow();
@@ -145,7 +163,7 @@ pub async fn sign_transaction(
     if let Some(account) = account {
         let tx = account.sign_transaction(hex_raw_tx, chain_id).await;
 
-        Ok(tx.clone())
+        Ok(tx)
     } else {
         Err(format!("account does not exist: {}", account_id))
     }

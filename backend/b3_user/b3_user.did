@@ -18,7 +18,8 @@ type Ecdsa = record { env : Environment; path : vec nat8 };
 type Environment = variant { Production; Development; Staging };
 type Keys = record { address : text; bytes : vec nat8 };
 type Result = variant { Ok : Account; Err : text };
-type Result_1 = variant { Ok : SignedTransaction; Err : text };
+type Result_1 = variant { Ok : vec nat8; Err : text };
+type Result_2 = variant { Ok : SignedTransaction; Err : text };
 type SignRequest = record {
   id : nat64;
   destination : principal;
@@ -30,7 +31,7 @@ type SignRequest = record {
   nonce : nat64;
 };
 type SignedTransaction = record { data : vec nat8; timestamp : nat64 };
-service : () -> {
+service : (principal) -> {
   change_owner : (principal) -> ();
   create_account : (opt Environment, opt text) -> (Result);
   get_account : (text) -> (Account) query;
@@ -38,7 +39,8 @@ service : () -> {
   get_caller : () -> (principal) query;
   get_owner : () -> (principal) query;
   get_public_key : (text) -> (Keys) query;
+  get_signature : (text, vec nat8) -> (Result_1);
   get_signed : (text) -> (SignedTransaction) query;
   number_of_accounts : () -> (nat8) query;
-  sign_transaction : (text, nat64, vec nat8) -> (Result_1);
+  sign_transaction : (text, nat64, vec nat8) -> (Result_2);
 }

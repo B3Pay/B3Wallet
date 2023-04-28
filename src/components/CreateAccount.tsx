@@ -81,7 +81,28 @@ const CreateAccount = () => {
       <section>
         <label>Response: &nbsp;</label>
         {loading}
-        {JSON.stringify(response)}
+        <ul>
+          {response &&
+            "Ok" in response &&
+            Object.entries(response.Ok).map(([key, value]) => {
+              const child = (value: any) =>
+                value && typeof value === "object"
+                  ? Object.entries(value).map(([key, value]) => (
+                      <li key={key}>
+                        <label>{key}: &nbsp;</label>
+                        {child(value)}
+                      </li>
+                    ))
+                  : value
+
+              return (
+                <li key={key}>
+                  <label>{key}: &nbsp;</label>
+                  <ul>{child(value)}</ul>
+                </li>
+              )
+            })}
+        </ul>
       </section>
       {!isAuthenticated ? (
         <section>

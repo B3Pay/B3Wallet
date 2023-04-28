@@ -1,9 +1,9 @@
 import { Account } from "declarations/b3_user/b3_user.did"
-import { JsonRpcProvider, Transaction, formatEther, parseEther } from "ethers"
-import { useState } from "react"
+import { BigNumber, ethers, providers } from "ethers"
+import { useEffect, useState } from "react"
 import { B3User } from "service/actor"
 
-const provider = new JsonRpcProvider(
+const provider = new providers.JsonRpcProvider(
   "https://data-seed-prebsc-2-s1.binance.org:8545"
 )
 
@@ -19,78 +19,101 @@ export const EthAccount: React.FC<EthAccountProps> = ({
   ecdsa
 }) => {
   const [to, setTo] = useState<string>("")
-  const [loading, setLoading] = useState(false)
-  const [balance, setBalance] = useState<string>("")
+  const [amount, setAmount] = useState<string>("")
+  const [waiting, setWaiting] = useState("Send")
+  const [balance, setBalance] = useState<BigNumber>(BigNumber.from(0))
 
-  const handleSignTx = async e => {
+  const handleSignTx = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
 
-    if (actor === undefined) {
-      console.log({
-        title: "Error",
-        description: "Actor is undefined",
-        status: "error",
-        variant: "subtle"
-      })
+    setWaiting("Loading...")
+
+    if (!actor) {
       return
     }
-
-    setLoading(true)
 
     const nonce = await provider.getTransactionCount(keys.address)
-    const gasPrice = await provider.getFeeData().then(s => s.gasPrice)
-    const value = parseEther("0.0001")
+    const gasPrice = await provider.getGasPrice().then(s => s.toHexString())
+    const value = ethers.utils.parseEther(amount).toHexString()
     const data = "0x00"
-    const gasLimit = BigInt("24000")
-
-    const tx = new Transaction()
-
-    tx.nonce = nonce
-    tx.gasPrice = gasPrice
-    tx.gasLimit = gasLimit
-    tx.to = to
-    tx.value = value
-    tx.data = data
-
-    const serializeTx = Buffer.from(
-      tx.unsignedSerialized.slice(2) + "808080",
-      "hex"
-    )
-
-    console.log({ title: "Signing transaction...", variant: "subtle" })
-
-    console.log(serializeTx)
-
-    const res = await actor.sign_transaction(id, 97n, serializeTx)
-
-    if ("Err" in res) {
-      const message = res.Err ?? ""
-      console.log({
-        title: "Error",
-        description: message,
-        status: "error",
-        variant: "subtle"
-      })
-      return
+    const gasLimit = ethers.BigNumber.from("24000").toHexString()
+    const transaction = {
+      nonce,
+      gasPrice,
+      gasLimit,
+      to,
+      value,
+      data
     }
 
-    const signedTx = Buffer.from(res.Ok.data, "hex")
+    try {
+      const serializeTx = Buffer.from(
+        ethers.utils.serializeTransaction(transaction).slice(2) + "808080",
+        "hex"
+      )
 
-    console.log(signedTx)
+      setWaiting("Signing...")
 
-    console.log({ title: "Sending transaction...", variant: "subtle" })
+      console.log({ title: "Signing transaction...", variant: "subtle" })
 
-    const { hash } = await provider.broadcastTransaction(
-      "0x" + signedTx.toString("hex")
-    )
+      const res = (await actor.sign_transaction(id, 97n, [...serializeTx])) as
+        | { Err: string }
+        | { Ok: { data: string } }
 
-    await provider.waitForTransaction(hash)
+      if ("Err" in res) {
+        const message = res.Err ?? ""
+        console.log({
+          title: "Error",
+          description: message,
+          status: "error",
+          variant: "subtle"
+        })
+        setWaiting("Error")
 
-    setLoading(false)
+        setTimeout(() => {
+          setWaiting("Send")
+        }, 2000)
 
-    const balance = await provider.getBalance(keys.address)
-    setBalance(formatEther(balance))
+        return
+      }
+      const signedTx = Buffer.from(res.Ok.data, "hex")
+
+      console.log({ title: "Sending transaction...", variant: "subtle" })
+
+      setWaiting("Sending...")
+
+      const { hash } = await provider.sendTransaction(
+        "0x" + signedTx.toString("hex")
+      )
+
+      await provider.waitForTransaction(hash)
+
+      console.log({ title: "Transaction sent", variant: "subtle" })
+
+      setWaiting("Sent!")
+
+      setTimeout(() => {
+        setWaiting("Send")
+      }, 2000)
+    } catch (error) {
+      console.log(error)
+
+      setWaiting("Error")
+
+      setTimeout(() => {
+        setWaiting("Send")
+      }, 2000)
+    }
   }
+
+  useEffect(() => {
+    const getBalance = async () => {
+      const balance = await provider.getBalance(keys.address)
+      setBalance(balance)
+    }
+
+    getBalance()
+  }, [keys.address])
 
   return (
     <div>
@@ -109,7 +132,7 @@ export const EthAccount: React.FC<EthAccountProps> = ({
       {id}
       <br />
       <label>Balance: &nbsp;</label>
-      {balance}
+      {balance.toString()}
       <br />
       <label>Send ETH: &nbsp;</label>
       <input
@@ -119,7 +142,14 @@ export const EthAccount: React.FC<EthAccountProps> = ({
         value={to}
         onChange={e => setTo(e.target.value)}
       />
-      <button onClick={handleSignTx}>Send</button>
+      <input
+        id="amount"
+        alt="Amount"
+        type="text"
+        value={amount}
+        onChange={e => setAmount(e.target.value)}
+      />
+      <button onClick={handleSignTx}>{waiting}</button>
     </div>
   )
 }

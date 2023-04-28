@@ -56,17 +56,29 @@ impl Account {
 
         assert!(message.len() == 32);
 
-        let signature = self.ecdsa.sign_message(message).await;
+        let signature = self.sign_message(message).await;
 
-        let signed_tx = tx.sign(signature, self.keys.key()).unwrap();
+        let signed_tx = tx.sign(signature, self.keys.bytes()).unwrap();
 
         SignedTransaction::new(signed_tx)
+    }
+
+    pub async fn sign_message(&self, message: Vec<u8>) -> Vec<u8> {
+        self.ecdsa.sign_message(message).await
+    }
+
+    pub fn insert_signed_transaction(&mut self, signed_tx: SignedTransaction) {
+        self.signed = signed_tx;
     }
 
     pub fn insert_canister(&mut self, canister_id: CanisterId, new_allowance: &SetAllowance) {
         let allowance = Allowance::new(new_allowance);
 
         self.canisters.insert(canister_id, allowance);
+    }
+
+    pub fn remove_canister(&mut self, canister_id: CanisterId) {
+        self.canisters.remove(&canister_id);
     }
 
     pub fn canister_allowance(&self, canister_id: CanisterId) -> Option<Allowance> {
@@ -83,20 +95,20 @@ impl Account {
         }
     }
 
-    pub fn sign_requests(&self) -> Vec<SignRequest> {
-        self.requests.clone()
-    }
-
-    pub fn connected_canisters(&self) -> HashMap<CanisterId, Allowance> {
-        self.canisters.clone()
-    }
-
     pub fn insert_request(&mut self, sign_request: SignRequest) {
         self.requests.push(sign_request);
     }
 
     pub fn update_name(&mut self, name: String) {
         self.name = name;
+    }
+
+    pub fn sign_requests(&self) -> Vec<SignRequest> {
+        self.requests.clone()
+    }
+
+    pub fn connected_canisters(&self) -> HashMap<CanisterId, Allowance> {
+        self.canisters.clone()
     }
 
     pub fn signed(&self) -> SignedTransaction {

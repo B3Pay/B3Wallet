@@ -33,17 +33,17 @@ impl Ecdsa {
         Ecdsa { path, env }
     }
 
+    pub fn config(&self) -> Config {
+        Config::from(self.env.clone())
+    }
+
     pub fn path_id(&self) -> String {
         let last = self.path.len() - 1;
 
         match self.env {
-            Environment::Production => format!("key_{:x}", self.path[last]),
-            _ => format!("test_key_{:x}", self.path[last]),
+            Environment::Production => format!("account_{:x}", self.path[last]),
+            _ => format!("test_account_{:x}", self.path[last]),
         }
-    }
-
-    pub fn config(&self) -> Config {
-        Config::from(self.env.clone())
     }
 
     pub fn key_id(&self) -> EcdsaKeyId {

@@ -29,7 +29,7 @@ impl Keys {
         Keys { bytes, address }
     }
 
-    pub fn key(&self) -> Vec<u8> {
+    pub fn bytes(&self) -> Vec<u8> {
         self.bytes.clone()
     }
 
