@@ -50,11 +50,11 @@ export interface _SERVICE {
   'get_caller' : ActorMethod<[], Principal>,
   'get_owner' : ActorMethod<[], Principal>,
   'get_public_key' : ActorMethod<[string], Keys>,
-  'get_signature' : ActorMethod<[string, Uint8Array | number[]], Result_1>,
   'get_signed' : ActorMethod<[string], SignedTransaction>,
   'number_of_accounts' : ActorMethod<[], number>,
+  'sign_message' : ActorMethod<[string, Uint8Array | number[]], Result_1>,
   'sign_transaction' : ActorMethod<
-    [string, bigint, Uint8Array | number[]],
+    [string, Uint8Array | number[], bigint],
     Result_2
   >,
 }

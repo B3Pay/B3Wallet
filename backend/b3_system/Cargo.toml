@@ -1,12 +1,12 @@
 [package]
-name = "b3_user"
-version = "1.0.1"
+name = "b3_system"
+version = "1.0.0"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
-b3_user_lib = { path = "../b3_user_lib" }
 candid = "0.8.4"
+serde = "1.0.160"
 ic-cdk = "0.7.4"

@@ -1,4 +1,5 @@
 use candid::{CandidType, Principal};
+use ic_cdk::api::management_canister::main::CanisterStatusResponse;
 use serde::{Deserialize, Serialize};
 
 use crate::keys::Keys;
@@ -8,6 +9,18 @@ pub const MAINNET_LEDGER_CANISTER_ID: Principal =
 
 pub const MAINNET_CYCLES_MINTING_CANISTER_ID: Principal =
     Principal::from_slice(&[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x01, 0x01]);
+
+#[derive(Debug, CandidType, Deserialize, Clone)]
+pub struct UserControlArgs {
+    pub owner: Principal,
+}
+
+#[derive(Debug, CandidType, Deserialize, Clone)]
+pub struct CanisterStatus {
+    pub id: Principal,
+    pub status: CanisterStatusResponse,
+    pub status_at: u64,
+}
 
 #[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct SignRequest {

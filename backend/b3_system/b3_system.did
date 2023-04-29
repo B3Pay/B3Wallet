@@ -1,0 +1,22 @@
+type Controller = record {
+  updated_at : nat64;
+  created_at : nat64;
+  expires_at : opt nat64;
+};
+type LoadRelease = record { total : nat64; chunks : nat64 };
+type Result = variant { Ok : UserControl; Err : text };
+type UserControl = record {
+  updated_at : nat64;
+  user_control_id : opt principal;
+  owner : principal;
+  created_at : nat64;
+};
+service : () -> {
+  add_controller : (principal) -> ();
+  create_user_control : () -> (Result);
+  get_controllers : () -> (vec record { principal; Controller }) query;
+  get_releases_version : () -> (text) query;
+  load_release : (vec nat8, text) -> (LoadRelease);
+  remove_controller : (principal) -> ();
+  reset_release : () -> ();
+}

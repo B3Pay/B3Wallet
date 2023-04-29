@@ -1,13 +1,17 @@
-use std::cell::RefCell;
-
 use b3_user_lib::state::STATE;
-// use ic_cdk::api::call::arg_data;
+use b3_user_lib::types::{CanisterStatus, UserControlArgs};
+use ic_cdk::api::call::arg_data;
+use ic_cdk::api::management_canister::main::canister_status;
+use ic_cdk::api::management_canister::provisional::CanisterIdRecord;
+use ic_cdk::api::time;
 use ic_cdk::export::{candid::candid_method, Principal};
 use ic_cdk::{caller, init, post_upgrade, pre_upgrade, query, update};
 
 use b3_user_lib::{
     account::Account, config::Environment, keys::Keys, signed::SignedTransaction, state::State,
 };
+
+use std::cell::RefCell;
 
 thread_local! {
     static OWNER: RefCell<Principal> = RefCell::new(Principal::anonymous());
@@ -26,8 +30,9 @@ pub fn caller_is_owner() -> Result<(), String> {
 
 #[init]
 #[candid_method(init)]
-pub fn init(owner: Principal) {
-    // let owner = arg_data::<(Principal,)>().0;
+pub fn init() {
+    let call_arg = arg_data::<(Option<UserControlArgs>,)>().0;
+    let owner = call_arg.unwrap().owner;
 
     OWNER.with(|s| {
         *s.borrow_mut() = owner;
@@ -169,6 +174,29 @@ pub async fn sign_transaction(
     }
 }
 
+#[candid_method(query)]
+#[query]
+fn version() -> String {
+    env!("CARGO_PKG_VERSION").to_string()
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_owner")]
+async fn status() -> Result<CanisterStatus, String> {
+    let canister_id = ic_cdk::id();
+
+    let status = canister_status(CanisterIdRecord { canister_id }).await;
+
+    match status {
+        Ok((status,)) => Ok(CanisterStatus {
+            id: canister_id,
+            status,
+            status_at: time(),
+        }),
+        Err((_, message)) => Err(["Failed to get canister status: ".to_string(), message].join("")),
+    }
+}
+
 #[pre_upgrade]
 pub fn pre_upgrade() {
     let owner = OWNER.with(|s| s.borrow().clone());
@@ -194,7 +222,7 @@ pub fn post_upgrade() {
 fn generate_candid() {
     use std::io::Write;
 
-    candid::export_service!();
+    ic_cdk::export::candid::export_service!();
 
     let candid = format!("{}", __export_service());
 

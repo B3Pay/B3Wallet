@@ -54,14 +54,14 @@ export const idlFactory = ({ IDL }) => {
     'get_caller' : IDL.Func([], [IDL.Principal], ['query']),
     'get_owner' : IDL.Func([], [IDL.Principal], ['query']),
     'get_public_key' : IDL.Func([IDL.Text], [Keys], ['query']),
-    'get_signature' : IDL.Func([IDL.Text, IDL.Vec(IDL.Nat8)], [Result_1], []),
     'get_signed' : IDL.Func([IDL.Text], [SignedTransaction], ['query']),
     'number_of_accounts' : IDL.Func([], [IDL.Nat8], ['query']),
+    'sign_message' : IDL.Func([IDL.Text, IDL.Vec(IDL.Nat8)], [Result_1], []),
     'sign_transaction' : IDL.Func(
-        [IDL.Text, IDL.Nat64, IDL.Vec(IDL.Nat8)],
+        [IDL.Text, IDL.Vec(IDL.Nat8), IDL.Nat64],
         [Result_2],
         [],
       ),
   });
 };
-export const init = ({ IDL }) => { return [IDL.Principal]; };
+export const init = ({ IDL }) => { return []; };

@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "backend/b3_system",
     "backend/b3_user",
     "backend/b3_user_lib",
 ]

@@ -9,6 +9,16 @@
         "node_compatibility": true
       }
     },
+    "b3_system": {
+      "type": "rust",
+      "package": "b3_system",
+      "candid": "backend/b3_system/b3_system.did",
+      "dependencies": ["b3_user"],
+      "declarations": {
+        "output": "src/declarations/b3_system",
+        "node_compatibility": true
+      }
+    },
     "wallet_assets": {
       "dependencies": ["b3_user"],
       "frontend": {

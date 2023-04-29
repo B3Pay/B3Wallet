@@ -31,7 +31,7 @@ type SignRequest = record {
   nonce : nat64;
 };
 type SignedTransaction = record { data : vec nat8; timestamp : nat64 };
-service : (principal) -> {
+service : () -> {
   change_owner : (principal) -> ();
   create_account : (opt Environment, opt text) -> (Result);
   get_account : (text) -> (Account) query;
@@ -39,8 +39,8 @@ service : (principal) -> {
   get_caller : () -> (principal) query;
   get_owner : () -> (principal) query;
   get_public_key : (text) -> (Keys) query;
-  get_signature : (text, vec nat8) -> (Result_1);
   get_signed : (text) -> (SignedTransaction) query;
   number_of_accounts : () -> (nat8) query;
-  sign_transaction : (text, nat64, vec nat8) -> (Result_2);
+  sign_message : (text, vec nat8) -> (Result_1);
+  sign_transaction : (text, vec nat8, nat64) -> (Result_2);
 }
