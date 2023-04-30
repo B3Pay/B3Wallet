@@ -103,8 +103,8 @@ impl State {
         self.user_controls.keys().cloned().collect()
     }
 
-    pub fn remove_user(&mut self, user: &UserId) {
-        self.remove_controller(*user);
+    pub fn remove_user_control(&mut self, user: &UserId) {
+        self.user_controls.remove(user);
     }
 
     pub fn add_controller(&mut self, controller_id: ControllerId) {
@@ -167,7 +167,7 @@ pub async fn new_user_control(user: &UserId, system: &Principal) -> Result<UserC
     match user_control_id {
         Err(e) => {
             // We delete the pending empty mission control center from the list - e.g. this can happens if manager is out of cycles and user would be blocked
-            STATE.with(|state| state.borrow_mut().remove_user(user));
+            STATE.with(|state| state.borrow_mut().remove_user_control(user));
             Err(["Canister cannot be initialized.", &e].join(""))
         }
         Ok(user_control_id) => {

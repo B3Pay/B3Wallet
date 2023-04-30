@@ -22,9 +22,15 @@ export const idlFactory = ({ IDL }) => {
       ),
     'get_releases_version' : IDL.Func([], [IDL.Text], ['query']),
     'get_user_control' : IDL.Func([], [IDL.Opt(UserControl)], ['query']),
+    'get_user_control_id' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Opt(IDL.Principal)],
+        ['query'],
+      ),
     'get_user_ids' : IDL.Func([], [IDL.Vec(IDL.Principal)], ['query']),
     'load_release' : IDL.Func([IDL.Vec(IDL.Nat8), IDL.Text], [LoadRelease], []),
     'remove_controller' : IDL.Func([IDL.Principal], [], []),
+    'remove_user_control' : IDL.Func([IDL.Principal], [], []),
     'reset_release' : IDL.Func([], [], []),
   });
 };

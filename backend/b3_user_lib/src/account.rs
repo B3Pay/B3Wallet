@@ -36,6 +36,7 @@ impl Default for Account {
 impl Account {
     pub async fn new(ecdsa: Ecdsa) -> Self {
         let bytes = ecdsa.public_key().await;
+
         let id = ecdsa.path_id();
 
         Account {

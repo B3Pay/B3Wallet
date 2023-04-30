@@ -5,8 +5,9 @@ export const idlFactory = ({ IDL }) => {
     'Staging' : IDL.Null,
   });
   const Keys = IDL.Record({
-    'address' : IDL.Text,
+    'eth_address' : IDL.Text,
     'bytes' : IDL.Vec(IDL.Nat8),
+    'btc_address' : IDL.Text,
   });
   const Ecdsa = IDL.Record({ 'env' : Environment, 'path' : IDL.Vec(IDL.Nat8) });
   const Allowance = IDL.Record({

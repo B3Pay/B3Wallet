@@ -21,8 +21,10 @@ export interface _SERVICE {
   'get_controllers' : ActorMethod<[], Array<[Principal, Controller]>>,
   'get_releases_version' : ActorMethod<[], string>,
   'get_user_control' : ActorMethod<[], [] | [UserControl]>,
+  'get_user_control_id' : ActorMethod<[Principal], [] | [Principal]>,
   'get_user_ids' : ActorMethod<[], Array<Principal>>,
   'load_release' : ActorMethod<[Uint8Array | number[], string], LoadRelease>,
   'remove_controller' : ActorMethod<[Principal], undefined>,
+  'remove_user_control' : ActorMethod<[Principal], undefined>,
   'reset_release' : ActorMethod<[], undefined>,
 }

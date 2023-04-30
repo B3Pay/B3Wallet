@@ -36,11 +36,12 @@ type DefiniteCanisterSettings = record {
 };
 type Ecdsa = record { env : Environment; path : vec nat8 };
 type Environment = variant { Production; Development; Staging };
-type Keys = record { address : text; bytes : vec nat8 };
+type Keys = record { eth_address : text; bytes : vec nat8; btc_address : text };
 type Result = variant { Ok : Account; Err : text };
-type Result_1 = variant { Ok : vec nat8; Err : text };
-type Result_2 = variant { Ok : SignedTransaction; Err : text };
-type Result_3 = variant { Ok : CanisterStatus; Err : text };
+type Result_1 = variant { Ok : nat64; Err : text };
+type Result_2 = variant { Ok : vec nat8; Err : text };
+type Result_3 = variant { Ok : SignedTransaction; Err : text };
+type Result_4 = variant { Ok : CanisterStatus; Err : text };
 type SignRequest = record {
   id : nat64;
   destination : principal;
@@ -57,13 +58,14 @@ service : () -> {
   create_account : (opt Environment, opt text) -> (Result);
   get_account : (text) -> (Account) query;
   get_accounts : () -> (vec Account) query;
+  get_balance : (text) -> (Result_1);
   get_caller : () -> (principal) query;
   get_owner : () -> (principal) query;
   get_public_key : (text) -> (Keys) query;
   get_signed : (text) -> (SignedTransaction) query;
   number_of_accounts : () -> (nat8) query;
-  sign_message : (text, vec nat8) -> (Result_1);
-  sign_transaction : (text, vec nat8, nat64) -> (Result_2);
-  status : () -> (Result_3);
+  sign_message : (text, vec nat8) -> (Result_2);
+  sign_transaction : (text, vec nat8, nat64) -> (Result_3);
+  status : () -> (Result_4);
   version : () -> (text) query;
 }

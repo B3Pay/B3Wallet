@@ -1,4 +1,42 @@
 use easy_hasher::easy_hasher;
+use ripemd::Ripemd160;
+use sha2::{Digest, Sha256};
+
+use crate::types::Network;
+
+fn sha256(data: &[u8]) -> Vec<u8> {
+    let mut hasher = Sha256::new();
+    hasher.update(data);
+    hasher.finalize().to_vec()
+}
+
+pub fn get_p2pkh_address_from_public_key(
+    network: Network,
+    public_key: Vec<u8>,
+) -> Result<String, String> {
+    if public_key.len() != 33 {
+        return Err("Invalid length of public key".to_string());
+    }
+    let mut hasher = Ripemd160::new();
+    hasher.update(public_key);
+    let result = hasher.finalize();
+
+    let prefix = match network {
+        Network::Testnet | Network::Regtest => 0x6f,
+        Network::Mainnet => 0x00,
+    };
+    let mut data_with_prefix = vec![prefix];
+    data_with_prefix.extend(result);
+
+    let checksum = &sha256(&sha256(&data_with_prefix.clone()))[..4];
+
+    let mut full_address = data_with_prefix;
+    full_address.extend(checksum);
+
+    let address: String = bs58::encode(full_address).into_string();
+
+    Ok(address)
+}
 
 pub fn get_address_from_public_key(public_key: Vec<u8>) -> Result<String, String> {
     if public_key.len() != 33 {

@@ -117,6 +117,16 @@ fn remove_controller(controller_id: ControllerId) {
 
 #[candid_method(update)]
 #[update(guard = "caller_is_controller")]
+fn remove_user_control(user: UserId) {
+    STATE.with(|s| {
+        let state = &mut *s.borrow_mut();
+
+        state.remove_user_control(&user);
+    });
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_controller")]
 fn load_release(blob: Vec<u8>, version: String) -> LoadRelease {
     STATE.with(|s| {
         s.borrow_mut().update_release(&blob, version);

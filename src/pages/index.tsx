@@ -19,6 +19,8 @@ function HomePage() {
   const [accounts, setAccounts] = useState<Account[]>([])
   const [actor, setActor] = useState<B3User>()
 
+  const [version, setVersion] = useState<string>("0.0.0")
+
   const fetchUserActor = useCallback(
     async (canisterId: string) => {
       if (!canisterId || !authClient) {
@@ -29,8 +31,9 @@ function HomePage() {
 
       const userActor = makeB3UserActor(canisterId, authClient.getIdentity())
 
-      console.log(userActor)
+      const version = await userActor.version()
 
+      setVersion(version)
       setActor(userActor)
       setLoading(false)
     },
@@ -78,23 +81,21 @@ function HomePage() {
     fetchCanisterId()
   }, [fetchCanisterId])
 
-  const createUserHandler = () => {
-    return async () => {
-      if (!systemActor || !authClient) {
-        return
-      }
-      setLoading(true)
-      const userControl = await systemActor.create_user_control()
-
-      if ("Err" in userControl) {
-        setError(userControl.Err)
-        setLoading(false)
-        return
-      }
-
-      fetchUserActor(userControl.Ok.user_control_id.toString())
-      setLoading(false)
+  const createUserHandler = async () => {
+    if (!systemActor || !authClient) {
+      return
     }
+    setLoading(true)
+    const userControl = await systemActor.create_user_control()
+
+    if ("Err" in userControl) {
+      setError(userControl.Err)
+      setLoading(false)
+      return
+    }
+
+    fetchUserActor(userControl.Ok.user_control_id.toString())
+    setLoading(false)
   }
 
   return (
@@ -139,6 +140,10 @@ function HomePage() {
           </section>
         )}
       </main>
+      {/* add version of canister wasm */}
+      <footer className={styles.footer}>
+        <p>Version: {version}</p>
+      </footer>
     </div>
   )
 }

@@ -43,7 +43,11 @@ export interface Ecdsa { 'env' : Environment, 'path' : Uint8Array | number[] }
 export type Environment = { 'Production' : null } |
   { 'Development' : null } |
   { 'Staging' : null };
-export interface Keys { 'address' : string, 'bytes' : Uint8Array | number[] }
+export interface Keys {
+  'eth_address' : string,
+  'bytes' : Uint8Array | number[],
+  'btc_address' : string,
+}
 export type Result = { 'Ok' : Account } |
   { 'Err' : string };
 export type Result_1 = { 'Ok' : Uint8Array | number[] } |

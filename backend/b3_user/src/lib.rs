@@ -32,7 +32,11 @@ pub fn caller_is_owner() -> Result<(), String> {
 #[candid_method(init)]
 pub fn init() {
     let call_arg = arg_data::<(Option<UserControlArgs>,)>().0;
-    let owner = call_arg.unwrap().owner;
+
+    let owner = match call_arg {
+        Some(args) => args.owner,
+        None => caller(),
+    };
 
     OWNER.with(|s| {
         *s.borrow_mut() = owner;
@@ -152,8 +156,24 @@ pub async fn sign_message(account_id: String, message_hash: Vec<u8>) -> Result<V
     }
 }
 
-#[update(guard = "caller_is_owner")]
 #[candid_method(update)]
+#[update(guard = "caller_is_owner")]
+pub async fn get_balance(account_id: String) -> Result<u64, String> {
+    let account = STATE.with(|s| {
+        let state = s.borrow();
+
+        state.account(&account_id)
+    });
+
+    if let Some(account) = account {
+        Ok(account.keys().btc_balance().await)
+    } else {
+        Err(format!("account does not exist: {}", account_id))
+    }
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_owner")]
 pub async fn sign_transaction(
     account_id: String,
     hex_raw_tx: Vec<u8>,

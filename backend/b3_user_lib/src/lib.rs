@@ -1,5 +1,6 @@
 pub mod account;
 pub mod allowance;
+pub mod btc;
 pub mod config;
 pub mod ecdsa;
 pub mod keys;
