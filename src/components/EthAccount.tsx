@@ -1,6 +1,6 @@
 import { Account } from "declarations/b3_user/b3_user.did"
 import { BigNumber, ethers, providers } from "ethers"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { B3User } from "service/actor"
 
 const provider = new providers.JsonRpcProvider(
@@ -11,7 +11,7 @@ interface EthAccountProps extends Account {
   actor?: B3User
 }
 
-export const EthAccount: React.FC<EthAccountProps> = ({
+const EthAccount: React.FC<EthAccountProps> = ({
   actor,
   name,
   keys,
@@ -56,7 +56,7 @@ export const EthAccount: React.FC<EthAccountProps> = ({
 
       console.log({ title: "Signing transaction...", variant: "subtle" })
 
-      const res = (await actor.sign_transaction(id, 97n, [...serializeTx])) as
+      const res = (await actor.sign_transaction(id, [...serializeTx], 97n)) as
         | { Err: string }
         | { Ok: { data: string } }
 
@@ -105,18 +105,23 @@ export const EthAccount: React.FC<EthAccountProps> = ({
       }, 2000)
     }
   }
-
-  useEffect(() => {
-    const getBalance = async () => {
-      const balance = await provider.getBalance(keys.address)
-      setBalance(balance)
-    }
-
-    getBalance()
+  const getBalance = useCallback(async () => {
+    const balance = await provider.getBalance(keys.address)
+    setBalance(balance)
   }, [keys.address])
 
+  useEffect(() => {
+    getBalance()
+  }, [getBalance])
+
   return (
-    <div>
+    <div
+      style={{
+        border: "1px solid black",
+        padding: "10px",
+        margin: "10px"
+      }}
+    >
       <label>Name: &nbsp;</label>
       {name}
       {Object.entries(ecdsa).map(([key, value]) => (
@@ -135,21 +140,30 @@ export const EthAccount: React.FC<EthAccountProps> = ({
       {balance.toString()}
       <br />
       <label>Send ETH: &nbsp;</label>
-      <input
-        id="to"
-        alt="To"
-        type="text"
-        value={to}
-        onChange={e => setTo(e.target.value)}
-      />
-      <input
-        id="amount"
-        alt="Amount"
-        type="text"
-        value={amount}
-        onChange={e => setAmount(e.target.value)}
-      />
-      <button onClick={handleSignTx}>{waiting}</button>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center"
+        }}
+      >
+        <input
+          id="to"
+          alt="To"
+          type="text"
+          placeholder="To"
+          value={to}
+          onChange={e => setTo(e.target.value)}
+        />
+        <input
+          id="amount"
+          alt="Amount"
+          placeholder="Amount"
+          type="text"
+          value={amount}
+          onChange={e => setAmount(e.target.value)}
+        />
+        <button onClick={handleSignTx}>{waiting}</button>
+      </div>
     </div>
   )
 }

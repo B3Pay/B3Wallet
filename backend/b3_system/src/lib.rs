@@ -3,7 +3,8 @@ pub mod control;
 
 use candid::{CandidType, Deserialize, Principal};
 use control::{
-    new_user_control, ControllerId, Controllers, LoadRelease, Releases, UserControl, UserId,
+    new_user_control, ControllerId, Controllers, LoadRelease, Release, UserControl, UserControlId,
+    UserId,
 };
 use ic_cdk::export::candid::candid_method;
 use ic_cdk::{caller, id, init, post_upgrade, pre_upgrade, query, update};
@@ -12,9 +13,9 @@ use std::collections::HashMap;
 
 #[derive(Default, CandidType, Deserialize, Clone)]
 pub struct State {
-    releases: Releases,
+    release: Release,
     controllers: Controllers,
-    user_controlls: HashMap<UserId, UserControl>,
+    user_controls: HashMap<UserId, UserControl>,
 }
 
 thread_local! {
@@ -57,6 +58,38 @@ pub fn init() {
 }
 
 #[candid_method(query)]
+#[query]
+pub fn get_user_control() -> Option<UserControl> {
+    let user = caller();
+
+    STATE.with(|s| {
+        let state = &*s.borrow();
+
+        state.get_user_control(&user)
+    })
+}
+
+#[candid_method(query)]
+#[query]
+pub fn get_user_control_id(user: Principal) -> Option<UserControlId> {
+    STATE.with(|s| {
+        let state = &*s.borrow();
+
+        state.get_user_control_id(&user)
+    })
+}
+
+#[candid_method(query)]
+#[query(guard = "caller_is_controller")]
+pub fn get_user_ids() -> Vec<UserId> {
+    STATE.with(|s| {
+        let state = &*s.borrow();
+
+        state.get_user_ids()
+    })
+}
+
+#[candid_method(query)]
 #[query(guard = "caller_is_controller")]
 pub fn get_controllers() -> Controllers {
     STATE.with(|s| s.borrow().controllers.clone())
@@ -89,7 +122,7 @@ fn load_release(blob: Vec<u8>, version: String) -> LoadRelease {
         s.borrow_mut().update_release(&blob, version);
     });
 
-    let total: usize = STATE.with(|state| state.borrow().releases.wasm.len());
+    let total: usize = STATE.with(|state| state.borrow().release.wasm.len());
 
     LoadRelease {
         total,
@@ -111,7 +144,7 @@ fn reset_release() {
 #[candid_method(update)]
 pub async fn create_user_control() -> Result<UserControl, String> {
     let user = caller();
-    let console = id();
+    let system = id();
 
     let user_control = STATE.with(|state| {
         let state = state.borrow();
@@ -121,14 +154,14 @@ pub async fn create_user_control() -> Result<UserControl, String> {
 
     match user_control {
         Some(user_control) => Ok(user_control),
-        None => new_user_control(&user, &console).await,
+        None => new_user_control(&user, &system).await,
     }
 }
 
 #[candid_method(query)]
 #[query]
 fn get_releases_version() -> String {
-    STATE.with(|s| s.borrow().releases.version.clone().unwrap_or_default())
+    STATE.with(|s| s.borrow().release.version.clone().unwrap_or_default())
 }
 
 #[pre_upgrade]

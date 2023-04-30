@@ -14,12 +14,33 @@ type Allowance = record {
   limit : opt nat8;
   expires_at : opt nat64;
 };
+type CanisterStatus = record {
+  id : principal;
+  status : CanisterStatusResponse;
+  status_at : nat64;
+};
+type CanisterStatusResponse = record {
+  status : CanisterStatusType;
+  memory_size : nat;
+  cycles : nat;
+  settings : DefiniteCanisterSettings;
+  idle_cycles_burned_per_day : nat;
+  module_hash : opt vec nat8;
+};
+type CanisterStatusType = variant { stopped; stopping; running };
+type DefiniteCanisterSettings = record {
+  freezing_threshold : nat;
+  controllers : vec principal;
+  memory_allocation : nat;
+  compute_allocation : nat;
+};
 type Ecdsa = record { env : Environment; path : vec nat8 };
 type Environment = variant { Production; Development; Staging };
 type Keys = record { address : text; bytes : vec nat8 };
 type Result = variant { Ok : Account; Err : text };
 type Result_1 = variant { Ok : vec nat8; Err : text };
 type Result_2 = variant { Ok : SignedTransaction; Err : text };
+type Result_3 = variant { Ok : CanisterStatus; Err : text };
 type SignRequest = record {
   id : nat64;
   destination : principal;
@@ -43,4 +64,6 @@ service : () -> {
   number_of_accounts : () -> (nat8) query;
   sign_message : (text, vec nat8) -> (Result_1);
   sign_transaction : (text, vec nat8, nat64) -> (Result_2);
+  status : () -> (Result_3);
+  version : () -> (text) query;
 }

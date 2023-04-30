@@ -1,32 +1,30 @@
-import { Account, Environment, Result } from "declarations/b3_user/b3_user.did"
-import useAuthClient from "hooks/useAuthClient"
-import { useCallback, useEffect, useState } from "react"
-import EthAccount from "./EthAccount"
+import { Environment, Result } from "declarations/b3_user/b3_user.did"
+import { IS_LOCAL } from "helpers/config"
+import { useState } from "react"
+import { B3User } from "service/actor"
 
-const CreateAccount = () => {
+interface CreateAccountProps {
+  actor: B3User
+  fetchAccounts: () => void
+}
+
+const CreateAccount: React.FC<CreateAccountProps> = ({
+  actor,
+  fetchAccounts
+}) => {
   const [name, setName] = useState<string>()
-  const [environment, setEnvironment] = useState<Environment>({
-    Production: null
-  })
+  const [environment, setEnvironment] = useState<Environment>(
+    IS_LOCAL
+      ? {
+          Development: null
+        }
+      : {
+          Production: null
+        }
+  )
 
   const [loading, setLoading] = useState("")
   const [response, setResponse] = useState<Result>()
-  const [accounts, setAccounts] = useState<Account[]>([])
-  const { isAuthenticated, login, logout, actor } = useAuthClient()
-
-  const fetchAccounts = useCallback(async () => {
-    if (!actor) {
-      return
-    }
-
-    const accounts = await actor.get_accounts()
-
-    setAccounts(accounts)
-  }, [actor])
-
-  useEffect(() => {
-    fetchAccounts()
-  }, [fetchAccounts])
 
   function onChangeName(e: React.ChangeEvent<HTMLInputElement>) {
     const newName = e.target.value
@@ -104,19 +102,6 @@ const CreateAccount = () => {
             })}
         </ul>
       </section>
-      {!isAuthenticated ? (
-        <section>
-          <button onClick={login}>Login</button>
-        </section>
-      ) : (
-        <section>
-          <label>Accounts: &nbsp;</label>
-          {accounts.map((account, index) => (
-            <EthAccount key={index} {...account} actor={actor} />
-          ))}
-          <button onClick={logout}>Logout</button>
-        </section>
-      )}
     </div>
   )
 }

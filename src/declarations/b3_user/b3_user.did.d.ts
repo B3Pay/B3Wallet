@@ -17,6 +17,28 @@ export interface Allowance {
   'limit' : [] | [number],
   'expires_at' : [] | [bigint],
 }
+export interface CanisterStatus {
+  'id' : Principal,
+  'status' : CanisterStatusResponse,
+  'status_at' : bigint,
+}
+export interface CanisterStatusResponse {
+  'status' : CanisterStatusType,
+  'memory_size' : bigint,
+  'cycles' : bigint,
+  'settings' : DefiniteCanisterSettings,
+  'idle_cycles_burned_per_day' : bigint,
+  'module_hash' : [] | [Uint8Array | number[]],
+}
+export type CanisterStatusType = { 'stopped' : null } |
+  { 'stopping' : null } |
+  { 'running' : null };
+export interface DefiniteCanisterSettings {
+  'freezing_threshold' : bigint,
+  'controllers' : Array<Principal>,
+  'memory_allocation' : bigint,
+  'compute_allocation' : bigint,
+}
 export interface Ecdsa { 'env' : Environment, 'path' : Uint8Array | number[] }
 export type Environment = { 'Production' : null } |
   { 'Development' : null } |
@@ -27,6 +49,8 @@ export type Result = { 'Ok' : Account } |
 export type Result_1 = { 'Ok' : Uint8Array | number[] } |
   { 'Err' : string };
 export type Result_2 = { 'Ok' : SignedTransaction } |
+  { 'Err' : string };
+export type Result_3 = { 'Ok' : CanisterStatus } |
   { 'Err' : string };
 export interface SignRequest {
   'id' : bigint,
@@ -57,4 +81,6 @@ export interface _SERVICE {
     [string, Uint8Array | number[], bigint],
     Result_2
   >,
+  'status' : ActorMethod<[], Result_3>,
+  'version' : ActorMethod<[], string>,
 }

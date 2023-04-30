@@ -45,7 +45,7 @@ pub async fn create_canister_install_code(
     wasm_arg: &WasmArg,
     cycles: u128,
 ) -> Result<Principal, String> {
-    let record = create_canister_with_extra_cycles(
+    let result = create_canister_with_extra_cycles(
         CreateCanisterArgument {
             settings: Some(CanisterSettings {
                 controllers: Some(controllers.clone()),
@@ -58,10 +58,10 @@ pub async fn create_canister_install_code(
     )
     .await;
 
-    match record {
+    match result {
         Err((_, message)) => Err(["Failed to create canister.", &message].join(" - ")),
-        Ok(record) => {
-            let canister_id = record.0.canister_id;
+        Ok(result) => {
+            let canister_id = result.0.canister_id;
 
             let install = install_code(canister_id, wasm_arg, CanisterInstallMode::Install).await;
 

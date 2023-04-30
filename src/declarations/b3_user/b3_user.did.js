@@ -42,6 +42,31 @@ export const idlFactory = ({ IDL }) => {
   const Result = IDL.Variant({ 'Ok' : Account, 'Err' : IDL.Text });
   const Result_1 = IDL.Variant({ 'Ok' : IDL.Vec(IDL.Nat8), 'Err' : IDL.Text });
   const Result_2 = IDL.Variant({ 'Ok' : SignedTransaction, 'Err' : IDL.Text });
+  const CanisterStatusType = IDL.Variant({
+    'stopped' : IDL.Null,
+    'stopping' : IDL.Null,
+    'running' : IDL.Null,
+  });
+  const DefiniteCanisterSettings = IDL.Record({
+    'freezing_threshold' : IDL.Nat,
+    'controllers' : IDL.Vec(IDL.Principal),
+    'memory_allocation' : IDL.Nat,
+    'compute_allocation' : IDL.Nat,
+  });
+  const CanisterStatusResponse = IDL.Record({
+    'status' : CanisterStatusType,
+    'memory_size' : IDL.Nat,
+    'cycles' : IDL.Nat,
+    'settings' : DefiniteCanisterSettings,
+    'idle_cycles_burned_per_day' : IDL.Nat,
+    'module_hash' : IDL.Opt(IDL.Vec(IDL.Nat8)),
+  });
+  const CanisterStatus = IDL.Record({
+    'id' : IDL.Principal,
+    'status' : CanisterStatusResponse,
+    'status_at' : IDL.Nat64,
+  });
+  const Result_3 = IDL.Variant({ 'Ok' : CanisterStatus, 'Err' : IDL.Text });
   return IDL.Service({
     'change_owner' : IDL.Func([IDL.Principal], [], []),
     'create_account' : IDL.Func(
@@ -62,6 +87,8 @@ export const idlFactory = ({ IDL }) => {
         [Result_2],
         [],
       ),
+    'status' : IDL.Func([], [Result_3], []),
+    'version' : IDL.Func([], [IDL.Text], ['query']),
   });
 };
 export const init = ({ IDL }) => { return []; };

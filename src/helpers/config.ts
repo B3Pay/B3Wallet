@@ -5,3 +5,5 @@ export const B3_USER_CANISTER_ID =
 export const IDENTITY_CANISTER_ID =
   process.env.REACT_APP_IDENTITY_CANISTER_ID ?? "qhbym-qaaaa-aaaaa-aaafq-cai"
 // getPrincipalText(3)
+
+export const IS_LOCAL = process.env.DFX_NETWORK !== "ic"

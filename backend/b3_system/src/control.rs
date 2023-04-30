@@ -27,7 +27,7 @@ pub struct Controller {
 }
 
 #[derive(Default, CandidType, Deserialize, Clone)]
-pub struct Wasm {
+pub struct Release {
     pub wasm: Vec<u8>,
     pub version: Option<String>,
 }
@@ -45,8 +45,6 @@ pub struct UserControlArgs {
 
 pub type Controllers = HashMap<ControllerId, Controller>;
 
-pub type Releases = Wasm;
-
 pub const CREATE_USER_CANISTER_CYCLES: u128 = 1_000_000_000_000;
 
 impl State {
@@ -60,7 +58,7 @@ impl State {
             updated_at: now,
         };
 
-        self.user_controlls.insert(*user, mission_control.clone());
+        self.user_controls.insert(*user, mission_control.clone());
 
         mission_control
     }
@@ -68,28 +66,41 @@ impl State {
     pub fn add_user_control(
         &mut self,
         user: &UserId,
-        user_control_id: &UserControlId,
+        user_control_id: UserControlId,
     ) -> UserControl {
         let now = time();
 
         // We know for sure that we have created an empty mission control center
-        let mission_control = self.user_controlls.get(user).unwrap();
+        let user_control = self.user_controls.get(user).unwrap();
 
-        let finalized_mission_control = UserControl {
-            owner: mission_control.owner,
-            user_control_id: Some(*user_control_id),
-            created_at: mission_control.created_at,
+        let finalized_user_control = UserControl {
+            owner: user_control.owner,
+            user_control_id: Some(user_control_id),
+            created_at: user_control.created_at,
             updated_at: now,
         };
 
-        self.user_controlls
-            .insert(*user, finalized_mission_control.clone());
+        self.user_controls
+            .insert(*user, finalized_user_control.clone());
 
-        finalized_mission_control
+        finalized_user_control
     }
 
     pub fn get_user_control(&self, user: &UserId) -> Option<UserControl> {
-        self.user_controlls.get(user).cloned()
+        self.user_controls.get(user).cloned()
+    }
+
+    pub fn get_user_control_id(&self, user: &UserId) -> Option<UserControlId> {
+        let user_control = self.user_controls.get(user).cloned();
+
+        match user_control {
+            Some(user_control) => user_control.user_control_id,
+            None => None,
+        }
+    }
+
+    pub fn get_user_ids(&self) -> Vec<UserId> {
+        self.user_controls.keys().cloned().collect()
     }
 
     pub fn remove_user(&mut self, user: &UserId) {
@@ -97,9 +108,11 @@ impl State {
     }
 
     pub fn add_controller(&mut self, controller_id: ControllerId) {
+        let now = time();
+
         let controller = Controller {
-            created_at: ic_cdk::api::time() as u64,
-            updated_at: ic_cdk::api::time() as u64,
+            created_at: now,
+            updated_at: now,
             expires_at: None,
         };
 
@@ -112,24 +125,24 @@ impl State {
 
     pub fn update_release(&mut self, blob: &Vec<u8>, version: String) {
         let wasm = self
-            .releases
+            .release
             .wasm
             .iter()
             .copied()
             .chain(blob.iter().copied())
             .collect();
 
-        self.releases.wasm = wasm;
-        self.releases.version = Some(version);
+        self.release.wasm = wasm;
+        self.release.version = Some(version);
     }
 
     pub fn remove_release(&mut self) {
-        self.releases.wasm = Vec::new();
-        self.releases.version = None;
+        self.release.wasm = Vec::new();
+        self.release.version = None;
     }
 }
 
-pub async fn new_user_control(user: &UserId, console: &Principal) -> Result<UserControl, String> {
+pub async fn new_user_control(user: &UserId, system: &Principal) -> Result<UserControl, String> {
     STATE.with(|state| {
         let mut state = state.borrow_mut();
         let user_control = state.get_user_control(user);
@@ -144,14 +157,14 @@ pub async fn new_user_control(user: &UserId, console: &Principal) -> Result<User
 
     let wasm_arg = user_wasm_arg(user);
 
-    let create = create_canister_install_code(
-        Vec::from([*console, *user]),
+    let user_control_id = create_canister_install_code(
+        Vec::from([*system, *user]),
         &wasm_arg,
         CREATE_USER_CANISTER_CYCLES,
     )
     .await;
 
-    match create {
+    match user_control_id {
         Err(e) => {
             // We delete the pending empty mission control center from the list - e.g. this can happens if manager is out of cycles and user would be blocked
             STATE.with(|state| state.borrow_mut().remove_user(user));
@@ -160,7 +173,7 @@ pub async fn new_user_control(user: &UserId, console: &Principal) -> Result<User
         Ok(user_control_id) => {
             let user_control = STATE.with(|state| {
                 let mut state = state.borrow_mut();
-                state.add_user_control(user, &user_control_id)
+                state.add_user_control(user, user_control_id)
             });
 
             update_user_control_controllers(&user_control_id, user).await?;
@@ -171,7 +184,7 @@ pub async fn new_user_control(user: &UserId, console: &Principal) -> Result<User
 }
 
 pub fn user_wasm_arg(user: &UserId) -> WasmArg {
-    let wasm: Vec<u8> = STATE.with(|state| state.borrow().releases.wasm.clone());
+    let wasm: Vec<u8> = STATE.with(|state| state.borrow().release.wasm.clone());
 
     let install_arg: Vec<u8> = Encode!(&UserControlArgs { owner: *user }).unwrap();
     WasmArg { wasm, install_arg }
