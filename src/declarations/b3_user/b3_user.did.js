@@ -4,10 +4,14 @@ export const idlFactory = ({ IDL }) => {
     'Development' : IDL.Null,
     'Staging' : IDL.Null,
   });
+  const BtcAddresses = IDL.Record({
+    'mainnet' : IDL.Text,
+    'testnet' : IDL.Text,
+  });
+  const Addresses = IDL.Record({ 'btc' : BtcAddresses, 'eth' : IDL.Text });
   const Keys = IDL.Record({
-    'eth_address' : IDL.Text,
+    'addresses' : Addresses,
     'bytes' : IDL.Vec(IDL.Nat8),
-    'btc_address' : IDL.Text,
   });
   const Ecdsa = IDL.Record({ 'env' : Environment, 'path' : IDL.Vec(IDL.Nat8) });
   const Allowance = IDL.Record({
@@ -77,9 +81,9 @@ export const idlFactory = ({ IDL }) => {
       ),
     'get_account' : IDL.Func([IDL.Text], [Account], ['query']),
     'get_accounts' : IDL.Func([], [IDL.Vec(Account)], ['query']),
+    'get_addresses' : IDL.Func([IDL.Text], [Addresses], ['query']),
     'get_caller' : IDL.Func([], [IDL.Principal], ['query']),
     'get_owner' : IDL.Func([], [IDL.Principal], ['query']),
-    'get_public_key' : IDL.Func([IDL.Text], [Keys], ['query']),
     'get_signed' : IDL.Func([IDL.Text], [SignedTransaction], ['query']),
     'number_of_accounts' : IDL.Func([], [IDL.Nat8], ['query']),
     'sign_message' : IDL.Func([IDL.Text, IDL.Vec(IDL.Nat8)], [Result_1], []),

@@ -1,21 +1,21 @@
 use std::collections::HashMap;
 
 use crate::{
-    ecdsa::Ecdsa, signed::SignedTransaction, transaction::get_transaction, types::SignRequest,
+    ecdsa::Ecdsa, request::SignRequest, signed::SignedTransaction, transaction::get_transaction,
 };
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 use crate::allowance::{Allowance, CanisterId, SetAllowance};
 use crate::{config::Environment, keys::Keys};
 
-#[derive(Clone, Debug, CandidType, Deserialize)]
+#[derive(Debug, CandidType, Deserialize)]
 pub struct Account {
     id: String,
     name: String,
     keys: Keys,
     ecdsa: Ecdsa,
     signed: SignedTransaction,
-    requests: Vec<SignRequest>,
+    requests: HashMap<CanisterId, SignRequest>,
     canisters: HashMap<CanisterId, Allowance>,
 }
 
@@ -26,7 +26,7 @@ impl Default for Account {
             name: String::new(),
             keys: Keys::default(),
             ecdsa: Ecdsa::default(),
-            requests: Vec::new(),
+            requests: HashMap::new(),
             canisters: HashMap::new(),
             signed: SignedTransaction::default(),
         }
@@ -44,7 +44,7 @@ impl Account {
             ecdsa,
             name: String::new(),
             keys: Keys::new(bytes),
-            requests: Vec::new(),
+            requests: HashMap::new(),
             canisters: HashMap::new(),
             signed: SignedTransaction::default(),
         }
@@ -65,7 +65,20 @@ impl Account {
     }
 
     pub async fn sign_message(&self, message: Vec<u8>) -> Vec<u8> {
-        self.ecdsa.sign_message(message).await
+        self.ecdsa.sign(message).await
+    }
+
+    pub fn new_request(
+        &mut self,
+        from: CanisterId,
+        hex_raw_tx: Vec<u8>,
+        chain_id: u64,
+    ) -> SignRequest {
+        let request = SignRequest::new(hex_raw_tx, chain_id);
+
+        self.requests.insert(from, request);
+
+        request
     }
 
     pub fn insert_signed_transaction(&mut self, signed_tx: SignedTransaction) {
@@ -96,16 +109,16 @@ impl Account {
         }
     }
 
-    pub fn insert_request(&mut self, sign_request: SignRequest) {
-        self.requests.push(sign_request);
+    pub fn insert_request(&mut self, from: CanisterId, sign_request: SignRequest) {
+        self.requests.insert(from, sign_request);
     }
 
     pub fn update_name(&mut self, name: String) {
         self.name = name;
     }
 
-    pub fn sign_requests(&self) -> Vec<SignRequest> {
-        self.requests.clone()
+    pub fn sign_requests(&self, from: CanisterId) -> &SignRequest {
+        self.requests.get(&from).unwrap().clone()
     }
 
     pub fn connected_canisters(&self) -> HashMap<CanisterId, Allowance> {

@@ -2,6 +2,7 @@ pub mod canister;
 pub mod control;
 
 use candid::{CandidType, Deserialize, Principal};
+use canister::{canister_status, CanisterStatusResult};
 use control::{
     new_user_control, ControllerId, Controllers, LoadRelease, Release, UserControl, UserControlId,
     UserId,
@@ -93,6 +94,12 @@ pub fn get_user_ids() -> Vec<UserId> {
 #[query(guard = "caller_is_controller")]
 pub fn get_controllers() -> Controllers {
     STATE.with(|s| s.borrow().controllers.clone())
+}
+
+#[candid_method(query)]
+#[query(guard = "caller_is_controller")]
+pub async fn get_canister_status(canister_id: Principal) -> CanisterStatusResult {
+    canister_status(canister_id).await
 }
 
 #[candid_method(update)]

@@ -32,7 +32,7 @@ const EthAccount: React.FC<EthAccountProps> = ({
       return
     }
 
-    const nonce = await provider.getTransactionCount(keys.eth_address)
+    const nonce = await provider.getTransactionCount(keys.addresses.eth)
     const gasPrice = await provider.getGasPrice().then(s => s.toHexString())
     const value = ethers.utils.parseEther(amount).toHexString()
     const data = "0x00"
@@ -106,9 +106,9 @@ const EthAccount: React.FC<EthAccountProps> = ({
     }
   }
   const getBalance = useCallback(async () => {
-    const balance = await provider.getBalance(keys.eth_address)
+    const balance = await provider.getBalance(keys.addresses.eth)
     setBalance(balance)
-  }, [keys.eth_address])
+  }, [keys.addresses])
 
   useEffect(() => {
     getBalance()
@@ -132,9 +132,15 @@ const EthAccount: React.FC<EthAccountProps> = ({
       ))}
       <label>Addresses: &nbsp;</label>
       <br />
-      {keys.eth_address}
-      <br />
-      {keys.btc_address}
+      <label>BTC: &nbsp;</label>
+      {Object.entries(keys.addresses.btc).map(([key, value]) => (
+        <div key={key}>
+          <label>{key}: &nbsp;</label>
+          {value}
+        </div>
+      ))}
+      <label>ETH: &nbsp;</label>
+      {keys.addresses.eth}
       <br />
       <label>Id: &nbsp;</label>
       {id}

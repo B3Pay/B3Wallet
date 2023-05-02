@@ -1,13 +1,37 @@
 use crate::utils::{
     remove_leading, string_to_vec_u8, u64_to_vec_u8, vec_u8_to_string, vec_u8_to_u64,
 };
+
+use candid::CandidType;
 use easy_hasher::easy_hasher;
+use serde::Deserialize;
 
 #[derive(Debug, Clone, PartialEq)]
-enum TransactionType {
+pub enum TransactionType {
     Legacy,
     EIP1559,
     EIP2930,
+}
+
+pub enum TransactionTypes {
+    Legacy(TransactionLegacy),
+    EIP1559(Transaction1559),
+    EIP2930(Transaction2930),
+}
+
+#[derive(Debug, Clone, Deserialize, CandidType)]
+pub struct Transaction {
+    pub chain_id: u64,
+    pub nonce: u64,
+    pub gas_price: u64,
+    pub gas_limit: u64,
+    pub to: String,
+    pub value: u64,
+    pub data: String,
+    pub access_list: Option<Vec<(String, Vec<String>)>>,
+    pub v: String,
+    pub r: String,
+    pub s: String,
 }
 
 pub trait Sign {
@@ -18,6 +42,7 @@ pub trait Sign {
     fn get_recovery_id(&self) -> Result<u8, String>;
     fn get_nonce(&self) -> Result<u64, String>;
     fn serialize(&self) -> Result<Vec<u8>, String>;
+    fn get_transaction(&self) -> Result<TransactionTypes, String>;
 }
 
 pub struct TransactionLegacy {
@@ -199,6 +224,12 @@ impl Sign for TransactionLegacy {
     }
     fn get_nonce(&self) -> Result<u64, String> {
         Ok(self.nonce)
+    }
+
+    fn get_transaction(&self) -> Result<TransactionTypes, String> {
+        let transaction = TransactionTypes::Legacy(*self);
+
+        Ok(transaction)
     }
 }
 
@@ -396,6 +427,11 @@ impl Sign for Transaction2930 {
     }
     fn get_nonce(&self) -> Result<u64, String> {
         Ok(self.nonce)
+    }
+    fn get_transaction(&self) -> Result<TransactionTypes, String> {
+        let transaction = TransactionTypes::EIP2930(*self);
+
+        Ok(transaction)
     }
 }
 
@@ -608,6 +644,11 @@ impl Sign for Transaction1559 {
     }
     fn get_nonce(&self) -> Result<u64, String> {
         Ok(self.nonce)
+    }
+    fn get_transaction(&self) -> Result<TransactionTypes, String> {
+        let transaction = TransactionTypes::EIP1559(*self);
+
+        Ok(transaction)
     }
 }
 

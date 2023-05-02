@@ -1,3 +1,4 @@
+use crate::control::{UserControlId, UserId};
 use candid::{CandidType, Deserialize, Principal};
 use ic_cdk::api::call::CallResult;
 use ic_cdk::api::management_canister::main::{
@@ -7,8 +8,7 @@ use ic_cdk::api::management_canister::main::{
     InstallCodeArgument, UpdateSettingsArgument,
 };
 use ic_cdk::api::time;
-
-use crate::control::{UserControlId, UserId};
+use ic_cdk::call;
 
 pub struct WasmArg {
     pub wasm: Vec<u8>,
@@ -16,13 +16,14 @@ pub struct WasmArg {
 }
 
 #[derive(CandidType, Deserialize, Clone)]
-pub struct SegmentStatus {
+pub struct CanisterStatus {
     pub id: Principal,
     pub status: CanisterStatusResponse,
+    pub version: String,
     pub status_at: u64,
 }
 
-pub type SegmentStatusResult = Result<SegmentStatus, String>;
+pub type CanisterStatusResult = Result<CanisterStatus, String>;
 
 /// Once mission control is created:
 /// 1. we remove the console from the controllers because the data are owned by the developers
@@ -35,7 +36,10 @@ pub async fn update_user_control_controllers(
     let result = update_canister_controllers(*user_control_id, controllers.to_owned()).await;
 
     match result {
-        Err(_) => Err("Failed to update the controllers of the mission control.".to_string()),
+        Err((_, message)) => Err(format!(
+            "Failed to update controllers for user control: {}",
+            message
+        )),
         Ok(_) => Ok(()),
     }
 }
@@ -59,14 +63,17 @@ pub async fn create_canister_install_code(
     .await;
 
     match result {
-        Err((_, message)) => Err(["Failed to create canister.", &message].join(" - ")),
+        Err((_, message)) => Err(format!("Failed to create canister: {}", message)),
         Ok(result) => {
             let canister_id = result.0.canister_id;
 
             let install = install_code(canister_id, wasm_arg, CanisterInstallMode::Install).await;
 
             match install {
-                Err(_) => Err("Failed to install code in canister.".to_string()),
+                Err(_) => Err(format!(
+                    "Failed to install code on canister: {}",
+                    canister_id
+                )),
                 Ok(_) => Ok(canister_id),
             }
         }
@@ -105,15 +112,23 @@ pub async fn update_canister_controllers(
     update_settings(arg).await
 }
 
-pub async fn segment_status(canister_id: CanisterId) -> SegmentStatusResult {
+pub async fn canister_wasm_version(canister_id: Principal) -> CallResult<String> {
+    let res: (String,) = call(canister_id, "version", ()).await?;
+
+    Ok(res.0)
+}
+
+pub async fn canister_status(canister_id: CanisterId) -> CanisterStatusResult {
+    let version = canister_wasm_version(canister_id).await.unwrap_or_default();
     let status = ic_canister_status(CanisterIdRecord { canister_id }).await;
 
     match status {
-        Ok((status,)) => Ok(SegmentStatus {
+        Ok((status,)) => Ok(CanisterStatus {
             id: canister_id,
             status,
+            version,
             status_at: time(),
         }),
-        Err((_, message)) => Err(["Failed to get canister status: ".to_string(), message].join("")),
+        Err((_, message)) => Err(format!("Failed to get status: {}", message)),
     }
 }

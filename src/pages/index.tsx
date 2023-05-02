@@ -1,12 +1,14 @@
 /* eslint-disable @next/next/no-img-element */
 import Head from "next/head"
 
+import { getManagementCanister } from "@dfinity/agent"
+import { Principal } from "@dfinity/principal"
 import CreateAccount from "components/CreateAccount"
 import EthAccount from "components/EthAccount"
 import { Account } from "declarations/b3_user/b3_user.did"
 import useAuthClient from "hooks/useAuthClient"
 import { useCallback, useEffect, useState } from "react"
-import { B3User, makeB3UserActor } from "service/actor"
+import { B3User, getHttpAgent, makeB3UserActor } from "service/actor"
 import styles from "styles/Home.module.css"
 
 function HomePage() {
@@ -17,6 +19,7 @@ function HomePage() {
   const [error, setError] = useState<string>()
 
   const [accounts, setAccounts] = useState<Account[]>([])
+  const [canisterId, setCanisterId] = useState<string>("")
   const [actor, setActor] = useState<B3User>()
 
   const [version, setVersion] = useState<string>("0.0.0")
@@ -57,6 +60,7 @@ function HomePage() {
     const canisterId = control[0].user_control_id.toString()
 
     fetchUserActor(canisterId)
+    setCanisterId(canisterId)
     setLoading(false)
   }, [authClient, systemActor, fetchUserActor])
 
@@ -95,6 +99,49 @@ function HomePage() {
     }
 
     fetchUserActor(userControl.Ok.user_control_id.toString())
+    setLoading(false)
+  }
+
+  const updateCanisterWasm = async () => {
+    if (!actor || !authClient) {
+      console.log("no actor")
+      return
+    }
+
+    setLoading(true)
+
+    const wasm = await fetch("canisters/b3_user/b3_user.wasm")
+
+    const wasm_buffer = await wasm.arrayBuffer()
+    const wasm_module = Array.from(new Uint8Array(wasm_buffer))
+
+    const httpAgent = getHttpAgent(authClient.getIdentity())
+
+    const mgntCanister = getManagementCanister({
+      agent: httpAgent,
+      canisterId
+    })
+
+    console.log("mgntCanister", mgntCanister)
+
+    const status = await mgntCanister.canister_status({
+      canister_id: Principal.fromText(canisterId)
+    })
+
+    console.log("status", status)
+
+    const result = await mgntCanister.install_code({
+      canister_id: Principal.fromText(canisterId),
+      mode: { upgrade: null },
+      wasm_module,
+      arg: []
+    })
+
+    console.log("result", result)
+
+    const version = await actor.version()
+
+    setVersion(version)
     setLoading(false)
   }
 
@@ -141,8 +188,15 @@ function HomePage() {
         )}
       </main>
       {/* add version of canister wasm */}
-      <footer className={styles.footer}>
+      <footer
+        className={styles.footer}
+        style={{
+          display: "flex",
+          justifyContent: "space-between"
+        }}
+      >
         <p>Version: {version}</p>
+        <button onClick={updateCanisterWasm}>Update Wasm</button>
       </footer>
     </div>
   )

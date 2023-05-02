@@ -3,7 +3,7 @@ use ic_cdk::{
     trap,
 };
 
-use ic_cdk::api::call::call_with_payment as ic_call;
+use ic_cdk::api::call::{call, call_with_payment};
 
 use crate::{
     config::{Config, Environment},
@@ -52,18 +52,36 @@ impl Ecdsa {
         config.key_id()
     }
 
+    pub fn cycles(&self) -> u64 {
+        let config = self.config();
+
+        config.sign_cycles()
+    }
+
+    pub fn derivation_path(&self) -> Vec<Vec<u8>> {
+        vec![self.path.clone()]
+    }
+
+    pub fn key_id_with_cycles(&self) -> (EcdsaKeyId, u64) {
+        let config = self.config();
+
+        (config.key_id(), config.sign_cycles())
+    }
+
     pub async fn public_key(&self) -> Vec<u8> {
+        let key_id = self.key_id();
+        let derivation_path = self.derivation_path();
+
         let request = ECDSAPublicKeyArgs {
             canister_id: None,
-            derivation_path: vec![self.path.clone()],
-            key_id: self.key_id(),
+            derivation_path,
+            key_id,
         };
 
-        let (res,): (ECDSAPublicKeyResponse,) = ic_call(
+        let (res,): (ECDSAPublicKeyResponse,) = call(
             Principal::management_canister(),
             "ecdsa_public_key",
             (request,),
-            0 as u64,
         )
         .await
         .map_err(|e| trap(&format!("Failed to call ecdsa_public_key {}", e.1)))
@@ -72,18 +90,21 @@ impl Ecdsa {
         res.public_key
     }
 
-    pub async fn sign_message(&self, message_hash: Vec<u8>) -> Vec<u8> {
+    pub async fn sign(&self, message_hash: Vec<u8>) -> Vec<u8> {
+        let (key_id, cycles) = self.key_id_with_cycles();
+        let derivation_path = self.derivation_path();
+
         let request = SignWithECDSAArgs {
-            derivation_path: vec![self.path.clone()],
-            key_id: self.key_id(),
+            derivation_path,
             message_hash,
+            key_id,
         };
 
-        let (res,): (SignWithECDSAResponse,) = ic_call(
+        let (res,): (SignWithECDSAResponse,) = call_with_payment(
             Principal::management_canister(),
             "sign_with_ecdsa",
             (request,),
-            0 as u64,
+            cycles,
         )
         .await
         .map_err(|e| trap(&format!("Failed to call sign_with_ecdsa {}", e.1)))

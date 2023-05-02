@@ -22,8 +22,8 @@ pub fn get_p2pkh_address_from_public_key(
     let result = hasher.finalize();
 
     let prefix = match network {
-        Network::Testnet | Network::Regtest => 0x6f,
         Network::Mainnet => 0x00,
+        _ => 0x6f,
     };
     let mut data_with_prefix = vec![prefix];
     data_with_prefix.extend(result);

@@ -1,16 +1,20 @@
-use b3_user_lib::state::STATE;
-use b3_user_lib::types::{CanisterStatus, UserControlArgs};
-use ic_cdk::api::call::arg_data;
-use ic_cdk::api::management_canister::main::canister_status;
-use ic_cdk::api::management_canister::provisional::CanisterIdRecord;
-use ic_cdk::api::time;
-use ic_cdk::export::{candid::candid_method, Principal};
-use ic_cdk::{caller, init, post_upgrade, pre_upgrade, query, update};
-
 use b3_user_lib::{
-    account::Account, config::Environment, keys::Keys, signed::SignedTransaction, state::State,
+    account::Account,
+    config::Environment,
+    keys::Addresses,
+    signed::SignedTransaction,
+    state::{State, STATE},
+    types::{CanisterStatus, UserControlArgs},
 };
-
+use ic_cdk::{
+    api::{
+        call::arg_data, management_canister::main::canister_status,
+        management_canister::provisional::CanisterIdRecord, time,
+    },
+    caller,
+    export::{candid::candid_method, Principal},
+    init, post_upgrade, pre_upgrade, query, update,
+};
 use std::cell::RefCell;
 
 thread_local! {
@@ -77,11 +81,11 @@ pub fn number_of_accounts() -> u8 {
 
 #[query]
 #[candid_method(query)]
-pub fn get_public_key(account_id: String) -> Keys {
+pub fn get_addresses(account_id: String) -> Addresses {
     STATE.with(|s| {
         let state = s.borrow();
 
-        state.account(&account_id).unwrap().keys()
+        state.account(&account_id).unwrap().keys().addresses()
     })
 }
 
@@ -140,6 +144,20 @@ pub async fn create_account(
 
 #[update(guard = "caller_is_owner")]
 #[candid_method(update)]
+pub fn request_sign(account_id: String, hex_raw_tx: Vec<u8>, chain_id: u64) -> String {
+    STATE.with(|s| {
+        let mut state = s.borrow_mut();
+
+        let account = state.account(&account_id).unwrap();
+
+        let signed = account.request_sign(hex_raw_tx, chain_id);
+
+        state.insert_signed(signed)
+    })
+}
+
+#[update(guard = "caller_is_owner")]
+#[candid_method(update)]
 pub async fn sign_message(account_id: String, message_hash: Vec<u8>) -> Result<Vec<u8>, String> {
     let account = STATE.with(|s| {
         let state = s.borrow();
@@ -151,22 +169,6 @@ pub async fn sign_message(account_id: String, message_hash: Vec<u8>) -> Result<V
         let signature = account.sign_message(message_hash).await;
 
         Ok(signature)
-    } else {
-        Err(format!("account does not exist: {}", account_id))
-    }
-}
-
-#[candid_method(update)]
-#[update(guard = "caller_is_owner")]
-pub async fn get_balance(account_id: String) -> Result<u64, String> {
-    let account = STATE.with(|s| {
-        let state = s.borrow();
-
-        state.account(&account_id)
-    });
-
-    if let Some(account) = account {
-        Ok(account.keys().btc_balance().await)
     } else {
         Err(format!("account does not exist: {}", account_id))
     }
@@ -205,15 +207,18 @@ fn version() -> String {
 async fn status() -> Result<CanisterStatus, String> {
     let canister_id = ic_cdk::id();
 
+    let wasm_version = version();
+
     let status = canister_status(CanisterIdRecord { canister_id }).await;
 
     match status {
         Ok((status,)) => Ok(CanisterStatus {
             id: canister_id,
             status,
+            wasm_version,
             status_at: time(),
         }),
-        Err((_, message)) => Err(["Failed to get canister status: ".to_string(), message].join("")),
+        Err((_, message)) => Err(format!("Failed to get status: {}", message)),
     }
 }
 

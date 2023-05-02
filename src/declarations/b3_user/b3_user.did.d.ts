@@ -10,6 +10,7 @@ export interface Account {
   'requests' : Array<SignRequest>,
   'signed' : SignedTransaction,
 }
+export interface Addresses { 'btc' : BtcAddresses, 'eth' : string }
 export interface Allowance {
   'updated_at' : bigint,
   'metadata' : Array<[string, string]>,
@@ -17,6 +18,7 @@ export interface Allowance {
   'limit' : [] | [number],
   'expires_at' : [] | [bigint],
 }
+export interface BtcAddresses { 'mainnet' : string, 'testnet' : string }
 export interface CanisterStatus {
   'id' : Principal,
   'status' : CanisterStatusResponse,
@@ -44,9 +46,8 @@ export type Environment = { 'Production' : null } |
   { 'Development' : null } |
   { 'Staging' : null };
 export interface Keys {
-  'eth_address' : string,
+  'addresses' : Addresses,
   'bytes' : Uint8Array | number[],
-  'btc_address' : string,
 }
 export type Result = { 'Ok' : Account } |
   { 'Err' : string };
@@ -75,9 +76,9 @@ export interface _SERVICE {
   'create_account' : ActorMethod<[[] | [Environment], [] | [string]], Result>,
   'get_account' : ActorMethod<[string], Account>,
   'get_accounts' : ActorMethod<[], Array<Account>>,
+  'get_addresses' : ActorMethod<[string], Addresses>,
   'get_caller' : ActorMethod<[], Principal>,
   'get_owner' : ActorMethod<[], Principal>,
-  'get_public_key' : ActorMethod<[string], Keys>,
   'get_signed' : ActorMethod<[string], SignedTransaction>,
   'number_of_accounts' : ActorMethod<[], number>,
   'sign_message' : ActorMethod<[string, Uint8Array | number[]], Result_1>,

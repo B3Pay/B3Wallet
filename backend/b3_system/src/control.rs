@@ -168,7 +168,7 @@ pub async fn new_user_control(user: &UserId, system: &Principal) -> Result<UserC
         Err(e) => {
             // We delete the pending empty mission control center from the list - e.g. this can happens if manager is out of cycles and user would be blocked
             STATE.with(|state| state.borrow_mut().remove_user_control(user));
-            Err(["Canister cannot be initialized.", &e].join(""))
+            Err(format!("Error creating user control: {}", e))
         }
         Ok(user_control_id) => {
             let user_control = STATE.with(|state| {

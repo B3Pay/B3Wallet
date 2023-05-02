@@ -1,9 +1,6 @@
 use candid::{CandidType, Principal};
 use ic_cdk::api::management_canister::main::CanisterStatusResponse;
 use serde::{Deserialize, Serialize};
-use serde_bytes::ByteBuf;
-
-use crate::keys::Keys;
 
 pub const MAINNET_LEDGER_CANISTER_ID: Principal =
     Principal::from_slice(&[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x01, 0x01]);
@@ -15,13 +12,6 @@ pub const MAINNET_CYCLES_MINTING_CANISTER_ID: Principal =
 pub struct UserControlArgs {
     pub owner: Principal,
 }
-
-pub type Address = String;
-pub type Satoshi = u64;
-pub type MillisatoshiPerByte = u64;
-pub type BlockHash = Vec<u8>;
-pub type Height = u32;
-pub type Page = ByteBuf;
 
 #[derive(CandidType, Clone, Copy, Deserialize, Debug, Eq, PartialEq, Serialize, Hash)]
 pub enum Network {
@@ -40,82 +30,12 @@ impl std::fmt::Display for Network {
     }
 }
 
-/// A reference to a transaction output.
-#[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq, Hash)]
-pub struct OutPoint {
-    #[serde(with = "serde_bytes")]
-    pub txid: Vec<u8>,
-    pub vout: u32,
-}
-
-#[derive(CandidType, Debug, Deserialize, PartialEq)]
-pub struct SendTransactionRequest {
-    #[serde(with = "serde_bytes")]
-    pub transaction: Vec<u8>,
-    pub network: Network,
-}
-
-/// An unspent transaction output.
-#[derive(CandidType, Debug, Deserialize, PartialEq, Clone, Hash, Eq)]
-pub struct Utxo {
-    pub outpoint: OutPoint,
-    pub value: Satoshi,
-    pub height: u32,
-}
-
-/// The response returned for a request to get the UTXOs of a given address.
-#[derive(CandidType, Debug, Deserialize, PartialEq, Clone)]
-pub struct GetUtxosResponse {
-    pub utxos: Vec<Utxo>,
-    pub tip_block_hash: BlockHash,
-    pub tip_height: u32,
-    pub next_page: Option<Page>,
-}
-
-/// A filter used when requesting UTXOs.
-#[derive(CandidType, Debug, Deserialize, PartialEq)]
-pub enum UtxosFilter {
-    MinConfirmations(u32),
-    Page(Page),
-}
-
-/// A request for getting the UTXOs for a given address.
-#[derive(CandidType, Debug, Deserialize, PartialEq)]
-pub struct GetUtxosRequest {
-    pub address: Address,
-    pub network: Network,
-    pub filter: Option<UtxosFilter>,
-}
-
-#[derive(CandidType, Debug, Deserialize, PartialEq)]
-pub struct GetCurrentFeePercentilesRequest {
-    pub network: Network,
-}
-
-#[derive(CandidType, Debug, Deserialize, PartialEq)]
-pub struct GetBalanceRequest {
-    pub address: Address,
-    pub network: Network,
-    pub min_confirmations: Option<u32>,
-}
-
 #[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct CanisterStatus {
     pub id: Principal,
+    pub wasm_version: String,
     pub status: CanisterStatusResponse,
     pub status_at: u64,
-}
-
-#[derive(Debug, CandidType, Deserialize, Clone)]
-pub struct SignRequest {
-    pub id: u64,
-    pub nonce: u64,
-    pub cycles: u64,
-    pub data: Vec<u8>,
-    pub chain_id: u64,
-    pub deadline: u64,
-    pub public_key: Keys,
-    pub destination: CanisterId,
 }
 
 #[derive(Debug, Clone, CandidType, Default, PartialEq, Serialize, Deserialize)]
@@ -155,8 +75,6 @@ pub struct Memo(pub u64);
 pub struct Tokens {
     pub e8s: u64,
 }
-
-// pub const DEFAULT_SUBACCOUNT: Subaccount = Subaccount([0; 32]);
 
 #[derive(CandidType, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum TransferError {
