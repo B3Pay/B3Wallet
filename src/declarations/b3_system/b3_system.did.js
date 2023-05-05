@@ -6,6 +6,32 @@ export const idlFactory = ({ IDL }) => {
     'created_at' : IDL.Nat64,
   });
   const Result = IDL.Variant({ 'Ok' : UserControl, 'Err' : IDL.Text });
+  const CanisterStatusType = IDL.Variant({
+    'stopped' : IDL.Null,
+    'stopping' : IDL.Null,
+    'running' : IDL.Null,
+  });
+  const DefiniteCanisterSettings = IDL.Record({
+    'freezing_threshold' : IDL.Nat,
+    'controllers' : IDL.Vec(IDL.Principal),
+    'memory_allocation' : IDL.Nat,
+    'compute_allocation' : IDL.Nat,
+  });
+  const CanisterStatusResponse = IDL.Record({
+    'status' : CanisterStatusType,
+    'memory_size' : IDL.Nat,
+    'cycles' : IDL.Nat,
+    'settings' : DefiniteCanisterSettings,
+    'idle_cycles_burned_per_day' : IDL.Nat,
+    'module_hash' : IDL.Opt(IDL.Vec(IDL.Nat8)),
+  });
+  const CanisterStatus = IDL.Record({
+    'id' : IDL.Principal,
+    'status' : CanisterStatusResponse,
+    'status_at' : IDL.Nat64,
+    'version' : IDL.Text,
+  });
+  const Result_1 = IDL.Variant({ 'Ok' : CanisterStatus, 'Err' : IDL.Text });
   const Controller = IDL.Record({
     'updated_at' : IDL.Nat64,
     'created_at' : IDL.Nat64,
@@ -15,6 +41,7 @@ export const idlFactory = ({ IDL }) => {
   return IDL.Service({
     'add_controller' : IDL.Func([IDL.Principal], [], []),
     'create_user_control' : IDL.Func([], [Result], []),
+    'get_canister_status' : IDL.Func([IDL.Principal], [Result_1], ['query']),
     'get_controllers' : IDL.Func(
         [],
         [IDL.Vec(IDL.Tuple(IDL.Principal, Controller))],

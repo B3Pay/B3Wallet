@@ -4,9 +4,10 @@ use std::cell::RefCell;
 use std::collections::BTreeMap;
 
 use crate::account::Account;
-use crate::config::Environment;
-use crate::ecdsa::Ecdsa;
-use crate::keys::Keys;
+use crate::error::SignerError;
+use crate::ledger::config::Environment;
+use crate::ledger::ecdsa::Ecdsa;
+use crate::ledger::keys::Keys;
 
 #[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct State {
@@ -93,12 +94,14 @@ impl State {
         }
     }
 
-    pub fn account(&self, id: &String) -> Option<Account> {
-        self.accounts.get(id).cloned()
+    pub fn account(&self, id: &String) -> Result<&Account, SignerError> {
+        self.accounts.get(id).ok_or(SignerError::AccountNotExists)
     }
 
-    pub fn account_mut(&mut self, id: &String) -> Option<&mut Account> {
-        self.accounts.get_mut(id)
+    pub fn account_mut(&mut self, id: &String) -> Result<&mut Account, SignerError> {
+        self.accounts
+            .get_mut(id)
+            .ok_or(SignerError::AccountNotExists)
     }
 
     pub fn account_keys(&self) -> Vec<Keys> {
@@ -117,6 +120,12 @@ impl State {
 
     pub fn accounts_len(&self) -> u8 {
         self.accounts.len() as u8
+    }
+
+    pub fn reset(&mut self) {
+        self.accounts.clear();
+        self.dev_counter = 0;
+        self.prod_counter = 0;
     }
 }
 

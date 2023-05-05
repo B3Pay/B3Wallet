@@ -1,13 +1,12 @@
 type Account = record {
   id : text;
-  keys : Keys;
   name : text;
-  ecdsa : Ecdsa;
+  ledger : Ledger;
   canisters : vec record { principal; Allowance };
-  requests : vec SignRequest;
+  requests : vec record { principal; SignRequest };
   signed : SignedTransaction;
 };
-type Addresses = record { btc : BtcAddresses; eth : text };
+type Addresses = record { btc : BtcAddresses; eth : text; icp : text };
 type Allowance = record {
   updated_at : nat64;
   metadata : vec record { text; text };
@@ -19,8 +18,8 @@ type BtcAddresses = record { mainnet : text; testnet : text };
 type CanisterStatus = record {
   id : principal;
   status : CanisterStatusResponse;
-  wasm_version : text;
   status_at : nat64;
+  version : text;
 };
 type CanisterStatusResponse = record {
   status : CanisterStatusType;
@@ -40,33 +39,127 @@ type DefiniteCanisterSettings = record {
 type Ecdsa = record { env : Environment; path : vec nat8 };
 type Environment = variant { Production; Development; Staging };
 type Keys = record { addresses : Addresses; bytes : vec nat8 };
-type Result = variant { Ok : Account; Err : text };
-type Result_1 = variant { Ok : vec nat8; Err : text };
-type Result_2 = variant { Ok : SignedTransaction; Err : text };
-type Result_3 = variant { Ok : CanisterStatus; Err : text };
+type Ledger = record {
+  keys : Keys;
+  subaccount : vec nat8;
+  ecdsa : Ecdsa;
+  identifier : vec nat8;
+};
+type RejectionCode = variant {
+  NoError;
+  CanisterError;
+  SysTransient;
+  DestinationInvalid;
+  Unknown;
+  SysFatal;
+  CanisterReject;
+};
+type Result = variant { Ok : principal; Err : record { RejectionCode; text } };
+type Result_1 = variant { Ok : Account; Err : record { RejectionCode; text } };
+type Result_2 = variant {
+  Ok : SignRequest;
+  Err : record { RejectionCode; text };
+};
+type Result_3 = variant {
+  Ok : vec record { principal; Allowance };
+  Err : record { RejectionCode; text };
+};
+type Result_4 = variant { Ok : nat64; Err : record { RejectionCode; text } };
+type Result_5 = variant { Ok; Err : record { RejectionCode; text } };
+type Result_6 = variant { Ok : vec nat8; Err : record { RejectionCode; text } };
+type Result_7 = variant {
+  Ok : SignedTransaction;
+  Err : record { RejectionCode; text };
+};
+type Result_8 = variant { Ok : CanisterStatus; Err : SignerError };
+type SetAllowance = record {
+  metadata : vec record { text; text };
+  limit : opt nat8;
+  expires_at : opt nat64;
+};
 type SignRequest = record {
-  id : nat64;
-  destination : principal;
-  public_key : Keys;
-  data : vec nat8;
+  transaction : Transaction;
   deadline : nat64;
-  cycles : nat64;
   chain_id : nat64;
-  nonce : nat64;
+  message : vec nat8;
 };
 type SignedTransaction = record { data : vec nat8; timestamp : nat64 };
+type SignerError = variant {
+  UserAlreadyExists;
+  InvalidCanisterID;
+  InvalidAddress;
+  PasswordIsInvalid;
+  CanisterError : text;
+  TransactionAlreadyRemoved;
+  CyclesMintingError : text;
+  AccountNotExists;
+  TransactionTypeNotFound;
+  RequestNotExists;
+  AccountLimitReached;
+  TransactionNotPending;
+  EnvironmentMismatch;
+  UnknownError;
+  InvalidSubaccount;
+  InsufficientBalance;
+  UserAccountNotFound;
+  PasswordHashError;
+  CallerNotAuthorized;
+  ManagementCanisterError : text;
+  LedgerError : text;
+  InvalidData;
+  InvalidPublicKey;
+  SignError : text;
+  PasswordNotSet;
+  AccountAlreadyExists;
+  CallerIsNotOwner;
+  PublicKeyMismatch;
+  ChainNotFound;
+  CallerIsNotWalletCanister;
+  TransactionNotFound;
+  ChainAlreadyExists;
+  UserNotFound;
+  CanisterStatusError : text;
+};
+type Transaction = record {
+  r : text;
+  s : text;
+  v : text;
+  to : text;
+  transaction_type : TransactionType;
+  value : nat64;
+  max_priority_fee_per_gas : opt nat64;
+  data : text;
+  max_fee_per_gas : opt nat64;
+  chain_id : nat64;
+  nonce : nat64;
+  gas_limit : nat64;
+  access_list : opt vec record { text; vec text };
+  gas_price : opt nat64;
+};
+type TransactionType = variant { EIP1559; EIP2930; Legacy };
 service : () -> {
-  change_owner : (principal) -> ();
-  create_account : (opt Environment, opt text) -> (Result);
-  get_account : (text) -> (Account) query;
+  change_owner : (principal) -> (Result);
+  create_account : (opt Environment, opt text) -> (Result_1);
+  get_account : (text) -> (Result_1) query;
+  get_account_requests : (text, principal) -> (Result_2) query;
   get_accounts : () -> (vec Account) query;
   get_addresses : (text) -> (Addresses) query;
   get_caller : () -> (principal) query;
+  get_connected_canisters : (text) -> (Result_3) query;
   get_owner : () -> (principal) query;
   get_signed : (text) -> (SignedTransaction) query;
+  load_wasm : (vec nat8, text) -> (Result_4);
   number_of_accounts : () -> (nat8) query;
-  sign_message : (text, vec nat8) -> (Result_1);
-  sign_transaction : (text, vec nat8, nat64) -> (Result_2);
-  status : () -> (Result_3);
+  reintall_canister : () -> ();
+  request_allowance : (text, principal, SetAllowance) -> (Result_5);
+  reset_accounts : () -> ();
+  reset_wasm : () -> ();
+  sign_message : (text, vec nat8) -> (Result_6);
+  sign_request : (text, vec nat8, nat64) -> (Result_2);
+  sign_transaction : (text, vec nat8, nat64) -> (Result_7);
+  status : () -> (Result_8);
+  update_canister_controllers : (vec principal) -> (Result_5);
+  upgrade_canister : () -> ();
   version : () -> (text) query;
+  wasm_version : () -> (text) query;
 }

@@ -12,7 +12,7 @@ impl Default for SignedTransaction {
     fn default() -> Self {
         SignedTransaction {
             data: Vec::new(),
-            timestamp: ic_timestamp(),
+            timestamp: 0,
         }
     }
 }

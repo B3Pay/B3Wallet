@@ -2,6 +2,7 @@ import { Environment, Result } from "declarations/b3_user/b3_user.did"
 import { IS_LOCAL } from "helpers/config"
 import { useState } from "react"
 import { B3User } from "service/actor"
+import { Response } from "./Response"
 
 interface CreateAccountProps {
   actor: B3User
@@ -75,32 +76,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({
           <option value="Staging">Staging</option>
         </select>
         <button onClick={createAccount}>Create</button>
-      </section>
-      <section>
-        <label>Response: &nbsp;</label>
-        {loading}
-        <ul>
-          {response &&
-            "Ok" in response &&
-            Object.entries(response.Ok).map(([key, value]) => {
-              const child = (value: any) =>
-                value && typeof value === "object"
-                  ? Object.entries(value).map(([key, value]) => (
-                      <li key={key}>
-                        <label>{key}: &nbsp;</label>
-                        {child(value)}
-                      </li>
-                    ))
-                  : value
-
-              return (
-                <li key={key}>
-                  <label>{key}: &nbsp;</label>
-                  <ul>{child(value)}</ul>
-                </li>
-              )
-            })}
-        </ul>
+        <Response response={response} loading={loading} />
       </section>
     </div>
   )

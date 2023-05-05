@@ -52,6 +52,8 @@ const EthAccount: React.FC<EthAccountProps> = ({
         "hex"
       )
 
+      console.log(serializeTx)
+
       setWaiting("Signing...")
 
       console.log({ title: "Signing transaction...", variant: "subtle" })

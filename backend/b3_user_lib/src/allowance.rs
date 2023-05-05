@@ -38,8 +38,8 @@ impl Default for Allowance {
     }
 }
 
-impl From<&SetAllowance> for Allowance {
-    fn from(allowance: &SetAllowance) -> Self {
+impl From<SetAllowance> for Allowance {
+    fn from(allowance: SetAllowance) -> Self {
         let now = time();
 
         Allowance {
@@ -53,11 +53,11 @@ impl From<&SetAllowance> for Allowance {
 }
 
 impl Allowance {
-    pub fn new(new_allowance: &SetAllowance) -> Self {
+    pub fn new(new_allowance: SetAllowance) -> Self {
         Allowance::from(new_allowance)
     }
 
-    pub fn update(&mut self, new_allowance: &SetAllowance) {
+    pub fn update(&mut self, new_allowance: SetAllowance) {
         self.metadata = new_allowance.metadata.clone();
         self.updated_at = time();
         self.expires_at = new_allowance.expires_at;

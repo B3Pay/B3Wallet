@@ -1,22 +1,24 @@
 use std::collections::HashMap;
 
-use crate::{
-    ecdsa::Ecdsa, request::SignRequest, signed::SignedTransaction, transaction::get_transaction,
-};
+use crate::ledger::config::Environment;
+use crate::ledger::ecdsa::Ecdsa;
+use crate::ledger::keys::Keys;
+use crate::ledger::ledger::Ledger;
+use crate::types::CanisterHashMap;
+use crate::{request::SignRequest, signed::SignedTransaction, transaction::get_transaction};
+use ic_cdk::api::call::CallResult;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 use crate::allowance::{Allowance, CanisterId, SetAllowance};
-use crate::{config::Environment, keys::Keys};
 
-#[derive(Debug, CandidType, Deserialize)]
+#[derive(Debug, CandidType, Clone, Deserialize)]
 pub struct Account {
-    id: String,
-    name: String,
-    keys: Keys,
-    ecdsa: Ecdsa,
-    signed: SignedTransaction,
-    requests: HashMap<CanisterId, SignRequest>,
-    canisters: HashMap<CanisterId, Allowance>,
+    pub id: String,
+    pub name: String,
+    pub ledger: Ledger,
+    pub signed: SignedTransaction,
+    pub requests: HashMap<CanisterId, SignRequest>,
+    pub canisters: HashMap<CanisterId, Allowance>,
 }
 
 impl Default for Account {
@@ -24,48 +26,49 @@ impl Default for Account {
         Account {
             id: String::new(),
             name: String::new(),
-            keys: Keys::default(),
-            ecdsa: Ecdsa::default(),
             requests: HashMap::new(),
             canisters: HashMap::new(),
             signed: SignedTransaction::default(),
+            ledger: Ledger::default(),
         }
     }
 }
 
 impl Account {
-    pub async fn new(ecdsa: Ecdsa) -> Self {
-        let bytes = ecdsa.public_key().await;
-
+    pub async fn new(ecdsa: Ecdsa) -> CallResult<Self> {
         let id = ecdsa.path_id();
+        let ledger = Ledger::new(ecdsa.clone()).await?;
 
-        Account {
+        Ok(Account {
             id,
-            ecdsa,
+            ledger,
             name: String::new(),
-            keys: Keys::new(bytes),
             requests: HashMap::new(),
             canisters: HashMap::new(),
             signed: SignedTransaction::default(),
-        }
+        })
     }
 
-    pub async fn sign_transaction(&self, hex_raw_tx: Vec<u8>, chain_id: u64) -> SignedTransaction {
+    pub async fn sign_transaction(
+        &self,
+        hex_raw_tx: Vec<u8>,
+        chain_id: u64,
+    ) -> CallResult<SignedTransaction> {
         let mut tx = get_transaction(&hex_raw_tx, chain_id).unwrap();
 
         let message = tx.get_message_to_sign().unwrap();
 
         assert!(message.len() == 32);
 
-        let signature = self.sign_message(message).await;
+        let signature = self.sign_message(message).await?;
 
-        let signed_tx = tx.sign(signature, self.keys.bytes()).unwrap();
+        let signed_tx = tx.sign(signature, self.ledger.keys.bytes()).unwrap();
 
-        SignedTransaction::new(signed_tx)
+        Ok(SignedTransaction::new(signed_tx))
     }
 
-    pub async fn sign_message(&self, message: Vec<u8>) -> Vec<u8> {
-        self.ecdsa.sign(message).await
+    pub async fn sign_message(&self, message: Vec<u8>) -> CallResult<Vec<u8>> {
+        self.ledger.sign(message).await
     }
 
     pub fn new_request(
@@ -74,9 +77,9 @@ impl Account {
         hex_raw_tx: Vec<u8>,
         chain_id: u64,
     ) -> SignRequest {
-        let request = SignRequest::new(hex_raw_tx, chain_id);
+        let request = SignRequest::new(hex_raw_tx, chain_id, None);
 
-        self.requests.insert(from, request);
+        self.requests.insert(from, request.clone());
 
         request
     }
@@ -85,7 +88,7 @@ impl Account {
         self.signed = signed_tx;
     }
 
-    pub fn insert_canister(&mut self, canister_id: CanisterId, new_allowance: &SetAllowance) {
+    pub fn insert_canister(&mut self, canister_id: CanisterId, new_allowance: SetAllowance) {
         let allowance = Allowance::new(new_allowance);
 
         self.canisters.insert(canister_id, allowance);
@@ -102,7 +105,7 @@ impl Account {
     pub fn update_canister_allowance(
         &mut self,
         canister_id: CanisterId,
-        new_allowance: &SetAllowance,
+        new_allowance: SetAllowance,
     ) {
         if let Some(allowance) = self.canisters.get_mut(&canister_id) {
             allowance.update(new_allowance);
@@ -117,11 +120,11 @@ impl Account {
         self.name = name;
     }
 
-    pub fn sign_requests(&self, from: CanisterId) -> &SignRequest {
+    pub fn sign_requests(&self, from: CanisterId) -> SignRequest {
         self.requests.get(&from).unwrap().clone()
     }
 
-    pub fn connected_canisters(&self) -> HashMap<CanisterId, Allowance> {
+    pub fn connected_canisters(&self) -> CanisterHashMap {
         self.canisters.clone()
     }
 
@@ -130,7 +133,7 @@ impl Account {
     }
 
     pub fn keys(&self) -> Keys {
-        self.keys.clone()
+        self.ledger.keys.clone()
     }
 
     pub fn name(&self) -> String {
@@ -142,6 +145,6 @@ impl Account {
     }
 
     pub fn env(&self) -> Environment {
-        self.ecdsa.env.clone()
+        self.ledger.ecdsa.env.clone()
     }
 }

@@ -12,7 +12,7 @@ fn sha256(data: &[u8]) -> Vec<u8> {
 
 pub fn get_p2pkh_address_from_public_key(
     network: Network,
-    public_key: Vec<u8>,
+    public_key: &Vec<u8>,
 ) -> Result<String, String> {
     if public_key.len() != 33 {
         return Err("Invalid length of public key".to_string());
@@ -38,7 +38,7 @@ pub fn get_p2pkh_address_from_public_key(
     Ok(address)
 }
 
-pub fn get_address_from_public_key(public_key: Vec<u8>) -> Result<String, String> {
+pub fn get_address_from_public_key(public_key: &Vec<u8>) -> Result<String, String> {
     if public_key.len() != 33 {
         return Err("Invalid length of public key".to_string());
     }
@@ -122,7 +122,7 @@ mod tests {
         let expected = "0x907dc4d0be5d691970cae886fcab34ed65a2cd66";
         let public_key_str = "02c397f23149d3464517d57b7cdc8e287428407f9beabfac731e7c24d536266cd1";
         let public_key_to_vec = string_to_vec_u8(&public_key_str);
-        let result = get_address_from_public_key(public_key_to_vec).unwrap();
+        let result = get_address_from_public_key(&public_key_to_vec).unwrap();
         assert_eq!(result, expected);
     }
 
@@ -131,7 +131,7 @@ mod tests {
         let expected = Err("Invalid public key".to_string());
         let public_key_str = "000000000000000000000000000000000000000000000000000000000000000000";
         let public_key_to_vec = string_to_vec_u8(&public_key_str);
-        let result = get_address_from_public_key(public_key_to_vec);
+        let result = get_address_from_public_key(&public_key_to_vec);
         assert_eq!(result, expected);
     }
 
@@ -140,7 +140,7 @@ mod tests {
         let expected = Err("Invalid length of public key".to_string());
         let public_key_str = "";
         let public_key_to_vec = string_to_vec_u8(&public_key_str);
-        let result = get_address_from_public_key(public_key_to_vec);
+        let result = get_address_from_public_key(&public_key_to_vec);
         assert_eq!(result, expected);
     }
 

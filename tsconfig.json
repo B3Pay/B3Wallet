@@ -33,6 +33,7 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
+    "**/*.wasm",
     ".next/types/**/*.ts",
     "scripts/actor.ts",
     "scripts/system.install.ts",

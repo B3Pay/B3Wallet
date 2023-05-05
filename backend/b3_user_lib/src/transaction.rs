@@ -6,25 +6,14 @@ use candid::CandidType;
 use easy_hasher::easy_hasher;
 use serde::Deserialize;
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum TransactionType {
-    Legacy,
-    EIP1559,
-    EIP2930,
-}
-
-pub enum TransactionTypes {
-    Legacy(TransactionLegacy),
-    EIP1559(Transaction1559),
-    EIP2930(Transaction2930),
-}
-
-#[derive(Debug, Clone, Deserialize, CandidType)]
+#[derive(Debug, Clone, Deserialize, PartialEq, CandidType)]
 pub struct Transaction {
     pub chain_id: u64,
     pub nonce: u64,
-    pub gas_price: u64,
+    pub gas_price: Option<u64>,
     pub gas_limit: u64,
+    pub max_priority_fee_per_gas: Option<u64>,
+    pub max_fee_per_gas: Option<u64>,
     pub to: String,
     pub value: u64,
     pub data: String,
@@ -32,6 +21,85 @@ pub struct Transaction {
     pub v: String,
     pub r: String,
     pub s: String,
+    pub transaction_type: TransactionType,
+}
+
+impl Transaction {
+    fn from(tx: Transactions) -> Self {
+        match tx {
+            Transactions::Legacy(tx) => Transaction {
+                chain_id: tx.chain_id,
+                nonce: tx.nonce,
+                gas_price: Some(tx.gas_price),
+                gas_limit: tx.gas_limit,
+                max_priority_fee_per_gas: None,
+                max_fee_per_gas: None,
+                to: tx.to.clone(),
+                value: tx.value,
+                data: tx.data.clone(),
+                access_list: None,
+                v: tx.v.clone(),
+                r: tx.r.clone(),
+                s: tx.s.clone(),
+                transaction_type: TransactionType::Legacy,
+            },
+            Transactions::EIP1559(tx) => Transaction {
+                chain_id: tx.chain_id,
+                nonce: tx.nonce,
+                gas_price: None,
+                max_fee_per_gas: Some(tx.max_fee_per_gas),
+                max_priority_fee_per_gas: Some(tx.max_priority_fee_per_gas),
+                gas_limit: tx.gas_limit,
+                to: tx.to.clone(),
+                value: tx.value,
+                data: tx.data.clone(),
+                access_list: None,
+                v: tx.v.clone(),
+                r: tx.r.clone(),
+                s: tx.s.clone(),
+                transaction_type: TransactionType::EIP1559,
+            },
+            Transactions::EIP2930(tx) => Transaction {
+                chain_id: tx.chain_id,
+                nonce: tx.nonce,
+                gas_price: Some(tx.gas_price),
+                max_fee_per_gas: None,
+                max_priority_fee_per_gas: None,
+                gas_limit: tx.gas_limit,
+                to: tx.to.clone(),
+                value: tx.value,
+                data: tx.data.clone(),
+                access_list: Some(tx.access_list.clone()),
+                v: tx.v.clone(),
+                r: tx.r.clone(),
+                s: tx.s.clone(),
+                transaction_type: TransactionType::EIP2930,
+            },
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, PartialEq, CandidType)]
+pub enum TransactionType {
+    Legacy,
+    EIP1559,
+    EIP2930,
+}
+
+impl TransactionType {
+    pub fn as_str(&self) -> &'static str {
+        match *self {
+            TransactionType::Legacy => "legacy",
+            TransactionType::EIP1559 => "eip1559",
+            TransactionType::EIP2930 => "eip2930",
+        }
+    }
+}
+
+pub enum Transactions<'a> {
+    Legacy(&'a TransactionLegacy),
+    EIP1559(&'a Transaction1559),
+    EIP2930(&'a Transaction2930),
 }
 
 pub trait Sign {
@@ -42,7 +110,7 @@ pub trait Sign {
     fn get_recovery_id(&self) -> Result<u8, String>;
     fn get_nonce(&self) -> Result<u64, String>;
     fn serialize(&self) -> Result<Vec<u8>, String>;
-    fn get_transaction(&self) -> Result<TransactionTypes, String>;
+    fn get_transaction(&self) -> Result<Transaction, String>;
 }
 
 pub struct TransactionLegacy {
@@ -57,6 +125,7 @@ pub struct TransactionLegacy {
     pub r: String,
     pub s: String,
 }
+
 impl From<(Vec<u8>, u64)> for TransactionLegacy {
     fn from(data: (Vec<u8>, u64)) -> Self {
         let rlp = rlp::Rlp::new(&data.0[..]);
@@ -226,8 +295,8 @@ impl Sign for TransactionLegacy {
         Ok(self.nonce)
     }
 
-    fn get_transaction(&self) -> Result<TransactionTypes, String> {
-        let transaction = TransactionTypes::Legacy(*self);
+    fn get_transaction(&self) -> Result<Transaction, String> {
+        let transaction = Transaction::from(Transactions::Legacy(self));
 
         Ok(transaction)
     }
@@ -428,8 +497,8 @@ impl Sign for Transaction2930 {
     fn get_nonce(&self) -> Result<u64, String> {
         Ok(self.nonce)
     }
-    fn get_transaction(&self) -> Result<TransactionTypes, String> {
-        let transaction = TransactionTypes::EIP2930(*self);
+    fn get_transaction(&self) -> Result<Transaction, String> {
+        let transaction = Transaction::from(Transactions::EIP2930(self));
 
         Ok(transaction)
     }
@@ -645,8 +714,8 @@ impl Sign for Transaction1559 {
     fn get_nonce(&self) -> Result<u64, String> {
         Ok(self.nonce)
     }
-    fn get_transaction(&self) -> Result<TransactionTypes, String> {
-        let transaction = TransactionTypes::EIP1559(*self);
+    fn get_transaction(&self) -> Result<Transaction, String> {
+        let transaction = Transaction::from(Transactions::EIP1559(self));
 
         Ok(transaction)
     }

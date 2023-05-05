@@ -1,24 +1,41 @@
+mod wasm;
+
 use b3_user_lib::{
     account::Account,
-    config::Environment,
-    keys::Addresses,
+    allowance::{CanisterId, SetAllowance},
+    error::SignerError,
+    ledger::config::Environment,
+    ledger::keys::Addresses,
+    request::SignRequest,
     signed::SignedTransaction,
     state::{State, STATE},
-    types::{CanisterStatus, UserControlArgs},
+    types::{CanisterHashMap, CanisterStatus, UserControlArgs},
+    with_account, with_account_mut, with_state, with_state_mut,
 };
+
 use ic_cdk::{
     api::{
-        call::arg_data, management_canister::main::canister_status,
-        management_canister::provisional::CanisterIdRecord, time,
+        call::{arg_data, CallResult},
+        management_canister::main::canister_status,
+        management_canister::{
+            main::{install_code, update_settings, UpdateSettingsArgument},
+            provisional::{CanisterIdRecord, CanisterSettings},
+        },
+        time,
     },
     caller,
-    export::{candid::candid_method, Principal},
+    export::{
+        candid::{candid_method, export_service},
+        Principal,
+    },
     init, post_upgrade, pre_upgrade, query, update,
 };
 use std::cell::RefCell;
+use wasm::Wasm;
 
 thread_local! {
     static OWNER: RefCell<Principal> = RefCell::new(Principal::anonymous());
+    static WASM: RefCell<Wasm> = RefCell::new(Wasm::default());
 }
 
 pub fn caller_is_owner() -> Result<(), String> {
@@ -28,7 +45,7 @@ pub fn caller_is_owner() -> Result<(), String> {
     if caller == controllers {
         Ok(())
     } else {
-        Err("Caller is not the owner.".to_string())
+        Err("Caller is not owner!".to_string())
     }
 }
 
@@ -61,12 +78,8 @@ pub fn get_owner() -> Principal {
 
 #[query]
 #[candid_method(query)]
-pub fn get_account(account_id: String) -> Account {
-    STATE.with(|s| {
-        let state = s.borrow();
-
-        state.account(&account_id).unwrap()
-    })
+pub fn get_account(account_id: String) -> CallResult<Account> {
+    with_account(account_id, |account| Ok(account.clone()))?
 }
 
 #[query]
@@ -85,7 +98,7 @@ pub fn get_addresses(account_id: String) -> Addresses {
     STATE.with(|s| {
         let state = s.borrow();
 
-        state.account(&account_id).unwrap().keys().addresses()
+        state.account(&account_id).unwrap().keys().addresses
     })
 }
 
@@ -101,6 +114,12 @@ pub fn get_signed(account_id: String) -> SignedTransaction {
 
 #[query]
 #[candid_method(query)]
+pub fn get_connected_canisters(account_id: String) -> CallResult<CanisterHashMap> {
+    with_account(account_id, |account| Ok(account.canisters.clone()))?
+}
+
+#[query]
+#[candid_method(query)]
 pub fn get_accounts() -> Vec<Account> {
     STATE.with(|s| {
         let state = s.borrow();
@@ -109,69 +128,70 @@ pub fn get_accounts() -> Vec<Account> {
     })
 }
 
+#[query]
+#[candid_method(query)]
+pub fn get_account_requests(account_id: String, canister: CanisterId) -> CallResult<SignRequest> {
+    with_account(account_id, |account| {
+        Ok(account.requests.get(&canister).unwrap().clone())
+    })?
+}
+
 #[update(guard = "caller_is_owner")]
 #[candid_method(update)]
-pub fn change_owner(new_owner: Principal) {
+pub fn request_allowance(
+    account_id: String,
+    canister: CanisterId,
+    allowance: SetAllowance,
+) -> CallResult<()> {
+    with_account_mut(account_id, |account| {
+        Ok(account.insert_canister(canister, allowance))
+    })?
+}
+
+#[update(guard = "caller_is_owner")]
+#[candid_method(update)]
+pub fn change_owner(new_owner: Principal) -> CallResult<Principal> {
     OWNER.with(|s| {
         *s.borrow_mut() = new_owner;
     });
+
+    Ok(new_owner)
 }
 
 #[update(guard = "caller_is_owner")]
 #[candid_method(update)]
-pub async fn create_account(
-    env: Option<Environment>,
-    name: Option<String>,
-) -> Result<Account, String> {
-    let ecdsa_path = STATE.with(|s| s.borrow().new_ecdsa_path(env));
+pub async fn create_account(env: Option<Environment>, name: Option<String>) -> CallResult<Account> {
+    let ecdsa_path = with_state(|s| s.new_ecdsa_path(env))?;
 
-    let account = Account::new(ecdsa_path).await;
+    let new_account = Account::new(ecdsa_path).await?;
 
-    let state_account = STATE.with(|s| {
-        let mut state = s.borrow_mut();
+    let id = with_state_mut(|s| s.insert_account(new_account, name))?;
 
-        let id = state.insert_account(account, name);
+    let account = with_account(id, |account| account.clone())?;
 
-        state.account(&id)
-    });
-
-    if let Some(state_account) = state_account {
-        Ok(state_account.clone())
-    } else {
-        Err("Failed to create account".to_string())
-    }
+    Ok(account)
 }
 
 #[update(guard = "caller_is_owner")]
 #[candid_method(update)]
-pub fn request_sign(account_id: String, hex_raw_tx: Vec<u8>, chain_id: u64) -> String {
-    STATE.with(|s| {
-        let mut state = s.borrow_mut();
+pub fn sign_request(
+    account_id: String,
+    hex_raw_tx: Vec<u8>,
+    chain_id: u64,
+) -> CallResult<SignRequest> {
+    let canister_id = caller();
 
-        let account = state.account(&account_id).unwrap();
-
-        let signed = account.request_sign(hex_raw_tx, chain_id);
-
-        state.insert_signed(signed)
-    })
+    with_account_mut(account_id, |account| {
+        Ok(account.new_request(canister_id, hex_raw_tx, chain_id))
+    })?
 }
 
 #[update(guard = "caller_is_owner")]
 #[candid_method(update)]
-pub async fn sign_message(account_id: String, message_hash: Vec<u8>) -> Result<Vec<u8>, String> {
-    let account = STATE.with(|s| {
-        let state = s.borrow();
+pub async fn sign_message(account_id: String, message_hash: Vec<u8>) -> CallResult<Vec<u8>> {
+    let account = with_account(account_id, |account| account.clone())?;
 
-        state.account(&account_id)
-    });
-
-    if let Some(account) = account {
-        let signature = account.sign_message(message_hash).await;
-
-        Ok(signature)
-    } else {
-        Err(format!("account does not exist: {}", account_id))
-    }
+    account.sign_message(message_hash).await
 }
 
 #[candid_method(update)]
@@ -180,20 +200,10 @@ pub async fn sign_transaction(
     account_id: String,
     hex_raw_tx: Vec<u8>,
     chain_id: u64,
-) -> Result<SignedTransaction, String> {
-    let account = STATE.with(|s| {
-        let state = s.borrow();
+) -> CallResult<SignedTransaction> {
+    let account = with_account(account_id, |account| account.clone())?;
 
-        state.account(&account_id)
-    });
-
-    if let Some(account) = account {
-        let tx = account.sign_transaction(hex_raw_tx, chain_id).await;
-
-        Ok(tx)
-    } else {
-        Err(format!("account does not exist: {}", account_id))
-    }
+    account.sign_transaction(hex_raw_tx, chain_id).await
 }
 
 #[candid_method(query)]
@@ -204,10 +214,90 @@ fn version() -> String {
 
 #[candid_method(update)]
 #[update(guard = "caller_is_owner")]
-async fn status() -> Result<CanisterStatus, String> {
+pub async fn upgrade_canister() {
+    let args = WASM.with(|s| s.borrow().upgrade_args().clone());
+
+    install_code(args).await.unwrap();
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_owner")]
+pub async fn reset_accounts() {
+    STATE.with(|s| s.borrow_mut().reset());
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_owner")]
+pub async fn reintall_canister() {
+    let args = WASM.with(|s| s.borrow().reintall_args().clone());
+
+    install_code(args).await.unwrap();
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_owner")]
+fn reset_wasm() {
+    WASM.with(|s| s.borrow_mut().reset());
+}
+
+#[candid_method(query)]
+#[query]
+fn wasm_version() -> String {
+    WASM.with(|s| s.borrow().version.clone())
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_owner")]
+fn load_wasm(blob: Vec<u8>, version: String) -> CallResult<u64> {
+    let mut wasm = WASM.with(|s| s.borrow().wasm.clone());
+
+    wasm = wasm.iter().copied().chain(blob.iter().copied()).collect();
+
+    let total = WASM.with(|s| {
+        let state = &mut *s.borrow_mut();
+
+        state.wasm = wasm;
+        state.version = version;
+
+        state.wasm.len()
+    });
+
+    Ok(total as u64)
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_owner")]
+pub async fn update_canister_controllers(mut controllers: Vec<Principal>) -> CallResult<()> {
+    let canister_id = ic_cdk::id();
+    let owner = OWNER.with(|s| *s.borrow());
+
+    if !controllers.contains(&owner) {
+        controllers.push(owner);
+    }
+
+    if !controllers.contains(&canister_id) {
+        controllers.push(canister_id);
+    }
+
+    let arg = UpdateSettingsArgument {
+        canister_id,
+        settings: CanisterSettings {
+            controllers: Some(controllers),
+            compute_allocation: None,
+            memory_allocation: None,
+            freezing_threshold: None,
+        },
+    };
+
+    update_settings(arg).await
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_owner")]
+async fn status() -> Result<CanisterStatus, SignerError> {
     let canister_id = ic_cdk::id();
 
-    let wasm_version = version();
+    let version = version();
 
     let status = canister_status(CanisterIdRecord { canister_id }).await;
 
@@ -215,10 +305,10 @@ async fn status() -> Result<CanisterStatus, String> {
         Ok((status,)) => Ok(CanisterStatus {
             id: canister_id,
             status,
-            wasm_version,
+            version,
             status_at: time(),
         }),
-        Err((_, message)) => Err(format!("Failed to get status: {}", message)),
+        Err((_, message)) => Err(SignerError::CanisterStatusError(message)),
     }
 }
 
@@ -228,6 +318,8 @@ pub fn pre_upgrade() {
     STATE.with(|s| {
         ic_cdk::storage::stable_save((s, owner)).unwrap();
     });
+
+    WASM.with(|s| s.borrow_mut().reset());
 }
 
 #[post_upgrade]
@@ -242,16 +334,20 @@ pub fn post_upgrade() {
     });
 }
 
+#[query(name = "__get_candid_interface_tmp_hack")]
+fn export_candid() -> String {
+    export_service!();
+    __export_service()
+}
+
 #[cfg(test)]
 #[test]
 fn generate_candid() {
     use std::io::Write;
 
-    ic_cdk::export::candid::export_service!();
-
-    let candid = format!("{}", __export_service());
-
     let mut file = std::fs::File::create("./b3_user.did").unwrap();
+
+    let candid = export_candid();
 
     file.write_all(candid.as_bytes()).unwrap();
 

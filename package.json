@@ -11,7 +11,7 @@
     "dfinity"
   ],
   "scripts": {
-    "dev": "next dev",
+    "dev": "yarn env && next dev",
     "ic:dev": "DFX_NETWORK=ic next dev",
     "build": "next build",
     "start": "next start",

@@ -1,28 +1,35 @@
 import { Actor, HttpAgent } from "@dfinity/agent"
 import { Principal } from "@dfinity/principal"
 import { readFileSync } from "fs"
-import { B3System } from "service/actor"
-import { idlFactory } from "../src/declarations/b3_system"
+import { B3System, B3User } from "service/actor"
+import { idlFactory as systemFactory } from "../src/declarations/b3_system"
+import { idlFactory as userFactory } from "../src/declarations/b3_user"
 import { initIdentity } from "./utils"
 
-const consolePrincipalIC = () => {
+const systemPrincipalIC = () => {
   const buffer = readFileSync("./canister_ids.json")
   const { console } = JSON.parse(buffer.toString("utf-8"))
   return Principal.fromText(console.ic)
 }
 
-const consolePrincipalLocal = () => {
+const systemPrincipalLocal = () => {
   const buffer = readFileSync("./.dfx/local/canister_ids.json")
   const { b3_system } = JSON.parse(buffer.toString("utf-8"))
   return Principal.fromText(b3_system.local)
 }
 
-export const consoleActorIC = async () => {
-  const canisterId = consolePrincipalIC()
+const userPrincipalLocal = () => {
+  const buffer = readFileSync("./.dfx/local/canister_ids.json")
+  const { b3_user } = JSON.parse(buffer.toString("utf-8"))
+  return Principal.fromText(b3_user.local)
+}
+
+export const systemActorIC = async () => {
+  const canisterId = systemPrincipalIC()
 
   const agent = icAgent()
 
-  return Actor.createActor(idlFactory, {
+  return Actor.createActor(systemFactory, {
     agent,
     canisterId
   })
@@ -49,13 +56,24 @@ export const localAgent = async () => {
   return agent
 }
 
-export const consoleSystemLocal = async () => {
-  const canisterId = consolePrincipalLocal()
+export const systemLocalActor = async () => {
+  const canisterId = systemPrincipalLocal()
 
   const agent = await localAgent()
 
-  return Actor.createActor(idlFactory, {
+  return Actor.createActor(systemFactory, {
     agent,
     canisterId
   }) as Promise<B3System>
+}
+
+export const userLocalActor = async () => {
+  const canisterId = userPrincipalLocal()
+
+  const agent = await localAgent()
+
+  return Actor.createActor(userFactory, {
+    agent,
+    canisterId
+  }) as Promise<B3User>
 }

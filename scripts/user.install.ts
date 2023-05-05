@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-import { B3System } from "../src/service/actor"
+import { B3User } from "../src/service/actor"
+import { userLocalActor } from "./actor"
 import { loadWasm, readVersion } from "./utils"
 
-const resetRelease = (actor: B3System) => actor.reset_release()
+const resetRelease = (actor: B3User) => actor.reset_wasm()
 
 const chunkGenerator = async function* (
   wasmModule: number[],
@@ -13,24 +14,24 @@ const chunkGenerator = async function* (
   }
 }
 
-const loadRelease = async ({ actor, wasmModule, version }: any) => {
-  console.log(`loading wasm code v${version} in System.`)
+const loadRelease = async (
+  actor: B3User,
+  wasmModule: number[],
+  version: string
+) => {
+  console.log(`loading wasm code ${version} in User Canister.`)
 
   console.log(`Wasm size:`, wasmModule.length)
 
-  const upload = async (chunks: any) => {
-    const result = await actor.load_release(chunks, version)
-    console.log(`Chunks :`, result)
-  }
-
   for await (const chunks of chunkGenerator(wasmModule)) {
-    await upload(chunks)
+    const result = await actor.load_wasm(chunks, version)
+    console.log(`Chunks :`, result)
   }
 
   console.log(`loading done.`)
 }
 
-export const load = async (actor: B3System) => {
+const load = async (actor: B3User) => {
   const wasmModule = await loadWasm()
   const version = await readVersion()
 
@@ -40,10 +41,11 @@ export const load = async (actor: B3System) => {
   }
 
   await resetRelease(actor)
-  await loadRelease({ actor, wasmModule, version })
+  await loadRelease(actor, wasmModule, version)
 }
-// ;(async () => {
-//   const actor = await systemLocalActor()
 
-//   await load(actor)
-// })()
+;(async () => {
+  const actor = await userLocalActor()
+
+  await load(actor)
+})()

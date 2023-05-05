@@ -1,6 +1,12 @@
+use std::collections::HashMap;
+
 use candid::{CandidType, Principal};
 use ic_cdk::api::management_canister::main::CanisterStatusResponse;
 use serde::{Deserialize, Serialize};
+
+use crate::{allowance::Allowance, request::SignRequest};
+
+pub const MAINNET_MANAGMENT_CANISTER_ID: Principal = Principal::management_canister();
 
 pub const MAINNET_LEDGER_CANISTER_ID: Principal =
     Principal::from_slice(&[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x01, 0x01]);
@@ -30,10 +36,13 @@ impl std::fmt::Display for Network {
     }
 }
 
+pub type CanisterHashMap = HashMap<CanisterId, Allowance>;
+pub type RequestHashMap = HashMap<CanisterId, SignRequest>;
+
 #[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct CanisterStatus {
     pub id: Principal,
-    pub wasm_version: String,
+    pub version: String,
     pub status: CanisterStatusResponse,
     pub status_at: u64,
 }

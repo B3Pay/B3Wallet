@@ -55,7 +55,7 @@ dependencies = [
 
 [[package]]
 name = "b3_user"
-version = "0.1.1"
+version = "0.0.0-alpha.1"
 dependencies = [
  "b3_user_lib",
  "candid",
@@ -68,6 +68,7 @@ version = "0.2.0"
 dependencies = [
  "bs58",
  "candid",
+ "crc32fast",
  "easy-hasher",
  "ethereum-rlp",
  "futures",

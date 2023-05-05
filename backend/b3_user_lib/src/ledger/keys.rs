@@ -11,6 +11,7 @@ use crate::{
 #[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct Addresses {
     eth: String,
+    icp: String,
     btc: BtcAddresses,
 }
 
@@ -23,6 +24,7 @@ pub struct BtcAddresses {
 impl Default for Addresses {
     fn default() -> Self {
         Addresses {
+            icp: String::new(),
             eth: String::new(),
             btc: BtcAddresses {
                 mainnet: String::new(),
@@ -34,8 +36,8 @@ impl Default for Addresses {
 
 #[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct Keys {
-    bytes: Vec<u8>,
-    addresses: Addresses,
+    pub bytes: Vec<u8>,
+    pub addresses: Addresses,
 }
 
 impl Default for Keys {
@@ -48,18 +50,19 @@ impl Default for Keys {
 }
 
 impl Keys {
-    pub fn new(bytes: Vec<u8>) -> Self {
-        let eth = get_address_from_public_key(bytes.clone())
+    pub fn new(bytes: Vec<u8>, icp: String) -> Self {
+        let eth = get_address_from_public_key(&bytes)
             .map_err(|e| trap(&format!("Failed to get address from public key {}", e)))
             .unwrap();
 
-        let mainnet = get_p2pkh_address_from_public_key(Network::Mainnet, bytes.clone()).unwrap();
+        let mainnet = get_p2pkh_address_from_public_key(Network::Mainnet, &bytes).unwrap();
 
-        let testnet = get_p2pkh_address_from_public_key(Network::Regtest, bytes.clone()).unwrap();
+        let testnet = get_p2pkh_address_from_public_key(Network::Regtest, &bytes).unwrap();
 
         Keys {
             bytes,
             addresses: Addresses {
+                icp,
                 eth,
                 btc: BtcAddresses { mainnet, testnet },
             },
@@ -68,9 +71,5 @@ impl Keys {
 
     pub fn bytes(&self) -> Vec<u8> {
         self.bytes.clone()
-    }
-
-    pub fn addresses(&self) -> Addresses {
-        self.addresses.clone()
     }
 }
