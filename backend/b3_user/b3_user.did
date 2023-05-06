@@ -39,6 +39,14 @@ type DefiniteCanisterSettings = record {
 type Environment = variant { Production; Development; Staging };
 type Keys = record { addresses : Addresses; bytes : vec nat8 };
 type Ledger = record { keys : Keys; subaccount : vec nat8 };
+type NotifyError = variant {
+  Refunded : record { block_index : opt nat64; reason : text };
+  InvalidTransaction : text;
+  Other : record { error_message : text; error_code : nat64 };
+  Processing;
+  TransactionTooOld : nat64;
+};
+type NotifyTopUpResult = variant { Ok : nat; Err : NotifyError };
 type RejectionCode = variant {
   NoError;
   CanisterError;
@@ -50,9 +58,13 @@ type RejectionCode = variant {
 };
 type Result = variant { Ok : principal; Err : record { RejectionCode; text } };
 type Result_1 = variant { Ok : Account; Err : record { RejectionCode; text } };
-type Result_10 = variant { Ok : nat64; Err : TransferError };
-type Result_11 = variant {
-  Ok : Result_10;
+type Result_10 = variant {
+  Ok : NotifyTopUpResult;
+  Err : record { RejectionCode; text };
+};
+type Result_11 = variant { Ok : nat64; Err : TransferError };
+type Result_12 = variant {
+  Ok : Result_11;
   Err : record { RejectionCode; text };
 };
 type Result_2 = variant {
@@ -169,7 +181,8 @@ service : () -> {
   sign_request : (text, vec nat8, nat64) -> (Result_2);
   sign_transaction : (text, vec nat8, nat64) -> (Result_5);
   status : () -> (Result_9);
-  transfer_icp : (text, Tokens, text, opt Tokens, opt nat64) -> (Result_11);
+  topup_and_notify : (text, Tokens, opt principal, opt Tokens) -> (Result_10);
+  transfer_icp : (text, Tokens, text, opt Tokens, opt nat64) -> (Result_12);
   update_canister_controllers : (vec principal) -> (Result_7);
   upgrade_canister : () -> ();
   version : () -> (text) query;

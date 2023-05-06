@@ -45,31 +45,30 @@ impl From<SignerError> for (RejectionCode, String) {
         match error {
             SignerError::LedgerError(msg) => (
                 RejectionCode::CanisterError,
-                ["Ledger error: {}", &msg].join(""),
+                ["Ledger error ", &msg].concat(),
             ),
             SignerError::CyclesMintingError(msg) => (
                 RejectionCode::CanisterError,
-                ["Cycles minting error: {}", &msg].join(""),
+                ["Cycles minting error ", &msg].concat(),
             ),
             SignerError::PublicKeyError(msg) => (
                 RejectionCode::CanisterError,
-                ["Public key error: {}", &msg].join(""),
+                ["Public key error ", &msg].concat(),
             ),
             SignerError::ManagementCanisterError(msg) => (
                 RejectionCode::CanisterError,
-                ["Management canister error: {}", &msg].join(""),
+                ["Management canister error ", &msg].concat(),
             ),
-            SignerError::SignError(msg) => (
-                RejectionCode::CanisterError,
-                ["Sign error: {}", &msg].join(""),
-            ),
+            SignerError::SignError(msg) => {
+                (RejectionCode::CanisterError, ["Sign error ", &msg].concat())
+            }
             SignerError::CanisterError(msg) => (
                 RejectionCode::CanisterError,
-                ["Canister error: {}", &msg].join(""),
+                ["Canister error ", &msg].concat(),
             ),
             SignerError::CanisterStatusError(msg) => (
                 RejectionCode::CanisterError,
-                ["Canister status error: {}", &msg].join(""),
+                ["Canister status error ", &msg].concat(),
             ),
             SignerError::UnknownError => (RejectionCode::Unknown, "Unknown error".to_string()),
             SignerError::InvalidData => (RejectionCode::CanisterError, "Invalid data".to_string()),

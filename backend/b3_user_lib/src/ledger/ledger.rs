@@ -4,6 +4,7 @@ use ic_cdk::{
 };
 
 use crate::{
+    allowance::CanisterId,
     error::SignerError,
     ledger::{identifier::AccountIdentifier, keys::Keys, subaccount::Subaccount},
     types::{
@@ -16,6 +17,8 @@ use crate::{
 use ic_cdk::api::call::{call, call_with_payment};
 
 use crate::types::{SignWithECDSAArgs, SignWithECDSAResponse};
+
+use super::constants::{CANISTER_TOP_UP_MEMO, IC_TRANSACTION_FEE_ICP};
 
 pub type BlockIndex = u64;
 
@@ -33,6 +36,25 @@ pub struct AccountBalanceArgs {
 #[derive(CandidType, Deserialize, Clone, Debug)]
 pub struct Tokens {
     pub e8s: u64,
+}
+
+impl Tokens {
+    /// The maximum number of Tokens we can hold on a single account.
+    pub const MAX: Self = Tokens { e8s: u64::MAX };
+    /// Zero Tokens.
+    pub const ZERO: Self = Tokens { e8s: 0 };
+    /// How many times can Tokenss be divided
+    pub const SUBDIVIDABLE_BY: u64 = 100_000_000;
+
+    /// Constructs an amount of Tokens from the number of 10^-8 Tokens.
+    pub const fn from_e8s(e8s: u64) -> Self {
+        Self { e8s }
+    }
+
+    /// Returns the number of 10^-8 Tokens in this amount.
+    pub const fn e8s(&self) -> u64 {
+        self.e8s
+    }
 }
 
 #[derive(CandidType, Deserialize, Clone, Debug)]
@@ -62,9 +84,7 @@ impl Default for Ledger {
 
 impl Ledger {
     pub async fn new(subaccount: Subaccount) -> CallResult<Self> {
-        let owner = ic_cdk::caller();
-
-        let identifier = AccountIdentifier::new(&owner, &subaccount);
+        let identifier = subaccount.get_account_identifier();
 
         let icp = identifier.to_str();
 
@@ -81,9 +101,9 @@ impl Ledger {
     }
 
     pub async fn public_key(&self) -> CallResult<Vec<u8>> {
-        let key_id = self.subaccount.key_id();
+        let key_id = self.subaccount.get_key_id();
 
-        let derivation_path = self.subaccount.derivation_path();
+        let derivation_path = self.subaccount.get_derivation_path();
 
         let request = ECDSAPublicKeyArgs {
             canister_id: None,
@@ -102,8 +122,8 @@ impl Ledger {
         Ok(res.public_key)
     }
 
-    pub async fn sign(&self, message_hash: Vec<u8>) -> CallResult<Vec<u8>> {
-        let (key_id, cycles, derivation_path) = self.subaccount.key_id_with_cycles_and_path();
+    pub async fn sign_message(&self, message_hash: Vec<u8>) -> CallResult<Vec<u8>> {
+        let (key_id, cycles, derivation_path) = self.subaccount.get_key_id_with_cycles_and_path();
 
         let request = SignWithECDSAArgs {
             derivation_path,
@@ -123,6 +143,18 @@ impl Ledger {
         Ok(res.signature)
     }
 
+    pub async fn account_balance(&self) -> CallResult<Tokens> {
+        let account = self.subaccount.get_account_identifier();
+
+        let args = AccountBalanceArgs { account };
+
+        let (res,): (Tokens,) = call(MAINNET_LEDGER_CANISTER_ID, "account_balance", (args,))
+            .await
+            .map_err(|e| SignerError::LedgerError(e.1))?;
+
+        Ok(res)
+    }
+
     pub async fn transfer_icp(
         &self,
         amount: Tokens,
@@ -132,38 +164,45 @@ impl Ledger {
     ) -> CallResult<TransferResult> {
         let args = TransferArgs {
             memo: memo.unwrap_or_else(|| Memo(1234567890)),
-            fee: fee.unwrap_or_else(|| Tokens { e8s: 10_000 }),
+            fee: fee.unwrap_or_else(|| IC_TRANSACTION_FEE_ICP),
             amount,
             to,
             from_subaccount: Some(self.subaccount.clone()),
             created_at_time: None,
         };
 
-        let response: (TransferResult,) = call(MAINNET_LEDGER_CANISTER_ID, "transfer", (args,))
+        let (res,): (TransferResult,) = call(MAINNET_LEDGER_CANISTER_ID, "transfer", (args,))
             .await
             .map_err(|e| SignerError::LedgerError(e.1))?;
 
-        Ok(response.0)
+        Ok(res)
     }
 
-    pub async fn account_balance(&self) -> CallResult<Tokens> {
-        let account = self.subaccount.account_identifier();
+    pub async fn topup_and_notify(
+        &self,
+        amount: Tokens,
+        canister_id: CanisterId,
+        fee: Option<Tokens>,
+    ) -> CallResult<NotifyTopUpResult> {
+        let canister_subaccount = Subaccount::from(&canister_id);
 
-        let args = AccountBalanceArgs { account };
+        let to = AccountIdentifier::new(&MAINNET_CYCLES_MINTING_CANISTER_ID, &canister_subaccount);
 
-        let response: (Tokens,) = call(MAINNET_LEDGER_CANISTER_ID, "account_balance", (args,))
-            .await
-            .map_err(|e| SignerError::LedgerError(e.1))?;
+        let block_index = self
+            .transfer_icp(amount, to, fee, Some(CANISTER_TOP_UP_MEMO))
+            .await?
+            .unwrap();
 
-        Ok(response.0)
-    }
+        let args = NotifyTopupArgs {
+            block_index,
+            canister_id,
+        };
 
-    pub async fn notify_topup(&self, args: NotifyTopupArgs) -> CallResult<NotifyTopUpResult> {
-        let response: (NotifyTopUpResult,) =
-            call(MAINNET_CYCLES_MINTING_CANISTER_ID, "notify_topup", (args,))
+        let (res,): (NotifyTopUpResult,) =
+            call(MAINNET_CYCLES_MINTING_CANISTER_ID, "notify_top_up", (args,))
                 .await
                 .map_err(|e| SignerError::CyclesMintingError(e.1))?;
 
-        Ok(response.0)
+        Ok(res)
     }
 }

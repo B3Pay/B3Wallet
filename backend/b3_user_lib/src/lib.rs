@@ -1,5 +1,6 @@
 use account::Account;
 use error::SignerError;
+use ledger::ledger::Ledger;
 use state::{State, STATE};
 
 pub mod account;
@@ -63,5 +64,18 @@ where
         let mut state = states.borrow_mut();
 
         state.account_mut(&account_id).map(callback)
+    })
+}
+
+pub fn with_ledger<T, F>(account_id: String, callback: F) -> Result<T, SignerError>
+where
+    F: FnOnce(&Ledger) -> T,
+{
+    STATE.with(|states| {
+        let state = states.borrow();
+
+        state
+            .account(&account_id)
+            .map(|account| callback(&account.ledger))
     })
 }

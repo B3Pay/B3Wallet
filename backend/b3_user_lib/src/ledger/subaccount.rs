@@ -47,13 +47,13 @@ impl Subaccount {
         Subaccount(subaccount)
     }
 
-    pub fn account_identifier(&self) -> AccountIdentifier {
+    pub fn get_account_identifier(&self) -> AccountIdentifier {
         let canister = ic_cdk::id();
 
         AccountIdentifier::new(&canister, self)
     }
 
-    pub fn env(&self) -> Environment {
+    pub fn get_env(&self) -> Environment {
         match self.0[0] {
             16 => Environment::Staging,
             8 => Environment::Development,
@@ -61,14 +61,14 @@ impl Subaccount {
         }
     }
 
-    pub fn index(&self) -> u64 {
+    pub fn get_index(&self) -> u64 {
         self.0[1..].iter().fold(0, |acc, x| acc + *x as u64)
     }
 
-    pub fn id(&self) -> String {
-        let index = self.index();
+    pub fn get_id(&self) -> String {
+        let index = self.get_index();
 
-        let env_str = match self.env() {
+        let env_str = match self.get_env() {
             Environment::Production => "account",
             Environment::Staging => "staging_account",
             Environment::Development => "development_account",
@@ -77,25 +77,25 @@ impl Subaccount {
         [env_str, &index.to_string()].join("_")
     }
 
-    pub fn derivation_path(&self) -> Vec<Vec<u8>> {
+    pub fn get_derivation_path(&self) -> Vec<Vec<u8>> {
         vec![self.0.to_vec()]
     }
 
-    pub fn config(&self) -> Config {
-        Config::from(self)
+    pub fn get_config(&self) -> Config {
+        Config::from(self.get_env())
     }
 
-    pub fn key_id(&self) -> EcdsaKeyId {
-        self.config().key_id()
+    pub fn get_key_id(&self) -> EcdsaKeyId {
+        self.get_config().key_id()
     }
 
-    pub fn key_id_with_cycles_and_path(&self) -> (EcdsaKeyId, u64, Vec<Vec<u8>>) {
-        let config = self.config();
+    pub fn get_key_id_with_cycles_and_path(&self) -> (EcdsaKeyId, u64, Vec<Vec<u8>>) {
+        let config = self.get_config();
 
         (
             config.key_id(),
             config.sign_cycles(),
-            self.derivation_path(),
+            self.get_derivation_path(),
         )
     }
 }
@@ -107,35 +107,35 @@ mod tests {
     #[test]
     fn test_subaccount() {
         let subaccount = Subaccount::new(Environment::Production, 1);
-        assert_eq!(subaccount.env(), Environment::Production);
-        assert_eq!(subaccount.index(), 1);
-        assert_eq!(subaccount.id(), "account_1");
+        assert_eq!(subaccount.get_env(), Environment::Production);
+        assert_eq!(subaccount.get_index(), 1);
+        assert_eq!(subaccount.get_id(), "account_1");
 
         let subaccount = Subaccount::new(Environment::Staging, 1);
-        assert_eq!(subaccount.env(), Environment::Staging);
-        assert_eq!(subaccount.index(), 1);
-        assert_eq!(subaccount.id(), "staging_account_1");
+        assert_eq!(subaccount.get_env(), Environment::Staging);
+        assert_eq!(subaccount.get_index(), 1);
+        assert_eq!(subaccount.get_id(), "staging_account_1");
 
         let subaccount = Subaccount::new(Environment::Development, 1);
-        assert_eq!(subaccount.env(), Environment::Development);
-        assert_eq!(subaccount.index(), 1);
-        assert_eq!(subaccount.id(), "development_account_1");
+        assert_eq!(subaccount.get_env(), Environment::Development);
+        assert_eq!(subaccount.get_index(), 1);
+        assert_eq!(subaccount.get_id(), "development_account_1");
     }
 
     #[test]
     fn test_subaccount_from_principal() {
         let principal = Principal::from_text("rno2w-sqaaa-aaaaa-aaacq-cai").unwrap();
         let subaccount = Subaccount::from(&principal);
-        assert_eq!(subaccount.env(), Environment::Production);
-        assert_eq!(subaccount.index(), 7);
-        assert_eq!(subaccount.id(), "account_7");
+        assert_eq!(subaccount.get_env(), Environment::Production);
+        assert_eq!(subaccount.get_index(), 7);
+        assert_eq!(subaccount.get_id(), "account_7");
     }
 
     #[test]
     fn test_subaccount_derivation_path() {
         let subaccount = Subaccount::new(Environment::Production, 0);
         assert_eq!(
-            subaccount.derivation_path(),
+            subaccount.get_derivation_path(),
             vec![vec![
                 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0
@@ -144,7 +144,7 @@ mod tests {
 
         let subaccount = Subaccount::new(Environment::Production, 1);
         assert_eq!(
-            subaccount.derivation_path(),
+            subaccount.get_derivation_path(),
             vec![vec![
                 32, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0
@@ -152,9 +152,9 @@ mod tests {
         );
 
         let subaccount = Subaccount::new(Environment::Production, 256);
-        assert_eq!(subaccount.env(), Environment::Production);
+        assert_eq!(subaccount.get_env(), Environment::Production);
         assert_eq!(
-            subaccount.derivation_path(),
+            subaccount.get_derivation_path(),
             vec![vec![
                 32, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0
@@ -162,9 +162,9 @@ mod tests {
         );
 
         let subaccount = Subaccount::new(Environment::Staging, 512);
-        assert_eq!(subaccount.env(), Environment::Staging);
+        assert_eq!(subaccount.get_env(), Environment::Staging);
         assert_eq!(
-            subaccount.derivation_path(),
+            subaccount.get_derivation_path(),
             vec![vec![
                 16, 255, 255, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0
@@ -172,9 +172,9 @@ mod tests {
         );
 
         let subaccount = Subaccount::new(Environment::Development, 1024);
-        assert_eq!(subaccount.env(), Environment::Development);
+        assert_eq!(subaccount.get_env(), Environment::Development);
         assert_eq!(
-            subaccount.derivation_path(),
+            subaccount.get_derivation_path(),
             vec![vec![
                 8, 255, 255, 255, 255, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0

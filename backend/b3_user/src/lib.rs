@@ -9,8 +9,10 @@ use b3_user_lib::{
     request::SignRequest,
     signed::SignedTransaction,
     state::{State, STATE},
-    types::{CanisterHashMap, CanisterStatus, Memo, TransferResult, UserControlArgs},
-    with_account, with_account_mut, with_state, with_state_mut,
+    types::{
+        CanisterHashMap, CanisterStatus, Memo, NotifyTopUpResult, TransferResult, UserControlArgs,
+    },
+    with_account, with_account_mut, with_ledger, with_state, with_state_mut,
 };
 
 use ic_cdk::{
@@ -183,7 +185,7 @@ pub async fn transfer_icp(
     fee: Option<Tokens>,
     memo: Option<Memo>,
 ) -> CallResult<TransferResult> {
-    let to = AccountIdentifier::from_str(to)?;
+    let to = AccountIdentifier::try_from(to)?;
 
     let account = with_account(account_id, |account| account.clone())?;
 
@@ -206,12 +208,27 @@ pub fn sign_request(
     Ok(request)
 }
 
+#[candid_method(update)]
+#[update(guard = "caller_is_owner")]
+pub async fn topup_and_notify(
+    account_id: String,
+    amount: Tokens,
+    canister_id: Option<CanisterId>,
+    fee: Option<Tokens>,
+) -> CallResult<NotifyTopUpResult> {
+    let ledger = with_ledger(account_id, |ledger| ledger.clone())?;
+
+    let canister_id = canister_id.unwrap_or(ic_cdk::id());
+
+    ledger.topup_and_notify(amount, canister_id, fee).await
+}
+
 #[update(guard = "caller_is_owner")]
 #[candid_method(update)]
 pub async fn sign_message(account_id: String, message_hash: Vec<u8>) -> CallResult<Vec<u8>> {
-    let account = with_account(account_id, |account| account.clone())?;
+    let ledger = with_ledger(account_id, |ledger| ledger.clone())?;
 
-    account.sign_message(message_hash).await
+    ledger.sign_message(message_hash).await
 }
 
 #[candid_method(update)]

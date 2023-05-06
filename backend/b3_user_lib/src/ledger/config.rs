@@ -2,8 +2,6 @@ use candid::{CandidType, Deserialize};
 
 use crate::types::{EcdsaCurve, EcdsaKeyId};
 
-use super::subaccount::Subaccount;
-
 #[derive(CandidType, Deserialize, Debug, Clone, PartialEq, Default)]
 pub enum Environment {
     #[default]
@@ -21,12 +19,6 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self::from(Environment::Development)
-    }
-}
-
-impl From<&Subaccount> for Config {
-    fn from(subaccount: &Subaccount) -> Self {
-        Self::from(subaccount.env())
     }
 }
 

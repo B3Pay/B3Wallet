@@ -36,7 +36,7 @@ impl Default for Account {
 
 impl Account {
     pub async fn new(subaccount: Subaccount) -> CallResult<Self> {
-        let id = subaccount.id();
+        let id = subaccount.get_id();
         let ledger = Ledger::new(subaccount).await?;
 
         Ok(Account {
@@ -60,15 +60,11 @@ impl Account {
 
         assert!(message.len() == 32);
 
-        let signature = self.sign_message(message).await?;
+        let signature = self.ledger.sign_message(message).await?;
 
         let signed_tx = tx.sign(signature, self.ledger.keys.bytes()).unwrap();
 
         Ok(SignedTransaction::new(signed_tx))
-    }
-
-    pub async fn sign_message(&self, message: Vec<u8>) -> CallResult<Vec<u8>> {
-        self.ledger.sign(message).await
     }
 
     pub fn new_request(
@@ -145,6 +141,6 @@ impl Account {
     }
 
     pub fn env(&self) -> Environment {
-        self.ledger.subaccount.env()
+        self.ledger.subaccount.get_env()
     }
 }

@@ -13,6 +13,23 @@ impl Default for AccountIdentifier {
     }
 }
 
+impl TryFrom<String> for AccountIdentifier {
+    type Error = SignerError;
+
+    fn try_from(str: String) -> Result<Self, SignerError> {
+        let mut result = [0u8; 32];
+        let mut i = 0;
+        for byte in str.as_bytes().chunks(2) {
+            if byte.len() != 2 {
+                return Err(SignerError::InvalidAddress);
+            }
+            result[i] = u8::from_str_radix(std::str::from_utf8(byte).unwrap(), 16).unwrap();
+            i += 1;
+        }
+        Ok(Self(result))
+    }
+}
+
 impl AccountIdentifier {
     pub fn new(owner: &Principal, subaccount: &Subaccount) -> Self {
         let mut hasher = sha2::Sha224::new();
@@ -29,19 +46,6 @@ impl AccountIdentifier {
         result[0..4].copy_from_slice(&crc32_bytes[..]);
         result[4..32].copy_from_slice(hash.as_ref());
         Self(result)
-    }
-
-    pub fn from_str(str: String) -> Result<Self, SignerError> {
-        let mut result = [0u8; 32];
-        let mut i = 0;
-        for byte in str.as_bytes().chunks(2) {
-            if byte.len() != 2 {
-                return Err(SignerError::InvalidAddress);
-            }
-            result[i] = u8::from_str_radix(std::str::from_utf8(byte).unwrap(), 16).unwrap();
-            i += 1;
-        }
-        Ok(Self(result))
     }
 
     pub fn to_str(&self) -> String {
