@@ -2,14 +2,14 @@ use ic_cdk::{
     api::call::CallResult,
     export::{candid::CandidType, serde::Deserialize, Principal},
 };
-use std::mem::size_of;
 
 use crate::{
     error::SignerError,
-    ledger::{ecdsa::Ecdsa, identifier::AccountIdentifier, keys::Keys},
+    ledger::{identifier::AccountIdentifier, keys::Keys, subaccount::Subaccount},
     types::{
-        Memo, NotifyTopUpResult, Timestamp, TransferResult, MAINNET_CYCLES_MINTING_CANISTER_ID,
-        MAINNET_LEDGER_CANISTER_ID, MAINNET_MANAGMENT_CANISTER_ID,
+        ECDSAPublicKeyArgs, ECDSAPublicKeyResponse, Memo, NotifyTopUpResult, Timestamp,
+        TransferResult, MAINNET_CYCLES_MINTING_CANISTER_ID, MAINNET_LEDGER_CANISTER_ID,
+        MAINNET_MANAGMENT_CANISTER_ID,
     },
 };
 
@@ -36,36 +36,6 @@ pub struct Tokens {
 }
 
 #[derive(CandidType, Deserialize, Clone, Debug)]
-pub struct Subaccount(pub [u8; 32]);
-
-impl Default for Subaccount {
-    fn default() -> Self {
-        Subaccount([0; 32])
-    }
-}
-
-impl From<&Vec<u8>> for Subaccount {
-    fn from(bytes: &Vec<u8>) -> Self {
-        let mut subaccount = [0; size_of::<Subaccount>()];
-        subaccount[0] = bytes.len().try_into().unwrap();
-        subaccount[1..1 + bytes.len()].copy_from_slice(&bytes[..]);
-        Subaccount(subaccount)
-    }
-}
-
-impl From<&Principal> for Subaccount {
-    fn from(principal_id: &Principal) -> Self {
-        let mut subaccount = [0; size_of::<Subaccount>()];
-        let principal_id = principal_id.as_slice();
-
-        subaccount[0] = principal_id.len().try_into().unwrap();
-        subaccount[1..1 + principal_id.len()].copy_from_slice(principal_id);
-
-        Subaccount(subaccount)
-    }
-}
-
-#[derive(CandidType, Deserialize, Clone, Debug)]
 pub struct TransferArgs {
     pub memo: Memo,
     pub fee: Tokens,
@@ -78,48 +48,62 @@ pub struct TransferArgs {
 #[derive(Debug, CandidType, Clone, Deserialize)]
 pub struct Ledger {
     pub keys: Keys,
-    pub ecdsa: Ecdsa,
     pub subaccount: Subaccount,
-    pub identifier: AccountIdentifier,
 }
 
 impl Default for Ledger {
     fn default() -> Self {
         Self {
             keys: Keys::default(),
-            ecdsa: Ecdsa::default(),
             subaccount: Subaccount::default(),
-            identifier: AccountIdentifier::default(),
         }
     }
 }
 
 impl Ledger {
-    pub async fn new(ecdsa: Ecdsa) -> CallResult<Self> {
+    pub async fn new(subaccount: Subaccount) -> CallResult<Self> {
         let owner = ic_cdk::caller();
-
-        let path = ecdsa.path();
-
-        let subaccount = Subaccount::from(&path);
 
         let identifier = AccountIdentifier::new(&owner, &subaccount);
 
         let icp = identifier.to_str();
 
-        let bytes = ecdsa.public_key().await;
-
-        let keys = Keys::new(bytes, icp);
-
-        Ok(Self {
-            keys,
-            ecdsa,
+        let mut ledger = Ledger {
+            keys: Keys::default(),
             subaccount,
-            identifier,
-        })
+        };
+
+        let bytes = ledger.public_key().await?;
+
+        ledger.keys = Keys::new(bytes, icp);
+
+        Ok(ledger)
+    }
+
+    pub async fn public_key(&self) -> CallResult<Vec<u8>> {
+        let key_id = self.subaccount.key_id();
+
+        let derivation_path = self.subaccount.derivation_path();
+
+        let request = ECDSAPublicKeyArgs {
+            canister_id: None,
+            derivation_path,
+            key_id,
+        };
+
+        let (res,): (ECDSAPublicKeyResponse,) = call(
+            MAINNET_MANAGMENT_CANISTER_ID,
+            "ecdsa_public_key",
+            (request,),
+        )
+        .await
+        .map_err(|e| SignerError::PublicKeyError(e.1))?;
+
+        Ok(res.public_key)
     }
 
     pub async fn sign(&self, message_hash: Vec<u8>) -> CallResult<Vec<u8>> {
-        let (key_id, cycles, derivation_path) = self.ecdsa.key_id_with_cycles_and_path();
+        let (key_id, cycles, derivation_path) = self.subaccount.key_id_with_cycles_and_path();
 
         let request = SignWithECDSAArgs {
             derivation_path,
@@ -139,14 +123,16 @@ impl Ledger {
         Ok(res.signature)
     }
 
-    pub async fn transfer(
+    pub async fn transfer_icp(
         &self,
-        to: AccountIdentifier,
         amount: Tokens,
+        to: AccountIdentifier,
+        fee: Option<Tokens>,
+        memo: Option<Memo>,
     ) -> CallResult<TransferResult> {
         let args = TransferArgs {
-            memo: Memo(1234567890),
-            fee: Tokens { e8s: 10_000 },
+            memo: memo.unwrap_or_else(|| Memo(1234567890)),
+            fee: fee.unwrap_or_else(|| Tokens { e8s: 10_000 }),
             amount,
             to,
             from_subaccount: Some(self.subaccount.clone()),
@@ -160,7 +146,9 @@ impl Ledger {
         Ok(response.0)
     }
 
-    pub async fn account_balance(account: AccountIdentifier) -> CallResult<Tokens> {
+    pub async fn account_balance(&self) -> CallResult<Tokens> {
+        let account = self.subaccount.account_identifier();
+
         let args = AccountBalanceArgs { account };
 
         let response: (Tokens,) = call(MAINNET_LEDGER_CANISTER_ID, "account_balance", (args,))
@@ -170,7 +158,7 @@ impl Ledger {
         Ok(response.0)
     }
 
-    pub async fn notify_topup(args: NotifyTopupArgs) -> CallResult<NotifyTopUpResult> {
+    pub async fn notify_topup(&self, args: NotifyTopupArgs) -> CallResult<NotifyTopUpResult> {
         let response: (NotifyTopUpResult,) =
             call(MAINNET_CYCLES_MINTING_CANISTER_ID, "notify_topup", (args,))
                 .await

@@ -7,6 +7,7 @@ pub enum SignerError {
     SignError(String),
     LedgerError(String),
     CanisterError(String),
+    PublicKeyError(String),
     CanisterStatusError(String),
     CyclesMintingError(String),
     ManagementCanisterError(String),
@@ -14,9 +15,9 @@ pub enum SignerError {
     CallerNotAuthorized,
     CallerIsNotOwner,
     CallerIsNotWalletCanister,
-    InvalidCanisterID,
-    UserNotFound,
-    UserAccountNotFound,
+    MaximumAccountsReached,
+    MaximumDevelopmentAccountsReached,
+    MaximumProductionAccountsReached,
     UserAlreadyExists,
     PublicKeyMismatch,
     EnvironmentMismatch,
@@ -50,6 +51,10 @@ impl From<SignerError> for (RejectionCode, String) {
                 RejectionCode::CanisterError,
                 ["Cycles minting error: {}", &msg].join(""),
             ),
+            SignerError::PublicKeyError(msg) => (
+                RejectionCode::CanisterError,
+                ["Public key error: {}", &msg].join(""),
+            ),
             SignerError::ManagementCanisterError(msg) => (
                 RejectionCode::CanisterError,
                 ["Management canister error: {}", &msg].join(""),
@@ -76,16 +81,21 @@ impl From<SignerError> for (RejectionCode, String) {
                 RejectionCode::CanisterReject,
                 "Caller is not owner".to_string(),
             ),
+            SignerError::MaximumAccountsReached => (
+                RejectionCode::CanisterError,
+                "Maximum accounts reached".to_string(),
+            ),
             SignerError::CallerIsNotWalletCanister => (
                 RejectionCode::CanisterReject,
                 "Caller is not wallet canister".to_string(),
             ),
-            SignerError::UserNotFound => {
-                (RejectionCode::CanisterError, "User not found".to_string())
-            }
-            SignerError::UserAccountNotFound => (
+            SignerError::MaximumDevelopmentAccountsReached => (
                 RejectionCode::CanisterError,
-                "User account not found".to_string(),
+                "Maximum development accounts reached".to_string(),
+            ),
+            SignerError::MaximumProductionAccountsReached => (
+                RejectionCode::CanisterError,
+                "Maximum production accounts reached".to_string(),
             ),
             SignerError::UserAlreadyExists => (
                 RejectionCode::CanisterError,
@@ -136,10 +146,6 @@ impl From<SignerError> for (RejectionCode, String) {
             SignerError::EnvironmentMismatch => (
                 RejectionCode::CanisterError,
                 "Environment mismatch".to_string(),
-            ),
-            SignerError::InvalidCanisterID => (
-                RejectionCode::CanisterError,
-                "Invalid canister ID".to_string(),
             ),
             SignerError::TransactionNotPending => (
                 RejectionCode::CanisterError,

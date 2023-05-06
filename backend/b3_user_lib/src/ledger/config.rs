@@ -2,6 +2,8 @@ use candid::{CandidType, Deserialize};
 
 use crate::types::{EcdsaCurve, EcdsaKeyId};
 
+use super::subaccount::Subaccount;
+
 #[derive(CandidType, Deserialize, Debug, Clone, PartialEq, Default)]
 pub enum Environment {
     #[default]
@@ -12,9 +14,8 @@ pub enum Environment {
 
 #[derive(CandidType, Deserialize, Debug, Clone)]
 pub struct Config {
-    env: Environment,
-    key_name: String,
-    sign_cycles: u64,
+    pub key_name: String,
+    pub sign_cycles: u64,
 }
 
 impl Default for Config {
@@ -23,23 +24,26 @@ impl Default for Config {
     }
 }
 
+impl From<&Subaccount> for Config {
+    fn from(subaccount: &Subaccount) -> Self {
+        Self::from(subaccount.env())
+    }
+}
+
 impl From<Environment> for Config {
     fn from(env: Environment) -> Self {
         if env == Environment::Production {
             Self {
-                env: Environment::Staging,
                 key_name: "key_1".to_string(),
                 sign_cycles: 26_153_846_153,
             }
         } else if env == Environment::Staging {
             Self {
-                env: Environment::Staging,
                 key_name: "test_key_1".to_string(),
                 sign_cycles: 10_000_000_000,
             }
         } else {
             Self {
-                env: Environment::Development,
                 key_name: "dfx_test_key".to_string(),
                 sign_cycles: 0,
             }
@@ -48,10 +52,6 @@ impl From<Environment> for Config {
 }
 
 impl Config {
-    pub fn env(&self) -> Environment {
-        self.env.clone()
-    }
-
     pub fn key_name(&self) -> String {
         self.key_name.clone()
     }

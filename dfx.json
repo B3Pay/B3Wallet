@@ -26,8 +26,54 @@
       },
       "source": ["out"],
       "type": "assets"
+    },
+    "internet_identity": {
+      "type": "custom",
+      "candid": "icp/identity/internet_identity.did",
+      "wasm": "icp/identity/internet_identity.wasm",
+      "remote": {
+        "candid": "internet_identity.did",
+        "id": {
+          "ic": "rdmx6-jaaaa-aaaaa-aaadq-cai"
+        }
+      },
+      "declarations": {
+        "node_compatibility": true
+      }
+    },
+    "ledger": {
+      "type": "custom",
+      "candid": "icp/ledger/ledger.private.did",
+      "wasm": "icp/ledger/ledger.wasm",
+      "remote": {
+        "candid": "ledger.public.did",
+        "id": {
+          "ic": "ryjl3-tyaaa-aaaaa-aaaba-cai"
+        }
+      },
+      "declarations": {
+        "node_compatibility": true
+      }
+    },
+    "cmc": {
+      "type": "custom",
+      "candid": "icp/cmc/cmc.did",
+      "wasm": "icp/cmc/cmc.wasm",
+      "remote": {
+        "id": {
+          "ic": "rkp4c-7iaaa-aaaaa-aaaca-cai"
+        }
+      },
+      "declarations": {
+        "node_compatibility": true
+      }
     }
   },
   "dfx": "0.13.1",
+  "defaults": {
+    "replica": {
+      "subnet_type": "system"
+    }
+  },
   "version": 1
 }

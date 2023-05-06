@@ -1,19 +1,19 @@
+use ic_cdk::api::call::CallResult;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
-use ic_cdk::trap;
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 
 use crate::account::Account;
 use crate::error::SignerError;
 use crate::ledger::config::Environment;
-use crate::ledger::ecdsa::Ecdsa;
 use crate::ledger::keys::Keys;
+use crate::ledger::subaccount::Subaccount;
 
 #[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct State {
-    dev_counter: u8,
-    prod_counter: u8,
-    accounts: BTreeMap<String, Account>,
+    pub dev_counter: u64,
+    pub prod_counter: u64,
+    pub accounts: BTreeMap<String, Account>,
 }
 
 impl Default for State {
@@ -27,29 +27,33 @@ impl Default for State {
 }
 
 impl State {
-    pub fn insert_account(&mut self, mut account: Account, name: Option<String>) -> String {
+    pub fn insert_account(
+        &mut self,
+        mut account: Account,
+        opt_name: Option<String>,
+    ) -> CallResult<String> {
         let default_name = match account.env() {
             Environment::Production => {
                 if self.prod_counter == 255 {
-                    trap("Maximum number of production accounts reached!");
+                    Err(SignerError::MaximumProductionAccountsReached)?;
                 }
 
                 self.prod_counter += 1;
 
-                format!("Account {}", self.prod_counter)
+                ["Account", &self.prod_counter.to_string()].join(" ")
             }
             _ => {
                 if self.dev_counter == 255 {
-                    trap("Maximum number of development accounts reached!");
+                    Err(SignerError::MaximumDevelopmentAccountsReached)?;
                 }
 
                 self.dev_counter += 1;
 
-                format!("Dev Account {}", self.dev_counter)
+                ["Dev Account", &self.dev_counter.to_string()].join(" ")
             }
         };
 
-        if let Some(name) = name {
+        if let Some(name) = opt_name {
             account.update_name(name)
         } else {
             account.update_name(default_name);
@@ -59,35 +63,24 @@ impl State {
 
         self.accounts.insert(id.clone(), account);
 
-        id
+        Ok(id)
     }
 
-    pub fn ecdsa_path(&self, env: Environment, index: u8) -> Ecdsa {
-        let mut path = Vec::new();
-
-        if env == Environment::Production {
-            path.extend_from_slice(&index.to_be_bytes());
-        } else {
-            path.extend_from_slice(&0_u8.to_be_bytes());
-            path.extend_from_slice(&index.to_be_bytes());
-        }
-
-        Ecdsa::new(path, env.clone())
-    }
-
-    pub fn new_ecdsa_path(&self, env: Option<Environment>) -> Ecdsa {
+    pub fn new_subaccount(&self, opt_env: Option<Environment>) -> CallResult<Subaccount> {
         if self.accounts.len() == 512 {
-            trap("Maximum number of accounts reached!");
+            Err(SignerError::MaximumAccountsReached)?;
         }
 
-        let env = env.unwrap_or(Environment::Production);
+        let env = opt_env.unwrap_or(Environment::Production);
 
         let counter = self.account_counter(&env);
 
-        self.ecdsa_path(env, counter)
+        let subaccount = Subaccount::new(env.clone(), counter);
+
+        Ok(subaccount)
     }
 
-    pub fn account_counter(&self, env: &Environment) -> u8 {
+    pub fn account_counter(&self, env: &Environment) -> u64 {
         match env {
             Environment::Production => self.prod_counter,
             _ => self.dev_counter,

@@ -1,5 +1,5 @@
 {
-  "name": "nextjs_ic_template",
+  "name": "b3pay",
   "version": "0.4.0",
   "author": "Henry Chan",
   "description": "Next.js Internet Computer Starter Template",
@@ -11,6 +11,7 @@
     "dfinity"
   ],
   "scripts": {
+    "dfx:start": "dfx start --background --clean && dfx canister create internet_identity && dfx canister create ledger",
     "dev": "yarn env && next dev",
     "ic:dev": "DFX_NETWORK=ic next dev",
     "build": "next build",
@@ -21,7 +22,10 @@
     "deploy": "cargo test && dfx deploy",
     "ic:deploy": "dfx generate && dfx deploy b3_user --network ic",
     "env": "node dfx.webpack.config.js init",
-    "generate": "cargo test && dfx generate"
+    "generate": "cargo test && dfx generate",
+    "ledger:balance": "ts-node scripts/ledger.balance.ts",
+    "ledger:transfer": "ts-node scripts/ledger.transfer.ts",
+    "ledger:account-id": "ts-node ./scripts/ledger.account-id.ts"
   },
   "devDependencies": {
     "@types/node": "^18.15.13",
@@ -39,7 +43,10 @@
     "@dfinity/candid": "^0.15",
     "@dfinity/identity": "^0.15.6",
     "@dfinity/identity-secp256k1": "^0.15.6",
+    "@dfinity/ledger": "^0.0.7",
+    "@dfinity/nns": "^0.15.1",
     "@dfinity/principal": "^0.15",
+    "@dfinity/utils": "^0.0.14",
     "assert": "^2.0.0",
     "buffer": "^6.0.3",
     "compressorjs": "^1.2.1",

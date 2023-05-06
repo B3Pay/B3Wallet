@@ -4,15 +4,17 @@ use candid::{CandidType, Principal};
 use ic_cdk::api::management_canister::main::CanisterStatusResponse;
 use serde::{Deserialize, Serialize};
 
-use crate::{allowance::Allowance, request::SignRequest};
+use crate::{
+    allowance::Allowance,
+    env::{CMC, LEDGER},
+    request::SignRequest,
+};
 
 pub const MAINNET_MANAGMENT_CANISTER_ID: Principal = Principal::management_canister();
 
-pub const MAINNET_LEDGER_CANISTER_ID: Principal =
-    Principal::from_slice(&[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x01, 0x01]);
+pub const MAINNET_LEDGER_CANISTER_ID: Principal = Principal::from_slice(&LEDGER);
 
-pub const MAINNET_CYCLES_MINTING_CANISTER_ID: Principal =
-    Principal::from_slice(&[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x01, 0x01]);
+pub const MAINNET_CYCLES_MINTING_CANISTER_ID: Principal = Principal::from_slice(&CMC);
 
 #[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct UserControlArgs {

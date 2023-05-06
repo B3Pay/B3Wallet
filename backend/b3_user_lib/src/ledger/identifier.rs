@@ -2,8 +2,7 @@ use ic_cdk::export::{candid::CandidType, serde::Deserialize, Principal};
 use sha2::Digest;
 
 use crate::error::SignerError;
-
-use super::ledger::Subaccount;
+use crate::ledger::subaccount::Subaccount;
 
 #[derive(CandidType, Deserialize, Clone, Debug)]
 pub struct AccountIdentifier(pub [u8; 32]);
@@ -32,10 +31,10 @@ impl AccountIdentifier {
         Self(result)
     }
 
-    pub fn from_str(s: &str) -> Result<Self, SignerError> {
+    pub fn from_str(str: String) -> Result<Self, SignerError> {
         let mut result = [0u8; 32];
         let mut i = 0;
-        for byte in s.as_bytes().chunks(2) {
+        for byte in str.as_bytes().chunks(2) {
             if byte.len() != 2 {
                 return Err(SignerError::InvalidAddress);
             }

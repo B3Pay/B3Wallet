@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
 use crate::ledger::config::Environment;
-use crate::ledger::ecdsa::Ecdsa;
 use crate::ledger::keys::Keys;
 use crate::ledger::ledger::Ledger;
+use crate::ledger::subaccount::Subaccount;
 use crate::types::CanisterHashMap;
 use crate::{request::SignRequest, signed::SignedTransaction, transaction::get_transaction};
 use ic_cdk::api::call::CallResult;
@@ -35,9 +35,9 @@ impl Default for Account {
 }
 
 impl Account {
-    pub async fn new(ecdsa: Ecdsa) -> CallResult<Self> {
-        let id = ecdsa.path_id();
-        let ledger = Ledger::new(ecdsa.clone()).await?;
+    pub async fn new(subaccount: Subaccount) -> CallResult<Self> {
+        let id = subaccount.id();
+        let ledger = Ledger::new(subaccount).await?;
 
         Ok(Account {
             id,
@@ -145,6 +145,6 @@ impl Account {
     }
 
     pub fn env(&self) -> Environment {
-        self.ledger.ecdsa.env.clone()
+        self.ledger.subaccount.env()
     }
 }

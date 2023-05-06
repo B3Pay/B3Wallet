@@ -4,6 +4,7 @@ use state::{State, STATE};
 
 pub mod account;
 pub mod allowance;
+pub mod env;
 pub mod error;
 pub mod ledger;
 pub mod request;
@@ -15,27 +16,27 @@ pub mod utils;
 
 /// Get all state.
 /// This will retrieve all states.
-pub fn with_state<T, F>(callback: F) -> Result<T, SignerError>
+pub fn with_state<T, F>(callback: F) -> T
 where
     F: FnOnce(&State) -> T,
 {
     STATE.with(|states| {
         let state = states.borrow();
 
-        Ok(callback(&state))
+        callback(&state)
     })
 }
 
 /// Get all state mutably.
 /// This will retrieve all states.
-pub fn with_state_mut<T, F>(callback: F) -> Result<T, SignerError>
+pub fn with_state_mut<T, F>(callback: F) -> T
 where
     F: FnOnce(&mut State) -> T,
 {
     STATE.with(|states| {
         let mut state = states.borrow_mut();
 
-        Ok(callback(&mut state))
+        callback(&mut state)
     })
 }
 

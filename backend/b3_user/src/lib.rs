@@ -4,12 +4,12 @@ use b3_user_lib::{
     account::Account,
     allowance::{CanisterId, SetAllowance},
     error::SignerError,
-    ledger::config::Environment,
-    ledger::keys::Addresses,
+    ledger::{config::Environment, ledger::Tokens},
+    ledger::{identifier::AccountIdentifier, keys::Addresses},
     request::SignRequest,
     signed::SignedTransaction,
     state::{State, STATE},
-    types::{CanisterHashMap, CanisterStatus, UserControlArgs},
+    types::{CanisterHashMap, CanisterStatus, Memo, TransferResult, UserControlArgs},
     with_account, with_account_mut, with_state, with_state_mut,
 };
 
@@ -85,11 +85,7 @@ pub fn get_account(account_id: String) -> CallResult<Account> {
 #[query]
 #[candid_method(query)]
 pub fn number_of_accounts() -> u8 {
-    STATE.with(|s| {
-        let state = s.borrow();
-
-        state.accounts_len() as u8
-    })
+    with_state(|s| s.accounts_len())
 }
 
 #[query]
@@ -104,12 +100,10 @@ pub fn get_addresses(account_id: String) -> Addresses {
 
 #[query]
 #[candid_method(query)]
-pub fn get_signed(account_id: String) -> SignedTransaction {
-    STATE.with(|s| {
-        let state = s.borrow();
+pub fn get_signed(account_id: String) -> CallResult<SignedTransaction> {
+    let signed = with_account(account_id, |account| account.signed.clone())?;
 
-        state.account(&account_id).unwrap().signed()
-    })
+    Ok(signed)
 }
 
 #[query]
@@ -121,19 +115,25 @@ pub fn get_connected_canisters(account_id: String) -> CallResult<CanisterHashMap
 #[query]
 #[candid_method(query)]
 pub fn get_accounts() -> Vec<Account> {
-    STATE.with(|s| {
-        let state = s.borrow();
+    with_state(|s| s.accounts())
+}
 
-        state.accounts()
-    })
+#[query]
+#[candid_method(query)]
+pub async fn get_balance(account_id: String) -> CallResult<Tokens> {
+    let account = with_account(account_id, |account| account.clone())?;
+
+    account.ledger.account_balance().await
 }
 
 #[query]
 #[candid_method(query)]
 pub fn get_account_requests(account_id: String, canister: CanisterId) -> CallResult<SignRequest> {
-    with_account(account_id, |account| {
-        Ok(account.requests.get(&canister).unwrap().clone())
-    })?
+    let request = with_account(account_id, |account| {
+        account.requests.get(&canister).unwrap().clone()
+    })?;
+
+    Ok(request)
 }
 
 #[update(guard = "caller_is_owner")]
@@ -144,8 +144,10 @@ pub fn request_allowance(
     allowance: SetAllowance,
 ) -> CallResult<()> {
     with_account_mut(account_id, |account| {
-        Ok(account.insert_canister(canister, allowance))
-    })?
+        account.insert_canister(canister, allowance)
+    })?;
+
+    Ok(())
 }
 
 #[update(guard = "caller_is_owner")]
@@ -161,15 +163,31 @@ pub fn change_owner(new_owner: Principal) -> CallResult<Principal> {
 #[update(guard = "caller_is_owner")]
 #[candid_method(update)]
 pub async fn create_account(env: Option<Environment>, name: Option<String>) -> CallResult<Account> {
-    let ecdsa_path = with_state(|s| s.new_ecdsa_path(env))?;
+    let subaccount = with_state(|s| s.new_subaccount(env))?;
 
-    let new_account = Account::new(ecdsa_path).await?;
+    let new_account = Account::new(subaccount).await?;
 
     let id = with_state_mut(|s| s.insert_account(new_account, name))?;
 
     let account = with_account(id, |account| account.clone())?;
 
     Ok(account)
+}
+
+#[update(guard = "caller_is_owner")]
+#[candid_method(update)]
+pub async fn transfer_icp(
+    account_id: String,
+    amount: Tokens,
+    to: String,
+    fee: Option<Tokens>,
+    memo: Option<Memo>,
+) -> CallResult<TransferResult> {
+    let to = AccountIdentifier::from_str(to)?;
+
+    let account = with_account(account_id, |account| account.clone())?;
+
+    account.ledger.transfer_icp(amount, to, fee, memo).await
 }
 
 #[update(guard = "caller_is_owner")]
@@ -181,9 +199,11 @@ pub fn sign_request(
 ) -> CallResult<SignRequest> {
     let canister_id = caller();
 
-    with_account_mut(account_id, |account| {
-        Ok(account.new_request(canister_id, hex_raw_tx, chain_id))
-    })?
+    let request = with_account_mut(account_id, |account| {
+        account.new_request(canister_id, hex_raw_tx, chain_id)
+    })?;
+
+    Ok(request)
 }
 
 #[update(guard = "caller_is_owner")]

@@ -73,6 +73,20 @@
     js-sha256 "^0.9.0"
     tweetnacl "^1.0.1"
 
+"@dfinity/ledger@^0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@dfinity/ledger/-/ledger-0.0.7.tgz#0f62ca104ceedb82acb8657070bafc4e5b161c2d"
+  integrity sha512-ZxFK28jI17OTn73I/xHaGRRjgyYUP7Fnxv9BfDKKQ/3B+5hcwU0rJrmCMhIZrdit3z7Ryzsj5NPa75sRKq2W/A==
+
+"@dfinity/nns@^0.15.1":
+  version "0.15.1"
+  resolved "https://registry.yarnpkg.com/@dfinity/nns/-/nns-0.15.1.tgz#f86fe8412445b51b2dfc1d7b398a59a46d0bb593"
+  integrity sha512-UpkVt/44F4otTyJtCwQ4NqIwRz8h9ufpJZuYlqC3xhO2YTvyT3ynBJgLSGe/0xL81vEW0P2HERBPAg1JZcwF0Q==
+  dependencies:
+    google-protobuf "^3.21.2"
+    js-sha256 "^0.9.0"
+    randombytes "^2.1.0"
+
 "@dfinity/principal@^0.15":
   version "0.15.5"
   resolved "https://registry.yarnpkg.com/@dfinity/principal/-/principal-0.15.5.tgz#9db72b61ee7733b71850a2dfa8c985a4f9ec1886"
@@ -80,6 +94,11 @@
   dependencies:
     js-sha256 "^0.9.0"
     ts-node "^10.8.2"
+
+"@dfinity/utils@^0.0.14":
+  version "0.0.14"
+  resolved "https://registry.yarnpkg.com/@dfinity/utils/-/utils-0.0.14.tgz#f56e1d8526b7bfc0419a0fcca40862b71d5192ae"
+  integrity sha512-wSZOQHMmIPTW9LRpj6mMo0QKAYOBTkIRuoU6Mhbo3zH/TjszJTTbK1coIvneXHu9/HkdgzG7x4MWwJaUp8ZMZg==
 
 "@eslint-community/eslint-utils@^4.2.0":
   version "4.4.0"
@@ -1775,6 +1794,11 @@ globrex@^0.1.2:
   resolved "https://registry.yarnpkg.com/globrex/-/globrex-0.1.2.tgz#dd5d9ec826232730cd6793a5e33a9302985e6098"
   integrity sha512-uHJgbwAMwNFf5mLst7IWLNg14x1CkeqglJb/K3doi4dw6q2IvAAmM/Y81kevy83wP+Sst+nutFTYOGg3d1lsxg==
 
+google-protobuf@^3.21.2:
+  version "3.21.2"
+  resolved "https://registry.yarnpkg.com/google-protobuf/-/google-protobuf-3.21.2.tgz#4580a2bea8bbb291ee579d1fefb14d6fa3070ea4"
+  integrity sha512-3MSOYFO5U9mPGikIYCzK0SaThypfGgS6bHqrUGXG3DPHCrb+txNqeEcns1W0lkGfk0rCyNXm7xB9rMxnCiZOoA==
+
 gopd@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/gopd/-/gopd-1.0.1.tgz#29ff76de69dac7489b7c0918a5788e56477c332c"
@@ -2526,6 +2550,13 @@ queue-microtask@^1.2.2:
   resolved "https://registry.yarnpkg.com/queue-microtask/-/queue-microtask-1.2.3.tgz#4929228bbc724dfac43e0efb058caf7b6cfb6243"
   integrity sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==
 
+randombytes@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/randombytes/-/randombytes-2.1.0.tgz#df6f84372f0270dc65cdf6291349ab7a473d4f2a"
+  integrity sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==
+  dependencies:
+    safe-buffer "^5.1.0"
+
 react-dom@^18.2:
   version "18.2.0"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-18.2.0.tgz#22aaf38708db2674ed9ada224ca4aa708d821e3d"
@@ -2628,7 +2659,7 @@ run-parallel@^1.1.9:
   dependencies:
     queue-microtask "^1.2.2"
 
-safe-buffer@^5.0.1, safe-buffer@^5.1.2, safe-buffer@^5.2.0, safe-buffer@~5.2.0:
+safe-buffer@^5.0.1, safe-buffer@^5.1.0, safe-buffer@^5.1.2, safe-buffer@^5.2.0, safe-buffer@~5.2.0:
   version "5.2.1"
   resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.2.1.tgz#1eaf9fa9bdb1fdd4ec75f58f9cdb4e6b7827eec6"
   integrity sha512-rp3So07KcdmmKbGvgaNxQSJr7bGVSVk5S9Eq1F+ppbRo70+YeaDxkw5Dd8NPN+GD6bjnYm2VuPuCXmpuYvmCXQ==

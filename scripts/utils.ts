@@ -1,4 +1,3 @@
-/* eslint-disable no-throw-literal */
 import { Ed25519KeyIdentity } from "@dfinity/identity"
 import { Secp256k1KeyIdentity } from "@dfinity/identity-secp256k1"
 
@@ -16,14 +15,14 @@ const decode = (rawKey: string) => {
 
   if (rawKey.includes("EC PRIVATE KEY")) {
     if (buf.length !== 118) {
-      throw "expecting byte length 118 but got " + buf.length
+      throw Error("expecting byte length 118 but got " + buf.length)
     }
 
     return Secp256k1KeyIdentity.fromSecretKey(buf.slice(7, 39))
   }
 
   if (buf.length !== 85) {
-    throw "expecting byte length 85 but got " + buf.length
+    throw Error("expecting byte length 85 but got " + buf.length)
   }
 
   const secretKey = Buffer.concat([buf.slice(16, 48), buf.slice(53, 85)])
@@ -32,7 +31,7 @@ const decode = (rawKey: string) => {
 
 export const initIdentity = (mainnet: boolean) => {
   const file = `/Users/b3hr4d/.config/dfx/identity/${
-    mainnet ? "b3_pay" : "default"
+    mainnet ? "main" : "default"
   }/identity.pem`
   const buffer = readFileSync(file)
   const key = buffer.toString("utf-8")
