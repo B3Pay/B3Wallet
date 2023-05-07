@@ -6,19 +6,20 @@ pub enum SignerError {
     UnknownError,
     SignError(String),
     LedgerError(String),
+    GenerateError(String),
     CanisterError(String),
     PublicKeyError(String),
     CanisterStatusError(String),
     CyclesMintingError(String),
     ManagementCanisterError(String),
-    InvalidData,
+    MissingEcdsaPublicKey,
     CallerNotAuthorized,
     CallerIsNotOwner,
     CallerIsNotWalletCanister,
     MaximumAccountsReached,
     MaximumDevelopmentAccountsReached,
     MaximumProductionAccountsReached,
-    UserAlreadyExists,
+    InvalidEcdsaPublicKey,
     PublicKeyMismatch,
     EnvironmentMismatch,
     AccountNotExists,
@@ -47,6 +48,10 @@ impl From<SignerError> for (RejectionCode, String) {
                 RejectionCode::CanisterError,
                 ["Ledger error ", &msg].concat(),
             ),
+            SignerError::GenerateError(msg) => (
+                RejectionCode::CanisterError,
+                ["Generate error ", &msg].concat(),
+            ),
             SignerError::CyclesMintingError(msg) => (
                 RejectionCode::CanisterError,
                 ["Cycles minting error ", &msg].concat(),
@@ -71,7 +76,10 @@ impl From<SignerError> for (RejectionCode, String) {
                 ["Canister status error ", &msg].concat(),
             ),
             SignerError::UnknownError => (RejectionCode::Unknown, "Unknown error".to_string()),
-            SignerError::InvalidData => (RejectionCode::CanisterError, "Invalid data".to_string()),
+            SignerError::MissingEcdsaPublicKey => (
+                RejectionCode::CanisterError,
+                "Missing public key".to_string(),
+            ),
             SignerError::CallerNotAuthorized => (
                 RejectionCode::CanisterReject,
                 "Caller not authorized to perform this action".to_string(),
@@ -96,9 +104,9 @@ impl From<SignerError> for (RejectionCode, String) {
                 RejectionCode::CanisterError,
                 "Maximum production accounts reached".to_string(),
             ),
-            SignerError::UserAlreadyExists => (
+            SignerError::InvalidEcdsaPublicKey => (
                 RejectionCode::CanisterError,
-                "User already exists".to_string(),
+                "Invalid ECDSA public key".to_string(),
             ),
             SignerError::AccountNotExists => (
                 RejectionCode::CanisterError,

@@ -2,7 +2,7 @@ use easy_hasher::easy_hasher;
 use ripemd::Ripemd160;
 use sha2::{Digest, Sha256};
 
-use crate::types::Network;
+use crate::types::BitcoinNetwork;
 
 fn sha256(data: &[u8]) -> Vec<u8> {
     let mut hasher = Sha256::new();
@@ -11,7 +11,7 @@ fn sha256(data: &[u8]) -> Vec<u8> {
 }
 
 pub fn get_p2pkh_address_from_public_key(
-    network: Network,
+    network: BitcoinNetwork,
     public_key: &Vec<u8>,
 ) -> Result<String, String> {
     if public_key.len() != 33 {
@@ -22,7 +22,7 @@ pub fn get_p2pkh_address_from_public_key(
     let result = hasher.finalize();
 
     let prefix = match network {
-        Network::Mainnet => 0x00,
+        BitcoinNetwork::Mainnet => 0x00,
         _ => 0x6f,
     };
     let mut data_with_prefix = vec![prefix];

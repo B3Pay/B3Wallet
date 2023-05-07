@@ -1,6 +1,6 @@
-use candid::{CandidType, Deserialize};
+use ic_cdk::export::candid::{CandidType, Deserialize};
 
-use crate::types::{EcdsaCurve, EcdsaKeyId};
+use super::types::{EcdsaCurve, EcdsaKeyId};
 
 #[derive(CandidType, Deserialize, Debug, Clone, PartialEq, Default)]
 pub enum Environment {

@@ -1,9 +1,9 @@
-use crate::{ledger::config::Environment, types::EcdsaKeyId};
+use crate::ledger::config::Environment;
 use candid::Principal;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use std::mem::size_of;
 
-use super::{config::Config, identifier::AccountIdentifier};
+use super::{config::Config, identifier::AccountIdentifier, types::EcdsaKeyId};
 
 #[derive(CandidType, Deserialize, Clone, Debug)]
 pub struct Subaccount(pub [u8; 32]);

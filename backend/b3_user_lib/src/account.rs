@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 
+use crate::error::SignerError;
 use crate::ledger::config::Environment;
-use crate::ledger::keys::Keys;
 use crate::ledger::ledger::Ledger;
+use crate::ledger::public_keys::PublicKeys;
 use crate::ledger::subaccount::Subaccount;
 use crate::types::CanisterHashMap;
 use crate::{request::SignRequest, signed::SignedTransaction, transaction::get_transaction};
-use ic_cdk::api::call::CallResult;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 use crate::allowance::{Allowance, CanisterId, SetAllowance};
@@ -35,34 +35,41 @@ impl Default for Account {
 }
 
 impl Account {
-    pub async fn new(subaccount: Subaccount) -> CallResult<Self> {
+    pub fn new(subaccount: Subaccount) -> Self {
         let id = subaccount.get_id();
-        let ledger = Ledger::new(subaccount).await?;
+        let ledger = Ledger::new(subaccount);
 
-        Ok(Account {
+        Account {
             id,
             ledger,
             name: String::new(),
             requests: HashMap::new(),
             canisters: HashMap::new(),
             signed: SignedTransaction::default(),
-        })
+        }
+    }
+    pub async fn request_ecdsa_public_key(&mut self) -> Result<Vec<u8>, SignerError> {
+        let ecdsa = self.ledger.ecdsa_public_key().await?;
+
+        self.ledger.public_keys.set_ecdsa(ecdsa)
     }
 
     pub async fn sign_transaction(
         &self,
         hex_raw_tx: Vec<u8>,
         chain_id: u64,
-    ) -> CallResult<SignedTransaction> {
+    ) -> Result<SignedTransaction, SignerError> {
+        let ecdsa = self.ledger.public_keys.get_ecdsa()?;
+
         let mut tx = get_transaction(&hex_raw_tx, chain_id).unwrap();
 
         let message = tx.get_message_to_sign().unwrap();
 
         assert!(message.len() == 32);
 
-        let signature = self.ledger.sign_message(message).await?;
+        let signature = self.ledger.sign_with_ecdsa(message).await?;
 
-        let signed_tx = tx.sign(signature, self.ledger.keys.bytes()).unwrap();
+        let signed_tx = tx.sign(signature, ecdsa).unwrap();
 
         Ok(SignedTransaction::new(signed_tx))
     }
@@ -128,8 +135,8 @@ impl Account {
         self.signed.clone()
     }
 
-    pub fn keys(&self) -> Keys {
-        self.ledger.keys.clone()
+    pub fn keys(&self) -> PublicKeys {
+        self.ledger.public_keys.clone()
     }
 
     pub fn name(&self) -> String {

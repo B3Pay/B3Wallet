@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use crate::account::Account;
 use crate::error::SignerError;
 use crate::ledger::config::Environment;
-use crate::ledger::keys::Keys;
+use crate::ledger::public_keys::PublicKeys;
 use crate::ledger::subaccount::Subaccount;
 
 #[derive(Debug, CandidType, Deserialize, Clone)]
@@ -97,7 +97,7 @@ impl State {
             .ok_or(SignerError::AccountNotExists)
     }
 
-    pub fn account_keys(&self) -> Vec<Keys> {
+    pub fn account_keys(&self) -> Vec<PublicKeys> {
         self.accounts
             .iter()
             .map(|(_, account)| account.keys())
