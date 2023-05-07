@@ -5,7 +5,7 @@ use candid::CandidType;
 use easy_hasher::easy_hasher;
 use serde::Deserialize;
 
-#[derive(Debug, Clone, Deserialize, PartialEq, CandidType)]
+#[derive(Clone, Deserialize, PartialEq, CandidType)]
 pub struct EvmTransaction {
     pub chain_id: u64,
     pub nonce: u64,
@@ -78,7 +78,7 @@ impl EvmTransaction {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, CandidType)]
+#[derive(Clone, Deserialize, PartialEq, CandidType)]
 pub enum EvmTransactionType {
     Legacy,
     EIP1559,

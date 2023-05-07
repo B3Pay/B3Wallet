@@ -7,13 +7,13 @@ use crate::{
     },
     request::SignRequest,
     signed::SignedTransaction,
-    types::CanisterHashMap,
+    types::CanisterAllowances,
     types::{CanisterId, SetAllowance},
 };
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use std::collections::HashMap;
 
-#[derive(Debug, CandidType, Clone, Deserialize)]
+#[derive(CandidType, Clone, Deserialize)]
 pub struct Account {
     pub id: String,
     pub name: String,
@@ -125,15 +125,17 @@ impl Account {
         self.requests.insert(from, sign_request);
     }
 
-    pub fn update_name(&mut self, name: String) {
+    pub fn update_name(&mut self, name: String) -> String {
         self.name = name;
+
+        self.name.clone()
     }
 
     pub fn sign_requests(&self, from: CanisterId) -> SignRequest {
         self.requests.get(&from).unwrap().clone()
     }
 
-    pub fn connected_canisters(&self) -> CanisterHashMap {
+    pub fn connected_canisters(&self) -> CanisterAllowances {
         self.canisters.clone()
     }
 
@@ -141,7 +143,7 @@ impl Account {
         self.signed.clone()
     }
 
-    pub fn keys(&self) -> PublicKeys {
+    pub fn public_keys(&self) -> PublicKeys {
         self.ledger.public_keys.clone()
     }
 

@@ -13,7 +13,7 @@ use super::{
     types::{Addresses, Ecdsa},
 };
 
-#[derive(Debug, CandidType, Deserialize, Clone)]
+#[derive(CandidType, Deserialize, Clone)]
 pub struct PublicKeys {
     pub ecdsa: Option<Ecdsa>,
     pub addresses: Addresses,

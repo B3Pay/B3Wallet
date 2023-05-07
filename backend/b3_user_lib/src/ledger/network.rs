@@ -2,7 +2,7 @@ use candid::{CandidType, Deserialize};
 
 pub type ChainId = u64;
 
-#[derive(CandidType, Clone, Deserialize, Debug)]
+#[derive(CandidType, Clone, Deserialize)]
 pub enum Network {
     SNS(String),
     BTC(BitcoinNetwork),
@@ -25,7 +25,7 @@ impl std::fmt::Display for Network {
     }
 }
 
-#[derive(CandidType, Clone, Deserialize, Debug)]
+#[derive(CandidType, Clone, Deserialize)]
 pub enum BitcoinNetwork {
     Mainnet,
     Testnet,

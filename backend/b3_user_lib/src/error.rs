@@ -1,7 +1,7 @@
 use ic_cdk::{api::call::RejectionCode, export::candid::CandidType};
 
 /// Represents errors that can occur when working with the state.
-#[derive(CandidType, Debug, PartialEq)]
+#[derive(CandidType, PartialEq)]
 pub enum SignerError {
     UnknownError,
     InvalidTx(String),

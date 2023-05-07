@@ -12,11 +12,6 @@ export const idlFactory = ({ IDL }) => {
     'Ok' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
     'Err' : IDL.Tuple(RejectionCode, IDL.Text),
   });
-  const Tokens = IDL.Record({ 'e8s' : IDL.Nat64 });
-  const Result_1 = IDL.Variant({
-    'Ok' : Tokens,
-    'Err' : IDL.Tuple(RejectionCode, IDL.Text),
-  });
   const Allowance = IDL.Record({
     'updated_at' : IDL.Nat64,
     'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
@@ -24,21 +19,34 @@ export const idlFactory = ({ IDL }) => {
     'limit' : IDL.Opt(IDL.Nat8),
     'expires_at' : IDL.Opt(IDL.Nat64),
   });
-  const Result_2 = IDL.Variant({
+  const Result_1 = IDL.Variant({
     'Ok' : IDL.Vec(IDL.Tuple(IDL.Principal, Allowance)),
     'Err' : IDL.Tuple(RejectionCode, IDL.Text),
   });
-  const TransactionType = IDL.Variant({
+  const SetAllowance = IDL.Record({
+    'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
+    'limit' : IDL.Opt(IDL.Nat8),
+    'expires_at' : IDL.Opt(IDL.Nat64),
+  });
+  const Result_2 = IDL.Variant({
+    'Ok' : IDL.Null,
+    'Err' : IDL.Tuple(RejectionCode, IDL.Text),
+  });
+  const Result_3 = IDL.Variant({
+    'Ok' : IDL.Vec(IDL.Nat8),
+    'Err' : IDL.Tuple(RejectionCode, IDL.Text),
+  });
+  const EvmTransactionType = IDL.Variant({
     'EIP1559' : IDL.Null,
     'EIP2930' : IDL.Null,
     'Legacy' : IDL.Null,
   });
-  const Transaction = IDL.Record({
+  const EvmTransaction = IDL.Record({
     'r' : IDL.Text,
     's' : IDL.Text,
     'v' : IDL.Text,
     'to' : IDL.Text,
-    'transaction_type' : TransactionType,
+    'transaction_type' : EvmTransactionType,
     'value' : IDL.Nat64,
     'max_priority_fee_per_gas' : IDL.Opt(IDL.Nat64),
     'data' : IDL.Text,
@@ -50,12 +58,12 @@ export const idlFactory = ({ IDL }) => {
     'gas_price' : IDL.Opt(IDL.Nat64),
   });
   const SignRequest = IDL.Record({
-    'transaction' : Transaction,
+    'transaction' : EvmTransaction,
     'deadline' : IDL.Nat64,
     'chain_id' : IDL.Nat64,
     'message' : IDL.Vec(IDL.Nat8),
   });
-  const Result_3 = IDL.Variant({
+  const Result_4 = IDL.Variant({
     'Ok' : SignRequest,
     'Err' : IDL.Tuple(RejectionCode, IDL.Text),
   });
@@ -63,11 +71,33 @@ export const idlFactory = ({ IDL }) => {
     'data' : IDL.Vec(IDL.Nat8),
     'timestamp' : IDL.Nat64,
   });
-  const Result_4 = IDL.Variant({
+  const Result_5 = IDL.Variant({
     'Ok' : SignedTransaction,
     'Err' : IDL.Tuple(RejectionCode, IDL.Text),
   });
-  const Result_5 = IDL.Variant({
+  const Tokens = IDL.Record({ 'e8s' : IDL.Nat64 });
+  const NotifyError = IDL.Variant({
+    'Refunded' : IDL.Record({
+      'block_index' : IDL.Opt(IDL.Nat64),
+      'reason' : IDL.Text,
+    }),
+    'InvalidTransaction' : IDL.Text,
+    'Other' : IDL.Record({
+      'error_message' : IDL.Text,
+      'error_code' : IDL.Nat64,
+    }),
+    'Processing' : IDL.Null,
+    'TransactionTooOld' : IDL.Nat64,
+  });
+  const NotifyTopUpResult = IDL.Variant({
+    'Ok' : IDL.Nat,
+    'Err' : NotifyError,
+  });
+  const Result_6 = IDL.Variant({
+    'Ok' : NotifyTopUpResult,
+    'Err' : IDL.Tuple(RejectionCode, IDL.Text),
+  });
+  const Result_7 = IDL.Variant({
     'Ok' : IDL.Principal,
     'Err' : IDL.Tuple(RejectionCode, IDL.Text),
   });
@@ -93,7 +123,7 @@ export const idlFactory = ({ IDL }) => {
     'requests' : IDL.Vec(IDL.Tuple(IDL.Principal, SignRequest)),
     'signed' : SignedTransaction,
   });
-  const Result_6 = IDL.Variant({
+  const Result_8 = IDL.Variant({
     'Ok' : Account,
     'Err' : IDL.Tuple(RejectionCode, IDL.Text),
   });
@@ -108,25 +138,28 @@ export const idlFactory = ({ IDL }) => {
     'ICP' : IDL.Null,
     'SNS' : IDL.Text,
   });
-  const Result_7 = IDL.Variant({
+  const Result_9 = IDL.Variant({
     'Ok' : IDL.Text,
     'Err' : IDL.Tuple(RejectionCode, IDL.Text),
   });
-  const Result_8 = IDL.Variant({
+  const Result_10 = IDL.Variant({
     'Ok' : IDL.Nat64,
     'Err' : IDL.Tuple(RejectionCode, IDL.Text),
   });
-  const SetAllowance = IDL.Record({
-    'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
-    'limit' : IDL.Opt(IDL.Nat8),
-    'expires_at' : IDL.Opt(IDL.Nat64),
-  });
-  const Result_9 = IDL.Variant({
-    'Ok' : IDL.Null,
+  const Result_11 = IDL.Variant({
+    'Ok' : Tokens,
     'Err' : IDL.Tuple(RejectionCode, IDL.Text),
   });
-  const Result_10 = IDL.Variant({
-    'Ok' : IDL.Vec(IDL.Nat8),
+  const TransferError = IDL.Variant({
+    'TxTooOld' : IDL.Record({ 'allowed_window_nanos' : IDL.Nat64 }),
+    'BadFee' : IDL.Record({ 'expected_fee' : Tokens }),
+    'TxDuplicate' : IDL.Record({ 'duplicate_of' : IDL.Nat64 }),
+    'TxCreatedInFuture' : IDL.Null,
+    'InsufficientFunds' : IDL.Record({ 'balance' : Tokens }),
+  });
+  const Result_12 = IDL.Variant({ 'Ok' : IDL.Nat64, 'Err' : TransferError });
+  const Result_13 = IDL.Variant({
+    'Ok' : Result_12,
     'Err' : IDL.Tuple(RejectionCode, IDL.Text),
   });
   const CanisterStatusType = IDL.Variant({
@@ -155,134 +188,87 @@ export const idlFactory = ({ IDL }) => {
     'version' : IDL.Text,
   });
   const SignerError = IDL.Variant({
+    'InvalidMessageLength' : IDL.Null,
     'InvalidAddress' : IDL.Null,
     'MaximumDevelopmentAccountsReached' : IDL.Null,
-    'PasswordIsInvalid' : IDL.Null,
-    'CanisterError' : IDL.Text,
-    'TransactionAlreadyRemoved' : IDL.Null,
     'CyclesMintingError' : IDL.Text,
     'MaximumAccountsReached' : IDL.Null,
+    'InvalidTx' : IDL.Text,
     'AccountNotExists' : IDL.Null,
-    'TransactionTypeNotFound' : IDL.Null,
     'RequestNotExists' : IDL.Null,
-    'AccountLimitReached' : IDL.Null,
     'PublicKeyError' : IDL.Text,
-    'TransactionNotPending' : IDL.Null,
     'PublicKeyAlreadyExists' : IDL.Null,
-    'EnvironmentMismatch' : IDL.Null,
     'UnknownError' : IDL.Null,
     'InvalidEcdsaPublicKey' : IDL.Null,
-    'InvalidSubaccount' : IDL.Null,
     'GenerateError' : IDL.Text,
-    'InsufficientBalance' : IDL.Null,
+    'InvalidSignature' : IDL.Text,
     'MissingEcdsaPublicKey' : IDL.Null,
-    'PasswordHashError' : IDL.Null,
-    'CallerNotAuthorized' : IDL.Null,
-    'ManagementCanisterError' : IDL.Text,
+    'InvalidMsg' : IDL.Text,
     'LedgerError' : IDL.Text,
-    'InvalidPublicKey' : IDL.Null,
+    'InvalidAccountIdentifier' : IDL.Null,
     'SignError' : IDL.Text,
-    'PasswordNotSet' : IDL.Null,
-    'AccountAlreadyExists' : IDL.Null,
     'CallerIsNotOwner' : IDL.Null,
-    'ChainNotFound' : IDL.Null,
-    'CallerIsNotWalletCanister' : IDL.Null,
-    'TransactionNotFound' : IDL.Null,
-    'ChainAlreadyExists' : IDL.Null,
     'CanisterStatusError' : IDL.Text,
     'MaximumProductionAccountsReached' : IDL.Null,
   });
-  const Result_11 = IDL.Variant({ 'Ok' : CanisterStatus, 'Err' : SignerError });
-  const NotifyError = IDL.Variant({
-    'Refunded' : IDL.Record({
-      'block_index' : IDL.Opt(IDL.Nat64),
-      'reason' : IDL.Text,
-    }),
-    'InvalidTransaction' : IDL.Text,
-    'Other' : IDL.Record({
-      'error_message' : IDL.Text,
-      'error_code' : IDL.Nat64,
-    }),
-    'Processing' : IDL.Null,
-    'TransactionTooOld' : IDL.Nat64,
-  });
-  const NotifyTopUpResult = IDL.Variant({
-    'Ok' : IDL.Nat,
-    'Err' : NotifyError,
-  });
-  const Result_12 = IDL.Variant({
-    'Ok' : NotifyTopUpResult,
-    'Err' : IDL.Tuple(RejectionCode, IDL.Text),
-  });
-  const TransferError = IDL.Variant({
-    'TxTooOld' : IDL.Record({ 'allowed_window_nanos' : IDL.Nat64 }),
-    'BadFee' : IDL.Record({ 'expected_fee' : Tokens }),
-    'TxDuplicate' : IDL.Record({ 'duplicate_of' : IDL.Nat64 }),
-    'TxCreatedInFuture' : IDL.Null,
-    'InsufficientFunds' : IDL.Record({ 'balance' : Tokens }),
-  });
-  const Result_13 = IDL.Variant({ 'Ok' : IDL.Nat64, 'Err' : TransferError });
-  const Result_14 = IDL.Variant({
-    'Ok' : Result_13,
-    'Err' : IDL.Tuple(RejectionCode, IDL.Text),
-  });
+  const Result_14 = IDL.Variant({ 'Ok' : CanisterStatus, 'Err' : SignerError });
   return IDL.Service({
     'account_addresses' : IDL.Func([IDL.Text], [Result], ['query']),
-    'account_balance' : IDL.Func([IDL.Text], [Result_1], []),
-    'account_connected_canisters' : IDL.Func([IDL.Text], [Result_2], ['query']),
-    'account_requests' : IDL.Func(
+    'account_connected_canisters' : IDL.Func([IDL.Text], [Result_1], ['query']),
+    'account_request_allowance' : IDL.Func(
+        [IDL.Text, IDL.Principal, SetAllowance],
+        [Result_2],
+        [],
+      ),
+    'account_request_public_key' : IDL.Func([IDL.Text], [Result_3], []),
+    'account_sign_requests' : IDL.Func(
         [IDL.Text, IDL.Principal],
-        [Result_3],
+        [Result_4],
         ['query'],
       ),
-    'account_signed_transaction' : IDL.Func([IDL.Text], [Result_4], ['query']),
-    'change_owner' : IDL.Func([IDL.Principal], [Result_5], []),
-    'create_account' : IDL.Func(
-        [IDL.Opt(Environment), IDL.Opt(IDL.Text)],
+    'account_signed_transaction' : IDL.Func([IDL.Text], [Result_5], ['query']),
+    'account_topup_and_notify' : IDL.Func(
+        [IDL.Text, Tokens, IDL.Opt(IDL.Principal), IDL.Opt(Tokens)],
         [Result_6],
         [],
       ),
-    'generate_address' : IDL.Func([IDL.Text, Network], [Result_7], []),
-    'get_account' : IDL.Func([IDL.Text], [Result_6], ['query']),
-    'get_accounts' : IDL.Func([], [IDL.Vec(Account)], ['query']),
-    'get_caller' : IDL.Func([], [IDL.Principal], ['query']),
-    'get_owner' : IDL.Func([], [IDL.Principal], ['query']),
-    'load_wasm' : IDL.Func([IDL.Vec(IDL.Nat8), IDL.Text], [Result_8], []),
-    'number_of_accounts' : IDL.Func([], [IDL.Nat8], ['query']),
-    'reintall_canister' : IDL.Func([], [], []),
-    'request_allowance' : IDL.Func(
-        [IDL.Text, IDL.Principal, SetAllowance],
-        [Result_9],
+    'change_owner' : IDL.Func([IDL.Principal], [Result_7], []),
+    'create_account' : IDL.Func(
+        [IDL.Opt(Environment), IDL.Opt(IDL.Text)],
+        [Result_8],
         [],
       ),
-    'request_ecdsa_public_key' : IDL.Func([IDL.Text], [Result_10], []),
-    'reset_accounts' : IDL.Func([], [], []),
-    'reset_wasm' : IDL.Func([], [], []),
-    'sign_message' : IDL.Func([IDL.Text, IDL.Vec(IDL.Nat8)], [Result_10], []),
-    'sign_request' : IDL.Func(
-        [IDL.Text, IDL.Vec(IDL.Nat8), IDL.Nat64],
+    'generate_account_address' : IDL.Func([IDL.Text, Network], [Result_9], []),
+    'get_account' : IDL.Func([IDL.Text], [Result_8], ['query']),
+    'get_accounts' : IDL.Func([], [IDL.Vec(Account)], ['query']),
+    'get_caller' : IDL.Func([], [IDL.Principal], ['query']),
+    'get_number_of_accounts' : IDL.Func([], [IDL.Nat8], ['query']),
+    'get_owner' : IDL.Func([], [IDL.Principal], ['query']),
+    'load_wasm' : IDL.Func([IDL.Vec(IDL.Nat8), IDL.Text], [Result_10], []),
+    'reintall_canister' : IDL.Func([], [], []),
+    'rename_account' : IDL.Func([IDL.Text, IDL.Text], [Result_9], []),
+    'request_account_balance' : IDL.Func([IDL.Text], [Result_11], []),
+    'request_account_sign_message' : IDL.Func(
+        [IDL.Text, IDL.Vec(IDL.Nat8)],
         [Result_3],
         [],
       ),
-    'sign_transaction' : IDL.Func(
+    'request_account_sign_transaction' : IDL.Func(
         [IDL.Text, IDL.Vec(IDL.Nat8), IDL.Nat64],
-        [Result_4],
+        [Result_5],
         [],
       ),
-    'status' : IDL.Func([], [Result_11], []),
-    'topup_and_notify' : IDL.Func(
-        [IDL.Text, Tokens, IDL.Opt(IDL.Principal), IDL.Opt(Tokens)],
-        [Result_12],
-        [],
-      ),
-    'transfer_icp' : IDL.Func(
+    'request_account_transfer_icp' : IDL.Func(
         [IDL.Text, Tokens, IDL.Text, IDL.Opt(Tokens), IDL.Opt(IDL.Nat64)],
-        [Result_14],
+        [Result_13],
         [],
       ),
+    'reset_accounts' : IDL.Func([], [], []),
+    'reset_wasm' : IDL.Func([], [], []),
+    'status' : IDL.Func([], [Result_14], []),
     'update_canister_controllers' : IDL.Func(
         [IDL.Vec(IDL.Principal)],
-        [Result_9],
+        [Result_2],
         [],
       ),
     'upgrade_canister' : IDL.Func([], [], []),

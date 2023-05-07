@@ -1,39 +1,49 @@
-use crate::{allowance::Allowance, request::SignRequest};
+use crate::{account::Account, allowance::Allowance, request::SignRequest};
 use candid::{CandidType, Principal};
 use ic_cdk::api::management_canister::main::CanisterStatusResponse;
 use serde::Deserialize;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 pub type CanisterId = Principal;
+pub type UserId = Principal;
 
 pub type Metadata = HashMap<String, String>;
 
-#[derive(CandidType, Deserialize, Clone)]
+pub type Accounts = BTreeMap<String, Account>;
+
+pub type CanisterAllowances = HashMap<CanisterId, Allowance>;
+
+pub type CanisterRequests = HashMap<CanisterId, SignRequest>;
+
+#[derive(CandidType, Deserialize)]
+pub struct AccountsStatus {
+    pub dev_counter: u64,
+    pub prod_counter: u64,
+    pub stag_counter: u64,
+}
+
+#[derive(CandidType, Deserialize)]
 pub struct SetAllowance {
-    pub metadata: Metadata,
     pub limit: Option<u8>,
+    pub metadata: Metadata,
     pub expires_at: Option<u64>,
 }
 
-pub type Allowances = HashMap<CanisterId, Allowance>;
-
-#[derive(Debug, CandidType, Deserialize, Clone)]
+#[derive(CandidType, Deserialize)]
 pub struct UserControlArgs {
-    pub owner: Principal,
+    pub owner: UserId,
 }
 
-pub type CanisterHashMap = HashMap<CanisterId, Allowance>;
-pub type RequestHashMap = HashMap<CanisterId, SignRequest>;
-
-#[derive(Debug, CandidType, Deserialize, Clone)]
+#[derive(CandidType, Deserialize)]
 pub struct CanisterStatus {
-    pub id: Principal,
-    pub version: String,
-    pub status: CanisterStatusResponse,
     pub status_at: u64,
+    pub version: String,
+    pub canister_id: CanisterId,
+    pub accounts_status: AccountsStatus,
+    pub canister_status: CanisterStatusResponse,
 }
 
-#[derive(Debug, CandidType, Default, Deserialize)]
+#[derive(CandidType, Default, Deserialize)]
 pub enum TransactionStatus {
     #[default]
     Pending,

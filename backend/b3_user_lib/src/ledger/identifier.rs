@@ -6,7 +6,7 @@ use sha2::Digest;
 use crate::error::SignerError;
 use crate::ledger::subaccount::Subaccount;
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Deserialize, Clone)]
 pub struct AccountIdentifier(pub [u8; 32]);
 
 impl Default for AccountIdentifier {

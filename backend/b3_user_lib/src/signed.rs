@@ -2,7 +2,7 @@ use ic_cdk::api::time as ic_timestamp;
 
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
-#[derive(CandidType, Debug, Clone, Deserialize)]
+#[derive(CandidType, Clone, Deserialize)]
 pub struct SignedTransaction {
     pub data: Vec<u8>,
     pub timestamp: u64,

@@ -2,7 +2,7 @@ use ic_cdk::export::candid::{CandidType, Deserialize};
 
 use super::types::{EcdsaCurve, EcdsaKeyId};
 
-#[derive(CandidType, Deserialize, Debug, Clone, PartialEq, Default)]
+#[derive(CandidType, Deserialize, Clone, PartialEq, Default, Debug)]
 pub enum Environment {
     #[default]
     Development,
@@ -10,7 +10,7 @@ pub enum Environment {
     Production,
 }
 
-#[derive(CandidType, Deserialize, Debug, Clone)]
+#[derive(CandidType, Deserialize, Clone)]
 pub struct Config {
     pub key_name: String,
     pub sign_cycles: u64,

@@ -49,16 +49,16 @@ impl Tokens {
     }
 }
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Deserialize, Clone)]
 pub struct Timestamp {
     /// Number of nanoseconds from the UNIX epoch in UTC timezone.
     pub timestamp_nanos: u64,
 }
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Deserialize, Clone)]
 pub struct Memo(pub u64);
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Deserialize, Clone)]
 pub struct TransferArgs {
     pub memo: Memo,
     pub fee: Tokens,
@@ -68,7 +68,7 @@ pub struct TransferArgs {
     pub created_at_time: Option<Timestamp>,
 }
 
-#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+#[derive(CandidType, Serialize, Deserialize, Debug)]
 pub enum TransferError {
     BadFee { expected_fee: Tokens },
     InsufficientFunds { balance: Tokens },
@@ -79,7 +79,7 @@ pub enum TransferError {
 
 pub type TransferResult = Result<BlockIndex, TransferError>;
 
-#[derive(CandidType, Deserialize, Debug)]
+#[derive(CandidType, Deserialize)]
 pub enum NotifyError {
     Refunded {
         block_index: Option<u64>,
@@ -94,58 +94,58 @@ pub enum NotifyError {
     TransactionTooOld(u64),
 }
 
-#[derive(CandidType, Deserialize, Debug)]
+#[derive(CandidType, Deserialize)]
 pub enum NotifyTopUpResult {
     Ok(u128),
     Err(NotifyError),
 }
 
-#[derive(Debug, CandidType, Deserialize)]
+#[derive(CandidType, Deserialize)]
 pub struct TransferFee {
     pub transfer_fee: Tokens,
 }
-#[derive(Debug, CandidType, Deserialize)]
+#[derive(CandidType, Deserialize)]
 pub struct TransferFeeArgs {}
 
 type CanisterId = Principal;
 
-#[derive(CandidType, Serialize, Debug)]
+#[derive(CandidType, Serialize)]
 pub struct PublicKeyReply {
     pub public_key: Vec<u8>,
 }
 
-#[derive(CandidType, Deserialize, Debug)]
+#[derive(CandidType, Deserialize)]
 pub struct ECDSAPublicKeyResponse {
     pub public_key: Vec<u8>,
     pub chain_code: Vec<u8>,
 }
 
-#[derive(CandidType, Deserialize, Debug)]
+#[derive(CandidType, Deserialize)]
 pub struct SignWithECDSAResponse {
     pub signature: Vec<u8>,
 }
 
-#[derive(CandidType, Serialize, Debug)]
+#[derive(CandidType, Serialize)]
 pub struct ECDSAPublicKeyArgs {
     pub canister_id: Option<CanisterId>,
     pub derivation_path: Vec<Vec<u8>>,
     pub key_id: EcdsaKeyId,
 }
 
-#[derive(CandidType, Serialize, Debug, Deserialize)]
+#[derive(CandidType, Serialize, Deserialize)]
 pub struct SignWithECDSAArgs {
     pub message_hash: Vec<u8>,
     pub derivation_path: Vec<Vec<u8>>,
     pub key_id: EcdsaKeyId,
 }
 
-#[derive(CandidType, Serialize, Debug, Clone, Deserialize)]
+#[derive(CandidType, Serialize, Clone, Deserialize)]
 pub struct EcdsaKeyId {
     pub curve: EcdsaCurve,
     pub name: String,
 }
 
-#[derive(CandidType, Serialize, Debug, Clone, Deserialize)]
+#[derive(CandidType, Serialize, Clone, Deserialize)]
 pub enum EcdsaCurve {
     #[serde(rename = "secp256k1")]
     Secp256k1,

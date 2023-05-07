@@ -4,11 +4,11 @@ use std::collections::HashMap;
 
 use crate::types::{Metadata, SetAllowance};
 
-#[derive(Debug, CandidType, Deserialize, Clone)]
+#[derive(CandidType, Deserialize, Clone)]
 pub struct Allowance {
-    pub metadata: Metadata,
     pub created_at: u64,
     pub updated_at: u64,
+    pub metadata: Metadata,
     pub limit: Option<u8>,
     pub expires_at: Option<u64>,
 }

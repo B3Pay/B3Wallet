@@ -4,7 +4,7 @@ use serde::Deserialize;
 use crate::evm_tx::{get_evm_transaction, EvmTransaction};
 use ic_cdk::api::time as ic_timestamp;
 
-#[derive(Debug, CandidType, Clone, Deserialize)]
+#[derive(CandidType, Clone, Deserialize)]
 pub struct SignRequest {
     pub message: Vec<u8>,
     pub chain_id: u64,

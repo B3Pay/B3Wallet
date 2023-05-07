@@ -5,7 +5,7 @@ use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use std::fmt::Display;
 use std::mem::size_of;
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Deserialize, Clone)]
 pub struct Subaccount(pub [u8; 32]);
 
 impl Default for Subaccount {

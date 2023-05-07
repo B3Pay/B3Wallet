@@ -21,7 +21,7 @@ use super::{
     },
 };
 
-#[derive(Debug, CandidType, Clone, Deserialize)]
+#[derive(CandidType, Clone, Deserialize)]
 pub struct Ledger {
     pub public_keys: PublicKeys,
     pub subaccount: Subaccount,
