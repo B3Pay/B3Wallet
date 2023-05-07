@@ -1,17 +1,18 @@
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 use crate::{
-    allowance::CanisterId,
     error::SignerError,
     ledger::{identifier::AccountIdentifier, public_keys::PublicKeys, subaccount::Subaccount},
+    types::CanisterId,
 };
 
 use ic_cdk::api::call::{call, call_with_payment};
 
 use super::{
     constants::{
-        CANISTER_TOP_UP_MEMO, IC_TRANSACTION_FEE_ICP, MAINNET_CYCLES_MINTING_CANISTER_ID,
-        MAINNET_LEDGER_CANISTER_ID, MAINNET_MANAGMENT_CANISTER_ID, TRANSFER_MEMO,
+        CANISTER_TOP_UP_MEMO, CANISTER_TRANSFER_MEMO, IC_TRANSACTION_FEE_ICP,
+        MAINNET_CYCLES_MINTING_CANISTER_ID, MAINNET_LEDGER_CANISTER_ID,
+        MAINNET_MANAGMENT_CANISTER_ID,
     },
     types::{
         AccountBalanceArgs, ECDSAPublicKeyArgs, ECDSAPublicKeyResponse, Memo, NotifyTopUpResult,
@@ -108,7 +109,7 @@ impl Ledger {
         memo: Option<Memo>,
     ) -> Result<TransferResult, SignerError> {
         let args = TransferArgs {
-            memo: memo.unwrap_or(TRANSFER_MEMO),
+            memo: memo.unwrap_or(CANISTER_TRANSFER_MEMO),
             fee: fee.unwrap_or(IC_TRANSACTION_FEE_ICP),
             amount,
             to,

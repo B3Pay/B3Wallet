@@ -60,8 +60,11 @@ type RejectionCode = variant {
   SysFatal;
   CanisterReject;
 };
-type Result = variant { Ok : principal; Err : record { RejectionCode; text } };
-type Result_1 = variant { Ok : Account; Err : record { RejectionCode; text } };
+type Result = variant {
+  Ok : vec record { text; text };
+  Err : record { RejectionCode; text };
+};
+type Result_1 = variant { Ok : Tokens; Err : record { RejectionCode; text } };
 type Result_10 = variant {
   Ok : vec nat8;
   Err : record { RejectionCode; text };
@@ -76,24 +79,24 @@ type Result_14 = variant {
   Ok : Result_13;
   Err : record { RejectionCode; text };
 };
-type Result_2 = variant { Ok : text; Err : record { RejectionCode; text } };
+type Result_2 = variant {
+  Ok : vec record { principal; Allowance };
+  Err : record { RejectionCode; text };
+};
 type Result_3 = variant {
   Ok : SignRequest;
   Err : record { RejectionCode; text };
 };
 type Result_4 = variant {
-  Ok : vec record { text; text };
-  Err : record { RejectionCode; text };
-};
-type Result_5 = variant { Ok : Tokens; Err : record { RejectionCode; text } };
-type Result_6 = variant {
-  Ok : vec record { principal; Allowance };
-  Err : record { RejectionCode; text };
-};
-type Result_7 = variant {
   Ok : SignedTransaction;
   Err : record { RejectionCode; text };
 };
+type Result_5 = variant {
+  Ok : principal;
+  Err : record { RejectionCode; text };
+};
+type Result_6 = variant { Ok : Account; Err : record { RejectionCode; text } };
+type Result_7 = variant { Ok : text; Err : record { RejectionCode; text } };
 type Result_8 = variant { Ok : nat64; Err : record { RejectionCode; text } };
 type Result_9 = variant { Ok; Err : record { RejectionCode; text } };
 type SetAllowance = record {
@@ -172,18 +175,18 @@ type TransferError = variant {
   InsufficientFunds : record { balance : Tokens };
 };
 service : () -> {
-  change_owner : (principal) -> (Result);
-  create_account : (opt Environment, opt text) -> (Result_1);
-  generate_address : (text, Network) -> (Result_2);
-  get_account : (text) -> (Result_1) query;
-  get_account_requests : (text, principal) -> (Result_3) query;
+  account_addresses : (text) -> (Result) query;
+  account_balance : (text) -> (Result_1);
+  account_connected_canisters : (text) -> (Result_2) query;
+  account_requests : (text, principal) -> (Result_3) query;
+  account_signed_transaction : (text) -> (Result_4) query;
+  change_owner : (principal) -> (Result_5);
+  create_account : (opt Environment, opt text) -> (Result_6);
+  generate_address : (text, Network) -> (Result_7);
+  get_account : (text) -> (Result_6) query;
   get_accounts : () -> (vec Account) query;
-  get_addresses : (text) -> (Result_4) query;
-  get_balance : (text) -> (Result_5) query;
   get_caller : () -> (principal) query;
-  get_connected_canisters : (text) -> (Result_6) query;
   get_owner : () -> (principal) query;
-  get_signed : (text) -> (Result_7) query;
   load_wasm : (vec nat8, text) -> (Result_8);
   number_of_accounts : () -> (nat8) query;
   reintall_canister : () -> ();
@@ -193,7 +196,7 @@ service : () -> {
   reset_wasm : () -> ();
   sign_message : (text, vec nat8) -> (Result_10);
   sign_request : (text, vec nat8, nat64) -> (Result_3);
-  sign_transaction : (text, vec nat8, nat64) -> (Result_7);
+  sign_transaction : (text, vec nat8, nat64) -> (Result_4);
   status : () -> (Result_11);
   topup_and_notify : (text, Tokens, opt principal, opt Tokens) -> (Result_12);
   transfer_icp : (text, Tokens, text, opt Tokens, opt nat64) -> (Result_14);

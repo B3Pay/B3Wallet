@@ -1,19 +1,23 @@
 use account::Account;
 use error::SignerError;
 use ledger::ledger::Ledger;
-use state::{State, STATE};
+use state::State;
+use std::cell::RefCell;
 
 pub mod account;
 pub mod allowance;
-pub mod env;
 pub mod error;
+pub mod evm_tx;
 pub mod ledger;
 pub mod request;
 pub mod signed;
 pub mod state;
-pub mod transaction;
 pub mod types;
 pub mod utils;
+
+thread_local! {
+    pub static STATE: RefCell<State> = RefCell::default();
+}
 
 /// Get all state.
 /// This will retrieve all states.

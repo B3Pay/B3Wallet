@@ -1,33 +1,32 @@
 use crate::utils::{
     remove_leading, string_to_vec_u8, u64_to_vec_u8, vec_u8_to_string, vec_u8_to_u64,
 };
-
 use candid::CandidType;
 use easy_hasher::easy_hasher;
 use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize, PartialEq, CandidType)]
-pub struct Transaction {
+pub struct EvmTransaction {
     pub chain_id: u64,
     pub nonce: u64,
-    pub gas_price: Option<u64>,
     pub gas_limit: u64,
-    pub max_priority_fee_per_gas: Option<u64>,
-    pub max_fee_per_gas: Option<u64>,
     pub to: String,
     pub value: u64,
     pub data: String,
-    pub access_list: Option<Vec<(String, Vec<String>)>>,
     pub v: String,
     pub r: String,
     pub s: String,
-    pub transaction_type: TransactionType,
+    pub transaction_type: EvmTransactionType,
+    pub gas_price: Option<u64>,
+    pub max_fee_per_gas: Option<u64>,
+    pub max_priority_fee_per_gas: Option<u64>,
+    pub access_list: Option<Vec<(String, Vec<String>)>>,
 }
 
-impl Transaction {
-    fn from(tx: Transactions) -> Self {
+impl EvmTransaction {
+    fn from(tx: EvmTransactions) -> Self {
         match tx {
-            Transactions::Legacy(tx) => Transaction {
+            EvmTransactions::Legacy(tx) => EvmTransaction {
                 chain_id: tx.chain_id,
                 nonce: tx.nonce,
                 gas_price: Some(tx.gas_price),
@@ -41,9 +40,9 @@ impl Transaction {
                 v: tx.v.clone(),
                 r: tx.r.clone(),
                 s: tx.s.clone(),
-                transaction_type: TransactionType::Legacy,
+                transaction_type: EvmTransactionType::Legacy,
             },
-            Transactions::EIP1559(tx) => Transaction {
+            EvmTransactions::EIP1559(tx) => EvmTransaction {
                 chain_id: tx.chain_id,
                 nonce: tx.nonce,
                 gas_price: None,
@@ -57,9 +56,9 @@ impl Transaction {
                 v: tx.v.clone(),
                 r: tx.r.clone(),
                 s: tx.s.clone(),
-                transaction_type: TransactionType::EIP1559,
+                transaction_type: EvmTransactionType::EIP1559,
             },
-            Transactions::EIP2930(tx) => Transaction {
+            EvmTransactions::EIP2930(tx) => EvmTransaction {
                 chain_id: tx.chain_id,
                 nonce: tx.nonce,
                 gas_price: Some(tx.gas_price),
@@ -73,36 +72,36 @@ impl Transaction {
                 v: tx.v.clone(),
                 r: tx.r.clone(),
                 s: tx.s.clone(),
-                transaction_type: TransactionType::EIP2930,
+                transaction_type: EvmTransactionType::EIP2930,
             },
         }
     }
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq, CandidType)]
-pub enum TransactionType {
+pub enum EvmTransactionType {
     Legacy,
     EIP1559,
     EIP2930,
 }
 
-impl TransactionType {
+impl EvmTransactionType {
     pub fn as_str(&self) -> &'static str {
         match *self {
-            TransactionType::Legacy => "legacy",
-            TransactionType::EIP1559 => "eip1559",
-            TransactionType::EIP2930 => "eip2930",
+            EvmTransactionType::Legacy => "legacy",
+            EvmTransactionType::EIP1559 => "eip1559",
+            EvmTransactionType::EIP2930 => "eip2930",
         }
     }
 }
 
-pub enum Transactions<'a> {
-    Legacy(&'a TransactionLegacy),
-    EIP1559(&'a Transaction1559),
-    EIP2930(&'a Transaction2930),
+pub enum EvmTransactions<'a> {
+    Legacy(&'a EvmTransactionLegacy),
+    EIP1559(&'a EvmTransaction1559),
+    EIP2930(&'a EvmTransaction2930),
 }
 
-pub trait Sign {
+pub trait EvmSign {
     fn get_message_to_sign(&self) -> Result<Vec<u8>, String>;
     fn sign(&mut self, signature: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, String>;
     fn is_signed(&self) -> bool;
@@ -110,10 +109,10 @@ pub trait Sign {
     fn get_recovery_id(&self) -> Result<u8, String>;
     fn get_nonce(&self) -> Result<u64, String>;
     fn serialize(&self) -> Result<Vec<u8>, String>;
-    fn get_transaction(&self) -> Result<Transaction, String>;
+    fn get_transaction(&self) -> Result<EvmTransaction, String>;
 }
 
-pub struct TransactionLegacy {
+pub struct EvmTransactionLegacy {
     pub chain_id: u64,
     pub nonce: u64,
     pub gas_price: u64,
@@ -126,7 +125,7 @@ pub struct TransactionLegacy {
     pub s: String,
 }
 
-impl From<(Vec<u8>, u64)> for TransactionLegacy {
+impl From<(Vec<u8>, u64)> for EvmTransactionLegacy {
     fn from(data: (Vec<u8>, u64)) -> Self {
         let rlp = rlp::Rlp::new(&data.0[..]);
 
@@ -159,7 +158,7 @@ impl From<(Vec<u8>, u64)> for TransactionLegacy {
 
         let chain_id = data.1;
 
-        TransactionLegacy {
+        EvmTransactionLegacy {
             chain_id,
             nonce,
             gas_price,
@@ -173,7 +172,7 @@ impl From<(Vec<u8>, u64)> for TransactionLegacy {
         }
     }
 }
-impl Sign for TransactionLegacy {
+impl EvmSign for EvmTransactionLegacy {
     fn get_message_to_sign(&self) -> Result<Vec<u8>, String> {
         let mut stream = rlp::RlpStream::new_list(9);
 
@@ -295,14 +294,14 @@ impl Sign for TransactionLegacy {
         Ok(self.nonce)
     }
 
-    fn get_transaction(&self) -> Result<Transaction, String> {
-        let transaction = Transaction::from(Transactions::Legacy(self));
+    fn get_transaction(&self) -> Result<EvmTransaction, String> {
+        let transaction = EvmTransaction::from(EvmTransactions::Legacy(self));
 
         Ok(transaction)
     }
 }
 
-pub struct Transaction2930 {
+pub struct EvmTransaction2930 {
     pub chain_id: u64,
     pub nonce: u64,
     pub gas_price: u64,
@@ -315,7 +314,7 @@ pub struct Transaction2930 {
     pub r: String,
     pub s: String,
 }
-impl From<Vec<u8>> for Transaction2930 {
+impl From<Vec<u8>> for EvmTransaction2930 {
     fn from(data: Vec<u8>) -> Self {
         let rlp = rlp::Rlp::new(&data[1..]);
 
@@ -350,7 +349,7 @@ impl From<Vec<u8>> for Transaction2930 {
 
         let s_hex = rlp.at(10).as_val::<Vec<u8>>();
         let s = vec_u8_to_string(&s_hex);
-        Transaction2930 {
+        EvmTransaction2930 {
             chain_id,
             nonce,
             gas_price,
@@ -365,7 +364,7 @@ impl From<Vec<u8>> for Transaction2930 {
         }
     }
 }
-impl Sign for Transaction2930 {
+impl EvmSign for EvmTransaction2930 {
     fn get_message_to_sign(&self) -> Result<Vec<u8>, String> {
         let mut stream = rlp::RlpStream::new_list(8);
         let items = [
@@ -497,14 +496,14 @@ impl Sign for Transaction2930 {
     fn get_nonce(&self) -> Result<u64, String> {
         Ok(self.nonce)
     }
-    fn get_transaction(&self) -> Result<Transaction, String> {
-        let transaction = Transaction::from(Transactions::EIP2930(self));
+    fn get_transaction(&self) -> Result<EvmTransaction, String> {
+        let transaction = EvmTransaction::from(EvmTransactions::EIP2930(self));
 
         Ok(transaction)
     }
 }
 
-pub struct Transaction1559 {
+pub struct EvmTransaction1559 {
     pub chain_id: u64,
     pub nonce: u64,
     pub max_priority_fee_per_gas: u64,
@@ -518,7 +517,7 @@ pub struct Transaction1559 {
     pub r: String,
     pub s: String,
 }
-impl From<Vec<u8>> for Transaction1559 {
+impl From<Vec<u8>> for EvmTransaction1559 {
     fn from(data: Vec<u8>) -> Self {
         let rlp = rlp::Rlp::new(&data[1..]);
 
@@ -558,7 +557,7 @@ impl From<Vec<u8>> for Transaction1559 {
         let s_hex = rlp.at(11).as_val::<Vec<u8>>();
         let s = vec_u8_to_string(&s_hex);
 
-        Transaction1559 {
+        EvmTransaction1559 {
             chain_id,
             nonce,
             max_priority_fee_per_gas,
@@ -574,7 +573,7 @@ impl From<Vec<u8>> for Transaction1559 {
         }
     }
 }
-impl Sign for Transaction1559 {
+impl EvmSign for EvmTransaction1559 {
     fn get_message_to_sign(&self) -> Result<Vec<u8>, String> {
         let mut stream = rlp::RlpStream::new_list(9);
         let items = [
@@ -714,37 +713,40 @@ impl Sign for Transaction1559 {
     fn get_nonce(&self) -> Result<u64, String> {
         Ok(self.nonce)
     }
-    fn get_transaction(&self) -> Result<Transaction, String> {
-        let transaction = Transaction::from(Transactions::EIP1559(self));
+    fn get_transaction(&self) -> Result<EvmTransaction, String> {
+        let transaction = EvmTransaction::from(EvmTransactions::EIP1559(self));
 
         Ok(transaction)
     }
 }
 
-pub fn get_transaction(hex_raw_tx: &Vec<u8>, chain_id: u64) -> Result<Box<dyn Sign>, String> {
-    let tx_type = get_transaction_type(hex_raw_tx).unwrap();
+pub fn get_evm_transaction(
+    hex_raw_tx: &Vec<u8>,
+    chain_id: u64,
+) -> Result<Box<dyn EvmSign>, String> {
+    let tx_type = get_evm_transaction_type(hex_raw_tx).unwrap();
 
-    if tx_type == TransactionType::Legacy {
-        Ok(Box::new(TransactionLegacy::from((
+    if tx_type == EvmTransactionType::Legacy {
+        Ok(Box::new(EvmTransactionLegacy::from((
             hex_raw_tx.clone(),
             chain_id,
         ))))
-    } else if tx_type == TransactionType::EIP1559 {
-        Ok(Box::new(Transaction1559::from(hex_raw_tx.clone())))
-    } else if tx_type == TransactionType::EIP2930 {
-        Ok(Box::new(Transaction2930::from(hex_raw_tx.clone())))
+    } else if tx_type == EvmTransactionType::EIP1559 {
+        Ok(Box::new(EvmTransaction1559::from(hex_raw_tx.clone())))
+    } else if tx_type == EvmTransactionType::EIP2930 {
+        Ok(Box::new(EvmTransaction2930::from(hex_raw_tx.clone())))
     } else {
         Err(String::from("Invalid type"))
     }
 }
 
-fn get_transaction_type(hex_raw_tx: &Vec<u8>) -> Result<TransactionType, String> {
+fn get_evm_transaction_type(hex_raw_tx: &Vec<u8>) -> Result<EvmTransactionType, String> {
     if hex_raw_tx[0] >= 0xc0 {
-        Ok(TransactionType::Legacy)
+        Ok(EvmTransactionType::Legacy)
     } else if hex_raw_tx[0] == 0x01 {
-        Ok(TransactionType::EIP2930)
+        Ok(EvmTransactionType::EIP2930)
     } else if hex_raw_tx[0] == 0x02 {
-        Ok(TransactionType::EIP1559)
+        Ok(EvmTransactionType::EIP1559)
     } else {
         Err(String::from("Invalid type"))
     }
@@ -820,6 +822,7 @@ fn decode_access_list(access_list: &Vec<u8>) -> Vec<(String, Vec<String>)> {
     }
     decoded_access_list
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;

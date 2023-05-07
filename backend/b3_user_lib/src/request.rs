@@ -1,7 +1,7 @@
 use candid::CandidType;
 use serde::Deserialize;
 
-use crate::transaction::{get_transaction, Transaction};
+use crate::evm_tx::{get_evm_transaction, EvmTransaction};
 use ic_cdk::api::time as ic_timestamp;
 
 #[derive(Debug, CandidType, Clone, Deserialize)]
@@ -9,12 +9,12 @@ pub struct SignRequest {
     pub message: Vec<u8>,
     pub chain_id: u64,
     pub deadline: u64,
-    pub transaction: Transaction,
+    pub transaction: EvmTransaction,
 }
 
 impl SignRequest {
     pub fn new(hex_raw_tx: Vec<u8>, chain_id: u64, deadline: Option<u64>) -> Self {
-        let tx = get_transaction(&hex_raw_tx, chain_id).unwrap();
+        let tx = get_evm_transaction(&hex_raw_tx, chain_id).unwrap();
 
         let message = tx.get_message_to_sign().unwrap();
 

@@ -23,13 +23,13 @@ impl TryFrom<String> for AccountIdentifier {
         let mut i = 0;
         for byte in str.as_bytes().chunks(2) {
             if byte.len() != 2 {
-                return Err(SignerError::InvalidAddress);
+                return Err(SignerError::InvalidAccountIdentifier);
             }
             result[i] = u8::from_str_radix(
-                std::str::from_utf8(byte).map_err(|_| SignerError::InvalidAddress)?,
+                std::str::from_utf8(byte).map_err(|_| SignerError::InvalidAccountIdentifier)?,
                 16,
             )
-            .map_err(|_| SignerError::InvalidAddress)?;
+            .map_err(|_| SignerError::InvalidAccountIdentifier)?;
             i += 1;
         }
         Ok(Self(result))

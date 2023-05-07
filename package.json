@@ -20,7 +20,7 @@
     "lint:fix": "next lint --fix",
     "export": "next build",
     "deploy": "cargo test && dfx deploy",
-    "ic:deploy": "dfx generate && dfx deploy b3_user --network ic",
+    "ic:deploy": "dfx generate b3_user && dfx deploy b3_user --network ic",
     "env": "node dfx.webpack.config.js init",
     "generate": "cargo test && dfx generate",
     "ledger:balance": "ts-node scripts/ledger.balance.ts",

@@ -1,15 +1,17 @@
-use std::collections::HashMap;
-
-use crate::error::SignerError;
-use crate::ledger::config::Environment;
-use crate::ledger::ledger::Ledger;
-use crate::ledger::public_keys::PublicKeys;
-use crate::ledger::subaccount::Subaccount;
-use crate::types::CanisterHashMap;
-use crate::{request::SignRequest, signed::SignedTransaction, transaction::get_transaction};
+use crate::{
+    allowance::Allowance,
+    error::SignerError,
+    evm_tx::get_evm_transaction,
+    ledger::{
+        config::Environment, ledger::Ledger, public_keys::PublicKeys, subaccount::Subaccount,
+    },
+    request::SignRequest,
+    signed::SignedTransaction,
+    types::CanisterHashMap,
+    types::{CanisterId, SetAllowance},
+};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
-
-use crate::allowance::{Allowance, CanisterId, SetAllowance};
+use std::collections::HashMap;
 
 #[derive(Debug, CandidType, Clone, Deserialize)]
 pub struct Account {
@@ -56,17 +58,26 @@ impl Account {
     ) -> Result<SignedTransaction, SignerError> {
         let ecdsa = self.ledger.public_keys.get_ecdsa()?;
 
-        let mut tx = get_transaction(&hex_raw_tx, chain_id).unwrap();
+        let mut evm_tx =
+            get_evm_transaction(&hex_raw_tx, chain_id).map_err(|e| SignerError::InvalidTx(e))?;
 
-        let message = tx.get_message_to_sign().unwrap();
+        let message = evm_tx
+            .get_message_to_sign()
+            .map_err(|e| SignerError::InvalidMsg(e))?;
 
-        assert!(message.len() == 32);
+        if message.len() != 32 {
+            return Err(SignerError::InvalidMessageLength);
+        }
 
         let signature = self.ledger.sign_with_ecdsa(message).await?;
 
-        let signed_tx = tx.sign(signature, ecdsa).unwrap();
+        let signed_evm_tx = evm_tx
+            .sign(signature, ecdsa)
+            .map_err(|e| SignerError::InvalidSignature(e))?;
 
-        Ok(SignedTransaction::new(signed_tx))
+        let signed_tx = SignedTransaction::new(signed_evm_tx);
+
+        Ok(signed_tx)
     }
 
     pub fn new_request(

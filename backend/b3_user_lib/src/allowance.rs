@@ -1,28 +1,15 @@
 use ic_cdk::api::time;
-use ic_cdk::export::{
-    candid::{CandidType, Deserialize},
-    Principal,
-};
+use ic_cdk::export::candid::{CandidType, Deserialize};
 use std::collections::HashMap;
 
-pub type CanisterId = Principal;
-pub type Metadata = HashMap<String, String>;
-
-#[derive(CandidType, Deserialize, Clone)]
-pub struct SetAllowance {
-    pub metadata: Metadata,
-    pub limit: Option<u8>,
-    pub expires_at: Option<u64>,
-}
-
-pub type Allowances = HashMap<CanisterId, Allowance>;
+use crate::types::{Metadata, SetAllowance};
 
 #[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct Allowance {
     pub metadata: Metadata,
-    pub limit: Option<u8>,
     pub created_at: u64,
     pub updated_at: u64,
+    pub limit: Option<u8>,
     pub expires_at: Option<u64>,
 }
 
@@ -53,8 +40,8 @@ impl From<SetAllowance> for Allowance {
 }
 
 impl Allowance {
-    pub fn new(new_allowance: SetAllowance) -> Self {
-        Allowance::from(new_allowance)
+    pub fn new(allowance: SetAllowance) -> Self {
+        allowance.into()
     }
 
     pub fn update(&mut self, new_allowance: SetAllowance) {

@@ -16,8 +16,8 @@ use super::{
 #[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct PublicKeys {
     pub ecdsa: Option<Ecdsa>,
-    pub identifier: AccountIdentifier,
     pub addresses: Addresses,
+    pub identifier: AccountIdentifier,
 }
 
 impl Default for PublicKeys {

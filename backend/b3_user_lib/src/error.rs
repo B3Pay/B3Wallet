@@ -4,46 +4,44 @@ use ic_cdk::{api::call::RejectionCode, export::candid::CandidType};
 #[derive(CandidType, Debug, PartialEq)]
 pub enum SignerError {
     UnknownError,
+    InvalidTx(String),
+    InvalidMsg(String),
+    InvalidSignature(String),
     SignError(String),
     LedgerError(String),
     GenerateError(String),
-    CanisterError(String),
     PublicKeyError(String),
-    CanisterStatusError(String),
     CyclesMintingError(String),
-    ManagementCanisterError(String),
+    CanisterStatusError(String),
+    InvalidMessageLength,
     MissingEcdsaPublicKey,
-    CallerNotAuthorized,
     CallerIsNotOwner,
-    CallerIsNotWalletCanister,
     MaximumAccountsReached,
     MaximumDevelopmentAccountsReached,
     MaximumProductionAccountsReached,
-    InvalidEcdsaPublicKey,
     PublicKeyAlreadyExists,
-    EnvironmentMismatch,
+    InvalidEcdsaPublicKey,
+    InvalidAccountIdentifier,
     AccountNotExists,
-    AccountAlreadyExists,
-    ChainNotFound,
-    ChainAlreadyExists,
-    TransactionNotFound,
-    AccountLimitReached,
     RequestNotExists,
-    PasswordHashError,
-    PasswordIsInvalid,
-    PasswordNotSet,
-    TransactionNotPending,
-    TransactionAlreadyRemoved,
-    InsufficientBalance,
-    InvalidSubaccount,
-    InvalidPublicKey,
     InvalidAddress,
-    TransactionTypeNotFound,
 }
 
 impl From<SignerError> for (RejectionCode, String) {
     fn from(error: SignerError) -> Self {
         match error {
+            SignerError::InvalidMsg(msg) => (
+                RejectionCode::CanisterError,
+                ["Invalid message ", &msg].concat(),
+            ),
+            SignerError::InvalidTx(msg) => (
+                RejectionCode::CanisterError,
+                ["Invalid transaction ", &msg].concat(),
+            ),
+            SignerError::InvalidSignature(msg) => (
+                RejectionCode::CanisterError,
+                ["Invalid signature ", &msg].concat(),
+            ),
             SignerError::LedgerError(msg) => (
                 RejectionCode::CanisterError,
                 ["Ledger error ", &msg].concat(),
@@ -60,29 +58,21 @@ impl From<SignerError> for (RejectionCode, String) {
                 RejectionCode::CanisterError,
                 ["Public key error ", &msg].concat(),
             ),
-            SignerError::ManagementCanisterError(msg) => (
-                RejectionCode::CanisterError,
-                ["Management canister error ", &msg].concat(),
-            ),
-            SignerError::SignError(msg) => {
-                (RejectionCode::CanisterError, ["Sign error ", &msg].concat())
-            }
-            SignerError::CanisterError(msg) => (
-                RejectionCode::CanisterError,
-                ["Canister error ", &msg].concat(),
-            ),
             SignerError::CanisterStatusError(msg) => (
                 RejectionCode::CanisterError,
                 ["Canister status error ", &msg].concat(),
             ),
+            SignerError::SignError(msg) => {
+                (RejectionCode::CanisterError, ["Sign error ", &msg].concat())
+            }
             SignerError::UnknownError => (RejectionCode::Unknown, "Unknown error".to_string()),
             SignerError::MissingEcdsaPublicKey => (
                 RejectionCode::CanisterError,
                 "Missing public key".to_string(),
             ),
-            SignerError::CallerNotAuthorized => (
+            SignerError::InvalidAccountIdentifier => (
                 RejectionCode::CanisterReject,
-                "Caller not authorized to perform this action".to_string(),
+                "Invalid account identifier".to_string(),
             ),
             SignerError::CallerIsNotOwner => (
                 RejectionCode::CanisterReject,
@@ -91,10 +81,6 @@ impl From<SignerError> for (RejectionCode, String) {
             SignerError::MaximumAccountsReached => (
                 RejectionCode::CanisterError,
                 "Maximum accounts reached".to_string(),
-            ),
-            SignerError::CallerIsNotWalletCanister => (
-                RejectionCode::CanisterReject,
-                "Caller is not wallet canister".to_string(),
             ),
             SignerError::MaximumDevelopmentAccountsReached => (
                 RejectionCode::CanisterError,
@@ -112,75 +98,20 @@ impl From<SignerError> for (RejectionCode, String) {
                 RejectionCode::CanisterError,
                 "Account not found".to_string(),
             ),
-            SignerError::AccountAlreadyExists => (
-                RejectionCode::CanisterError,
-                "Account already exists".to_string(),
-            ),
-            SignerError::ChainNotFound => {
-                (RejectionCode::CanisterError, "Chain not found".to_string())
-            }
-            SignerError::ChainAlreadyExists => (
-                RejectionCode::CanisterError,
-                "Chain already exists".to_string(),
-            ),
-            SignerError::TransactionNotFound => (
-                RejectionCode::CanisterError,
-                "Transaction not found".to_string(),
-            ),
-            SignerError::AccountLimitReached => (
-                RejectionCode::CanisterError,
-                "Account limit reached".to_string(),
-            ),
             SignerError::RequestNotExists => (
                 RejectionCode::CanisterError,
                 "Setting not found".to_string(),
             ),
-            SignerError::PasswordHashError => (
-                RejectionCode::CanisterError,
-                "Password hash error".to_string(),
-            ),
-            SignerError::PasswordIsInvalid => (
-                RejectionCode::CanisterError,
-                "Password is invalid".to_string(),
-            ),
-            SignerError::PasswordNotSet => {
-                (RejectionCode::CanisterError, "Password not set".to_string())
+            SignerError::InvalidAddress => {
+                (RejectionCode::CanisterError, "Invalid address".to_string())
             }
             SignerError::PublicKeyAlreadyExists => (
                 RejectionCode::CanisterError,
                 "Public key already exists".to_string(),
             ),
-            SignerError::EnvironmentMismatch => (
+            SignerError::InvalidMessageLength => (
                 RejectionCode::CanisterError,
-                "Environment mismatch".to_string(),
-            ),
-            SignerError::TransactionNotPending => (
-                RejectionCode::CanisterError,
-                "Transaction not pending".to_string(),
-            ),
-            SignerError::TransactionAlreadyRemoved => (
-                RejectionCode::CanisterError,
-                "Transaction already removed".to_string(),
-            ),
-
-            SignerError::InvalidSubaccount => (
-                RejectionCode::CanisterError,
-                "Invalid subaccount".to_string(),
-            ),
-            SignerError::InsufficientBalance => (
-                RejectionCode::CanisterError,
-                "Insufficient balance".to_string(),
-            ),
-            SignerError::InvalidPublicKey => (
-                RejectionCode::CanisterError,
-                "Invalid public key".to_string(),
-            ),
-            SignerError::InvalidAddress => {
-                (RejectionCode::CanisterError, "Invalid address".to_string())
-            }
-            SignerError::TransactionTypeNotFound => (
-                RejectionCode::CanisterError,
-                "Transaction type not found".to_string(),
+                "Invalid message length".to_string(),
             ),
         }
     }

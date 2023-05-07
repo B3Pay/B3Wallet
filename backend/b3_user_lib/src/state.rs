@@ -1,18 +1,16 @@
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
-use std::cell::RefCell;
 use std::collections::BTreeMap;
 
 use crate::account::Account;
 use crate::error::SignerError;
-use crate::ledger::config::Environment;
-use crate::ledger::public_keys::PublicKeys;
-use crate::ledger::subaccount::Subaccount;
+use crate::ledger::{config::Environment, public_keys::PublicKeys, subaccount::Subaccount};
 
 #[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct State {
-    pub dev_counter: u64,
-    pub prod_counter: u64,
-    pub accounts: BTreeMap<String, Account>,
+    dev_counter: u64,
+    prod_counter: u64,
+    stag_counter: u64,
+    accounts: BTreeMap<String, Account>,
 }
 
 impl Default for State {
@@ -20,32 +18,26 @@ impl Default for State {
         State {
             dev_counter: 0,
             prod_counter: 0,
+            stag_counter: 0,
             accounts: BTreeMap::new(),
         }
     }
 }
 
 impl State {
-    pub fn insert_account(
-        &mut self,
-        mut account: Account,
-        opt_name: Option<String>,
-    ) -> Result<String, SignerError> {
+    pub fn insert_account(&mut self, mut account: Account, opt_name: Option<String>) -> String {
         let default_name = match account.env() {
             Environment::Production => {
-                if self.prod_counter == 255 {
-                    Err(SignerError::MaximumProductionAccountsReached)?;
-                }
-
                 self.prod_counter += 1;
 
                 ["Account", &self.prod_counter.to_string()].join(" ")
             }
-            _ => {
-                if self.dev_counter == 255 {
-                    Err(SignerError::MaximumDevelopmentAccountsReached)?;
-                }
+            Environment::Staging => {
+                self.stag_counter += 1;
 
+                ["Staging Account", &self.stag_counter.to_string()].join(" ")
+            }
+            Environment::Development => {
                 self.dev_counter += 1;
 
                 ["Dev Account", &self.dev_counter.to_string()].join(" ")
@@ -62,27 +54,24 @@ impl State {
 
         self.accounts.insert(id.clone(), account);
 
-        Ok(id)
+        id
     }
 
-    pub fn new_subaccount(&self, opt_env: Option<Environment>) -> Result<Subaccount, SignerError> {
-        if self.accounts.len() == 512 {
-            Err(SignerError::MaximumAccountsReached)?;
-        }
-
+    pub fn new_subaccount(&self, opt_env: Option<Environment>) -> Subaccount {
         let env = opt_env.unwrap_or(Environment::Production);
 
         let counter = self.account_counter(&env);
 
         let subaccount = Subaccount::new(env.clone(), counter);
 
-        Ok(subaccount)
+        subaccount
     }
 
     pub fn account_counter(&self, env: &Environment) -> u64 {
         match env {
             Environment::Production => self.prod_counter,
-            _ => self.dev_counter,
+            Environment::Staging => self.stag_counter,
+            Environment::Development => self.dev_counter,
         }
     }
 
@@ -118,9 +107,6 @@ impl State {
         self.accounts.clear();
         self.dev_counter = 0;
         self.prod_counter = 0;
+        self.stag_counter = 0;
     }
-}
-
-thread_local! {
-    pub static STATE: RefCell<State> = RefCell::default();
 }

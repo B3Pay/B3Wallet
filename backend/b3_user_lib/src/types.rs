@@ -1,13 +1,21 @@
-use std::collections::HashMap;
-
+use crate::{allowance::Allowance, request::SignRequest};
 use candid::{CandidType, Principal};
 use ic_cdk::api::management_canister::main::CanisterStatusResponse;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use std::collections::HashMap;
 
-use crate::{
-    allowance::{Allowance, CanisterId},
-    request::SignRequest,
-};
+pub type CanisterId = Principal;
+
+pub type Metadata = HashMap<String, String>;
+
+#[derive(CandidType, Deserialize, Clone)]
+pub struct SetAllowance {
+    pub metadata: Metadata,
+    pub limit: Option<u8>,
+    pub expires_at: Option<u64>,
+}
+
+pub type Allowances = HashMap<CanisterId, Allowance>;
 
 #[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct UserControlArgs {
@@ -25,23 +33,10 @@ pub struct CanisterStatus {
     pub status_at: u64,
 }
 
-#[derive(Debug, Clone, CandidType, Default, PartialEq, Serialize, Deserialize)]
-pub enum Status {
+#[derive(Debug, CandidType, Default, Deserialize)]
+pub enum TransactionStatus {
     #[default]
     Pending,
     Success,
     Failed,
-}
-
-#[derive(Deserialize, CandidType, Debug)]
-pub struct IcpXdrConversionRate {
-    pub timestamp_seconds: u64,
-    pub xdr_permyriad_per_icp: u64,
-}
-
-#[derive(Deserialize, CandidType, Debug)]
-pub struct IcpXdrConversionRateCertifiedResponse {
-    pub data: IcpXdrConversionRate,
-    pub hash_tree: Vec<u8>,
-    pub certificate: Vec<u8>,
 }
