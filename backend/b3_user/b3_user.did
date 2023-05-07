@@ -6,7 +6,6 @@ type Account = record {
   requests : vec record { principal; SignRequest };
   signed : SignedTransaction;
 };
-type Addresses = record { btc : BtcAddresses; eth : text; icp : text };
 type Allowance = record {
   updated_at : nat64;
   metadata : vec record { text; text };
@@ -14,7 +13,7 @@ type Allowance = record {
   limit : opt nat8;
   expires_at : opt nat64;
 };
-type BtcAddresses = record { mainnet : text; testnet : text };
+type BitcoinNetwork = variant { Mainnet; Regtest; Testnet };
 type CanisterStatus = record {
   id : principal;
   status : CanisterStatusResponse;
@@ -37,8 +36,8 @@ type DefiniteCanisterSettings = record {
   compute_allocation : nat;
 };
 type Environment = variant { Production; Development; Staging };
-type Keys = record { addresses : Addresses; bytes : vec nat8 };
-type Ledger = record { keys : Keys; subaccount : vec nat8 };
+type Ledger = record { subaccount : vec nat8; public_keys : PublicKeys };
+type Network = variant { BTC : BitcoinNetwork; EVM : nat64; ICP; SNS : text };
 type NotifyError = variant {
   Refunded : record { block_index : opt nat64; reason : text };
   InvalidTransaction : text;
@@ -47,6 +46,11 @@ type NotifyError = variant {
   TransactionTooOld : nat64;
 };
 type NotifyTopUpResult = variant { Ok : nat; Err : NotifyError };
+type PublicKeys = record {
+  ecdsa : opt vec nat8;
+  addresses : vec record { text; text };
+  identifier : vec nat8;
+};
 type RejectionCode = variant {
   NoError;
   CanisterError;
@@ -59,31 +63,39 @@ type RejectionCode = variant {
 type Result = variant { Ok : principal; Err : record { RejectionCode; text } };
 type Result_1 = variant { Ok : Account; Err : record { RejectionCode; text } };
 type Result_10 = variant {
+  Ok : vec nat8;
+  Err : record { RejectionCode; text };
+};
+type Result_11 = variant { Ok : CanisterStatus; Err : SignerError };
+type Result_12 = variant {
   Ok : NotifyTopUpResult;
   Err : record { RejectionCode; text };
 };
-type Result_11 = variant { Ok : nat64; Err : TransferError };
-type Result_12 = variant {
-  Ok : Result_11;
+type Result_13 = variant { Ok : nat64; Err : TransferError };
+type Result_14 = variant {
+  Ok : Result_13;
   Err : record { RejectionCode; text };
 };
-type Result_2 = variant {
+type Result_2 = variant { Ok : text; Err : record { RejectionCode; text } };
+type Result_3 = variant {
   Ok : SignRequest;
   Err : record { RejectionCode; text };
 };
-type Result_3 = variant { Ok : Tokens; Err : record { RejectionCode; text } };
 type Result_4 = variant {
+  Ok : vec record { text; text };
+  Err : record { RejectionCode; text };
+};
+type Result_5 = variant { Ok : Tokens; Err : record { RejectionCode; text } };
+type Result_6 = variant {
   Ok : vec record { principal; Allowance };
   Err : record { RejectionCode; text };
 };
-type Result_5 = variant {
+type Result_7 = variant {
   Ok : SignedTransaction;
   Err : record { RejectionCode; text };
 };
-type Result_6 = variant { Ok : nat64; Err : record { RejectionCode; text } };
-type Result_7 = variant { Ok; Err : record { RejectionCode; text } };
-type Result_8 = variant { Ok : vec nat8; Err : record { RejectionCode; text } };
-type Result_9 = variant { Ok : CanisterStatus; Err : SignerError };
+type Result_8 = variant { Ok : nat64; Err : record { RejectionCode; text } };
+type Result_9 = variant { Ok; Err : record { RejectionCode; text } };
 type SetAllowance = record {
   metadata : vec record { text; text };
   limit : opt nat8;
@@ -97,7 +109,6 @@ type SignRequest = record {
 };
 type SignedTransaction = record { data : vec nat8; timestamp : nat64 };
 type SignerError = variant {
-  UserAlreadyExists;
   InvalidAddress;
   MaximumDevelopmentAccountsReached;
   PasswordIsInvalid;
@@ -111,21 +122,23 @@ type SignerError = variant {
   AccountLimitReached;
   PublicKeyError : text;
   TransactionNotPending;
+  PublicKeyAlreadyExists;
   EnvironmentMismatch;
   UnknownError;
+  InvalidEcdsaPublicKey;
   InvalidSubaccount;
+  GenerateError : text;
   InsufficientBalance;
+  MissingEcdsaPublicKey;
   PasswordHashError;
   CallerNotAuthorized;
   ManagementCanisterError : text;
   LedgerError : text;
-  InvalidData;
   InvalidPublicKey;
   SignError : text;
   PasswordNotSet;
   AccountAlreadyExists;
   CallerIsNotOwner;
-  PublicKeyMismatch;
   ChainNotFound;
   CallerIsNotWalletCanister;
   TransactionNotFound;
@@ -134,7 +147,6 @@ type SignerError = variant {
   MaximumProductionAccountsReached;
 };
 type Tokens = record { e8s : nat64 };
-type Tokens_1 = record { e8s : nat64 };
 type Transaction = record {
   r : text;
   s : text;
@@ -154,36 +166,38 @@ type Transaction = record {
 type TransactionType = variant { EIP1559; EIP2930; Legacy };
 type TransferError = variant {
   TxTooOld : record { allowed_window_nanos : nat64 };
-  BadFee : record { expected_fee : Tokens_1 };
+  BadFee : record { expected_fee : Tokens };
   TxDuplicate : record { duplicate_of : nat64 };
   TxCreatedInFuture;
-  InsufficientFunds : record { balance : Tokens_1 };
+  InsufficientFunds : record { balance : Tokens };
 };
 service : () -> {
   change_owner : (principal) -> (Result);
   create_account : (opt Environment, opt text) -> (Result_1);
+  generate_address : (text, Network) -> (Result_2);
   get_account : (text) -> (Result_1) query;
-  get_account_requests : (text, principal) -> (Result_2) query;
+  get_account_requests : (text, principal) -> (Result_3) query;
   get_accounts : () -> (vec Account) query;
-  get_addresses : (text) -> (Addresses) query;
-  get_balance : (text) -> (Result_3) query;
+  get_addresses : (text) -> (Result_4) query;
+  get_balance : (text) -> (Result_5) query;
   get_caller : () -> (principal) query;
-  get_connected_canisters : (text) -> (Result_4) query;
+  get_connected_canisters : (text) -> (Result_6) query;
   get_owner : () -> (principal) query;
-  get_signed : (text) -> (Result_5) query;
-  load_wasm : (vec nat8, text) -> (Result_6);
+  get_signed : (text) -> (Result_7) query;
+  load_wasm : (vec nat8, text) -> (Result_8);
   number_of_accounts : () -> (nat8) query;
   reintall_canister : () -> ();
-  request_allowance : (text, principal, SetAllowance) -> (Result_7);
+  request_allowance : (text, principal, SetAllowance) -> (Result_9);
+  request_ecdsa_public_key : (text) -> (Result_10);
   reset_accounts : () -> ();
   reset_wasm : () -> ();
-  sign_message : (text, vec nat8) -> (Result_8);
-  sign_request : (text, vec nat8, nat64) -> (Result_2);
-  sign_transaction : (text, vec nat8, nat64) -> (Result_5);
-  status : () -> (Result_9);
-  topup_and_notify : (text, Tokens, opt principal, opt Tokens) -> (Result_10);
-  transfer_icp : (text, Tokens, text, opt Tokens, opt nat64) -> (Result_12);
-  update_canister_controllers : (vec principal) -> (Result_7);
+  sign_message : (text, vec nat8) -> (Result_10);
+  sign_request : (text, vec nat8, nat64) -> (Result_3);
+  sign_transaction : (text, vec nat8, nat64) -> (Result_7);
+  status : () -> (Result_11);
+  topup_and_notify : (text, Tokens, opt principal, opt Tokens) -> (Result_12);
+  transfer_icp : (text, Tokens, text, opt Tokens, opt nat64) -> (Result_14);
+  update_canister_controllers : (vec principal) -> (Result_9);
   upgrade_canister : () -> ();
   version : () -> (text) query;
   wasm_version : () -> (text) query;

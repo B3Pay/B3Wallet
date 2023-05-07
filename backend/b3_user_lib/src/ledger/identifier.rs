@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use ic_cdk::export::{candid::CandidType, serde::Deserialize, Principal};
 use sha2::Digest;
 
@@ -23,10 +25,24 @@ impl TryFrom<String> for AccountIdentifier {
             if byte.len() != 2 {
                 return Err(SignerError::InvalidAddress);
             }
-            result[i] = u8::from_str_radix(std::str::from_utf8(byte).unwrap(), 16).unwrap();
+            result[i] = u8::from_str_radix(
+                std::str::from_utf8(byte).map_err(|_| SignerError::InvalidAddress)?,
+                16,
+            )
+            .map_err(|_| SignerError::InvalidAddress)?;
             i += 1;
         }
         Ok(Self(result))
+    }
+}
+
+impl Display for AccountIdentifier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut result = String::new();
+        for byte in self.0.iter() {
+            result.push_str(&format!("{:02x}", byte));
+        }
+        write!(f, "{}", result)
     }
 }
 
@@ -46,13 +62,5 @@ impl AccountIdentifier {
         result[0..4].copy_from_slice(&crc32_bytes[..]);
         result[4..32].copy_from_slice(hash.as_ref());
         Self(result)
-    }
-
-    pub fn to_str(&self) -> String {
-        let mut result = String::new();
-        for byte in self.0.iter() {
-            result.push_str(&format!("{:02x}", byte));
-        }
-        result
     }
 }

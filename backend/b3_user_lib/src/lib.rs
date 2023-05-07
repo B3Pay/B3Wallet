@@ -79,3 +79,16 @@ where
             .map(|account| callback(&account.ledger))
     })
 }
+
+pub fn with_ledger_mut<T, F>(account_id: String, callback: F) -> Result<T, SignerError>
+where
+    F: FnOnce(&mut Ledger) -> T,
+{
+    STATE.with(|states| {
+        let mut state = states.borrow_mut();
+
+        state
+            .account_mut(&account_id)
+            .map(|account| callback(&mut account.ledger))
+    })
+}

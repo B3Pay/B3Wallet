@@ -6,14 +6,15 @@ use b3_user_lib::{
     error::SignerError,
     ledger::{
         config::Environment,
-        types::{Memo, NotifyTopUpResult, Tokens, TransferResult},
+        network::Network,
+        types::{Ecdsa, Memo, NotifyTopUpResult, Tokens, TransferResult},
     },
     ledger::{identifier::AccountIdentifier, types::Addresses},
     request::SignRequest,
     signed::SignedTransaction,
     state::{State, STATE},
     types::{CanisterHashMap, CanisterStatus, UserControlArgs},
-    with_account, with_account_mut, with_ledger, with_state, with_state_mut,
+    with_account, with_account_mut, with_ledger, with_ledger_mut, with_state, with_state_mut,
 };
 
 use ic_cdk::{
@@ -161,8 +162,8 @@ pub fn change_owner(new_owner: Principal) -> CallResult<Principal> {
     Ok(new_owner)
 }
 
-// #[update(guard = "caller_is_owner")]
-// #[candid_method(update)]
+#[update(guard = "caller_is_owner")]
+#[candid_method(update)]
 pub async fn create_account(env: Option<Environment>, name: Option<String>) -> CallResult<Account> {
     let subaccount = with_state(|s| s.new_subaccount(env))?;
 
@@ -173,6 +174,35 @@ pub async fn create_account(env: Option<Environment>, name: Option<String>) -> C
     let account = with_account(id, |account| account.clone())?;
 
     Ok(account)
+}
+
+#[update(guard = "caller_is_owner")]
+#[candid_method(update)]
+pub async fn request_ecdsa_public_key(account_id: String) -> CallResult<Ecdsa> {
+    let ledger = with_ledger(account_id.clone(), |ledger| {
+        if ledger.public_keys.is_available() {
+            Err(SignerError::PublicKeyAlreadyExists)
+        } else {
+            Ok(ledger.clone())
+        }
+    })??;
+
+    let ecdsa = ledger.ecdsa_public_key().await?;
+
+    with_ledger_mut(account_id, |ledger| {
+        ledger.public_keys.set_ecdsa(ecdsa.clone())
+    })??;
+
+    Ok(ecdsa)
+}
+#[update(guard = "caller_is_owner")]
+#[candid_method(update)]
+pub async fn generate_address(account_id: String, network: Network) -> CallResult<String> {
+    let address = with_ledger_mut(account_id, |ledger| {
+        ledger.public_keys.generate_address(network)
+    })??;
+
+    Ok(address)
 }
 
 #[update(guard = "caller_is_owner")]

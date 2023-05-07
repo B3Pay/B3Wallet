@@ -20,7 +20,7 @@ pub enum SignerError {
     MaximumDevelopmentAccountsReached,
     MaximumProductionAccountsReached,
     InvalidEcdsaPublicKey,
-    PublicKeyMismatch,
+    PublicKeyAlreadyExists,
     EnvironmentMismatch,
     AccountNotExists,
     AccountAlreadyExists,
@@ -146,9 +146,9 @@ impl From<SignerError> for (RejectionCode, String) {
             SignerError::PasswordNotSet => {
                 (RejectionCode::CanisterError, "Password not set".to_string())
             }
-            SignerError::PublicKeyMismatch => (
+            SignerError::PublicKeyAlreadyExists => (
                 RejectionCode::CanisterError,
-                "Public key mismatch".to_string(),
+                "Public key already exists".to_string(),
             ),
             SignerError::EnvironmentMismatch => (
                 RejectionCode::CanisterError,

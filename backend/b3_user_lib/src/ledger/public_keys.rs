@@ -1,23 +1,14 @@
 use easy_hasher::easy_hasher;
+use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use ripemd::Ripemd160;
-use sha2::{Digest, Sha256};
+use sha2::Digest;
 use std::collections::HashMap;
 
-fn sha256(data: &[u8]) -> Vec<u8> {
-    let mut hasher = Sha256::new();
-    hasher.update(data);
-    hasher.finalize().to_vec()
-}
-
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
-
-use crate::{
-    error::SignerError,
-    types::{BitcoinNetwork, Network},
-};
+use crate::{error::SignerError, utils::sha256};
 
 use super::{
     identifier::AccountIdentifier,
+    network::{BitcoinNetwork, Network},
     subaccount::Subaccount,
     types::{Addresses, Ecdsa},
 };
@@ -43,21 +34,32 @@ impl PublicKeys {
     pub fn new(subaccount: &Subaccount) -> Self {
         let identifier = subaccount.get_account_identifier();
 
+        let mut addresses = HashMap::new();
+
+        addresses.insert(Network::ICP.to_string(), identifier.to_string());
+
         PublicKeys {
             ecdsa: None,
             identifier,
-            addresses: HashMap::new(),
+            addresses,
         }
     }
 
-    pub fn set_ecdsa(&mut self, ecdsa: Vec<u8>) -> Result<Vec<u8>, SignerError> {
+    pub fn is_available(&self) -> bool {
+        self.ecdsa
+            .clone()
+            .map(|ecdsa| ecdsa.len() == 33)
+            .unwrap_or(false)
+    }
+
+    pub fn set_ecdsa(&mut self, ecdsa: Vec<u8>) -> Result<(), SignerError> {
         if ecdsa.len() != 33 {
             return Err(SignerError::InvalidEcdsaPublicKey);
         }
 
-        self.ecdsa = Some(ecdsa.clone());
+        self.ecdsa = Some(ecdsa);
 
-        Ok(ecdsa)
+        Ok(())
     }
 
     pub fn get_ecdsa(&self) -> Result<Vec<u8>, SignerError> {
@@ -75,7 +77,25 @@ impl PublicKeys {
         self.addresses.clone()
     }
 
-    pub fn generate_eth_address(&mut self) -> Result<String, SignerError> {
+    pub fn generate_address(&mut self, network: Network) -> Result<String, SignerError> {
+        match network {
+            Network::EVM(chain) => self.generate_eth_address(chain),
+            Network::SNS(token) => self.generate_sns_address(token),
+            Network::BTC(btc_network) => self.generate_btc_address(btc_network),
+            Network::ICP => Ok(self.identifier.to_string()),
+        }
+    }
+
+    pub fn generate_sns_address(&mut self, token: String) -> Result<String, SignerError> {
+        let address = self.identifier.to_string();
+
+        self.addresses
+            .insert(Network::SNS(token).to_string(), address.clone());
+
+        Ok(address)
+    }
+
+    pub fn generate_eth_address(&mut self, chain: u64) -> Result<String, SignerError> {
         let ecdsa = self.get_ecdsa()?;
 
         let pub_key_arr: [u8; 33] = ecdsa[..].try_into().unwrap();
@@ -88,7 +108,7 @@ impl PublicKeys {
         let address: String = "0x".to_owned() + &keccak256_hex[24..];
 
         self.addresses
-            .insert(Network::Ethereum.to_string(), address.clone());
+            .insert(Network::EVM(chain).to_string(), address.clone());
 
         Ok(address)
     }

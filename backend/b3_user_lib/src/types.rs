@@ -14,42 +14,6 @@ pub struct UserControlArgs {
     pub owner: Principal,
 }
 
-#[derive(CandidType, Clone, Deserialize, Debug)]
-pub enum Network {
-    Bitcoin(BitcoinNetwork),
-    Ethereum,
-}
-
-impl std::fmt::Display for Network {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            Self::Bitcoin(network) => match network {
-                BitcoinNetwork::Mainnet => write!(f, "bitcoin"),
-                BitcoinNetwork::Testnet => write!(f, "bitcoin_testnet"),
-                BitcoinNetwork::Regtest => write!(f, "bitcoin_regtest"),
-            },
-            Self::Ethereum => write!(f, "ethereum"),
-        }
-    }
-}
-
-#[derive(CandidType, Clone, Deserialize, Debug)]
-pub enum BitcoinNetwork {
-    Mainnet,
-    Testnet,
-    Regtest,
-}
-
-impl std::fmt::Display for BitcoinNetwork {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            Self::Mainnet => write!(f, "mainnet"),
-            Self::Testnet => write!(f, "testnet"),
-            Self::Regtest => write!(f, "regtest"),
-        }
-    }
-}
-
 pub type CanisterHashMap = HashMap<CanisterId, Allowance>;
 pub type RequestHashMap = HashMap<CanisterId, SignRequest>;
 

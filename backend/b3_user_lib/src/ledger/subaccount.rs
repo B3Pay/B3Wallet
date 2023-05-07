@@ -1,9 +1,9 @@
+use super::{config::Config, identifier::AccountIdentifier, types::EcdsaKeyId};
 use crate::ledger::config::Environment;
 use candid::Principal;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use std::fmt::Display;
 use std::mem::size_of;
-
-use super::{config::Config, identifier::AccountIdentifier, types::EcdsaKeyId};
 
 #[derive(CandidType, Deserialize, Clone, Debug)]
 pub struct Subaccount(pub [u8; 32]);
@@ -23,6 +23,16 @@ impl From<&Principal> for Subaccount {
         subaccount[1..1 + principal_id.len()].copy_from_slice(principal_id);
 
         Subaccount(subaccount)
+    }
+}
+
+impl Display for Subaccount {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut result = String::new();
+        for byte in self.0.iter() {
+            result.push_str(&format!("{:02x}", byte));
+        }
+        write!(f, "{}", result)
     }
 }
 

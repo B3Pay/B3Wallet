@@ -48,11 +48,6 @@ impl Account {
             signed: SignedTransaction::default(),
         }
     }
-    pub async fn request_ecdsa_public_key(&mut self) -> Result<Vec<u8>, SignerError> {
-        let ecdsa = self.ledger.ecdsa_public_key().await?;
-
-        self.ledger.public_keys.set_ecdsa(ecdsa)
-    }
 
     pub async fn sign_transaction(
         &self,

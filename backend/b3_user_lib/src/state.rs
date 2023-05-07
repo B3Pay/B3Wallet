@@ -1,4 +1,3 @@
-use ic_cdk::api::call::CallResult;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use std::cell::RefCell;
 use std::collections::BTreeMap;
@@ -31,7 +30,7 @@ impl State {
         &mut self,
         mut account: Account,
         opt_name: Option<String>,
-    ) -> CallResult<String> {
+    ) -> Result<String, SignerError> {
         let default_name = match account.env() {
             Environment::Production => {
                 if self.prod_counter == 255 {
@@ -66,7 +65,7 @@ impl State {
         Ok(id)
     }
 
-    pub fn new_subaccount(&self, opt_env: Option<Environment>) -> CallResult<Subaccount> {
+    pub fn new_subaccount(&self, opt_env: Option<Environment>) -> Result<Subaccount, SignerError> {
         if self.accounts.len() == 512 {
             Err(SignerError::MaximumAccountsReached)?;
         }
