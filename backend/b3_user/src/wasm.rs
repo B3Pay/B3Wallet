@@ -1,12 +1,9 @@
 use std::cell::RefCell;
 
 use crate::guards::caller_is_owner;
-use candid::candid_method;
 use ic_cdk::{
-    api::{
-        call::CallResult,
-        management_canister::main::{install_code, CanisterInstallMode, InstallCodeArgument},
-    },
+    api::management_canister::main::{install_code, CanisterInstallMode, InstallCodeArgument},
+    export::candid::{candid_method, CandidType},
     query, update,
 };
 
@@ -14,6 +11,7 @@ thread_local! {
     pub static WASM: RefCell<WasmData> = RefCell::new(WasmData::default());
 }
 
+#[derive(CandidType, Clone)]
 pub struct WasmData {
     pub wasm: Vec<u8>,
     pub version: String,
@@ -81,25 +79,25 @@ pub async fn reintall_canister() {
 
 #[candid_method(update)]
 #[update(guard = "caller_is_owner")]
-fn reset_wasm() {
+fn reset_wasm() -> WasmData {
     WASM.with(|s| s.borrow_mut().reset());
+
+    WASM.with(|s| s.borrow().clone())
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_owner")]
-fn load_wasm(blob: Vec<u8>, version: String) -> CallResult<u64> {
+fn load_wasm(blob: Vec<u8>, version: String) -> u64 {
     let mut wasm = WASM.with(|s| s.borrow().wasm.clone());
 
     wasm = wasm.iter().copied().chain(blob.iter().copied()).collect();
 
-    let total = WASM.with(|s| {
+    WASM.with(|s| {
         let state = &mut *s.borrow_mut();
 
         state.wasm = wasm;
         state.version = version;
 
         state.wasm.len()
-    });
-
-    Ok(total as u64)
+    }) as u64
 }

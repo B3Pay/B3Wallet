@@ -1,5 +1,6 @@
 import { Account } from "declarations/b3_user/b3_user.did"
 import { BigNumber, ethers, providers } from "ethers"
+import { isAddress } from "ethers/lib/utils"
 import { useCallback, useEffect, useState } from "react"
 import { B3User } from "service/actor"
 
@@ -8,20 +9,20 @@ const provider = new providers.JsonRpcProvider(
 )
 
 interface EthAccountProps extends Account {
-  actor?: B3User
+  actor: B3User
 }
 
 const EthAccount: React.FC<EthAccountProps> = ({
   actor,
-  name,
-  keys,
   id,
-  ecdsa
+  name,
+  ledger: { public_keys }
 }) => {
   const [to, setTo] = useState<string>("")
   const [amount, setAmount] = useState<string>("")
   const [waiting, setWaiting] = useState("Send")
-  const [balance, setBalance] = useState<BigNumber>(BigNumber.from(0))
+  const [ethBalance, setEthBalance] = useState<BigNumber>(BigNumber.from(0))
+  const [icpBalance, setIcpBalance] = useState<BigNumber>(BigNumber.from(0))
 
   const handleSignTx = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
@@ -31,8 +32,17 @@ const EthAccount: React.FC<EthAccountProps> = ({
     if (!actor) {
       return
     }
+    const eth_address = public_keys.addresses[0][0]
 
-    const nonce = await provider.getTransactionCount(keys.addresses.eth)
+    if (isAddress(eth_address) === false) {
+      setWaiting("Error")
+      setTimeout(() => {
+        setWaiting("Send")
+      }, 2000)
+      return
+    }
+
+    const nonce = await provider.getTransactionCount(eth_address)
     const gasPrice = await provider.getGasPrice().then(s => s.toHexString())
     const value = ethers.utils.parseEther(amount).toHexString()
     const data = "0x00"
@@ -58,45 +68,13 @@ const EthAccount: React.FC<EthAccountProps> = ({
 
       console.log({ title: "Signing transaction...", variant: "subtle" })
 
-      const res = (await actor.sign_transaction(id, [...serializeTx], 97n)) as
-        | { Err: string }
-        | { Ok: { data: string } }
-
-      if ("Err" in res) {
-        const message = res.Err ?? ""
-        console.log({
-          title: "Error",
-          description: message,
-          status: "error",
-          variant: "subtle"
-        })
-        setWaiting("Error")
-
-        setTimeout(() => {
-          setWaiting("Send")
-        }, 2000)
-
-        return
-      }
-      const signedTx = Buffer.from(res.Ok.data, "hex")
-
-      console.log({ title: "Sending transaction...", variant: "subtle" })
-
-      setWaiting("Sending...")
-
-      const { hash } = await provider.sendTransaction(
-        "0x" + signedTx.toString("hex")
+      const res = await actor.request_sign_transaction(
+        id,
+        [...serializeTx],
+        97n
       )
 
-      await provider.waitForTransaction(hash)
-
-      console.log({ title: "Transaction sent", variant: "subtle" })
-
-      setWaiting("Sent!")
-
-      setTimeout(() => {
-        setWaiting("Send")
-      }, 2000)
+      console.log(res)
     } catch (error) {
       console.log(error)
 
@@ -107,14 +85,65 @@ const EthAccount: React.FC<EthAccountProps> = ({
       }, 2000)
     }
   }
-  const getBalance = useCallback(async () => {
-    const balance = await provider.getBalance(keys.addresses.eth)
-    setBalance(balance)
-  }, [keys.addresses])
+  const getEthBalance = useCallback(async () => {
+    const eth_address = public_keys.addresses[0][0]
+
+    if (isAddress(eth_address) === false) {
+      return
+    }
+
+    const balance = await provider.getBalance(eth_address)
+    setEthBalance(balance)
+  }, [public_keys.addresses])
+
+  const getIcpBalance = useCallback(async () => {
+    if (!actor) {
+      return
+    }
+
+    const balance = await actor.request_balance(id)
+
+    const balanceBigNumber = BigNumber.from(balance.e8s)
+
+    setIcpBalance(balanceBigNumber)
+  }, [actor, id])
 
   useEffect(() => {
-    getBalance()
-  }, [getBalance])
+    getEthBalance()
+    getIcpBalance()
+  }, [getEthBalance, getIcpBalance])
+
+  const requestPublicKey = async () => {
+    if (!actor) {
+      return
+    }
+
+    await actor.request_public_key(id)
+  }
+
+  const removeAccount = async () => {
+    await actor.remove_account(id)
+  }
+
+  const handleIcpTransfer = async () => {
+    if (!actor) {
+      return
+    }
+
+    const tokenAmount = {
+      e8s: BigInt(amount)
+    }
+
+    setWaiting("Sending...")
+
+    const res = await actor.transfer_icp(id, tokenAmount, to, [], [])
+
+    console.log(res)
+
+    setWaiting("Send")
+
+    getIcpBalance()
+  }
 
   return (
     <div
@@ -124,31 +153,81 @@ const EthAccount: React.FC<EthAccountProps> = ({
         margin: "10px"
       }}
     >
-      <label>Name: &nbsp;</label>
-      {name}
-      {Object.entries(ecdsa).map(([key, value]) => (
-        <div key={key}>
-          <label>{key}: &nbsp;</label>
-          {JSON.stringify(value)}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          paddingBottom: "10px",
+          borderBottom: "1px dashed black"
+        }}
+      >
+        <label>{name}</label>
+        <button
+          onClick={removeAccount}
+          style={{
+            backgroundColor: "red",
+            color: "white",
+            border: "none",
+            borderRadius: "5px",
+            padding: "5px",
+            width: "30px",
+            height: "30px",
+            cursor: "pointer"
+          }}
+        >
+          X
+        </button>
+      </div>
+      <br />
+      {public_keys.ecdsa.length ? (
+        <div>
+          <label>ECDSA Public Keys: &nbsp;</label>
+          {JSON.stringify(public_keys.ecdsa)}
         </div>
-      ))}
+      ) : (
+        <div>
+          <label>Request Public Keys: &nbsp;</label>
+          <button onClick={requestPublicKey}>Request</button>
+        </div>
+      )}
+      <br />
       <label>Addresses: &nbsp;</label>
+      {/* generate address using select input */}
+      <select>
+        {public_keys.addresses.map(([key, value]) => (
+          <option key={key} value={value}>
+            {key}
+          </option>
+        ))}
+      </select>
+      <button
+        onClick={() => {
+          // generate address
+          actor.generate_address(id, {
+            EVM: 0n
+          })
+        }}
+      >
+        Generate Eth Address
+      </button>
+
       <br />
-      <label>BTC: &nbsp;</label>
-      {Object.entries(keys.addresses.btc).map(([key, value]) => (
-        <div key={key}>
-          <label>{key}: &nbsp;</label>
-          {value}
-        </div>
-      ))}
-      <label>ETH: &nbsp;</label>
-      {keys.addresses.eth}
-      <br />
+      <ul>
+        {public_keys.addresses.map(([key, value]) => (
+          <li key={key}>
+            <label>{key}: &nbsp;</label>
+            {value}
+          </li>
+        ))}
+      </ul>
       <label>Id: &nbsp;</label>
       {id}
       <br />
-      <label>Balance: &nbsp;</label>
-      {balance.toString()}
+      <label>Balance Eth: &nbsp;</label>
+      {ethBalance.toString()}
+      <br />
+      <label>Balance ICP: &nbsp;</label>
+      {icpBalance.toString()}
       <br />
       <label>Send ETH: &nbsp;</label>
       <div
@@ -174,6 +253,31 @@ const EthAccount: React.FC<EthAccountProps> = ({
           onChange={e => setAmount(e.target.value)}
         />
         <button onClick={handleSignTx}>{waiting}</button>
+      </div>
+      <label>Send ICP: &nbsp;</label>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center"
+        }}
+      >
+        <input
+          id="to"
+          alt="To"
+          type="text"
+          placeholder="To"
+          value={to}
+          onChange={e => setTo(e.target.value)}
+        />
+        <input
+          id="amount"
+          alt="Amount"
+          placeholder="Amount"
+          type="text"
+          value={amount}
+          onChange={e => setAmount(e.target.value)}
+        />
+        <button onClick={handleIcpTransfer}>{waiting}</button>
       </div>
     </div>
   )

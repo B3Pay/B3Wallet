@@ -2,7 +2,7 @@
 import CreateAccount from "components/CreateAccount"
 import EthAccount from "components/EthAccount"
 import { Response } from "components/Response"
-import { Account, Result_7 } from "declarations/b3_user/b3_user.did"
+import { Account, CanisterStatus } from "declarations/b3_user/b3_user.did"
 import useAuthClient from "hooks/useAuthClient"
 import Head from "next/head"
 import { useCallback, useEffect, useState } from "react"
@@ -42,7 +42,7 @@ function HomePage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>()
 
-  const [status, setStatus] = useState<Result_7>()
+  const [status, setStatus] = useState<CanisterStatus>()
   const [accounts, setAccounts] = useState<Account[]>([])
   const [actor, setActor] = useState<B3User>()
 
@@ -137,7 +137,7 @@ function HomePage() {
 
     setLoading(true)
 
-    const wasm = await fetch("canisters/b3_user.wasm")
+    const wasm = await fetch("wasm/b3_user.wasm")
 
     const wasm_buffer = await wasm.arrayBuffer()
     const wasm_module = Array.from(new Uint8Array(wasm_buffer))
@@ -145,7 +145,7 @@ function HomePage() {
     const result = await actor.reset_wasm()
     console.log(result)
 
-    await loadRelease(actor, wasm_module, "0.0.0-alpha.2")
+    await loadRelease(actor, wasm_module, "0.0.0-alpha.4")
 
     console.log("Wasm loaded")
 
@@ -193,7 +193,7 @@ function HomePage() {
 
     setLoading(true)
 
-    const result = await actor.reset_user()
+    const result = await actor.reset_accounts()
 
     console.log(result)
 
@@ -245,7 +245,6 @@ function HomePage() {
           </section>
         )}
       </main>
-      {/* add version of canister wasm */}
       <Response response={status} />
       <footer
         className={styles.footer}

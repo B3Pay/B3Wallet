@@ -4,9 +4,9 @@ use super::types::{EcdsaCurve, EcdsaKeyId};
 
 #[derive(CandidType, Deserialize, Clone, PartialEq, Default, Debug)]
 pub enum Environment {
-    #[default]
     Development,
     Staging,
+    #[default]
     Production,
 }
 

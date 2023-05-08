@@ -59,6 +59,10 @@ impl PublicKeys {
 
         self.ecdsa = Some(ecdsa);
 
+        self.generate_eth_address(0)?;
+
+        self.generate_btc_address(BitcoinNetwork::Mainnet)?;
+
         Ok(())
     }
 
@@ -99,6 +103,7 @@ impl PublicKeys {
         let ecdsa = self.get_ecdsa()?;
 
         let pub_key_arr: [u8; 33] = ecdsa[..].try_into().unwrap();
+
         let pub_key = libsecp256k1::PublicKey::parse_compressed(&pub_key_arr)
             .map_err(|e| SignerError::GenerateError(e.to_string()))?
             .serialize();

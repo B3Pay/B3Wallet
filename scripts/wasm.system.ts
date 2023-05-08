@@ -1,5 +1,5 @@
-#!/usr/bin/env node
 import { B3System } from "../src/service/actor"
+import { systemLocalActor } from "./actor"
 import { loadWasm, readVersion } from "./utils"
 
 const resetRelease = (actor: B3System) => actor.reset_release()
@@ -42,8 +42,8 @@ export const load = async (actor: B3System) => {
   await resetRelease(actor)
   await loadRelease({ actor, wasmModule, version })
 }
-// ;(async () => {
-//   const actor = await systemLocalActor()
+;(async () => {
+  const actor = await systemLocalActor()
 
-//   await load(actor)
-// })()
+  await load(actor)
+})()

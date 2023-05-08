@@ -103,8 +103,8 @@ impl Ledger {
 
     pub async fn transfer(
         &self,
-        amount: Tokens,
         to: AccountIdentifier,
+        amount: Tokens,
         fee: Option<Tokens>,
         memo: Option<Memo>,
     ) -> Result<TransferResult, SignerError> {
@@ -126,8 +126,8 @@ impl Ledger {
 
     pub async fn topup_and_notify_top_up(
         &self,
-        amount: Tokens,
         canister_id: CanisterId,
+        amount: Tokens,
         fee: Option<Tokens>,
     ) -> Result<NotifyTopUpResult, SignerError> {
         let canister_subaccount = Subaccount::from(&canister_id);
@@ -135,9 +135,8 @@ impl Ledger {
         let to = AccountIdentifier::new(&MAINNET_CYCLES_MINTING_CANISTER_ID, &canister_subaccount);
 
         let block_index = self
-            .transfer(amount, to, fee, Some(CANISTER_TOP_UP_MEMO))
-            .await?
-            .unwrap();
+            .transfer(to, amount, fee, Some(CANISTER_TOP_UP_MEMO))
+            .await??;
 
         let args = NotifyTopupArgs {
             block_index,

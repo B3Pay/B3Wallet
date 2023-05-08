@@ -1,161 +1,188 @@
-use crate::guards::caller_is_owner;
+use crate::guards::{caller_is_owner, ic_trap};
 use b3_user_lib::{
     account::Account,
     error::SignerError,
-    ledger::identifier::AccountIdentifier,
     ledger::{
         config::Environment,
         network::Network,
-        types::{Ecdsa, Memo, NotifyTopUpResult, Tokens, TransferResult},
+        types::{BlockIndex, Ecdsa, Memo, Tokens},
     },
+    ledger::{identifier::AccountIdentifier, types::NotifyTopUpResult},
     signed::SignedTransaction,
+    state::State,
     types::{CanisterId, SetAllowance},
     with_account, with_account_mut, with_ledger, with_ledger_mut, with_state, with_state_mut,
 };
 
-use ic_cdk::{api::call::CallResult, export::candid::candid_method, update};
+use ic_cdk::{export::candid::candid_method, update};
 
 #[candid_method(update)]
 #[update(guard = "caller_is_owner")]
-pub fn account_request_allowance(
-    account_id: String,
-    canister: CanisterId,
-    allowance: SetAllowance,
-) -> CallResult<()> {
-    with_account_mut(account_id, |account| {
-        account.insert_canister(canister, allowance)
-    })?;
-
-    Ok(())
-}
-
-#[candid_method(update)]
-#[update(guard = "caller_is_owner")]
-pub async fn create_account(env: Option<Environment>, name: Option<String>) -> CallResult<Account> {
+pub async fn create_account(env: Option<Environment>, name: Option<String>) -> Account {
     let subaccount = with_state(|s| s.new_subaccount(env));
 
     let new_account = Account::new(subaccount);
 
     let id = with_state_mut(|s| s.insert_account(new_account, name));
 
-    let account = with_account(id, |account| account.clone())?;
-
-    Ok(account)
+    with_account(id, |account| account.clone()).unwrap_or_else(|err| ic_trap(err))
 }
 #[candid_method(update)]
 #[update(guard = "caller_is_owner")]
-pub fn rename_account(account_id: String, name: String) -> CallResult<String> {
-    let new_name = with_account_mut(account_id, |s| s.update_name(name))?;
-
-    Ok(new_name)
+pub fn rename_account(account_id: String, name: String) -> String {
+    with_account_mut(account_id, |s| s.update_name(name)).unwrap_or_else(|err| ic_trap(err))
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_owner")]
-pub async fn account_request_public_key(account_id: String) -> CallResult<Ecdsa> {
-    let ledger = with_ledger(account_id.clone(), |ledger| {
-        if ledger.public_keys.is_available() {
-            Err(SignerError::PublicKeyAlreadyExists)
-        } else {
-            Ok(ledger.clone())
-        }
-    })??;
+pub fn remove_account(account_id: String) {
+    with_state_mut(|s| s.remove_account(&account_id)).unwrap_or_else(|err| ic_trap(err))
+}
 
-    let ecdsa = ledger.ecdsa_public_key().await?;
+#[candid_method(update)]
+#[update(guard = "caller_is_owner")]
+pub async fn request_public_key(account_id: String) -> Ecdsa {
+    let ledger =
+        with_ledger(account_id.clone(), |ledger| ledger.clone()).unwrap_or_else(|err| ic_trap(err));
 
-    with_ledger_mut(account_id, |ledger| {
+    if ledger.public_keys.is_available() {
+        ic_trap(SignerError::PublicKeyAlreadyExists)
+    }
+
+    let ecdsa = ledger
+        .ecdsa_public_key()
+        .await
+        .unwrap_or_else(|err| ic_trap(err));
+
+    let result = with_ledger_mut(account_id, |ledger| {
         ledger.public_keys.set_ecdsa(ecdsa.clone())
-    })??;
+    })
+    .unwrap_or_else(|err| ic_trap(err));
 
-    Ok(ecdsa)
+    match result {
+        Ok(_) => ecdsa,
+        Err(err) => ic_trap(err),
+    }
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_owner")]
-pub async fn account_transfer_icp(
+pub async fn send_icp(
     account_id: String,
-    amount: Tokens,
     to: String,
+    amount: Tokens,
     fee: Option<Tokens>,
     memo: Option<Memo>,
-) -> CallResult<TransferResult> {
-    let to = AccountIdentifier::try_from(to)?;
+) -> BlockIndex {
+    let to = AccountIdentifier::try_from(to).unwrap_or_else(|err| ic_trap(err));
 
-    let account = with_account(account_id, |account| account.clone())?;
+    let account =
+        with_account(account_id, |account| account.clone()).unwrap_or_else(|err| ic_trap(err));
 
-    let result = account.ledger.transfer(amount, to, fee, memo).await?;
+    let result = account
+        .ledger
+        .transfer(to, amount, fee, memo)
+        .await
+        .unwrap_or_else(|err| ic_trap(err));
 
-    Ok(result)
+    match result {
+        Ok(result) => result,
+        Err(err) => ic_trap(err),
+    }
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_owner")]
-pub async fn account_topup_and_notify(
+pub async fn top_up_and_notify(
     account_id: String,
     amount: Tokens,
     canister_id: Option<CanisterId>,
     fee: Option<Tokens>,
-) -> CallResult<NotifyTopUpResult> {
-    let ledger = with_ledger(account_id, |ledger| ledger.clone())?;
+) -> u128 {
+    let ledger =
+        with_ledger(account_id, |ledger| ledger.clone()).unwrap_or_else(|err| ic_trap(err));
 
     let canister_id = canister_id.unwrap_or(ic_cdk::id());
 
     let result = ledger
-        .topup_and_notify_top_up(amount, canister_id, fee)
-        .await?;
+        .topup_and_notify_top_up(canister_id, amount, fee)
+        .await
+        .unwrap_or_else(|err| ic_trap(err));
 
-    Ok(result)
+    match result {
+        NotifyTopUpResult::Ok(result) => result,
+        NotifyTopUpResult::Err(err) => ic_trap(err),
+    }
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_owner")]
-pub async fn generate_account_address(account_id: String, network: Network) -> CallResult<String> {
-    let address = with_ledger_mut(account_id, |ledger| {
+pub async fn generate_address(account_id: String, network: Network) -> String {
+    let result = with_ledger_mut(account_id, |ledger| {
         ledger.public_keys.generate_address(network)
-    })??;
+    })
+    .unwrap_or_else(|err| ic_trap(err));
 
-    Ok(address)
+    match result {
+        Ok(result) => result,
+        Err(err) => ic_trap(err),
+    }
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_owner")]
-pub async fn request_account_sign_message(
-    account_id: String,
-    message_hash: Vec<u8>,
-) -> CallResult<Vec<u8>> {
-    let ledger = with_ledger(account_id, |ledger| ledger.clone())?;
+pub async fn request_sign_message(account_id: String, message_hash: Vec<u8>) -> Vec<u8> {
+    let ledger =
+        with_ledger(account_id, |ledger| ledger.clone()).unwrap_or_else(|err| ic_trap(err));
 
-    let signature = ledger.sign_with_ecdsa(message_hash).await?;
-
-    Ok(signature)
+    ledger
+        .sign_with_ecdsa(message_hash)
+        .await
+        .unwrap_or_else(|err| ic_trap(err))
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_owner")]
-pub async fn request_account_sign_transaction(
+pub async fn request_sign_transaction(
     account_id: String,
     hex_raw_tx: Vec<u8>,
     chain_id: u64,
-) -> CallResult<SignedTransaction> {
-    let account = with_account(account_id, |account| account.clone())?;
+) -> SignedTransaction {
+    let account =
+        with_account(account_id, |account| account.clone()).unwrap_or_else(|err| ic_trap(err));
 
-    let signed = account.sign_transaction(hex_raw_tx, chain_id).await?;
-
-    Ok(signed)
+    account
+        .sign_transaction(hex_raw_tx, chain_id)
+        .await
+        .unwrap_or_else(|err| ic_trap(err))
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_owner")]
-pub async fn request_account_balance(account_id: String) -> CallResult<Tokens> {
-    let account = with_account(account_id, |account| account.clone())?;
+pub async fn request_balance(account_id: String) -> Tokens {
+    let account =
+        with_account(account_id, |account| account.clone()).unwrap_or_else(|err| ic_trap(err));
 
-    let balance = account.ledger.account_balance().await?;
-
-    Ok(balance)
+    account
+        .ledger
+        .account_balance()
+        .await
+        .unwrap_or_else(|err| ic_trap(err))
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_owner")]
-pub async fn reset_accounts() {
+pub async fn reset_accounts() -> State {
     with_state_mut(|s| s.reset());
+
+    with_state(|s| s.clone())
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_owner")]
+pub fn request_allowance(account_id: String, canister: CanisterId, allowance: SetAllowance) -> () {
+    with_account_mut(account_id, |account| {
+        account.insert_canister(canister, allowance)
+    })
+    .unwrap_or_else(|err| ic_trap(err))
 }

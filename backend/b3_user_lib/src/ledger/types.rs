@@ -1,10 +1,12 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
 use ic_cdk::export::{
     candid::CandidType,
     serde::{Deserialize, Serialize},
     Principal,
 };
+
+use crate::error::SignerError;
 
 use super::{identifier::AccountIdentifier, subaccount::Subaccount};
 
@@ -28,6 +30,12 @@ pub struct AccountBalanceArgs {
 #[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct Tokens {
     pub e8s: u64,
+}
+
+impl Display for Tokens {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.e8s)
+    }
 }
 
 impl Tokens {
@@ -68,36 +76,12 @@ pub struct TransferArgs {
     pub created_at_time: Option<Timestamp>,
 }
 
-#[derive(CandidType, Serialize, Deserialize, Debug)]
-pub enum TransferError {
-    BadFee { expected_fee: Tokens },
-    InsufficientFunds { balance: Tokens },
-    TxTooOld { allowed_window_nanos: u64 },
-    TxCreatedInFuture,
-    TxDuplicate { duplicate_of: BlockIndex },
-}
-
-pub type TransferResult = Result<BlockIndex, TransferError>;
-
-#[derive(CandidType, Deserialize)]
-pub enum NotifyError {
-    Refunded {
-        block_index: Option<u64>,
-        reason: String,
-    },
-    InvalidTransaction(String),
-    Other {
-        error_message: String,
-        error_code: u64,
-    },
-    Processing,
-    TransactionTooOld(u64),
-}
+pub type TransferResult = Result<BlockIndex, SignerError>;
 
 #[derive(CandidType, Deserialize)]
 pub enum NotifyTopUpResult {
     Ok(u128),
-    Err(NotifyError),
+    Err(SignerError),
 }
 
 #[derive(CandidType, Deserialize)]

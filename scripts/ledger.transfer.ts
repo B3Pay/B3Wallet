@@ -12,7 +12,7 @@ const transfer = async (account: string) => {
   })
 
   return ledger.transfer({
-    amount: 5_500_010_000n,
+    amount: 5_500_000_000n,
     to: {
       owner: Principal.fromText(account ?? "qaa6y-5yaaa-aaaaa-aaafa-cai"),
       subaccount: []

@@ -1,7 +1,7 @@
-import { Result, Result_7 } from "declarations/b3_user/b3_user.did"
+import { CanisterStatus } from "declarations/b3_user/b3_user.did"
 
 interface ResponseProps {
-  response: Result | Result_7 | undefined
+  response?: CanisterStatus
   loading?: string
 }
 
@@ -33,15 +33,22 @@ const child = (value: any) =>
   ))
 
 export const Response: React.FC<ResponseProps> = ({ response, loading }) => {
-  return (
+  return loading ? (
+    <section>
+      <label>Loading...</label>
+    </section>
+  ) : response ? (
     <section>
       <label>Response: &nbsp;</label>
       {loading}
       <ul>
         {response &&
-          "Ok" in response &&
-          Object.entries(response.Ok).map(([key, value]) => parent(key, value))}
+          Object.entries(response).map(([key, value]) => parent(key, value))}
       </ul>
+    </section>
+  ) : (
+    <section>
+      <label>No response</label>
     </section>
   )
 }

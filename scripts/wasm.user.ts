@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import { B3User } from "../src/service/actor"
 import { userLocalActor } from "./actor"
 import { loadWasm, readVersion } from "./utils"

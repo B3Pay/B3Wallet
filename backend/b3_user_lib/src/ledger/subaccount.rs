@@ -78,10 +78,16 @@ impl Subaccount {
     pub fn get_id(&self) -> String {
         let index = self.get_index();
 
-        let env_str = match self.get_env() {
-            Environment::Production => "account",
-            Environment::Staging => "staging_account",
-            Environment::Development => "development_account",
+        let first_byte = self.0[0];
+
+        if first_byte == 0 {
+            return "default".to_string();
+        }
+
+        let env_str = match first_byte {
+            16 => "staging_account",
+            8 => "development_account",
+            _ => "account",
         };
 
         [env_str, &index.to_string()].join("_")
@@ -113,6 +119,14 @@ impl Subaccount {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_initial_subaccount() {
+        let subaccount = Subaccount([0; 32]);
+        assert_eq!(subaccount.get_env(), Environment::Production);
+        assert_eq!(subaccount.get_index(), 0);
+        assert_eq!(subaccount.get_id(), "default");
+    }
 
     #[test]
     fn test_subaccount() {

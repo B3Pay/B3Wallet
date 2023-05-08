@@ -35,9 +35,7 @@
     "**/*.tsx",
     "**/*.wasm",
     ".next/types/**/*.ts",
-    "scripts/actor.ts",
-    "scripts/system.install.ts",
-    "scripts/utils.ts"
+    "scripts/*.ts"
   ],
   "exclude": ["node_modules", "out"]
 }

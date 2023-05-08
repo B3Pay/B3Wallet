@@ -6,21 +6,19 @@ use b3_user_lib::{
     types::{CanisterAllowances, CanisterId},
     with_account, with_ledger, with_state,
 };
-use ic_cdk::{
-    api::call::CallResult,
-    export::candid::{candid_method, export_service},
-    query,
-};
+use ic_cdk::{export::candid::candid_method, query};
+
+use crate::guards::ic_trap;
 
 #[query]
 #[candid_method(query)]
-pub fn get_account(account_id: String) -> CallResult<Account> {
-    with_account(account_id, |account| Ok(account.clone()))?
+pub fn get_account(account_id: String) -> Account {
+    with_account(account_id, |account| account.clone()).unwrap_or_else(|err| ic_trap(err))
 }
 
 #[query]
 #[candid_method(query)]
-pub fn get_number_of_accounts() -> u8 {
+pub fn get_account_count() -> usize {
     with_state(|s| s.accounts_len())
 }
 
@@ -32,36 +30,30 @@ pub fn get_accounts() -> Vec<Account> {
 
 #[query]
 #[candid_method(query)]
-pub fn account_addresses(account_id: String) -> CallResult<Addresses> {
-    with_ledger(account_id, |ledger| Ok(ledger.public_keys.get_addresses()))?
+pub fn get_addresses(account_id: String) -> Addresses {
+    with_ledger(account_id, |ledger| ledger.public_keys.get_addresses())
+        .unwrap_or_else(|err| ic_trap(err))
 }
 
 #[query]
 #[candid_method(query)]
-pub fn account_signed_transaction(account_id: String) -> CallResult<SignedTransaction> {
-    let signed = with_account(account_id, |account| account.signed.clone())?;
-
-    Ok(signed)
+pub fn get_signed_transaction(account_id: String) -> SignedTransaction {
+    with_account(account_id, |account| account.signed.clone()).unwrap_or_else(|err| ic_trap(err))
 }
 
 #[query]
 #[candid_method(query)]
-pub fn account_connected_canisters(account_id: String) -> CallResult<CanisterAllowances> {
-    with_account(account_id, |account| Ok(account.canisters.clone()))?
+pub fn get_connected_canisters(account_id: String) -> CanisterAllowances {
+    with_account(account_id, |account| account.canisters.clone()).unwrap_or_else(|err| ic_trap(err))
 }
 
 #[query]
 #[candid_method(query)]
-pub fn account_sign_requests(account_id: String, canister: CanisterId) -> CallResult<SignRequest> {
-    let request = with_account(account_id, |account| {
-        account.requests.get(&canister).unwrap().clone()
-    })?;
-
-    Ok(request)
-}
-
-#[query(name = "__get_candid_interface_tmp_hack")]
-pub fn export_candid() -> String {
-    export_service!();
-    __export_service()
+pub fn get_sign_requests(account_id: String, canister: CanisterId) -> SignRequest {
+    with_account(account_id, |account| {
+        account
+            .sign_requests(canister)
+            .unwrap_or_else(|err| ic_trap(err))
+    })
+    .unwrap_or_else(|err| ic_trap(err))
 }

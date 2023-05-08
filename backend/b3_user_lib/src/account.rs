@@ -82,19 +82,38 @@ impl Account {
 
     pub fn new_request(
         &mut self,
-        from: CanisterId,
+        canister_id: CanisterId,
         hex_raw_tx: Vec<u8>,
         chain_id: u64,
     ) -> SignRequest {
         let request = SignRequest::new(hex_raw_tx, chain_id, None);
 
-        self.requests.insert(from, request.clone());
+        self.requests.insert(canister_id, request.clone());
 
         request
     }
 
+    pub fn remove_request(&mut self, canister_id: CanisterId) {
+        self.requests.remove(&canister_id);
+    }
+
+    pub fn sign_requests(&self, canister_id: CanisterId) -> Result<SignRequest, SignerError> {
+        self.requests
+            .get(&canister_id)
+            .cloned()
+            .ok_or(SignerError::RequestNotExists)
+    }
+
+    pub fn insert_request(&mut self, canister_id: CanisterId, sign_request: SignRequest) {
+        self.requests.insert(canister_id, sign_request);
+    }
+
     pub fn insert_signed_transaction(&mut self, signed_tx: SignedTransaction) {
         self.signed = signed_tx;
+    }
+
+    pub fn signed(&self) -> SignedTransaction {
+        self.signed.clone()
     }
 
     pub fn insert_canister(&mut self, canister_id: CanisterId, new_allowance: SetAllowance) {
@@ -121,26 +140,14 @@ impl Account {
         }
     }
 
-    pub fn insert_request(&mut self, from: CanisterId, sign_request: SignRequest) {
-        self.requests.insert(from, sign_request);
-    }
-
     pub fn update_name(&mut self, name: String) -> String {
         self.name = name;
 
         self.name.clone()
     }
 
-    pub fn sign_requests(&self, from: CanisterId) -> SignRequest {
-        self.requests.get(&from).unwrap().clone()
-    }
-
     pub fn connected_canisters(&self) -> CanisterAllowances {
         self.canisters.clone()
-    }
-
-    pub fn signed(&self) -> SignedTransaction {
-        self.signed.clone()
     }
 
     pub fn public_keys(&self) -> PublicKeys {

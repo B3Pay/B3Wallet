@@ -1,20 +1,24 @@
 use std::cell::RefCell;
 
+use b3_user_lib::error::SignerError;
 use candid::candid_method;
 use ic_cdk::{
-    api::{
-        call::CallResult,
-        management_canister::{
-            main::{update_settings, UpdateSettingsArgument},
-            provisional::CanisterSettings,
-        },
+    api::management_canister::{
+        main::{update_settings, UpdateSettingsArgument},
+        provisional::CanisterSettings,
     },
     export::Principal,
     query, update,
 };
 
+use crate::types::UserId;
+
 thread_local! {
     pub static OWNER: RefCell<Principal> = RefCell::new(Principal::anonymous());
+}
+
+pub fn ic_trap(err: SignerError) -> ! {
+    ic_cdk::trap(&err.to_string())
 }
 
 pub fn caller_is_owner() -> Result<(), String> {
@@ -24,29 +28,29 @@ pub fn caller_is_owner() -> Result<(), String> {
     if caller == controllers {
         Ok(())
     } else {
-        Err("Caller is not owner!".to_string())
+        Err(SignerError::CallerIsNotOwner.to_string())
     }
 }
 
 #[query]
 #[candid_method(query)]
-pub fn get_owner() -> Principal {
+pub fn get_owner() -> UserId {
     OWNER.with(|s| s.borrow().clone())
 }
 
 #[update(guard = "caller_is_owner")]
 #[candid_method(update)]
-pub fn change_owner(new_owner: Principal) -> CallResult<Principal> {
+pub fn change_owner(new_owner: UserId) -> UserId {
     OWNER.with(|s| {
         *s.borrow_mut() = new_owner;
     });
 
-    Ok(new_owner)
+    OWNER.with(|s| s.borrow().clone())
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_owner")]
-pub async fn update_canister_controllers(mut controllers: Vec<Principal>) -> CallResult<()> {
+pub async fn update_canister_controllers(mut controllers: Vec<Principal>) -> () {
     let canister_id = ic_cdk::id();
     let owner = OWNER.with(|s| *s.borrow());
 
@@ -68,5 +72,8 @@ pub async fn update_canister_controllers(mut controllers: Vec<Principal>) -> Cal
         },
     };
 
-    update_settings(arg).await
+    update_settings(arg)
+        .await
+        .map_err(|err| SignerError::UpdateSettingsError(err.1))
+        .unwrap_or_else(|err| ic_trap(err))
 }

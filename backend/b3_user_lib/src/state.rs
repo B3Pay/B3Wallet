@@ -27,6 +27,14 @@ impl Default for State {
 }
 
 impl State {
+    pub fn init(&mut self) {
+        let mut account = Account::new(Subaccount([0; 32]));
+
+        account.update_name("Main Account".to_owned());
+
+        self.accounts.insert("default".to_owned(), account);
+    }
+
     pub fn new_subaccount(&self, opt_env: Option<Environment>) -> Subaccount {
         let env = opt_env.unwrap_or(Environment::Production);
 
@@ -67,6 +75,16 @@ impl State {
         self.accounts.insert(id.clone(), account);
 
         id
+    }
+
+    pub fn remove_account(&mut self, id: &String) -> Result<(), SignerError> {
+        if id == "default" {
+            return Err(SignerError::CannotRemoveDefaultAccount);
+        }
+
+        self.accounts.remove(id);
+
+        Ok(())
     }
 
     pub fn add_metadata(&mut self, key: String, value: String) {
@@ -113,8 +131,8 @@ impl State {
             .collect()
     }
 
-    pub fn accounts_len(&self) -> u8 {
-        self.accounts.len() as u8
+    pub fn accounts_len(&self) -> usize {
+        self.accounts.len()
     }
 
     pub fn accounts_counters(&self) -> AccountsStatus {

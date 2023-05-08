@@ -1,18 +1,15 @@
 mod account;
 mod guards;
 mod status;
+mod types;
 mod wasm;
 
-use b3_user_lib::{state::State, types::UserControlArgs, with_state, with_state_mut};
+use b3_user_lib::{state::State, with_state, with_state_mut};
+use ic_cdk::{api::call::arg_data, export::candid::candid_method, init, post_upgrade, pre_upgrade};
+use types::{UserControlArgs, UserId};
 
 use guards::OWNER;
 use wasm::WASM;
-
-use ic_cdk::{
-    api::call::arg_data,
-    export::{candid::candid_method, Principal},
-    init, post_upgrade, pre_upgrade,
-};
 
 #[init]
 #[candid_method(init)]
@@ -24,14 +21,18 @@ pub fn init() {
         None => ic_cdk::caller(),
     };
 
-    OWNER.with(|s| {
-        *s.borrow_mut() = owner;
+    with_state_mut(|s| {
+        s.init();
+    });
+
+    OWNER.with(|o| {
+        *o.borrow_mut() = owner;
     });
 }
 
 #[pre_upgrade]
 pub fn pre_upgrade() {
-    let owner = OWNER.with(|s| s.borrow().clone());
+    let owner = OWNER.with(|o| o.borrow().clone());
     with_state(|s| {
         ic_cdk::storage::stable_save((s, owner)).unwrap();
     });
@@ -41,27 +42,44 @@ pub fn pre_upgrade() {
 
 #[post_upgrade]
 pub fn post_upgrade() {
-    let (s_prev, owner_prev): (State, Principal) = ic_cdk::storage::stable_restore().unwrap();
+    let (s_prev, owner_prev): (State, UserId) = ic_cdk::storage::stable_restore().unwrap();
     with_state_mut(|s| {
         *s = s_prev;
     });
 
-    OWNER.with(|s| {
-        *s.borrow_mut() = owner_prev;
+    OWNER.with(|o| {
+        *o.borrow_mut() = owner_prev;
     });
 }
 
 #[cfg(test)]
-#[test]
-fn generate_candid() {
-    use crate::account::query::export_candid;
-    use std::io::Write;
+mod tests {
+    use super::types::*;
+    use crate::wasm::WasmData;
 
-    let mut file = std::fs::File::create("./b3_user.did").unwrap();
+    use b3_user_lib::{
+        account::Account,
+        ledger::types::*,
+        ledger::{config::Environment, network::Network},
+        request::SignRequest,
+        signed::SignedTransaction,
+        state::State,
+        types::{CanisterAllowances, CanisterId, SetAllowance},
+    };
+    use ic_cdk::export::{candid::export_service, Principal};
 
-    let candid = export_candid();
+    #[test]
+    fn generate_candid() {
+        use std::io::Write;
 
-    file.write_all(candid.as_bytes()).unwrap();
+        let mut file = std::fs::File::create("./b3_user.did").unwrap();
 
-    assert!(true);
+        export_service!();
+
+        let candid = __export_service();
+
+        file.write_all(candid.as_bytes()).unwrap();
+
+        assert!(true);
+    }
 }

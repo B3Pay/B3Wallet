@@ -1,8 +1,8 @@
 {
   "name": "b3pay",
   "version": "0.4.0",
-  "author": "Henry Chan",
-  "description": "Next.js Internet Computer Starter Template",
+  "author": "b3hr4d",
+  "description": "Signer for the B3Pay on the Internet Computer",
   "keywords": [
     "nextjs",
     "internet computer",
@@ -25,7 +25,10 @@
     "generate": "cargo test && dfx generate",
     "ledger:balance": "ts-node scripts/ledger.balance.ts",
     "ledger:transfer": "ts-node scripts/ledger.transfer.ts",
-    "ledger:account-id": "ts-node ./scripts/ledger.account-id.ts"
+    "ledger:account-id": "ts-node ./scripts/ledger.account-id.ts",
+    "wasm:user": "ts-node ./scripts/wasm.user.ts",
+    "wasm:system": "ts-node ./scripts/wasm.system.ts",
+    "wasm:copy": "ts-node ./scripts/wasm.copy.ts"
   },
   "devDependencies": {
     "@types/node": "^18.15.13",

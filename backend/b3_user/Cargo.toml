@@ -1,6 +1,6 @@
 [package]
 name = "b3_user"
-version = "0.0.0-alpha.1"
+version = "0.0.0-alpha.4"
 edition = "2021"
 
 [lib]
@@ -10,3 +10,4 @@ crate-type = ["cdylib"]
 b3_user_lib = { path = "../b3_user_lib" }
 candid = "0.8.4"
 ic-cdk = "0.7.4"
+serde = { version = "1.0.162", features = ["derive"] }
