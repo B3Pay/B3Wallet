@@ -173,15 +173,15 @@ export const idlFactory = ({ IDL }) => {
       ),
     'reset_accounts' : IDL.Func([], [State], []),
     'reset_wasm' : IDL.Func([], [WasmData], []),
+    'send_icp' : IDL.Func(
+        [IDL.Text, IDL.Text, Tokens, IDL.Opt(Tokens), IDL.Opt(IDL.Nat64)],
+        [IDL.Nat64],
+        [],
+      ),
     'status' : IDL.Func([], [CanisterStatus], []),
     'top_up_and_notify' : IDL.Func(
         [IDL.Text, Tokens, IDL.Opt(IDL.Principal), IDL.Opt(Tokens)],
         [IDL.Nat],
-        [],
-      ),
-    'transfer_icp' : IDL.Func(
-        [IDL.Text, Tokens, IDL.Text, IDL.Opt(Tokens), IDL.Opt(IDL.Nat64)],
-        [IDL.Nat64],
         [],
       ),
     'update_canister_controllers' : IDL.Func([IDL.Vec(IDL.Principal)], [], []),

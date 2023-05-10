@@ -13,20 +13,28 @@ type CanisterStatusResponse = record {
   module_hash : opt vec nat8;
 };
 type CanisterStatusType = variant { stopped; stopping; running };
-type Controller = record {
-  updated_at : nat64;
-  created_at : nat64;
-  expires_at : opt nat64;
-};
 type DefiniteCanisterSettings = record {
   freezing_threshold : nat;
   controllers : vec principal;
   memory_allocation : nat;
   compute_allocation : nat;
 };
-type LoadRelease = record { total : nat64; chunks : nat64 };
+type LoadRelease = record { total : nat64; version : text; chunks : nat64 };
+type Release = record {
+  features : opt vec text;
+  date : nat64;
+  hash : text;
+  size : nat64;
+  version : text;
+};
+type ReleaseArgs = record {
+  features : opt vec text;
+  size : nat64;
+  version : text;
+};
 type Result = variant { Ok : UserControl; Err : text };
 type Result_1 = variant { Ok : CanisterStatus; Err : text };
+type Result_2 = variant { Ok : LoadRelease; Err : text };
 type UserControl = record {
   updated_at : nat64;
   user_control_id : opt principal;
@@ -37,13 +45,15 @@ service : () -> {
   add_controller : (principal) -> ();
   create_user_control : () -> (Result);
   get_canister_status : (principal) -> (Result_1) query;
-  get_controllers : () -> (vec record { principal; Controller }) query;
-  get_releases_version : () -> (text) query;
+  get_controllers : () -> (vec principal) query;
+  get_latest_release : () -> (Release) query;
+  get_release : (nat64) -> (Release) query;
+  get_releases : () -> (vec Release) query;
   get_user_control : () -> (opt UserControl) query;
   get_user_control_id : (principal) -> (opt principal) query;
   get_user_ids : () -> (vec principal) query;
-  load_release : (vec nat8, text) -> (LoadRelease);
+  load_release : (vec nat8, ReleaseArgs) -> (Result_2);
   remove_controller : (principal) -> ();
+  remove_latest_release : () -> ();
   remove_user_control : (principal) -> ();
-  reset_release : () -> ();
 }

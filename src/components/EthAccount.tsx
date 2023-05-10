@@ -12,6 +12,16 @@ interface EthAccountProps extends Account {
   actor: B3User
 }
 
+const buttonStyle = {
+  color: "white",
+  border: "none",
+  borderRadius: "5px",
+  padding: "5px",
+  width: "30px",
+  height: "30px",
+  cursor: "pointer"
+}
+
 const EthAccount: React.FC<EthAccountProps> = ({
   actor,
   id,
@@ -23,6 +33,8 @@ const EthAccount: React.FC<EthAccountProps> = ({
   const [waiting, setWaiting] = useState("Send")
   const [ethBalance, setEthBalance] = useState<BigNumber>(BigNumber.from(0))
   const [icpBalance, setIcpBalance] = useState<BigNumber>(BigNumber.from(0))
+  const [newName, setNewName] = useState<string>(name)
+  const [editMode, setEditMode] = useState<boolean>(false)
 
   const handleSignTx = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
@@ -142,7 +154,9 @@ const EthAccount: React.FC<EthAccountProps> = ({
 
     setWaiting("Send")
 
-    getIcpBalance()
+    setTimeout(() => {
+      getIcpBalance()
+    }, 2000)
   }
 
   return (
@@ -161,19 +175,46 @@ const EthAccount: React.FC<EthAccountProps> = ({
           borderBottom: "1px dashed black"
         }}
       >
-        <label>{name}</label>
+        <div>
+          {editMode ? (
+            <input
+              type="text"
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+            />
+          ) : (
+            <span style={{ fontWeight: "bold" }}>{newName}</span>
+          )}
+          <button
+            style={{
+              ...buttonStyle,
+              backgroundColor: editMode ? "green" : "blue"
+            }}
+            onClick={async () => {
+              if (editMode) {
+                const currentName = await actor.rename_account(id, newName)
+                setNewName(currentName)
+                setEditMode(false)
+              } else setEditMode(true)
+            }}
+          >
+            {editMode ? "✔" : "✎"}
+          </button>
+          {editMode ? (
+            <button
+              onClick={() => {
+                setNewName(name)
+                setEditMode(false)
+              }}
+              style={{ ...buttonStyle, backgroundColor: "red" }}
+            >
+              X
+            </button>
+          ) : null}
+        </div>
         <button
           onClick={removeAccount}
-          style={{
-            backgroundColor: "red",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            padding: "5px",
-            width: "30px",
-            height: "30px",
-            cursor: "pointer"
-          }}
+          style={{ ...buttonStyle, backgroundColor: "red" }}
         >
           X
         </button>
@@ -194,9 +235,9 @@ const EthAccount: React.FC<EthAccountProps> = ({
       <label>Addresses: &nbsp;</label>
       {/* generate address using select input */}
       <select>
-        {public_keys.addresses.map(([key, value]) => (
-          <option key={key} value={value}>
-            {key}
+        {["SNS", "BTC", "ETH"].map((networkInterface, index) => (
+          <option key={index} value={networkInterface}>
+            {networkInterface}
           </option>
         ))}
       </select>

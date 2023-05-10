@@ -1,47 +1,26 @@
-pub mod canister;
-pub mod control;
+mod canister;
+mod control;
+mod guards;
+mod release;
+mod state;
+mod store;
+mod types;
+mod wasm;
 
-use candid::{CandidType, Deserialize, Principal};
-use canister::{canister_status, CanisterStatusResult};
-use control::{
-    new_user_control, ControllerId, Controllers, LoadRelease, Release, UserControl, UserControlId,
-    UserId,
+use canister::canister_status;
+use control::new_user_control;
+use guards::caller_is_controller;
+use ic_cdk::export::{candid::candid_method, Principal};
+use ic_cdk::{caller, id, init, post_upgrade, pre_upgrade, query, trap, update};
+use state::State;
+use store::{
+    with_latest_release, with_release, with_release_mut, with_releases, with_releases_mut,
+    with_state, with_state_mut,
 };
-use ic_cdk::export::candid::candid_method;
-use ic_cdk::{caller, id, init, post_upgrade, pre_upgrade, query, update};
-use std::cell::RefCell;
-use std::collections::HashMap;
-
-#[derive(Default, CandidType, Deserialize, Clone)]
-pub struct State {
-    release: Release,
-    controllers: Controllers,
-    user_controls: HashMap<UserId, UserControl>,
-}
-
-thread_local! {
-    static STATE: RefCell<State> = RefCell::new(State::default());
-}
-
-pub fn is_controller(caller: UserId, controllers: &Controllers) -> bool {
-    controllers
-        .iter()
-        .any(|(&controller, _)| controller.eq(&caller))
-}
-
-pub fn caller_is_controller() -> Result<(), String> {
-    let caller = caller();
-    let controllers: Controllers = STATE.with(|state| state.borrow().controllers.clone());
-
-    if is_controller(caller, &controllers) {
-        Ok(())
-    } else {
-        Err(format!(
-            "Caller ({}) is not a controller of the system.",
-            caller
-        ))
-    }
-}
+use types::{
+    Blob, CanisterStatus, ControllerId, Controllers, LoadRelease, Release, ReleaseArgs, Releases,
+    UserControl, UserControlId, UserId,
+};
 
 #[init]
 #[candid_method(init)]
@@ -50,11 +29,9 @@ pub fn init() {
     let owner = Principal::anonymous();
     let manager = caller();
 
-    STATE.with(|s| {
-        let state = &mut *s.borrow_mut();
-
-        state.add_controller(owner);
-        state.add_controller(manager);
+    with_state_mut(|s| {
+        s.add_controller(owner);
+        s.add_controller(manager);
     });
 }
 
@@ -63,97 +40,97 @@ pub fn init() {
 pub fn get_user_control() -> Option<UserControl> {
     let user = caller();
 
-    STATE.with(|s| {
-        let state = &*s.borrow();
-
-        state.get_user_control(&user)
-    })
+    with_state(|s| s.get_user_control(&user))
 }
 
 #[candid_method(query)]
 #[query]
 pub fn get_user_control_id(user: Principal) -> Option<UserControlId> {
-    STATE.with(|s| {
-        let state = &*s.borrow();
-
-        state.get_user_control_id(&user)
-    })
+    with_state(|s| s.get_user_control_id(&user))
 }
 
 #[candid_method(query)]
 #[query(guard = "caller_is_controller")]
 pub fn get_user_ids() -> Vec<UserId> {
-    STATE.with(|s| {
-        let state = &*s.borrow();
-
-        state.get_user_ids()
-    })
+    with_state(|s| s.get_user_ids())
 }
 
 #[candid_method(query)]
 #[query(guard = "caller_is_controller")]
 pub fn get_controllers() -> Controllers {
-    STATE.with(|s| s.borrow().controllers.clone())
+    with_state(|s| s.controllers.clone())
 }
 
 #[candid_method(query)]
 #[query(guard = "caller_is_controller")]
-pub async fn get_canister_status(canister_id: Principal) -> CanisterStatusResult {
+pub fn get_release(index: usize) -> Release {
+    with_release(index, |r| r.clone()).unwrap_or_else(|e| trap(&e))
+}
+
+#[candid_method(query)]
+#[query(guard = "caller_is_controller")]
+pub async fn get_canister_status(canister_id: Principal) -> Result<CanisterStatus, String> {
     canister_status(canister_id).await
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_controller")]
 fn add_controller(controller_id: ControllerId) {
-    STATE.with(|s| {
-        let state = &mut *s.borrow_mut();
-
-        state.add_controller(controller_id);
+    with_state_mut(|s| {
+        s.add_controller(controller_id);
     });
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_controller")]
 fn remove_controller(controller_id: ControllerId) {
-    STATE.with(|s| {
-        let state = &mut *s.borrow_mut();
-
-        state.remove_controller(controller_id);
+    with_state_mut(|s| {
+        s.remove_controller(controller_id);
     });
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_controller")]
 fn remove_user_control(user: UserId) {
-    STATE.with(|s| {
-        let state = &mut *s.borrow_mut();
-
-        state.remove_user_control(&user);
+    with_state_mut(|s| {
+        s.remove_user_control(&user);
     });
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_controller")]
-fn load_release(blob: Vec<u8>, version: String) -> LoadRelease {
-    STATE.with(|s| {
-        s.borrow_mut().update_release(&blob, version);
-    });
+fn load_release(blob: Blob, release_args: ReleaseArgs) -> Result<LoadRelease, String> {
+    let version = release_args.version.clone();
 
-    let total: usize = STATE.with(|state| state.borrow().release.wasm.len());
+    let release_index =
+        with_releases_mut(|rs| match rs.iter().position(|r| r.version == version) {
+            Some(index) => index,
+            None => {
+                let release = Release::new(release_args);
+                rs.push(release);
 
-    LoadRelease {
+                rs.len() - 1
+            }
+        });
+
+    let total = with_release_mut(release_index, |r| r.load_wasm(&blob))
+        .unwrap_or_else(|e| trap(&e))
+        .unwrap_or_else(|e| trap(&e));
+
+    let chunks = blob.len();
+
+    Ok(LoadRelease {
+        version,
+        chunks,
         total,
-        chunks: blob.len(),
-    }
+    })
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_controller")]
-fn reset_release() {
-    STATE.with(|s| {
-        let state = &mut *s.borrow_mut();
-
-        state.remove_release();
+fn remove_latest_release() {
+    with_releases_mut(|rs| {
+        rs.pop();
     });
 }
 
@@ -163,36 +140,38 @@ pub async fn create_user_control() -> Result<UserControl, String> {
     let user = caller();
     let system = id();
 
-    let user_control = STATE.with(|state| {
-        let state = state.borrow();
-
-        state.get_user_control(&user)
-    });
+    let user_control = with_state(|s| s.get_user_control(&user));
 
     match user_control {
         Some(user_control) => Ok(user_control),
-        None => new_user_control(&user, &system).await,
+        None => new_user_control(user, system).await,
     }
 }
 
 #[candid_method(query)]
 #[query]
-fn get_releases_version() -> String {
-    STATE.with(|s| s.borrow().release.version.clone().unwrap_or_default())
+fn get_releases() -> Releases {
+    with_releases(|r| r.clone())
+}
+
+#[candid_method(query)]
+#[query]
+fn get_latest_release() -> Release {
+    with_latest_release(|r| r.clone()).unwrap_or_else(|e| trap(&e))
 }
 
 #[pre_upgrade]
 pub fn pre_upgrade() {
-    STATE.with(|s| {
-        ic_cdk::storage::stable_save((s.borrow().clone(),)).unwrap();
+    with_state(|s| {
+        ic_cdk::storage::stable_save((s.clone(),)).unwrap();
     });
 }
 
 #[post_upgrade]
 pub fn post_upgrade() {
     let (s_prev,): (State,) = ic_cdk::storage::stable_restore().unwrap();
-    STATE.with(|s| {
-        *s.borrow_mut() = s_prev;
+    with_state_mut(|s| {
+        *s = s_prev;
     });
 }
 
@@ -203,7 +182,7 @@ fn generate_candid() {
 
     ic_cdk::export::candid::export_service!();
 
-    let candid = format!("{}", __export_service());
+    let candid = __export_service();
 
     let mut file = std::fs::File::create("./b3_system.did").unwrap();
 

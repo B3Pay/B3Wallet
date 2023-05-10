@@ -10,3 +10,4 @@ crate-type = ["cdylib"]
 candid = "0.8.4"
 serde = "1.0.160"
 ic-cdk = "0.7.4"
+sha2 = "0.10.6"

@@ -4,7 +4,10 @@ mod status;
 mod types;
 mod wasm;
 
-use b3_user_lib::{state::State, with_state, with_state_mut};
+use b3_user_lib::{
+    state::State,
+    store::{with_state, with_state_mut},
+};
 use ic_cdk::{api::call::arg_data, export::candid::candid_method, init, post_upgrade, pre_upgrade};
 use types::{UserControlArgs, UserId};
 

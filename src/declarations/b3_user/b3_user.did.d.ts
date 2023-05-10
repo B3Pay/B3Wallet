@@ -142,13 +142,13 @@ export interface _SERVICE {
   >,
   'reset_accounts' : ActorMethod<[], State>,
   'reset_wasm' : ActorMethod<[], WasmData>,
+  'send_icp' : ActorMethod<
+    [string, string, Tokens, [] | [Tokens], [] | [bigint]],
+    bigint
+  >,
   'status' : ActorMethod<[], CanisterStatus>,
   'top_up_and_notify' : ActorMethod<
     [string, Tokens, [] | [Principal], [] | [Tokens]],
-    bigint
-  >,
-  'transfer_icp' : ActorMethod<
-    [string, Tokens, string, [] | [Tokens], [] | [bigint]],
     bigint
   >,
   'update_canister_controllers' : ActorMethod<[Array<Principal>], undefined>,

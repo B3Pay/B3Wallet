@@ -3,7 +3,7 @@ use crate::{
     types::{CanisterId, CanisterStatus},
 };
 
-use b3_user_lib::{error::SignerError, with_state};
+use b3_user_lib::{error::SignerError, store::with_state};
 use ic_cdk::{
     api::{
         management_canister::{

@@ -10,8 +10,10 @@ use b3_user_lib::{
     ledger::{identifier::AccountIdentifier, types::NotifyTopUpResult},
     signed::SignedTransaction,
     state::State,
+    store::{
+        with_account, with_account_mut, with_ledger, with_ledger_mut, with_state, with_state_mut,
+    },
     types::{CanisterId, SetAllowance},
-    with_account, with_account_mut, with_ledger, with_ledger_mut, with_state, with_state_mut,
 };
 
 use ic_cdk::{export::candid::candid_method, update};
