@@ -1,3 +1,6 @@
+mod query;
+mod update;
+mod wasm;
 use ic_cdk::api::time;
 
 use crate::{
@@ -12,6 +15,7 @@ impl Default for Release {
             date: 0,
             size: 0,
             hash: String::new(),
+            deprecated: false,
             features: None,
         }
     }
@@ -22,6 +26,7 @@ impl From<ReleaseArgs> for Release {
         Self {
             date: time(),
             size: args.size,
+            deprecated: false,
             hash: String::new(),
             version: args.version,
             features: args.features,
@@ -56,6 +61,10 @@ impl Release {
         Ok(wasm_len)
     }
 
+    pub fn unload_wasm(&mut self) {
+        with_wasm_mut(&self.version, |wasm| wasm.clear()).unwrap_or_else(|_| ());
+    }
+
     pub fn add_feature(&mut self, feature: String) {
         match &mut self.features {
             Some(features) => features.push(feature),
@@ -88,36 +97,21 @@ impl Release {
         with_wasm(&self.version, |wasm| wasm.is_loaded(self.size)).unwrap_or_else(|_| false)
     }
 
-    pub fn change_version(&mut self, version: Version) {
-        self.version = version;
-    }
-
-    pub fn change_features(&mut self, features: Option<Features>) {
-        self.features = features;
-    }
-
-    pub fn update(&mut self, version: Version, features: Option<Features>) {
-        self.change_version(version);
-        self.change_features(features);
-    }
-
-    pub fn update_from(&mut self, release: &Release) {
-        self.update(release.version.clone(), release.features.clone());
+    pub fn update(&mut self, release: ReleaseArgs) {
+        self.size = release.size;
+        self.features = release.features;
+        self.date = time();
     }
 
     pub fn get_wasm(&self) -> Option<Wasm> {
         with_wasm(&self.version, |wasm| wasm.clone()).ok()
     }
 
-    pub fn get_wasm_hash(&self) -> Option<String> {
-        with_wasm(&self.version, |wasm| wasm.generate_hash()).ok()
-    }
+    pub fn deprecate(&mut self) {
+        with_wasm_map_mut(|wasm_map| {
+            wasm_map.remove(&self.version);
+        });
 
-    pub fn get_wasm_size(&self) -> Option<usize> {
-        with_wasm(&self.version, |wasm| wasm.len()).ok()
-    }
-
-    pub fn update_wasm(&mut self, blob: &Vec<u8>) -> Result<usize, String> {
-        with_wasm_mut(&self.version, |wasm| wasm.load(blob))
+        self.deprecated = true;
     }
 }

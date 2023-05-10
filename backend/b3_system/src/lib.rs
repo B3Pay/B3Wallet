@@ -5,21 +5,16 @@ mod release;
 mod state;
 mod store;
 mod types;
-mod wasm;
 
 use canister::canister_status;
 use control::new_user_control;
 use guards::caller_is_controller;
 use ic_cdk::export::{candid::candid_method, Principal};
-use ic_cdk::{caller, id, init, post_upgrade, pre_upgrade, query, trap, update};
+use ic_cdk::{caller, id, init, post_upgrade, pre_upgrade, query, update};
 use state::State;
-use store::{
-    with_latest_release, with_release, with_release_mut, with_releases, with_releases_mut,
-    with_state, with_state_mut,
-};
+use store::{with_state, with_state_mut, with_wasm_map, with_wasm_map_mut};
 use types::{
-    Blob, CanisterStatus, ControllerId, Controllers, LoadRelease, Release, ReleaseArgs, Releases,
-    UserControl, UserControlId, UserId,
+    CanisterStatus, ControllerId, Controllers, UserControl, UserControlId, UserId, WasmMap,
 };
 
 #[init]
@@ -63,14 +58,22 @@ pub fn get_controllers() -> Controllers {
 
 #[candid_method(query)]
 #[query(guard = "caller_is_controller")]
-pub fn get_release(index: usize) -> Release {
-    with_release(index, |r| r.clone()).unwrap_or_else(|e| trap(&e))
-}
-
-#[candid_method(query)]
-#[query(guard = "caller_is_controller")]
 pub async fn get_canister_status(canister_id: Principal) -> Result<CanisterStatus, String> {
     canister_status(canister_id).await
+}
+
+#[update]
+#[candid_method(update)]
+pub async fn create_user_control() -> Result<UserControl, String> {
+    let user = caller();
+    let system = id();
+
+    let user_control = with_state(|s| s.get_user_control(&user));
+
+    match user_control {
+        Some(user_control) => Ok(user_control),
+        None => new_user_control(user, system).await,
+    }
 }
 
 #[candid_method(update)]
@@ -97,96 +100,45 @@ fn remove_user_control(user: UserId) {
     });
 }
 
-#[candid_method(update)]
-#[update(guard = "caller_is_controller")]
-fn load_release(blob: Blob, release_args: ReleaseArgs) -> Result<LoadRelease, String> {
-    let version = release_args.version.clone();
-
-    let release_index =
-        with_releases_mut(|rs| match rs.iter().position(|r| r.version == version) {
-            Some(index) => index,
-            None => {
-                let release = Release::new(release_args);
-                rs.push(release);
-
-                rs.len() - 1
-            }
-        });
-
-    let total = with_release_mut(release_index, |r| r.load_wasm(&blob))
-        .unwrap_or_else(|e| trap(&e))
-        .unwrap_or_else(|e| trap(&e));
-
-    let chunks = blob.len();
-
-    Ok(LoadRelease {
-        version,
-        chunks,
-        total,
-    })
-}
-
-#[candid_method(update)]
-#[update(guard = "caller_is_controller")]
-fn remove_latest_release() {
-    with_releases_mut(|rs| {
-        rs.pop();
-    });
-}
-
-#[update]
-#[candid_method(update)]
-pub async fn create_user_control() -> Result<UserControl, String> {
-    let user = caller();
-    let system = id();
-
-    let user_control = with_state(|s| s.get_user_control(&user));
-
-    match user_control {
-        Some(user_control) => Ok(user_control),
-        None => new_user_control(user, system).await,
-    }
-}
-
-#[candid_method(query)]
-#[query]
-fn get_releases() -> Releases {
-    with_releases(|r| r.clone())
-}
-
-#[candid_method(query)]
-#[query]
-fn get_latest_release() -> Release {
-    with_latest_release(|r| r.clone()).unwrap_or_else(|e| trap(&e))
-}
-
 #[pre_upgrade]
 pub fn pre_upgrade() {
-    with_state(|s| {
-        ic_cdk::storage::stable_save((s.clone(),)).unwrap();
-    });
+    let wasm = with_wasm_map(|m| m.clone());
+
+    let state = with_state(|s| s.clone());
+
+    ic_cdk::storage::stable_save((state, wasm)).unwrap();
 }
 
 #[post_upgrade]
 pub fn post_upgrade() {
-    let (s_prev,): (State,) = ic_cdk::storage::stable_restore().unwrap();
+    let (s_prev, w_prev): (State, WasmMap) = ic_cdk::storage::stable_restore().unwrap();
     with_state_mut(|s| {
         *s = s_prev;
+    });
+
+    with_wasm_map_mut(|m| {
+        *m = w_prev;
     });
 }
 
 #[cfg(test)]
-#[test]
-fn generate_candid() {
-    use std::io::Write;
+mod tests {
+    use super::types::*;
 
-    ic_cdk::export::candid::export_service!();
+    use ic_cdk::export::Principal;
 
-    let candid = __export_service();
+    #[test]
+    fn generate_candid() {
+        use std::io::Write;
 
-    let mut file = std::fs::File::create("./b3_system.did").unwrap();
+        ic_cdk::export::candid::export_service!();
 
-    file.write_all(candid.as_bytes()).unwrap();
+        let candid = __export_service();
 
-    assert!(true);
+        let mut file = std::fs::File::create("./b3_system.did").unwrap();
+
+        file.write_all(candid.as_bytes()).unwrap();
+
+        assert!(true);
+    }
 }

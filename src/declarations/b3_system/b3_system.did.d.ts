@@ -35,6 +35,7 @@ export interface Release {
   'hash' : string,
   'size' : bigint,
   'version' : string,
+  'deprecated' : boolean,
 }
 export interface ReleaseArgs {
   'features' : [] | [Array<string>],
@@ -43,9 +44,13 @@ export interface ReleaseArgs {
 }
 export type Result = { 'Ok' : UserControl } |
   { 'Err' : string };
-export type Result_1 = { 'Ok' : CanisterStatus } |
+export type Result_1 = { 'Ok' : null } |
   { 'Err' : string };
-export type Result_2 = { 'Ok' : LoadRelease } |
+export type Result_2 = { 'Ok' : CanisterStatus } |
+  { 'Err' : string };
+export type Result_3 = { 'Ok' : Release } |
+  { 'Err' : string };
+export type Result_4 = { 'Ok' : LoadRelease } |
   { 'Err' : string };
 export interface UserControl {
   'updated_at' : bigint,
@@ -56,16 +61,19 @@ export interface UserControl {
 export interface _SERVICE {
   'add_controller' : ActorMethod<[Principal], undefined>,
   'create_user_control' : ActorMethod<[], Result>,
-  'get_canister_status' : ActorMethod<[Principal], Result_1>,
+  'deprecate_release' : ActorMethod<[string], Result_1>,
+  'get_canister_status' : ActorMethod<[Principal], Result_2>,
   'get_controllers' : ActorMethod<[], Array<Principal>>,
   'get_latest_release' : ActorMethod<[], Release>,
-  'get_release' : ActorMethod<[bigint], Release>,
+  'get_release' : ActorMethod<[string], Result_3>,
+  'get_release_by_index' : ActorMethod<[bigint], Result_3>,
   'get_releases' : ActorMethod<[], Array<Release>>,
   'get_user_control' : ActorMethod<[], [] | [UserControl]>,
   'get_user_control_id' : ActorMethod<[Principal], [] | [Principal]>,
   'get_user_ids' : ActorMethod<[], Array<Principal>>,
-  'load_release' : ActorMethod<[Uint8Array | number[], ReleaseArgs], Result_2>,
+  'load_release' : ActorMethod<[Uint8Array | number[], ReleaseArgs], Result_4>,
   'remove_controller' : ActorMethod<[Principal], undefined>,
   'remove_latest_release' : ActorMethod<[], undefined>,
+  'remove_release' : ActorMethod<[string], Result_1>,
   'remove_user_control' : ActorMethod<[Principal], undefined>,
 }

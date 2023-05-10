@@ -17,8 +17,6 @@ const loadRelease = async (
   wasmModule: number[],
   version: string
 ) => {
-  console.log(`loading wasm code v${version} in System.`)
-
   console.log(`Wasm size:`, wasmModule.length)
 
   const release: ReleaseArgs = {
@@ -36,7 +34,7 @@ const loadRelease = async (
   console.log(`loading done.`)
 }
 
-export const load = async (actor: B3System) => {
+export const load = async (actor: B3System, reload: boolean) => {
   const wasmModule = await loadWasm()
   const version = await readVersion()
 
@@ -45,10 +43,24 @@ export const load = async (actor: B3System) => {
     return
   }
 
+  if (reload) {
+    console.log(`Reloading wasm code v${version} in System.`)
+
+    await actor.remove_release(version)
+  } else {
+    console.log(`Loading wasm code v${version} in System.`)
+  }
+
   await loadRelease(actor, wasmModule, version)
 }
-;(async () => {
+
+const loader = async (reload: boolean) => {
   const actor = await systemLocalActor()
 
-  await load(actor)
-})()
+  await load(actor, reload)
+}
+
+const reload =
+  process.argv.find(arg => arg.indexOf("--reload") > -1) !== undefined
+
+loader(reload)

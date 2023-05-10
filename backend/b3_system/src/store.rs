@@ -62,6 +62,32 @@ where
     })
 }
 
+pub fn with_version_release<F, T>(version: Version, f: F) -> Result<T, String>
+where
+    F: FnOnce(&Release) -> T,
+{
+    with_releases(|releases| {
+        releases
+            .iter()
+            .find(|release| release.version == version)
+            .ok_or("Release not found!".to_string())
+            .map(f)
+    })
+}
+
+pub fn with_version_release_mut<F, T>(version: Version, f: F) -> Result<T, String>
+where
+    F: FnOnce(&mut Release) -> T,
+{
+    with_releases_mut(|releases| {
+        releases
+            .iter_mut()
+            .find(|release| release.version == version)
+            .ok_or("Release not found!".to_string())
+            .map(f)
+    })
+}
+
 pub fn with_latest_release<F, T>(f: F) -> Result<T, String>
 where
     F: FnOnce(&Release) -> T,

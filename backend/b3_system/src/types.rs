@@ -59,6 +59,7 @@ pub struct Release {
     pub size: usize,
     pub hash: String,
     pub version: Version,
+    pub deprecated: bool,
     pub features: Option<Features>,
 }
 

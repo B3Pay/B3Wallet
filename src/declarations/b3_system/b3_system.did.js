@@ -6,6 +6,7 @@ export const idlFactory = ({ IDL }) => {
     'created_at' : IDL.Nat64,
   });
   const Result = IDL.Variant({ 'Ok' : UserControl, 'Err' : IDL.Text });
+  const Result_1 = IDL.Variant({ 'Ok' : IDL.Null, 'Err' : IDL.Text });
   const CanisterStatusType = IDL.Variant({
     'stopped' : IDL.Null,
     'stopping' : IDL.Null,
@@ -31,14 +32,16 @@ export const idlFactory = ({ IDL }) => {
     'status_at' : IDL.Nat64,
     'version' : IDL.Text,
   });
-  const Result_1 = IDL.Variant({ 'Ok' : CanisterStatus, 'Err' : IDL.Text });
+  const Result_2 = IDL.Variant({ 'Ok' : CanisterStatus, 'Err' : IDL.Text });
   const Release = IDL.Record({
     'features' : IDL.Opt(IDL.Vec(IDL.Text)),
     'date' : IDL.Nat64,
     'hash' : IDL.Text,
     'size' : IDL.Nat64,
     'version' : IDL.Text,
+    'deprecated' : IDL.Bool,
   });
+  const Result_3 = IDL.Variant({ 'Ok' : Release, 'Err' : IDL.Text });
   const ReleaseArgs = IDL.Record({
     'features' : IDL.Opt(IDL.Vec(IDL.Text)),
     'size' : IDL.Nat64,
@@ -49,14 +52,16 @@ export const idlFactory = ({ IDL }) => {
     'version' : IDL.Text,
     'chunks' : IDL.Nat64,
   });
-  const Result_2 = IDL.Variant({ 'Ok' : LoadRelease, 'Err' : IDL.Text });
+  const Result_4 = IDL.Variant({ 'Ok' : LoadRelease, 'Err' : IDL.Text });
   return IDL.Service({
     'add_controller' : IDL.Func([IDL.Principal], [], []),
     'create_user_control' : IDL.Func([], [Result], []),
-    'get_canister_status' : IDL.Func([IDL.Principal], [Result_1], ['query']),
+    'deprecate_release' : IDL.Func([IDL.Text], [Result_1], []),
+    'get_canister_status' : IDL.Func([IDL.Principal], [Result_2], ['query']),
     'get_controllers' : IDL.Func([], [IDL.Vec(IDL.Principal)], ['query']),
     'get_latest_release' : IDL.Func([], [Release], ['query']),
-    'get_release' : IDL.Func([IDL.Nat64], [Release], ['query']),
+    'get_release' : IDL.Func([IDL.Text], [Result_3], ['query']),
+    'get_release_by_index' : IDL.Func([IDL.Nat64], [Result_3], ['query']),
     'get_releases' : IDL.Func([], [IDL.Vec(Release)], ['query']),
     'get_user_control' : IDL.Func([], [IDL.Opt(UserControl)], ['query']),
     'get_user_control_id' : IDL.Func(
@@ -65,9 +70,10 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'get_user_ids' : IDL.Func([], [IDL.Vec(IDL.Principal)], ['query']),
-    'load_release' : IDL.Func([IDL.Vec(IDL.Nat8), ReleaseArgs], [Result_2], []),
+    'load_release' : IDL.Func([IDL.Vec(IDL.Nat8), ReleaseArgs], [Result_4], []),
     'remove_controller' : IDL.Func([IDL.Principal], [], []),
     'remove_latest_release' : IDL.Func([], [], []),
+    'remove_release' : IDL.Func([IDL.Text], [Result_1], []),
     'remove_user_control' : IDL.Func([IDL.Principal], [], []),
   });
 };
