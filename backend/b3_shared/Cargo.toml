@@ -1,0 +1,14 @@
+[package]
+name = "b3_shared"
+version = "0.0.1"
+edition = "2021"
+description = "This is shared library for B3Pay project"
+license = "Apache-2.0"
+readme = "./README.md"
+
+[dependencies]
+candid = "0.8.4"
+serde = { version = "1.0.163", features = ["derive"] }
+ic-cdk = "0.7.4"
+crc32fast = "1.3.2"
+sha2 = "0.10.6"

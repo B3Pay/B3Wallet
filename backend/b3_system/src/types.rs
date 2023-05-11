@@ -1,28 +1,24 @@
 use std::collections::HashMap;
 
-use ic_cdk::{
-    api::management_canister::main::CanisterStatusResponse,
-    export::candid::{CandidType, Deserialize, Principal},
-};
+use b3_shared::types::{Signer, SignerId, UserId, Version};
+use ic_cdk::export::candid::{CandidType, Deserialize};
 
-pub type WasmMap = HashMap<Version, Wasm>;
-pub type UserControlMap = HashMap<UserId, UserControl>;
-pub type Controllers = Vec<ControllerId>;
+pub type SignerMap = HashMap<UserId, Signer>;
+pub type WasmMap = HashMap<Version, SystemWasm>;
+
+pub type Controllers = Vec<UserId>;
+pub type Signers = Vec<SignerId>;
 pub type Releases = Vec<Release>;
 pub type Features = Vec<String>;
-pub type UserControlId = Principal;
-pub type ControllerId = Principal;
-pub type UserId = Principal;
-pub type WasmHash = String;
-pub type Version = String;
-pub type Blob = Vec<u8>;
 
-#[derive(CandidType, Deserialize, Clone)]
-pub struct UserControl {
-    pub user_control_id: Option<UserControlId>,
-    pub created_at: u64,
-    pub updated_at: u64,
-    pub owner: UserId,
+pub type WasmSize = usize;
+pub type WasmHash = String;
+
+#[derive(Default, CandidType, Deserialize, Clone)]
+pub struct State {
+    pub signers: SignerMap,
+    pub releases: Releases,
+    pub controllers: Controllers,
 }
 
 #[derive(CandidType)]
@@ -37,21 +33,8 @@ pub struct UserControlArgs {
     pub owner: UserId,
 }
 
-pub struct WasmArg {
-    pub wasm: Wasm,
-    pub install_arg: Vec<u8>,
-}
-
 #[derive(CandidType, Deserialize, Clone)]
-pub struct CanisterStatus {
-    pub id: Principal,
-    pub status: CanisterStatusResponse,
-    pub version: String,
-    pub status_at: u64,
-}
-
-#[derive(CandidType, Deserialize, Clone)]
-pub struct Wasm(pub Vec<u8>);
+pub struct SystemWasm(pub Vec<u8>);
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct Release {

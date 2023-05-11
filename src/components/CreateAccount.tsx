@@ -1,4 +1,4 @@
-import { Environment, Result } from "declarations/b3_user/b3_user.did"
+import { Account, Environment } from "declarations/b3_signer/b3_signer.did"
 import { IS_LOCAL } from "helpers/config"
 import { useState } from "react"
 import { B3User } from "service/actor"
@@ -25,7 +25,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({
   )
 
   const [loading, setLoading] = useState("")
-  const [response, setResponse] = useState<Result>()
+  const [response, setResponse] = useState<Account>()
 
   function onChangeName(e: React.ChangeEvent<HTMLInputElement>) {
     const newName = e.target.value

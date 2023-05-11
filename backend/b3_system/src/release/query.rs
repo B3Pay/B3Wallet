@@ -1,5 +1,6 @@
 use crate::store::{with_latest_release, with_release, with_releases, with_version_release};
-use crate::types::{Release, Releases, Version};
+use crate::types::{Release, Releases};
+use b3_shared::types::Version;
 use ic_cdk::{export::candid::candid_method, query, trap};
 
 #[candid_method(query)]

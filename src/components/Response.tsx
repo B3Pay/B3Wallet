@@ -1,7 +1,5 @@
-import { CanisterStatus } from "declarations/b3_user/b3_user.did"
-
 interface ResponseProps {
-  response?: CanisterStatus
+  response?: any
   loading?: string
 }
 

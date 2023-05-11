@@ -1,10 +1,13 @@
 import { HttpAgent, Identity } from "@dfinity/agent"
 import {
+  b3_signer,
+  createActor as createUserActor
+} from "declarations/b3_signer"
+import {
   b3_system,
   canisterId,
   createActor as createSystemActor
 } from "declarations/b3_system"
-import { b3_user, createActor as createUserActor } from "declarations/b3_user"
 
 export function getHttpAgent(identity: Identity) {
   return new HttpAgent({
@@ -30,6 +33,6 @@ export function makeB3SystemActor(identity: Identity) {
   })
 }
 
-export type B3User = typeof b3_user
+export type B3User = typeof b3_signer
 
 export type B3System = typeof b3_system

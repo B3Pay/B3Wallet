@@ -1,9 +1,10 @@
 use crate::store::{with_release_mut, with_releases_mut, with_version_release_mut};
+use b3_shared::types::{Blob, Version};
 use ic_cdk::{export::candid::candid_method, trap, update};
 
 use crate::{
     guards::caller_is_controller,
-    types::{Blob, LoadRelease, Release, ReleaseArgs, Version},
+    types::{LoadRelease, Release, ReleaseArgs},
 };
 
 #[candid_method(update)]

@@ -1,11 +1,12 @@
 mod query;
 mod update;
 mod wasm;
+use b3_shared::types::Wasm;
 use ic_cdk::api::time;
 
 use crate::{
     store::{with_wasm, with_wasm_map_mut, with_wasm_mut},
-    types::{Features, Release, ReleaseArgs, Version, Wasm},
+    types::{Release, ReleaseArgs, SystemWasm, WasmSize},
 };
 
 impl Default for Release {
@@ -35,17 +36,17 @@ impl From<ReleaseArgs> for Release {
 }
 
 impl Release {
-    pub fn new(release: ReleaseArgs) -> Self {
-        let version = release.version.clone();
+    pub fn new(release_args: ReleaseArgs) -> Self {
+        let version = release_args.version.clone();
 
         with_wasm_map_mut(|wasm_map| {
-            wasm_map.insert(version, Wasm::default());
+            wasm_map.insert(version, SystemWasm::default());
         });
 
-        release.into()
+        release_args.into()
     }
 
-    pub fn load_wasm(&mut self, blob: &Vec<u8>) -> Result<usize, String> {
+    pub fn load_wasm(&mut self, blob: &Vec<u8>) -> Result<WasmSize, String> {
         if self.is_loaded() {
             return Err("Release is already loaded!".to_string());
         }
@@ -61,8 +62,8 @@ impl Release {
         Ok(wasm_len)
     }
 
-    pub fn unload_wasm(&mut self) {
-        with_wasm_mut(&self.version, |wasm| wasm.clear()).unwrap_or_else(|_| ());
+    pub fn unload_wasm(&mut self) -> Result<(), String> {
+        with_wasm_mut(&self.version, |wasm| wasm.clear()).map_err(|_| "Wasm not found!".to_string())
     }
 
     pub fn add_feature(&mut self, feature: String) {
@@ -103,8 +104,11 @@ impl Release {
         self.date = time();
     }
 
-    pub fn get_wasm(&self) -> Option<Wasm> {
-        with_wasm(&self.version, |wasm| wasm.clone()).ok()
+    pub fn get_wasm(&self) -> Result<Wasm, String> {
+        let wasm = with_wasm(&self.version, |wasm| wasm.get())
+            .map_err(|_| "Wasm not found!".to_string())?;
+
+        Ok(wasm)
     }
 
     pub fn deprecate(&mut self) {

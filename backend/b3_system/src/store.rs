@@ -1,7 +1,6 @@
-use crate::{
-    state::State,
-    types::{Release, Releases, Version, Wasm, WasmMap},
-};
+use b3_shared::types::Version;
+
+use crate::types::{Release, Releases, State, SystemWasm, WasmMap};
 use std::cell::RefCell;
 
 // STATE
@@ -122,7 +121,7 @@ where
 
 pub fn with_wasm<F, T>(version: &Version, f: F) -> Result<T, String>
 where
-    F: FnOnce(&Wasm) -> T,
+    F: FnOnce(&SystemWasm) -> T,
 {
     with_wasm_map(|wasm_map| {
         wasm_map
@@ -134,7 +133,7 @@ where
 
 pub fn with_wasm_mut<F, T>(version: &Version, f: F) -> Result<T, String>
 where
-    F: FnOnce(&mut Wasm) -> T,
+    F: FnOnce(&mut SystemWasm) -> T,
 {
     with_wasm_map_mut(|wasm_map| {
         wasm_map

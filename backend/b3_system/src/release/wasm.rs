@@ -1,14 +1,14 @@
-use sha2::{Digest, Sha256};
+use b3_shared::{b3_sha256_hex, types::Blob};
 
-use crate::types::{Blob, Wasm, WasmHash};
+use crate::types::{SystemWasm, WasmHash};
 
-impl Default for Wasm {
+impl Default for SystemWasm {
     fn default() -> Self {
         Self(Blob::new())
     }
 }
 
-impl Wasm {
+impl SystemWasm {
     pub fn load(&mut self, blob: &Blob) -> usize {
         self.extend(blob);
 
@@ -48,14 +48,7 @@ impl Wasm {
             return WasmHash::default();
         }
 
-        let mut hasher = Sha256::new();
-        hasher.update(&self.0);
-
-        hasher
-            .finalize()
-            .iter()
-            .map(|b| format!("{:02x}", b))
-            .collect::<String>()
+        b3_sha256_hex(&self.0)
     }
 }
 
@@ -65,7 +58,7 @@ mod tests {
 
     #[test]
     fn test_load() {
-        let mut wasm = Wasm::default();
+        let mut wasm = SystemWasm::default();
         let blob = vec![1, 2, 3];
 
         assert_eq!(wasm.load(&blob), 3);
@@ -77,7 +70,7 @@ mod tests {
 
     #[test]
     fn test_load_multiple() {
-        let mut wasm = Wasm::default();
+        let mut wasm = SystemWasm::default();
         let blob = vec![1, 2, 3];
         let blob2 = vec![4, 5, 6];
 

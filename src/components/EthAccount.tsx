@@ -1,4 +1,4 @@
-import { Account } from "declarations/b3_user/b3_user.did"
+import { Account } from "declarations/b3_signer/b3_signer.did"
 import { BigNumber, ethers, providers } from "ethers"
 import { isAddress } from "ethers/lib/utils"
 import { useCallback, useEffect, useState } from "react"
@@ -148,7 +148,7 @@ const EthAccount: React.FC<EthAccountProps> = ({
 
     setWaiting("Sending...")
 
-    const res = await actor.transfer_icp(id, tokenAmount, to, [], [])
+    const res = await actor.send_icp(id, to, tokenAmount, [], [])
 
     console.log(res)
 

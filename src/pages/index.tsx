@@ -2,7 +2,7 @@
 import CreateAccount from "components/CreateAccount"
 import EthAccount from "components/EthAccount"
 import { Response } from "components/Response"
-import { Account, CanisterStatus } from "declarations/b3_user/b3_user.did"
+import { Account, CanisterStatus } from "declarations/b3_signer/b3_signer.did"
 import useAuthClient from "hooks/useAuthClient"
 import Head from "next/head"
 import { useCallback, useEffect, useState } from "react"
@@ -77,15 +77,17 @@ function HomePage() {
     }
     setLoading(true)
 
-    const control = await systemActor.get_user_control()
+    const [control] = await systemActor.get_signer()
 
-    if (control.length === 0) {
+    console.log(control)
+
+    if (!control) {
       setError("No user control found")
       setLoading(false)
       return
     }
 
-    const canisterId = control[0].user_control_id.toString()
+    const canisterId = control.signer_id.toString()
 
     fetchUserActor(canisterId)
     setLoading(false)
@@ -117,7 +119,7 @@ function HomePage() {
       return
     }
     setLoading(true)
-    const userControl = await systemActor.create_user_control()
+    const userControl = await systemActor.create_signer()
 
     if ("Err" in userControl) {
       setError(userControl.Err)
@@ -125,7 +127,7 @@ function HomePage() {
       return
     }
 
-    fetchUserActor(userControl.Ok.user_control_id.toString())
+    fetchUserActor(userControl.Ok.signer_id.toString())
     setLoading(false)
   }
 
@@ -137,7 +139,7 @@ function HomePage() {
 
     setLoading(true)
 
-    const wasm = await fetch("wasm/b3_user.wasm")
+    const wasm = await fetch("wasm/b3_signer.wasm")
 
     const wasm_buffer = await wasm.arrayBuffer()
     const wasm_module = Array.from(new Uint8Array(wasm_buffer))

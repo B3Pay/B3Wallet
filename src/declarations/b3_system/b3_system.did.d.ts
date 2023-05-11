@@ -1,29 +1,6 @@
 import type { Principal } from '@dfinity/principal';
 import type { ActorMethod } from '@dfinity/agent';
 
-export interface CanisterStatus {
-  'id' : Principal,
-  'status' : CanisterStatusResponse,
-  'status_at' : bigint,
-  'version' : string,
-}
-export interface CanisterStatusResponse {
-  'status' : CanisterStatusType,
-  'memory_size' : bigint,
-  'cycles' : bigint,
-  'settings' : DefiniteCanisterSettings,
-  'idle_cycles_burned_per_day' : bigint,
-  'module_hash' : [] | [Uint8Array | number[]],
-}
-export type CanisterStatusType = { 'stopped' : null } |
-  { 'stopping' : null } |
-  { 'running' : null };
-export interface DefiniteCanisterSettings {
-  'freezing_threshold' : bigint,
-  'controllers' : Array<Principal>,
-  'memory_allocation' : bigint,
-  'compute_allocation' : bigint,
-}
 export interface LoadRelease {
   'total' : bigint,
   'version' : string,
@@ -42,38 +19,36 @@ export interface ReleaseArgs {
   'size' : bigint,
   'version' : string,
 }
-export type Result = { 'Ok' : UserControl } |
+export type Result = { 'Ok' : Signer } |
   { 'Err' : string };
 export type Result_1 = { 'Ok' : null } |
   { 'Err' : string };
-export type Result_2 = { 'Ok' : CanisterStatus } |
+export type Result_2 = { 'Ok' : Release } |
   { 'Err' : string };
-export type Result_3 = { 'Ok' : Release } |
+export type Result_3 = { 'Ok' : LoadRelease } |
   { 'Err' : string };
-export type Result_4 = { 'Ok' : LoadRelease } |
-  { 'Err' : string };
-export interface UserControl {
+export interface Signer {
   'updated_at' : bigint,
-  'user_control_id' : [] | [Principal],
   'owner' : Principal,
+  'signer_id' : [] | [Principal],
   'created_at' : bigint,
 }
 export interface _SERVICE {
   'add_controller' : ActorMethod<[Principal], undefined>,
-  'create_user_control' : ActorMethod<[], Result>,
+  'create_signer' : ActorMethod<[], Result>,
   'deprecate_release' : ActorMethod<[string], Result_1>,
-  'get_canister_status' : ActorMethod<[Principal], Result_2>,
-  'get_controllers' : ActorMethod<[], Array<Principal>>,
-  'get_latest_release' : ActorMethod<[], Release>,
-  'get_release' : ActorMethod<[string], Result_3>,
-  'get_release_by_index' : ActorMethod<[bigint], Result_3>,
-  'get_releases' : ActorMethod<[], Array<Release>>,
-  'get_user_control' : ActorMethod<[], [] | [UserControl]>,
-  'get_user_control_id' : ActorMethod<[Principal], [] | [Principal]>,
+  'get_release' : ActorMethod<[string], Result_2>,
+  'get_release_by_index' : ActorMethod<[bigint], Result_2>,
+  'get_signer' : ActorMethod<[], [] | [Signer]>,
+  'get_signer_id' : ActorMethod<[Principal], [] | [Principal]>,
+  'get_signers' : ActorMethod<[], Array<Principal>>,
   'get_user_ids' : ActorMethod<[], Array<Principal>>,
-  'load_release' : ActorMethod<[Uint8Array | number[], ReleaseArgs], Result_4>,
+  'latest_release' : ActorMethod<[], Release>,
+  'load_release' : ActorMethod<[Uint8Array | number[], ReleaseArgs], Result_3>,
+  'releases' : ActorMethod<[], Array<Release>>,
   'remove_controller' : ActorMethod<[Principal], undefined>,
   'remove_latest_release' : ActorMethod<[], undefined>,
   'remove_release' : ActorMethod<[string], Result_1>,
-  'remove_user_control' : ActorMethod<[Principal], undefined>,
+  'remove_signer' : ActorMethod<[Principal], undefined>,
+  'update_release' : ActorMethod<[ReleaseArgs], Result_1>,
 }
