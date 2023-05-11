@@ -1,11 +1,11 @@
-use b3_shared::types::{AccountsStatus, Subaccount};
+use b3_shared::types::Subaccount;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 use crate::account::SignerAccount;
 use crate::error::SignerError;
 use crate::ledger::subaccount::SubaccountTrait;
 use crate::ledger::{config::Environment, public_keys::PublicKeys};
-use crate::types::{Accounts, Metadata};
+use crate::types::{Accounts, AccountsStatus, Metadata};
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct State {
@@ -86,7 +86,17 @@ impl State {
             return Err(SignerError::CannotRemoveDefaultAccount);
         }
 
-        self.accounts.remove(id);
+        self.accounts
+            .remove(id)
+            .ok_or(SignerError::AccountNotExists)?;
+
+        Ok(())
+    }
+
+    pub fn hide_account(&mut self, id: &String) -> Result<(), SignerError> {
+        let account = self.account_mut(id)?;
+
+        account.hide();
 
         Ok(())
     }
@@ -156,7 +166,8 @@ impl State {
     }
 
     pub fn reset(&mut self) {
-        self.accounts.clear();
+        self.accounts.retain(|id, _| id == "default");
+
         self.dev_counter = 0;
         self.prod_counter = 0;
         self.stag_counter = 0;

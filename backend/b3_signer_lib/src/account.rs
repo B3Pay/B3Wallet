@@ -18,6 +18,7 @@ use std::collections::HashMap;
 pub struct SignerAccount {
     pub id: String,
     pub name: String,
+    pub hidden: bool,
     pub ledger: Ledger,
     pub signed: SignedTransaction,
     pub requests: HashMap<CanisterId, EvmSignRequest>,
@@ -29,6 +30,7 @@ impl Default for SignerAccount {
         SignerAccount {
             id: String::new(),
             name: String::new(),
+            hidden: false,
             requests: HashMap::new(),
             canisters: HashMap::new(),
             signed: SignedTransaction::default(),
@@ -45,6 +47,7 @@ impl SignerAccount {
         SignerAccount {
             id,
             ledger,
+            hidden: false,
             name: String::new(),
             requests: HashMap::new(),
             canisters: HashMap::new(),
@@ -149,6 +152,10 @@ impl SignerAccount {
 
     pub fn connected_canisters(&self) -> CanisterAllowances {
         self.canisters.clone()
+    }
+
+    pub fn hide(&mut self) {
+        self.hidden = true;
     }
 
     pub fn public_keys(&self) -> PublicKeys {

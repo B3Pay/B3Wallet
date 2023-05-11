@@ -1,16 +1,15 @@
+mod controller;
 mod guards;
 mod release;
 mod signer;
-mod state;
-mod store;
-mod types;
+mod status;
 
-use b3_shared::types::{ControllerId, UserId};
-use guards::caller_is_controller;
+use b3_system_lib::{
+    store::{with_state, with_state_mut, with_wasm_map, with_wasm_map_mut},
+    types::{State, WasmMap},
+};
 use ic_cdk::export::{candid::candid_method, Principal};
-use ic_cdk::{caller, init, post_upgrade, pre_upgrade, query, update};
-use store::{with_state, with_state_mut, with_wasm_map, with_wasm_map_mut};
-use types::{State, WasmMap};
+use ic_cdk::{caller, init, post_upgrade, pre_upgrade};
 
 #[init]
 #[candid_method(init)]
@@ -22,28 +21,6 @@ pub fn init() {
     with_state_mut(|s| {
         s.add_controller(owner);
         s.add_controller(manager);
-    });
-}
-
-#[candid_method(query)]
-#[query(guard = "caller_is_controller")]
-pub fn get_user_ids() -> Vec<UserId> {
-    with_state(|s| s.get_user_ids())
-}
-
-#[candid_method(update)]
-#[update(guard = "caller_is_controller")]
-fn add_controller(controller_id: ControllerId) {
-    with_state_mut(|s| {
-        s.add_controller(controller_id);
-    });
-}
-
-#[candid_method(update)]
-#[update(guard = "caller_is_controller")]
-fn remove_controller(controller_id: ControllerId) {
-    with_state_mut(|s| {
-        s.remove_controller(controller_id);
     });
 }
 
@@ -70,8 +47,9 @@ pub fn post_upgrade() {
 
 #[cfg(test)]
 mod tests {
-    use super::types::*;
     use b3_shared::types::*;
+    use b3_system_lib::error::SystemError;
+    use b3_system_lib::types::*;
 
     use ic_cdk::export::Principal;
 

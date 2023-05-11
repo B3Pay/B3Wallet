@@ -1,17 +1,12 @@
 use crate::guards::caller_is_owner;
 use b3_shared::{
     b3_trap,
-    types::{AccountIdentifier, CanisterId},
+    types::{AccountIdentifier, BlockIndex, CanisterId, Memo, NotifyTopUpResult, Tokens},
 };
 use b3_signer_lib::{
     account::SignerAccount,
     error::SignerError,
-    ledger::types::NotifyTopUpResult,
-    ledger::{
-        config::Environment,
-        network::Network,
-        types::{BlockIndex, Ecdsa, Memo, Tokens},
-    },
+    ledger::{config::Environment, network::Network, types::Ecdsa},
     signed::SignedTransaction,
     state::State,
     store::{
@@ -37,6 +32,12 @@ pub async fn create_account(env: Option<Environment>, name: Option<String>) -> S
 #[update(guard = "caller_is_owner")]
 pub fn rename_account(account_id: String, name: String) -> String {
     with_account_mut(account_id, |s| s.update_name(name)).unwrap_or_else(|err| b3_trap(err))
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_owner")]
+pub fn hide_account(account_id: String) {
+    with_state_mut(|s| s.hide_account(&account_id)).unwrap_or_else(|err| b3_trap(err))
 }
 
 #[candid_method(update)]

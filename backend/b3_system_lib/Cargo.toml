@@ -1,13 +1,10 @@
 [package]
-name = "b3_system"
+name = "b3_system_lib"
 version = "1.0.0"
 edition = "2021"
 
-[lib]
-crate-type = ["cdylib"]
-
 [dependencies]
 b3_shared = { path = "../b3_shared" }
-b3_system_lib = { path = "../b3_system_lib" }
+serde = { version = "1.0.163", features = ["derive"] }
 candid = "0.8.4"
 ic-cdk = "0.7.4"

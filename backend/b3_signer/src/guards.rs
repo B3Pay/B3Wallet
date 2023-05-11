@@ -11,7 +11,11 @@ use ic_cdk::{
     query, update,
 };
 
-use b3_shared::{b3_trap, error::TrapError, types::UserId};
+use b3_shared::{
+    b3_trap,
+    error::TrapError,
+    types::{ControllerId, UserId},
+};
 
 thread_local! {
     pub static OWNER: RefCell<Principal> = RefCell::new(Principal::anonymous());
@@ -46,7 +50,7 @@ pub fn change_owner(new_owner: UserId) -> UserId {
 
 #[candid_method(update)]
 #[update(guard = "caller_is_owner")]
-pub async fn update_canister_controllers(mut controllers: Vec<Principal>) -> () {
+pub async fn update_canister_controllers(mut controllers: Vec<ControllerId>) -> () {
     let canister_id = ic_cdk::id();
     let owner = OWNER.with(|s| *s.borrow());
 

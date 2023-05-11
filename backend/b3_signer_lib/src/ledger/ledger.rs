@@ -1,23 +1,24 @@
-use b3_shared::types::CanisterId;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 use crate::{error::SignerError, ledger::public_keys::PublicKeys};
-use b3_shared::types::{AccountIdentifier, Subaccount};
-
-use ic_cdk::api::call::{call, call_with_payment};
-
-use super::{
+use b3_shared::{
     constants::{
         CANISTER_TOP_UP_MEMO, CANISTER_TRANSFER_MEMO, IC_TRANSACTION_FEE_ICP,
         MAINNET_CYCLES_MINTING_CANISTER_ID, MAINNET_LEDGER_CANISTER_ID,
         MAINNET_MANAGMENT_CANISTER_ID,
     },
-    subaccount::SubaccountTrait,
+    error::TrapError,
     types::{
-        AccountBalanceArgs, ECDSAPublicKeyArgs, ECDSAPublicKeyResponse, Memo, NotifyTopUpResult,
-        NotifyTopupArgs, SignWithECDSAArgs, SignWithECDSAResponse, Tokens, TransferArgs,
-        TransferResult,
+        AccountBalanceArgs, AccountIdentifier, CanisterId, Memo, NotifyTopUpResult,
+        NotifyTopupArgs, Subaccount, Tokens, TransferArgs, TransferResult,
     },
+};
+
+use ic_cdk::api::call::{call, call_with_payment};
+
+use super::{
+    subaccount::SubaccountTrait,
+    types::{ECDSAPublicKeyArgs, ECDSAPublicKeyResponse, SignWithECDSAArgs, SignWithECDSAResponse},
 };
 
 #[derive(CandidType, Clone, Deserialize)]
@@ -135,7 +136,8 @@ impl Ledger {
 
         let block_index = self
             .transfer(to, amount, fee, Some(CANISTER_TOP_UP_MEMO))
-            .await??;
+            .await?
+            .map_err(|e| SignerError::LedgerError(e.to_string()))?;
 
         let args = NotifyTopupArgs {
             block_index,

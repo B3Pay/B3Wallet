@@ -1,30 +1,15 @@
-type Account = record {
-  id : text;
-  name : text;
-  ledger : Ledger;
-  canisters : vec record { principal; Allowance };
-  requests : vec record { principal; EvmSignRequest };
-  signed : SignedTransaction;
-};
 type AccountsStatus = record {
   stag_counter : nat64;
   prod_counter : nat64;
   dev_counter : nat64;
 };
-type Allowance = record {
-  updated_at : nat64;
-  metadata : vec record { text; text };
-  created_at : nat64;
-  limit : opt nat8;
-  expires_at : opt nat64;
-};
 type BitcoinNetwork = variant { Mainnet; Regtest; Testnet };
 type CanisterStatus = record {
   canister_id : principal;
-  accounts_status : AccountsStatus;
   status_at : nat64;
   version : text;
   canister_status : CanisterStatusResponse;
+  account_counter : nat64;
 };
 type CanisterStatusResponse = record {
   status : CanisterStatusType;
@@ -72,40 +57,58 @@ type PublicKeys = record {
   addresses : vec record { text; text };
   identifier : vec nat8;
 };
-type SetAllowance = record {
+type SignedTransaction = record { data : vec nat8; timestamp : nat64 };
+type SignerAccount = record {
+  id : text;
+  name : text;
+  hidden : bool;
+  ledger : Ledger;
+  canisters : vec record { principal; SignerAllowance };
+  requests : vec record { principal; EvmSignRequest };
+  signed : SignedTransaction;
+};
+type SignerAllowance = record {
+  updated_at : nat64;
+  metadata : vec record { text; text };
+  created_at : nat64;
+  limit : opt nat8;
+  expires_at : opt nat64;
+};
+type SignerAllowanceArgs = record {
   metadata : vec record { text; text };
   limit : opt nat8;
   expires_at : opt nat64;
 };
-type SignedTransaction = record { data : vec nat8; timestamp : nat64 };
 type State = record {
   stag_counter : nat64;
   metadata : vec record { text; text };
   prod_counter : nat64;
-  accounts : vec record { text; Account };
+  accounts : vec record { text; SignerAccount };
   dev_counter : nat64;
 };
 type Tokens = record { e8s : nat64 };
 type WasmData = record { wasm : vec nat8; version : text };
 service : () -> {
+  account_status : () -> (AccountsStatus) query;
   change_owner : (principal) -> (principal);
-  create_account : (opt Environment, opt text) -> (Account);
+  create_account : (opt Environment, opt text) -> (SignerAccount);
   generate_address : (text, Network) -> (text);
-  get_account : (text) -> (Account) query;
+  get_account : (text) -> (SignerAccount) query;
   get_account_count : () -> (nat64) query;
-  get_accounts : () -> (vec Account) query;
+  get_accounts : () -> (vec SignerAccount) query;
   get_addresses : (text) -> (vec record { text; text }) query;
   get_connected_canisters : (text) -> (
-      vec record { principal; Allowance },
+      vec record { principal; SignerAllowance },
     ) query;
   get_owner : () -> (principal) query;
   get_sign_requests : (text, principal) -> (EvmSignRequest) query;
   get_signed_transaction : (text) -> (SignedTransaction) query;
+  hide_account : (text) -> ();
   load_wasm : (vec nat8, text) -> (nat64);
   reintall_canister : () -> ();
   remove_account : (text) -> ();
   rename_account : (text, text) -> (text);
-  request_allowance : (text, principal, SetAllowance) -> ();
+  request_allowance : (text, principal, SignerAllowanceArgs) -> ();
   request_balance : (text) -> (Tokens);
   request_public_key : (text) -> (vec nat8);
   request_sign_message : (text, vec nat8) -> (vec nat8);

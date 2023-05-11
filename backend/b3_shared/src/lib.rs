@@ -1,6 +1,7 @@
+pub mod canister;
+pub mod constants;
 pub mod error;
 pub mod identifier;
-pub mod signer;
 pub mod subaccount;
 pub mod types;
 

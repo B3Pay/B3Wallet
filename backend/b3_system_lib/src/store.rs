@@ -1,6 +1,9 @@
 use b3_shared::types::Version;
 
-use crate::types::{Release, Releases, State, SystemWasm, WasmMap};
+use crate::{
+    error::SystemError,
+    types::{Release, Releases, State, SystemWasm, WasmMap},
+};
 use std::cell::RefCell;
 
 // STATE
@@ -37,31 +40,31 @@ where
     with_state_mut(|state| f(&mut state.releases))
 }
 
-pub fn with_release<F, T>(index: usize, f: F) -> Result<T, String>
+pub fn with_release<F, T>(index: usize, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&Release) -> T,
 {
     with_releases(|releases| {
         releases
             .get(index)
-            .ok_or("Release not found!".to_string())
+            .ok_or(SystemError::ReleaseNotFound)
             .map(f)
     })
 }
 
-pub fn with_release_mut<F, T>(index: usize, f: F) -> Result<T, String>
+pub fn with_release_mut<F, T>(index: usize, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&mut Release) -> T,
 {
     with_releases_mut(|releases| {
         releases
             .get_mut(index)
-            .ok_or("Release not found!".to_string())
+            .ok_or(SystemError::ReleaseNotFound)
             .map(f)
     })
 }
 
-pub fn with_version_release<F, T>(version: Version, f: F) -> Result<T, String>
+pub fn with_version_release<F, T>(version: Version, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&Release) -> T,
 {
@@ -69,12 +72,12 @@ where
         releases
             .iter()
             .find(|release| release.version == version)
-            .ok_or("Release not found!".to_string())
+            .ok_or(SystemError::ReleaseNotFound)
             .map(f)
     })
 }
 
-pub fn with_version_release_mut<F, T>(version: Version, f: F) -> Result<T, String>
+pub fn with_version_release_mut<F, T>(version: Version, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&mut Release) -> T,
 {
@@ -82,21 +85,16 @@ where
         releases
             .iter_mut()
             .find(|release| release.version == version)
-            .ok_or("Release not found!".to_string())
+            .ok_or(SystemError::ReleaseNotFound)
             .map(f)
     })
 }
 
-pub fn with_latest_release<F, T>(f: F) -> Result<T, String>
+pub fn with_latest_release<F, T>(f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&Release) -> T,
 {
-    with_releases(|releases| {
-        releases
-            .last()
-            .ok_or("No releases found!".to_string())
-            .map(f)
-    })
+    with_releases(|releases| releases.last().ok_or(SystemError::ReleaseNotFound).map(f))
 }
 
 // WASM
@@ -119,26 +117,26 @@ where
     WASM.with(|wasm| f(&mut wasm.borrow_mut()))
 }
 
-pub fn with_wasm<F, T>(version: &Version, f: F) -> Result<T, String>
+pub fn with_wasm<F, T>(version: &Version, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&SystemWasm) -> T,
 {
     with_wasm_map(|wasm_map| {
         wasm_map
             .get(version)
-            .ok_or("Wasm not found!".to_string())
+            .ok_or(SystemError::WasmNotFound)
             .map(f)
     })
 }
 
-pub fn with_wasm_mut<F, T>(version: &Version, f: F) -> Result<T, String>
+pub fn with_wasm_mut<F, T>(version: &Version, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&mut SystemWasm) -> T,
 {
     with_wasm_map_mut(|wasm_map| {
         wasm_map
             .get_mut(version)
-            .ok_or("Wasm not found!".to_string())
+            .ok_or(SystemError::WasmNotFound)
             .map(f)
     })
 }

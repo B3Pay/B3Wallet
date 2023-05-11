@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 
-use b3_shared::types::{Signer, SignerId, UserId, Version};
+use b3_shared::types::{Canister, CanisterId, UserId, Version};
 use ic_cdk::export::candid::{CandidType, Deserialize};
 
-pub type SignerMap = HashMap<UserId, Signer>;
+pub type SignerMap = HashMap<UserId, Canister>;
 pub type WasmMap = HashMap<Version, SystemWasm>;
 
 pub type Controllers = Vec<UserId>;
-pub type Signers = Vec<SignerId>;
+pub type Signers = Vec<CanisterId>;
 pub type Releases = Vec<Release>;
 pub type Features = Vec<String>;
 

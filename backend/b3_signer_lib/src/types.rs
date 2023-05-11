@@ -26,3 +26,10 @@ pub enum TransactionStatus {
     Success,
     Failed,
 }
+
+#[derive(CandidType, Deserialize)]
+pub struct AccountsStatus {
+    pub dev_counter: u64,
+    pub prod_counter: u64,
+    pub stag_counter: u64,
+}

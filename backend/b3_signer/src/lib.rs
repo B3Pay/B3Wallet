@@ -66,9 +66,9 @@ mod tests {
         request::EvmSignRequest,
         signed::SignedTransaction,
         state::State,
-        types::{CanisterAllowances, SignerAllowanceArgs},
+        types::{AccountsStatus, CanisterAllowances, SignerAllowanceArgs},
     };
-    use ic_cdk::export::{candid::export_service, Principal};
+    use ic_cdk::export::candid::export_service;
 
     #[test]
     fn generate_candid() {

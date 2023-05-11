@@ -1,10 +1,10 @@
 use ic_cdk::export::Principal;
 
-use super::types::{Memo, Tokens};
+use crate::types::{Memo, Tokens};
 
 pub const IC_TRANSACTION_FEE_ICP: Tokens = Tokens::from_e8s(10_000);
 
-pub const CREATE_SIGNER_CYCLES: u128 = 1_000_000_000_000;
+pub const CREATE_SIGNER_CANISTER_CYCLES: u128 = 1_000_000_000_000;
 
 pub const CANISTER_CREATE_MEMO: Memo = Memo(0x41455243);
 

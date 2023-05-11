@@ -1,7 +1,7 @@
 use ic_cdk::caller;
 
-use crate::store::with_state;
 use b3_shared::types::ControllerId;
+use b3_system_lib::store::with_state;
 
 pub fn caller_is_controller() -> Result<(), String> {
     let caller = caller();

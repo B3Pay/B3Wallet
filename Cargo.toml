@@ -1,7 +1,8 @@
 [workspace]
 members = [
     "backend/b3_system",
+    "backend/b3_system_lib",
     "backend/b3_signer",
-    "backend/b3_shared",
     "backend/b3_signer_lib",
+    "backend/b3_shared",
 ]

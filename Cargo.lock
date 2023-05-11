@@ -57,7 +57,7 @@ dependencies = [
 
 [[package]]
 name = "b3_signer"
-version = "0.0.0-alpha.4"
+version = "0.0.0-alpha.5"
 dependencies = [
  "b3_shared",
  "b3_signer_lib",
@@ -84,6 +84,16 @@ dependencies = [
 
 [[package]]
 name = "b3_system"
+version = "1.0.0"
+dependencies = [
+ "b3_shared",
+ "b3_system_lib",
+ "candid",
+ "ic-cdk",
+]
+
+[[package]]
+name = "b3_system_lib"
 version = "1.0.0"
 dependencies = [
  "b3_shared",

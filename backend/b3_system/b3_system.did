@@ -1,3 +1,31 @@
+type Canister = record {
+  updated_at : nat64;
+  owner : principal;
+  canister_id : opt principal;
+  created_at : nat64;
+};
+type CanisterStatus = record {
+  canister_id : principal;
+  status_at : nat64;
+  version : text;
+  canister_status : CanisterStatusResponse;
+  account_counter : nat64;
+};
+type CanisterStatusResponse = record {
+  status : CanisterStatusType;
+  memory_size : nat;
+  cycles : nat;
+  settings : DefiniteCanisterSettings;
+  idle_cycles_burned_per_day : nat;
+  module_hash : opt vec nat8;
+};
+type CanisterStatusType = variant { stopped; stopping; running };
+type DefiniteCanisterSettings = record {
+  freezing_threshold : nat;
+  controllers : vec principal;
+  memory_allocation : nat;
+  compute_allocation : nat;
+};
 type LoadRelease = record { total : nat64; version : text; chunks : nat64 };
 type Release = record {
   features : opt vec text;
@@ -12,32 +40,49 @@ type ReleaseArgs = record {
   size : nat64;
   version : text;
 };
-type Result = variant { Ok : Signer; Err : text };
-type Result_1 = variant { Ok; Err : text };
-type Result_2 = variant { Ok : Release; Err : text };
-type Result_3 = variant { Ok : LoadRelease; Err : text };
-type Signer = record {
-  updated_at : nat64;
-  owner : principal;
-  signer_id : opt principal;
-  created_at : nat64;
+type Result = variant { Ok : Canister; Err : SystemError };
+type Result_1 = variant { Ok; Err : SystemError };
+type Result_2 = variant { Ok : Release; Err : SystemError };
+type Result_3 = variant { Ok : LoadRelease; Err : SystemError };
+type SystemError = variant {
+  WasmGetError : text;
+  CreateCanisterError : text;
+  CanisterIdNotFound;
+  EncodeError : text;
+  InstallArgError : text;
+  SignerAlreadyExists : text;
+  InvalidAccountIdentifier;
+  UpdateControllersError : text;
+  ReleaseNotFound;
+  SignerNotFound : text;
+  WasmNotFound;
+  WasmInstallError : text;
+  InstallCodeError : text;
+  CanisterStatusError : text;
+  WasmAlreadyLoaded;
+  ReleaseAlreadyExists;
 };
 service : () -> {
   add_controller : (principal) -> ();
-  create_signer : () -> (Result);
+  create_signer_canister : () -> (Result);
   deprecate_release : (text) -> (Result_1);
+  get_canister_id : (principal) -> (opt principal) query;
   get_release : (text) -> (Result_2) query;
   get_release_by_index : (nat64) -> (Result_2) query;
-  get_signer : () -> (opt Signer) query;
-  get_signer_id : (principal) -> (opt principal) query;
+  get_signer : () -> (opt Canister) query;
+  get_signer_status : (principal) -> (CanisterStatus);
+  get_signer_version : (principal) -> (text) query;
   get_signers : () -> (vec principal) query;
   get_user_ids : () -> (vec principal) query;
+  install_signer_canister : (opt principal) -> (Result);
   latest_release : () -> (Release) query;
   load_release : (vec nat8, ReleaseArgs) -> (Result_3);
   releases : () -> (vec Release) query;
   remove_controller : (principal) -> ();
   remove_latest_release : () -> ();
-  remove_release : (text) -> (Result_1);
+  remove_release : (text) -> (Result_2);
   remove_signer : (principal) -> ();
+  status : () -> (CanisterStatus);
   update_release : (ReleaseArgs) -> (Result_1);
+  version : () -> (text) query;
 }
