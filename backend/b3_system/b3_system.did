@@ -40,10 +40,9 @@ type ReleaseArgs = record {
   size : nat64;
   version : text;
 };
-type Result = variant { Ok : Canister; Err : SystemError };
-type Result_1 = variant { Ok; Err : SystemError };
-type Result_2 = variant { Ok : Release; Err : SystemError };
-type Result_3 = variant { Ok : LoadRelease; Err : SystemError };
+type Result = variant { Ok; Err : SystemError };
+type Result_1 = variant { Ok : Release; Err : SystemError };
+type Result_2 = variant { Ok : LoadRelease; Err : SystemError };
 type SystemError = variant {
   WasmGetError : text;
   CreateCanisterError : text;
@@ -64,25 +63,25 @@ type SystemError = variant {
 };
 service : () -> {
   add_controller : (principal) -> ();
-  create_signer_canister : () -> (Result);
-  deprecate_release : (text) -> (Result_1);
+  create_signer_canister : () -> (Canister);
+  deprecate_release : (text) -> (Result);
   get_canister_id : (principal) -> (opt principal) query;
-  get_release : (text) -> (Result_2) query;
-  get_release_by_index : (nat64) -> (Result_2) query;
+  get_release : (text) -> (Result_1) query;
+  get_release_by_index : (nat64) -> (Result_1) query;
   get_signer : () -> (opt Canister) query;
   get_signer_status : (principal) -> (CanisterStatus);
   get_signer_version : (principal) -> (text) query;
   get_signers : () -> (vec principal) query;
   get_user_ids : () -> (vec principal) query;
-  install_signer_canister : (opt principal) -> (Result);
+  install_signer_canister : (opt principal) -> (Canister);
   latest_release : () -> (Release) query;
-  load_release : (vec nat8, ReleaseArgs) -> (Result_3);
+  load_release : (vec nat8, ReleaseArgs) -> (Result_2);
   releases : () -> (vec Release) query;
   remove_controller : (principal) -> ();
   remove_latest_release : () -> ();
-  remove_release : (text) -> (Result_2);
+  remove_release : (text) -> (Result_1);
   remove_signer : (principal) -> ();
   status : () -> (CanisterStatus);
-  update_release : (ReleaseArgs) -> (Result_1);
+  update_release : (ReleaseArgs) -> (Result);
   version : () -> (text) query;
 }

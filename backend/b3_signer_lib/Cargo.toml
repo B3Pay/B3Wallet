@@ -1,6 +1,6 @@
 [package]
 name = "b3_signer_lib"
-version = "0.0.4"
+version = "0.0.6"
 edition = "2021"
 description = "This is user library for the B3 project."
 license = "Apache-2.0"

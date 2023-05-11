@@ -16,7 +16,7 @@ use wasm::WASM;
 #[init]
 #[candid_method(init)]
 pub fn init() {
-    let call_arg = arg_data::<(Option<UserControlArgs>,)>().0;
+    let (call_arg,) = arg_data::<(Option<UserControlArgs>,)>();
 
     let owner = match call_arg {
         Some(args) => args.owner,

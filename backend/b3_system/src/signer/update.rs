@@ -11,13 +11,13 @@ use ic_cdk::{caller, update};
 
 #[update]
 #[candid_method(update)]
-pub async fn create_signer_canister() -> Result<Canister, SystemError> {
+pub async fn create_signer_canister() -> Canister {
     let user = caller();
 
     let signer = with_state(|s| s.get_signer(&user));
 
     match signer {
-        Some(signer) => Ok(signer),
+        Some(signer) => signer,
         None => {
             let sysmte_id = ic_cdk::id();
             let mut signer = Canister::from(user);
@@ -39,16 +39,14 @@ pub async fn create_signer_canister() -> Result<Canister, SystemError> {
                 .await
                 .unwrap_or_else(|e| b3_trap(e));
 
-            Ok(signer)
+            signer
         }
     }
 }
 
 #[update]
 #[candid_method(update)]
-pub async fn install_signer_canister(
-    canister_id: Option<CanisterId>,
-) -> Result<Canister, SystemError> {
+pub async fn install_signer_canister(canister_id: Option<CanisterId>) -> Canister {
     let user = caller();
 
     let mut signer = match with_state(|s| s.get_signer(&user)) {
@@ -59,7 +57,7 @@ pub async fn install_signer_canister(
                 new_signer.set_canister_id(canister_id);
                 new_signer
             } else {
-                return Err(SystemError::CanisterIdNotFound);
+                b3_trap(SystemError::SignerNotFound(user.to_string()));
             }
         }
     };
@@ -67,7 +65,7 @@ pub async fn install_signer_canister(
     let version = signer.version().await;
 
     if version.is_ok() {
-        return Ok(signer);
+        return signer;
     }
 
     let install_arg = with_state_mut(|state| state.get_latest_install_args(user))
@@ -78,7 +76,7 @@ pub async fn install_signer_canister(
         .await
         .unwrap_or_else(|err| b3_trap(err));
 
-    Ok(signer)
+    signer
 }
 
 #[candid_method(update)]
