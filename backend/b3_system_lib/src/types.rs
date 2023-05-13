@@ -1,4 +1,4 @@
-use b3_helper::types::{CanisterId, ControllerId, UserId, Version, Wasm, WasmHash, WasmSize};
+use b3_helper::types::{CanisterId, ControllerId, SignerId, Version, Wasm, WasmHash, WasmSize};
 use ic_cdk::export::candid::{CandidType, Deserialize};
 use std::collections::HashMap;
 
@@ -6,9 +6,9 @@ pub type SignerCanisters = Vec<SignerCanister>;
 pub type Controllers = Vec<ControllerId>;
 pub type Releases = Vec<Release>;
 pub type Features = Vec<String>;
-pub type Users = Vec<UserId>;
+pub type Users = Vec<SignerId>;
 
-pub type UserMap = HashMap<UserId, SignerCanister>;
+pub type UserMap = HashMap<SignerId, SignerCanister>;
 pub type WasmMap = HashMap<Version, Wasm>;
 
 #[derive(CandidType, Deserialize, Clone)]

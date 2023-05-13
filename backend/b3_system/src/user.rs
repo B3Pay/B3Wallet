@@ -3,7 +3,7 @@ use b3_helper::{
     b3_revert,
     constants::CREATE_SIGNER_CANISTER_CYCLES,
     error::TrapError,
-    types::{CanisterId, UserId, Version, WasmHash},
+    types::{CanisterId, SignerId, Version, WasmHash},
 };
 use b3_system_lib::{error::SystemError, types::SignerCanister};
 use b3_system_lib::{
@@ -13,8 +13,8 @@ use b3_system_lib::{
     types::SignerCanisters,
 };
 use ic_cdk::{
-    api::management_canister::main::CanisterInstallMode, caller, export::candid::candid_method,
-    query, update,
+    api::management_canister::main::CanisterInstallMode, export::candid::candid_method, query,
+    update,
 };
 
 // QUERY CALLS
@@ -22,14 +22,14 @@ use ic_cdk::{
 #[candid_method(query)]
 #[query]
 pub fn get_canister() -> SignerCanister {
-    let user_id = caller();
+    let user_id = ic_cdk::caller();
 
     with_signer_canister(&user_id, |c| c.clone()).unwrap_or_else(|e| b3_revert(e))
 }
 
 #[candid_method(query)]
 #[query(guard = "caller_is_controller")]
-pub fn get_user_ids() -> Vec<UserId> {
+pub fn get_user_ids() -> Vec<SignerId> {
     with_state(|s| s.user_ids())
 }
 
@@ -49,7 +49,7 @@ pub async fn get_canister_version(canister_id: CanisterId) -> Version {
 
 #[candid_method(query)]
 #[query(guard = "caller_is_controller")]
-pub async fn get_canister_version_by_user(user_id: UserId) -> Version {
+pub async fn get_canister_version_by_user(user_id: SignerId) -> Version {
     let signer = with_signer_canister(&user_id, |c| c.clone()).unwrap_or_else(|e| b3_revert(e));
 
     signer.version().await.unwrap_or_else(|e| b3_revert(e))
@@ -57,7 +57,7 @@ pub async fn get_canister_version_by_user(user_id: UserId) -> Version {
 
 #[candid_method(query)]
 #[query(guard = "caller_is_controller")]
-pub async fn validate_canister_wasm_hash(user_id: UserId) -> WasmHash {
+pub async fn validate_canister_wasm_hash(user_id: SignerId) -> WasmHash {
     let signer = with_signer_canister(&user_id, |c| c.clone()).unwrap_or_else(|e| b3_revert(e));
 
     signer.wasm_hash().await.unwrap_or_else(|e| b3_revert(e))
@@ -68,7 +68,7 @@ pub async fn validate_canister_wasm_hash(user_id: UserId) -> WasmHash {
 #[update]
 #[candid_method(update)]
 pub async fn create_signer_canister() -> Result<SignerCanister, String> {
-    let user_id = caller();
+    let user_id = ic_cdk::caller();
     let system_id = ic_cdk::id();
 
     let mut signer_canister =
@@ -81,8 +81,9 @@ pub async fn create_signer_canister() -> Result<SignerCanister, String> {
 
     with_state_mut(|s| s.add_user(user_id, signer_canister.clone()));
 
-    let install_arg_result =
-        with_state_mut(|s| s.get_latest_install_args(user_id, CanisterInstallMode::Install));
+    let install_arg_result = with_state_mut(|s| {
+        s.get_latest_install_args(user_id, Some(system_id), CanisterInstallMode::Install)
+    });
 
     match install_arg_result {
         Ok(install_arg) => {
@@ -107,13 +108,15 @@ pub async fn create_signer_canister() -> Result<SignerCanister, String> {
 pub async fn install_signer_canister(
     canister_id: Option<CanisterId>,
 ) -> Result<SignerCanister, String> {
-    let user_id = caller();
+    let system_id = ic_cdk::id();
+    let user_id = ic_cdk::caller();
 
     let mut signer_canister = with_state_mut(|s| s.get_or_init_user(user_id, canister_id))
         .unwrap_or_else(|err| b3_revert(err));
 
-    let install_arg_result =
-        with_state_mut(|s| s.get_latest_install_args(user_id, CanisterInstallMode::Install));
+    let install_arg_result = with_state_mut(|s| {
+        s.get_latest_install_args(user_id, Some(system_id), CanisterInstallMode::Install)
+    });
 
     match install_arg_result {
         Ok(install_arg) => {
@@ -145,7 +148,7 @@ pub async fn install_signer_canister(
 #[update]
 #[candid_method(update)]
 fn change_signer_canister(canister_id: CanisterId) {
-    let user_id = caller();
+    let user_id = ic_cdk::caller();
 
     with_signer_canister_mut(&user_id, |c| c.set_canister_id(canister_id))
         .unwrap_or_else(|e| b3_revert(e));
@@ -153,7 +156,7 @@ fn change_signer_canister(canister_id: CanisterId) {
 
 #[candid_method(update)]
 #[update(guard = "caller_is_controller")]
-fn remove_signer_canister(user_id: UserId) {
+fn remove_signer_canister(user_id: SignerId) {
     with_state_mut(|s| s.remove_user(&user_id));
 }
 

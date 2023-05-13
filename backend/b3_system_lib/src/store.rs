@@ -1,4 +1,4 @@
-use b3_helper::types::{UserId, Version, Wasm};
+use b3_helper::types::{SignerId, Version, Wasm};
 
 use crate::{
     error::SystemError,
@@ -116,7 +116,7 @@ where
     with_state_mut(|state| f(&mut state.users))
 }
 
-pub fn with_signer_canister<F, T>(user_id: &UserId, f: F) -> Result<T, SystemError>
+pub fn with_signer_canister<F, T>(user_id: &SignerId, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&SignerCanister) -> T,
 {
@@ -128,7 +128,7 @@ where
     })
 }
 
-pub fn with_signer_canister_mut<F, T>(user_id: &UserId, f: F) -> Result<T, SystemError>
+pub fn with_signer_canister_mut<F, T>(user_id: &SignerId, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&mut SignerCanister) -> T,
 {

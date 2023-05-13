@@ -1,11 +1,11 @@
-use b3_helper::{b3_revert, types::CanisterId};
+use b3_helper::b3_revert;
 use b3_signer_lib::{
     account::SignerAccount,
     ledger::types::Addresses,
-    request::EvmSignRequest,
+    request::sign::SignRequest,
     signed::SignedTransaction,
     store::{with_account, with_ledger, with_state},
-    types::CanisterAllowances,
+    types::{CanisterAllowances, RequestId},
 };
 use ic_cdk::{export::candid::candid_method, query};
 
@@ -49,10 +49,10 @@ pub fn get_connected_canisters(account_id: String) -> CanisterAllowances {
 
 #[query]
 #[candid_method(query)]
-pub fn get_sign_requests(account_id: String, canister: CanisterId) -> EvmSignRequest {
+pub fn get_sign_requests(account_id: String, request_id: RequestId) -> SignRequest {
     with_account(account_id, |account| {
         account
-            .sign_requests(canister)
+            .sign_request(request_id)
             .unwrap_or_else(|err| b3_revert(err))
     })
     .unwrap_or_else(|err| b3_revert(err))

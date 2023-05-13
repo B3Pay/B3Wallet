@@ -1,5 +1,4 @@
 use ic_cdk::api::time as ic_timestamp;
-
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 #[derive(CandidType, Clone, Deserialize)]

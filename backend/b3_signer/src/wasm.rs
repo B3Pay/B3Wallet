@@ -1,4 +1,4 @@
-use crate::guards::caller_is_owner;
+use crate::guards::caller_is_signer;
 use b3_helper::types::{WasmHash, WasmSize};
 use b3_signer_lib::{
     store::{with_wasm, with_wasm_mut},
@@ -15,7 +15,7 @@ fn wasm_hash() -> WasmHash {
 }
 
 #[candid_method(update)]
-#[update(guard = "caller_is_owner")]
+#[update(guard = "caller_is_signer")]
 pub async fn upgrade_canister() {
     let args = with_wasm(|w| w.upgrade_args());
 
@@ -23,7 +23,7 @@ pub async fn upgrade_canister() {
 }
 
 #[candid_method(update)]
-#[update(guard = "caller_is_owner")]
+#[update(guard = "caller_is_signer")]
 pub async fn reintall_canister() {
     let args = with_wasm(|w| w.reintall_args());
 
@@ -31,13 +31,13 @@ pub async fn reintall_canister() {
 }
 
 #[candid_method(update)]
-#[update(guard = "caller_is_owner")]
+#[update(guard = "caller_is_signer")]
 fn load_wasm(blob: Vec<u8>) -> WasmSize {
     with_wasm_mut(|w| w.load(&blob))
 }
 
 #[candid_method(update)]
-#[update(guard = "caller_is_owner")]
+#[update(guard = "caller_is_signer")]
 fn unload_wasm() -> WasmSize {
     with_wasm_mut(|w| w.unload())
 }

@@ -1,4 +1,4 @@
-use crate::guards::caller_is_owner;
+use crate::guards::caller_is_signer;
 use b3_helper::error::TrapError;
 use b3_helper::{b3_canister_status, types::SignerCanisterStatus};
 use b3_signer_lib::store::with_state;
@@ -7,7 +7,7 @@ use ic_cdk::trap;
 use ic_cdk::{api::time, query, update};
 
 #[candid_method(update)]
-#[update(guard = "caller_is_owner")]
+#[update(guard = "caller_is_signer")]
 pub async fn status() -> SignerCanisterStatus {
     let canister_id = ic_cdk::id();
 

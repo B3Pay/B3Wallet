@@ -1,6 +1,6 @@
 [package]
 name = "b3_signer"
-version = "0.0.0-alpha.7"
+version = "0.0.0-alpha.10"
 edition = "2021"
 
 [lib]

@@ -1,15 +1,24 @@
-use b3_helper::types::{UserId, Wasm};
-
-use crate::{account::SignerAccount, error::SignerError, ledger::ledger::Ledger, state::State};
+use crate::{
+    account::SignerAccount,
+    error::SignerError,
+    ledger::ledger::Ledger,
+    signer::{Roles, SignerUser},
+    state::State,
+    types::SignerUsers,
+};
+use b3_helper::{
+    error::TrapError,
+    types::{SignerId, Wasm},
+};
 use std::cell::RefCell;
 
 thread_local! {
-     static STATE: RefCell<State> = RefCell::default();
-     static OWNER: RefCell<UserId> = RefCell::new(UserId::anonymous());
-     static WASM: RefCell<Wasm> = RefCell::new(Wasm::default());
+    static STATE: RefCell<State> = RefCell::default();
+    static WASM: RefCell<Wasm> = RefCell::new(Wasm::default());
+    static SIGNERS: RefCell<SignerUsers> = RefCell::new(SignerUsers::new());
 }
 
-// STATE
+// STATE ----------------------------------------------------------------------
 
 /// Get all state.
 /// This will retrieve all states.
@@ -36,6 +45,8 @@ where
         callback(&mut state)
     })
 }
+
+// ACCOUNTS ----------------------------------------------------------------------
 
 /// Retrieve an account.
 /// This accepts a callback function that will be called with a reference to the account data.
@@ -89,19 +100,52 @@ where
     })
 }
 
-// OWNER
+// SIGNERS ----------------------------------------------------------------------
 
-/// Get owner.
-pub fn with_owner<T>(f: impl FnOnce(&UserId) -> T) -> T {
-    OWNER.with(|state| f(&state.borrow()))
+/// Get Signers.
+pub fn with_signers<T>(f: impl FnOnce(&SignerUsers) -> T) -> T {
+    SIGNERS.with(|signers| f(&signers.borrow()))
 }
 
-/// Get owner mutably.
-pub fn with_owner_mut<T>(f: impl FnOnce(&mut UserId) -> T) -> T {
-    OWNER.with(|state| f(&mut state.borrow_mut()))
+/// Get Signers mutably.
+pub fn with_signers_mut<T>(f: impl FnOnce(&mut SignerUsers) -> T) -> T {
+    SIGNERS.with(|signers| f(&mut signers.borrow_mut()))
 }
 
-// WASM
+/// Get a signer.
+pub fn with_signer<T, F>(signer_id: SignerId, callback: F) -> Result<T, SignerError>
+where
+    F: FnOnce(&SignerUser) -> T,
+{
+    SIGNERS.with(|signers| {
+        let signers = signers.borrow();
+
+        signers
+            .get(&signer_id)
+            .ok_or(SignerError::SignerNotFound(signer_id.to_string()))
+            .map(callback)
+    })
+}
+
+/// Check if a signer exists, and optionally check if it has a role.
+pub fn check_signer(signer_id: SignerId, opt_role: Option<Roles>) -> Result<(), String> {
+    with_signer(signer_id, |signer| {
+        if let Some(role) = opt_role {
+            if !signer.has_role(role.clone()) {
+                return Err(SignerError::SignerRoleNotFound(
+                    signer_id.to_string(),
+                    role.to_string(),
+                )
+                .to_string());
+            }
+        }
+
+        Ok(())
+    })
+    .map_err(|err| err.to_string())?
+}
+
+// WASM ----------------------------------------------------------------------
 
 /// Get wasm.
 pub fn with_wasm<T, F>(callback: F) -> T

@@ -5,13 +5,13 @@ use crate::{
 };
 use b3_helper::{
     error::TrapError,
-    types::{CanisterId, ControllerId, SignerCanisterInitArgs, SignerCanisterInstallArg, UserId},
+    types::{CanisterId, ControllerId, SignerCanisterInitArgs, SignerCanisterInstallArg, SignerId},
 };
 use ic_cdk::api::management_canister::main::CanisterInstallMode;
 
 impl State {
     // user
-    pub fn init_user(&mut self, user: UserId) -> Result<SignerCanister, SystemError> {
+    pub fn init_user(&mut self, user: SignerId) -> Result<SignerCanister, SystemError> {
         let canister = self.users.get(&user);
 
         if canister.is_some() {
@@ -27,7 +27,7 @@ impl State {
 
     pub fn get_or_init_user(
         &mut self,
-        user: UserId,
+        user: SignerId,
         opt_canister_id: Option<CanisterId>,
     ) -> Result<SignerCanister, SystemError> {
         if let Some(canister) = self.users.get_mut(&user) {
@@ -47,11 +47,11 @@ impl State {
         Ok(signer_canister)
     }
 
-    pub fn add_user(&mut self, user: UserId, signer_canister: SignerCanister) {
+    pub fn add_user(&mut self, user: SignerId, signer_canister: SignerCanister) {
         self.users.insert(user, signer_canister);
     }
 
-    pub fn remove_user(&mut self, user: &UserId) {
+    pub fn remove_user(&mut self, user: &SignerId) {
         self.users.remove(user);
     }
 
@@ -87,12 +87,16 @@ impl State {
 
     pub fn get_latest_install_args(
         &self,
-        owner: UserId,
+        owner: SignerId,
+        system: Option<CanisterId>,
         mode: CanisterInstallMode,
     ) -> Result<SignerCanisterInstallArg, SystemError> {
         let wasm_module = self.latest_release()?.wasm()?;
 
-        let canister_args = SignerCanisterInitArgs { owner };
+        let canister_args = SignerCanisterInitArgs {
+            owner_id: owner,
+            system_id: system,
+        };
 
         let arg = canister_args
             .encode()

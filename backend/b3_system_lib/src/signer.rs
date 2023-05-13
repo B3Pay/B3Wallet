@@ -3,8 +3,8 @@ use b3_helper::{
     constants::RATE_LIMIT,
     error::SharedError,
     types::{
-        CanisterId, ControllerId, SignerCanisterInstallArg, SignerCanisterStatus, UserId, Version,
-        WasmHash,
+        CanisterId, ControllerId, SignerCanisterInstallArg, SignerCanisterStatus, SignerId,
+        Version, WasmHash,
     },
 };
 use ic_cdk::api::{
@@ -82,10 +82,10 @@ impl SignerCanister {
     }
 
     /// Get the owner of the canister.
-    pub async fn get_owner(&self) -> Result<UserId, SharedError> {
+    pub async fn get_owner(&self) -> Result<SignerId, SharedError> {
         let canister_id = self.canister_id()?;
 
-        let (owner,): (UserId,) = ic_cdk::call(canister_id, "get_owner", ())
+        let (owner,): (SignerId,) = ic_cdk::call(canister_id, "get_owner", ())
             .await
             .map_err(|(_, message)| SharedError::GetOwnerError(message))?;
 

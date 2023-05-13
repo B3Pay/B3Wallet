@@ -1,4 +1,4 @@
-use crate::guards::caller_is_owner;
+use crate::guards::caller_is_signer;
 use b3_helper::{
     b3_revert,
     types::{
@@ -19,7 +19,7 @@ use b3_signer_lib::{
 use ic_cdk::{export::candid::candid_method, update};
 
 #[candid_method(update)]
-#[update(guard = "caller_is_owner")]
+#[update(guard = "caller_is_signer")]
 pub async fn create_account(env: Option<Environment>, name: Option<String>) -> SignerAccount {
     let subaccount = with_state(|s| s.new_subaccount(env));
 
@@ -31,25 +31,25 @@ pub async fn create_account(env: Option<Environment>, name: Option<String>) -> S
 }
 
 #[candid_method(update)]
-#[update(guard = "caller_is_owner")]
+#[update(guard = "caller_is_signer")]
 pub fn rename_account(account_id: String, name: String) -> String {
     with_account_mut(account_id, |s| s.update_name(name)).unwrap_or_else(|err| b3_revert(err))
 }
 
 #[candid_method(update)]
-#[update(guard = "caller_is_owner")]
+#[update(guard = "caller_is_signer")]
 pub fn hide_account(account_id: String) {
     with_state_mut(|s| s.hide_account(&account_id)).unwrap_or_else(|err| b3_revert(err))
 }
 
 #[candid_method(update)]
-#[update(guard = "caller_is_owner")]
+#[update(guard = "caller_is_signer")]
 pub fn remove_account(account_id: String) {
     with_state_mut(|s| s.remove_account(&account_id)).unwrap_or_else(|err| b3_revert(err))
 }
 
 #[candid_method(update)]
-#[update(guard = "caller_is_owner")]
+#[update(guard = "caller_is_signer")]
 pub async fn request_public_key(account_id: String) -> Ecdsa {
     let ledger = with_ledger(account_id.clone(), |ledger| ledger.clone())
         .unwrap_or_else(|err| b3_revert(err));
@@ -75,7 +75,7 @@ pub async fn request_public_key(account_id: String) -> Ecdsa {
 }
 
 #[candid_method(update)]
-#[update(guard = "caller_is_owner")]
+#[update(guard = "caller_is_signer")]
 pub async fn send_icp(
     account_id: String,
     to: String,
@@ -101,7 +101,7 @@ pub async fn send_icp(
 }
 
 #[candid_method(update)]
-#[update(guard = "caller_is_owner")]
+#[update(guard = "caller_is_signer")]
 pub async fn top_up_and_notify(
     account_id: String,
     amount: Tokens,
@@ -125,7 +125,7 @@ pub async fn top_up_and_notify(
 }
 
 #[candid_method(update)]
-#[update(guard = "caller_is_owner")]
+#[update(guard = "caller_is_signer")]
 pub async fn generate_address(account_id: String, network: Network) -> String {
     let result = with_ledger_mut(account_id, |ledger| {
         ledger.public_keys.generate_address(network)
@@ -139,7 +139,7 @@ pub async fn generate_address(account_id: String, network: Network) -> String {
 }
 
 #[candid_method(update)]
-#[update(guard = "caller_is_owner")]
+#[update(guard = "caller_is_signer")]
 pub async fn request_sign_message(account_id: String, message_hash: Vec<u8>) -> Vec<u8> {
     let ledger =
         with_ledger(account_id, |ledger| ledger.clone()).unwrap_or_else(|err| b3_revert(err));
@@ -151,7 +151,7 @@ pub async fn request_sign_message(account_id: String, message_hash: Vec<u8>) -> 
 }
 
 #[candid_method(update)]
-#[update(guard = "caller_is_owner")]
+#[update(guard = "caller_is_signer")]
 pub async fn request_sign_transaction(
     account_id: String,
     hex_raw_tx: Vec<u8>,
@@ -167,7 +167,7 @@ pub async fn request_sign_transaction(
 }
 
 #[candid_method(update)]
-#[update(guard = "caller_is_owner")]
+#[update(guard = "caller_is_signer")]
 pub async fn request_balance(account_id: String) -> Tokens {
     let account =
         with_account(account_id, |account| account.clone()).unwrap_or_else(|err| b3_revert(err));
@@ -180,7 +180,7 @@ pub async fn request_balance(account_id: String) -> Tokens {
 }
 
 #[candid_method(update)]
-#[update(guard = "caller_is_owner")]
+#[update(guard = "caller_is_signer")]
 pub async fn reset_accounts() -> State {
     with_state_mut(|s| s.reset());
 
@@ -188,7 +188,7 @@ pub async fn reset_accounts() -> State {
 }
 
 #[candid_method(update)]
-#[update(guard = "caller_is_owner")]
+#[update(guard = "caller_is_signer")]
 pub fn request_allowance(
     account_id: String,
     canister: CanisterId,

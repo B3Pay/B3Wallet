@@ -3,9 +3,9 @@ use crate::{
     error::SignerError,
     evm_tx::get_evm_transaction,
     ledger::{ledger::Ledger, public_keys::PublicKeys, subaccount::SubaccountTrait},
-    request::EvmSignRequest,
+    request::sign::{SignRequest, SignRequestTrait},
     signed::SignedTransaction,
-    types::CanisterAllowances,
+    types::{CanisterAllowances, RequestId, SignRequests},
 };
 use b3_helper::types::{CanisterId, Environment, SignerAllowanceArgs, Subaccount};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
@@ -18,7 +18,7 @@ pub struct SignerAccount {
     pub hidden: bool,
     pub ledger: Ledger,
     pub signed: SignedTransaction,
-    pub requests: HashMap<CanisterId, EvmSignRequest>,
+    pub requests: SignRequests,
     pub canisters: HashMap<CanisterId, SignerAllowance>,
 }
 
@@ -28,8 +28,8 @@ impl Default for SignerAccount {
             id: String::new(),
             name: String::new(),
             hidden: false,
-            requests: HashMap::new(),
             canisters: HashMap::new(),
+            requests: SignRequests::new(),
             signed: SignedTransaction::default(),
             ledger: Ledger::default(),
         }
@@ -46,8 +46,8 @@ impl From<Subaccount> for SignerAccount {
             ledger,
             hidden: false,
             name: String::new(),
-            requests: HashMap::new(),
             canisters: HashMap::new(),
+            requests: SignRequests::new(),
             signed: SignedTransaction::default(),
         }
     }
@@ -83,32 +83,40 @@ impl SignerAccount {
         Ok(signed_tx)
     }
 
-    pub fn new_request(
-        &mut self,
-        canister_id: CanisterId,
-        hex_raw_tx: Vec<u8>,
-        chain_id: u64,
-    ) -> EvmSignRequest {
-        let request = EvmSignRequest::new(hex_raw_tx, chain_id, None);
+    pub fn new_evm_request(&mut self, hex_raw_tx: Vec<u8>, chain_id: u64) -> SignRequest {
+        let request = SignRequest::new_evm(hex_raw_tx, chain_id, None);
 
-        self.requests.insert(canister_id, request.clone());
+        self.requests.push(request.clone());
 
         request
     }
 
-    pub fn remove_request(&mut self, canister_id: CanisterId) {
-        self.requests.remove(&canister_id);
+    pub fn remove_request(&mut self, request_id: RequestId) {
+        // remove request from requests Vec based on the id
+        let index = self
+            .requests
+            .iter()
+            .position(|request| request.get_id() == request_id);
+
+        if let Some(index) = index {
+            self.requests.remove(index);
+        }
     }
 
-    pub fn sign_requests(&self, canister_id: CanisterId) -> Result<EvmSignRequest, SignerError> {
+    pub fn sign_requests(&self) -> SignRequests {
+        self.requests.clone()
+    }
+
+    pub fn sign_request(&self, request_id: RequestId) -> Result<SignRequest, SignerError> {
         self.requests
-            .get(&canister_id)
+            .iter()
+            .find(|request| request.get_id() == request_id)
             .cloned()
-            .ok_or(SignerError::RequestNotExists)
+            .ok_or(SignerError::RequestNotFound(request_id))
     }
 
-    pub fn insert_request(&mut self, canister_id: CanisterId, sign_request: EvmSignRequest) {
-        self.requests.insert(canister_id, sign_request);
+    pub fn insert_request(&mut self, sign_request: SignRequest) {
+        self.requests.push(sign_request);
     }
 
     pub fn insert_signed_transaction(&mut self, signed_tx: SignedTransaction) {

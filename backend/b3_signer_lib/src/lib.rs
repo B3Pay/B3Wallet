@@ -5,6 +5,7 @@ pub mod evm_tx;
 pub mod ledger;
 pub mod request;
 pub mod signed;
+pub mod signer;
 pub mod state;
 pub mod store;
 pub mod types;

@@ -58,7 +58,7 @@ dependencies = [
 
 [[package]]
 name = "b3_signer"
-version = "0.0.0-alpha.7"
+version = "0.0.0-alpha.10"
 dependencies = [
  "b3_helper",
  "b3_signer_lib",
@@ -68,7 +68,7 @@ dependencies = [
 
 [[package]]
 name = "b3_signer_lib"
-version = "0.0.7"
+version = "0.0.10"
 dependencies = [
  "b3_helper",
  "bs58",

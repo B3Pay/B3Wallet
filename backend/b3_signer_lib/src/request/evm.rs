@@ -1,14 +1,13 @@
-use candid::CandidType;
-use serde::Deserialize;
-
 use crate::evm_tx::{get_evm_transaction, EvmTransaction};
 use ic_cdk::api::time as ic_timestamp;
+use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 #[derive(CandidType, Clone, Deserialize)]
 pub struct EvmSignRequest {
-    pub message: Vec<u8>,
+    pub id: String,
     pub chain_id: u64,
     pub deadline: u64,
+    pub message: Vec<u8>,
     pub transaction: EvmTransaction,
 }
 
@@ -26,6 +25,7 @@ impl EvmSignRequest {
         let deadline = deadline.unwrap_or(now + 15 * 60 * 1_000_000_000);
 
         EvmSignRequest {
+            id: "".to_string(),
             message,
             chain_id,
             deadline,

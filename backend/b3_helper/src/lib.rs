@@ -27,6 +27,17 @@ pub fn b3_sha256_wasm_hash(data: &[u8]) -> WasmHash {
     hasher.finalize().into()
 }
 
+pub fn b3_sha256_wasm_hash_string(data: &[u8]) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(data);
+
+    hasher
+        .finalize()
+        .iter()
+        .map(|b| format!("{:02x}", b))
+        .collect::<String>()
+}
+
 pub async fn b3_canister_status(
     canister_id: CanisterId,
 ) -> Result<CanisterStatusResponse, SharedError> {

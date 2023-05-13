@@ -14,11 +14,13 @@ pub type Metadata = HashMap<String, String>;
 
 pub type ControllerId = Principal;
 pub type CanisterId = Principal;
-pub type UserId = Principal;
+pub type SignerId = Principal;
 
 pub type WasmSize = usize;
 pub type WasmModule = Vec<u8>;
 pub type WasmHash = [u8; 32];
+pub type WasmHashString = String;
+pub type WasmVersion = String;
 
 pub type Version = String;
 
@@ -41,7 +43,8 @@ pub struct SignerCanisterInstallArg {
 
 #[derive(CandidType, Deserialize)]
 pub struct SignerCanisterInitArgs {
-    pub owner: UserId,
+    pub owner_id: SignerId,
+    pub system_id: Option<CanisterId>,
 }
 
 impl SignerCanisterInitArgs {

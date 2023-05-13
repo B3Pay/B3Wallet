@@ -9,8 +9,8 @@ use crate::types::Metadata;
 pub struct SignerAllowance {
     pub created_at: u64,
     pub updated_at: u64,
-    pub metadata: Metadata,
     pub limit: Option<u8>,
+    pub metadata: Metadata,
     pub expires_at: Option<u64>,
 }
 
