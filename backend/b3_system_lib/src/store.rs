@@ -1,16 +1,17 @@
-use b3_shared::types::Version;
+use b3_helper::types::{SignerCanister, UserId, Version, Wasm};
 
 use crate::{
     error::SystemError,
-    types::{Release, Releases, State, SystemWasm, WasmMap},
+    types::{Release, Releases, State, UserMap, WasmMap},
 };
 use std::cell::RefCell;
 
-// STATE
-
 thread_local! {
-    pub static STATE: RefCell<State> = RefCell::new(State::default());
+    static STATE: RefCell<State> = RefCell::new(State::default());
+    static WASM: RefCell<WasmMap> = RefCell::new(WasmMap::default());
 }
+
+// STATE
 
 pub fn with_state<F, R>(f: F) -> R
 where
@@ -25,6 +26,8 @@ where
 {
     STATE.with(|state| f(&mut state.borrow_mut()))
 }
+
+// RELEASE
 
 pub fn with_releases<F, R>(f: F) -> R
 where
@@ -97,11 +100,47 @@ where
     with_releases(|releases| releases.last().ok_or(SystemError::ReleaseNotFound).map(f))
 }
 
-// WASM
+// SIGNER
 
-thread_local! {
-    pub static WASM: RefCell<WasmMap> = RefCell::new(WasmMap::default());
+pub fn with_users<F, R>(f: F) -> R
+where
+    F: FnOnce(&UserMap) -> R,
+{
+    with_state(|state| f(&state.users))
 }
+
+pub fn with_users_mut<F, R>(f: F) -> R
+where
+    F: FnOnce(&mut UserMap) -> R,
+{
+    with_state_mut(|state| f(&mut state.users))
+}
+
+pub fn with_signer_canister<F, T>(user_id: &UserId, f: F) -> Result<T, SystemError>
+where
+    F: FnOnce(&SignerCanister) -> T,
+{
+    with_users(|signers| {
+        signers
+            .get(user_id)
+            .ok_or(SystemError::SignerCanisterNotFound)
+            .map(f)
+    })
+}
+
+pub fn with_signer_canister_mut<F, T>(user_id: &UserId, f: F) -> Result<T, SystemError>
+where
+    F: FnOnce(&mut SignerCanister) -> T,
+{
+    with_users_mut(|signers| {
+        signers
+            .get_mut(user_id)
+            .ok_or(SystemError::SignerCanisterNotFound)
+            .map(f)
+    })
+}
+
+// WASM
 
 pub fn with_wasm_map<F, R>(f: F) -> R
 where
@@ -119,7 +158,7 @@ where
 
 pub fn with_wasm<F, T>(version: &Version, f: F) -> Result<T, SystemError>
 where
-    F: FnOnce(&SystemWasm) -> T,
+    F: FnOnce(&Wasm) -> T,
 {
     with_wasm_map(|wasm_map| {
         wasm_map
@@ -131,7 +170,7 @@ where
 
 pub fn with_wasm_mut<F, T>(version: &Version, f: F) -> Result<T, SystemError>
 where
-    F: FnOnce(&mut SystemWasm) -> T,
+    F: FnOnce(&mut Wasm) -> T,
 {
     with_wasm_map_mut(|wasm_map| {
         wasm_map

@@ -1,10 +1,9 @@
-use b3_shared::types::Subaccount;
+use b3_helper::types::{Environment, Subaccount};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 use crate::account::SignerAccount;
 use crate::error::SignerError;
-use crate::ledger::subaccount::SubaccountTrait;
-use crate::ledger::{config::Environment, public_keys::PublicKeys};
+use crate::ledger::public_keys::PublicKeys;
 use crate::types::{Accounts, AccountsStatus, Metadata};
 
 #[derive(CandidType, Deserialize, Clone)]
@@ -30,7 +29,7 @@ impl Default for State {
 
 impl State {
     pub fn init(&mut self) {
-        let mut account = SignerAccount::new(Subaccount([0; 32]));
+        let mut account: SignerAccount = Subaccount::default().into();
 
         account.update_name("Main Account".to_owned());
 
@@ -42,7 +41,7 @@ impl State {
 
         let counter = self.account_counter(&env);
 
-        Subaccount::new(env.clone(), counter)
+        Subaccount::new(env, counter)
     }
 
     pub fn insert_account(
@@ -50,28 +49,25 @@ impl State {
         mut account: SignerAccount,
         opt_name: Option<String>,
     ) -> String {
-        let default_name = match account.env() {
-            Environment::Production => {
-                self.prod_counter += 1;
-
-                ["Account", &self.prod_counter.to_string()].join(" ")
-            }
-            Environment::Staging => {
-                self.stag_counter += 1;
-
-                ["Staging Account", &self.stag_counter.to_string()].join(" ")
-            }
-            Environment::Development => {
-                self.dev_counter += 1;
-
-                ["Dev Account", &self.dev_counter.to_string()].join(" ")
-            }
-        };
-
         if let Some(name) = opt_name {
             account.update_name(name);
         } else {
-            account.update_name(default_name);
+            let name = match account.environment() {
+                Environment::Production => {
+                    self.prod_counter += 1;
+                    ["Account", &self.prod_counter.to_string()].join(" ")
+                }
+                Environment::Staging => {
+                    self.stag_counter += 1;
+                    ["Staging Account", &self.stag_counter.to_string()].join(" ")
+                }
+                Environment::Development => {
+                    self.dev_counter += 1;
+                    ["Dev Account", &self.dev_counter.to_string()].join(" ")
+                }
+            };
+
+            account.update_name(name);
         }
 
         let id = account.id();
@@ -101,24 +97,12 @@ impl State {
         Ok(())
     }
 
-    pub fn add_metadata(&mut self, key: String, value: String) {
-        self.metadata.insert(key, value);
-    }
+    pub fn unhide_account(&mut self, id: &String) -> Result<(), SignerError> {
+        let account = self.account_mut(id)?;
 
-    pub fn update_metadata(&mut self, key: String, value: String) {
-        self.metadata.insert(key, value);
-    }
+        account.unhide();
 
-    pub fn remove_metadata(&mut self, key: &String) {
-        self.metadata.remove(key);
-    }
-
-    pub fn metadata_mut(&mut self) -> &mut Metadata {
-        &mut self.metadata
-    }
-
-    pub fn metadata(&self) -> &Metadata {
-        &self.metadata
+        Ok(())
     }
 
     pub fn account(&self, id: &String) -> Result<&SignerAccount, SignerError> {
@@ -163,6 +147,26 @@ impl State {
             Environment::Staging => self.stag_counter,
             Environment::Development => self.dev_counter,
         }
+    }
+
+    pub fn add_metadata(&mut self, key: String, value: String) {
+        self.metadata.insert(key, value);
+    }
+
+    pub fn update_metadata(&mut self, key: String, value: String) {
+        self.metadata.insert(key, value);
+    }
+
+    pub fn remove_metadata(&mut self, key: &String) {
+        self.metadata.remove(key);
+    }
+
+    pub fn metadata_mut(&mut self) -> &mut Metadata {
+        &mut self.metadata
+    }
+
+    pub fn metadata(&self) -> &Metadata {
+        &self.metadata
     }
 
     pub fn reset(&mut self) {

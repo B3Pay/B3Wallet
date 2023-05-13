@@ -1,4 +1,9 @@
 export const idlFactory = ({ IDL }) => {
+  const AccountsStatus = IDL.Record({
+    'stag_counter' : IDL.Nat64,
+    'prod_counter' : IDL.Nat64,
+    'dev_counter' : IDL.Nat64,
+  });
   const Environment = IDL.Variant({
     'Production' : IDL.Null,
     'Development' : IDL.Null,
@@ -13,7 +18,7 @@ export const idlFactory = ({ IDL }) => {
     'subaccount' : IDL.Vec(IDL.Nat8),
     'public_keys' : PublicKeys,
   });
-  const Allowance = IDL.Record({
+  const SignerAllowance = IDL.Record({
     'updated_at' : IDL.Nat64,
     'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
     'created_at' : IDL.Nat64,
@@ -51,11 +56,12 @@ export const idlFactory = ({ IDL }) => {
     'data' : IDL.Vec(IDL.Nat8),
     'timestamp' : IDL.Nat64,
   });
-  const Account = IDL.Record({
+  const SignerAccount = IDL.Record({
     'id' : IDL.Text,
     'name' : IDL.Text,
+    'hidden' : IDL.Bool,
     'ledger' : Ledger,
-    'canisters' : IDL.Vec(IDL.Tuple(IDL.Principal, Allowance)),
+    'canisters' : IDL.Vec(IDL.Tuple(IDL.Principal, SignerAllowance)),
     'requests' : IDL.Vec(IDL.Tuple(IDL.Principal, EvmSignRequest)),
     'signed' : SignedTransaction,
   });
@@ -70,7 +76,7 @@ export const idlFactory = ({ IDL }) => {
     'ICP' : IDL.Null,
     'SNS' : IDL.Text,
   });
-  const SetAllowance = IDL.Record({
+  const SignerAllowanceArgs = IDL.Record({
     'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
     'limit' : IDL.Opt(IDL.Nat8),
     'expires_at' : IDL.Opt(IDL.Nat64),
@@ -80,16 +86,7 @@ export const idlFactory = ({ IDL }) => {
     'stag_counter' : IDL.Nat64,
     'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
     'prod_counter' : IDL.Nat64,
-    'accounts' : IDL.Vec(IDL.Tuple(IDL.Text, Account)),
-    'dev_counter' : IDL.Nat64,
-  });
-  const WasmData = IDL.Record({
-    'wasm' : IDL.Vec(IDL.Nat8),
-    'version' : IDL.Text,
-  });
-  const AccountsStatus = IDL.Record({
-    'stag_counter' : IDL.Nat64,
-    'prod_counter' : IDL.Nat64,
+    'accounts' : IDL.Vec(IDL.Tuple(IDL.Text, SignerAccount)),
     'dev_counter' : IDL.Nat64,
   });
   const CanisterStatusType = IDL.Variant({
@@ -113,22 +110,23 @@ export const idlFactory = ({ IDL }) => {
   });
   const CanisterStatus = IDL.Record({
     'canister_id' : IDL.Principal,
-    'accounts_status' : AccountsStatus,
     'status_at' : IDL.Nat64,
     'version' : IDL.Text,
     'canister_status' : CanisterStatusResponse,
+    'account_counter' : IDL.Nat64,
   });
   return IDL.Service({
+    'account_status' : IDL.Func([], [AccountsStatus], ['query']),
     'change_owner' : IDL.Func([IDL.Principal], [IDL.Principal], []),
     'create_account' : IDL.Func(
         [IDL.Opt(Environment), IDL.Opt(IDL.Text)],
-        [Account],
+        [SignerAccount],
         [],
       ),
     'generate_address' : IDL.Func([IDL.Text, Network], [IDL.Text], []),
-    'get_account' : IDL.Func([IDL.Text], [Account], ['query']),
+    'get_account' : IDL.Func([IDL.Text], [SignerAccount], ['query']),
     'get_account_count' : IDL.Func([], [IDL.Nat64], ['query']),
-    'get_accounts' : IDL.Func([], [IDL.Vec(Account)], ['query']),
+    'get_accounts' : IDL.Func([], [IDL.Vec(SignerAccount)], ['query']),
     'get_addresses' : IDL.Func(
         [IDL.Text],
         [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text))],
@@ -136,7 +134,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'get_connected_canisters' : IDL.Func(
         [IDL.Text],
-        [IDL.Vec(IDL.Tuple(IDL.Principal, Allowance))],
+        [IDL.Vec(IDL.Tuple(IDL.Principal, SignerAllowance))],
         ['query'],
       ),
     'get_owner' : IDL.Func([], [IDL.Principal], ['query']),
@@ -150,12 +148,13 @@ export const idlFactory = ({ IDL }) => {
         [SignedTransaction],
         ['query'],
       ),
-    'load_wasm' : IDL.Func([IDL.Vec(IDL.Nat8), IDL.Text], [IDL.Nat64], []),
+    'hide_account' : IDL.Func([IDL.Text], [], []),
+    'load_wasm' : IDL.Func([IDL.Vec(IDL.Nat8)], [IDL.Nat64], []),
     'reintall_canister' : IDL.Func([], [], []),
     'remove_account' : IDL.Func([IDL.Text], [], []),
     'rename_account' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text], []),
     'request_allowance' : IDL.Func(
-        [IDL.Text, IDL.Principal, SetAllowance],
+        [IDL.Text, IDL.Principal, SignerAllowanceArgs],
         [],
         [],
       ),
@@ -172,7 +171,6 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'reset_accounts' : IDL.Func([], [State], []),
-    'reset_wasm' : IDL.Func([], [WasmData], []),
     'send_icp' : IDL.Func(
         [IDL.Text, IDL.Text, Tokens, IDL.Opt(Tokens), IDL.Opt(IDL.Nat64)],
         [IDL.Nat64],
@@ -184,10 +182,11 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Nat],
         [],
       ),
+    'unload_wasm' : IDL.Func([], [IDL.Nat64], []),
     'update_canister_controllers' : IDL.Func([IDL.Vec(IDL.Principal)], [], []),
     'upgrade_canister' : IDL.Func([], [], []),
     'version' : IDL.Func([], [IDL.Text], ['query']),
-    'wasm_version' : IDL.Func([], [IDL.Text], ['query']),
+    'wasm_hash' : IDL.Func([], [IDL.Vec(IDL.Nat8)], ['query']),
   });
 };
 export const init = ({ IDL }) => { return []; };

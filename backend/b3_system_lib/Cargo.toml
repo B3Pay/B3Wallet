@@ -4,7 +4,7 @@ version = "1.0.0"
 edition = "2021"
 
 [dependencies]
-b3_shared = { path = "../b3_shared" }
+b3_helper = { path = "../b3_helper" }
 serde = { version = "1.0.163", features = ["derive"] }
 candid = "0.8.4"
 ic-cdk = "0.7.4"

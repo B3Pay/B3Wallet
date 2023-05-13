@@ -1,14 +1,14 @@
+use crate::error::SharedError;
 use ic_cdk::{
-    api::management_canister::main::CanisterStatusResponse,
+    api::management_canister::main::{CanisterInstallMode, CanisterStatusResponse},
     export::{
         candid::{CandidType, Encode},
         serde::Deserialize,
         Principal,
     },
 };
+use serde_bytes::ByteBuf;
 use std::{collections::HashMap, fmt::Display};
-
-use crate::error::SharedError;
 
 pub type Metadata = HashMap<String, String>;
 
@@ -16,39 +16,45 @@ pub type ControllerId = Principal;
 pub type CanisterId = Principal;
 pub type UserId = Principal;
 
-pub type WasmHash = String;
+pub type WasmSize = usize;
+pub type WasmModule = Vec<u8>;
+pub type WasmHash = [u8; 32];
+
 pub type Version = String;
 
 pub type Blob = Vec<u8>;
-pub type Wasm = Vec<u8>;
 
 #[derive(CandidType, Deserialize, Clone)]
-pub struct Canister {
+pub struct Wasm(pub ByteBuf);
+
+#[derive(CandidType, Deserialize, Clone)]
+pub struct Subaccount(pub [u8; 32]);
+
+#[derive(CandidType, Deserialize, Clone)]
+pub struct AccountIdentifier(pub [u8; 32]);
+
+#[derive(CandidType, Deserialize, Clone)]
+pub struct SignerCanister {
     pub canister_id: Option<CanisterId>,
     pub created_at: u64,
     pub updated_at: u64,
-    pub owner: UserId,
 }
 
-pub struct InstallArg {
-    pub wasm: Wasm,
+pub struct CanisterInstallArg {
     pub arg: Vec<u8>,
-}
-
-impl TryFrom<(UserId, Wasm)> for InstallArg {
-    type Error = SharedError;
-
-    fn try_from((owner, wasm): (UserId, Wasm)) -> Result<Self, Self::Error> {
-        let arg = Encode!(&UserControlArgs { owner })
-            .map_err(|e| SharedError::EncodeError(e.to_string()))?;
-
-        Ok(Self { arg, wasm })
-    }
+    pub wasm_module: WasmModule,
+    pub mode: CanisterInstallMode,
 }
 
 #[derive(CandidType, Deserialize)]
-pub struct UserControlArgs {
+pub struct SignerCanisterInitArgs {
     pub owner: UserId,
+}
+
+impl SignerCanisterInitArgs {
+    pub fn encode(&self) -> Result<Vec<u8>, SharedError> {
+        Encode!(&self).map_err(|e| SharedError::EncodeError(e.to_string()))
+    }
 }
 
 #[derive(CandidType, Deserialize)]
@@ -59,12 +65,6 @@ pub struct CanisterStatus {
     pub account_counter: usize,
     pub canister_status: CanisterStatusResponse,
 }
-
-#[derive(CandidType, Deserialize, Clone)]
-pub struct Subaccount(pub [u8; 32]);
-
-#[derive(CandidType, Deserialize, Clone)]
-pub struct AccountIdentifier(pub [u8; 32]);
 
 #[derive(CandidType, Deserialize, Clone, Debug)]
 pub struct Tokens {
@@ -95,6 +95,7 @@ impl Tokens {
         self.e8s
     }
 }
+
 #[derive(CandidType, Deserialize, Clone)]
 pub struct Memo(pub u64);
 
@@ -139,5 +140,14 @@ pub enum NotifyTopUpResult {
 pub struct TransferFee {
     pub transfer_fee: Tokens,
 }
+
 #[derive(CandidType, Deserialize)]
 pub struct TransferFeeArgs {}
+
+#[derive(CandidType, Deserialize, Clone, PartialEq, Default, Debug)]
+pub enum Environment {
+    Development,
+    Staging,
+    #[default]
+    Production,
+}

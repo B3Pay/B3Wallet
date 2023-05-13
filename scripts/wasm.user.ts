@@ -1,33 +1,24 @@
 import { B3User } from "../src/service/actor"
 import { userLocalActor } from "./actor"
-import { loadWasm, readVersion } from "./utils"
+import { chunkGenerator, loadWasm, readVersion } from "./utils"
 
-const resetRelease = (actor: B3User) => actor.reset_wasm()
-
-const chunkGenerator = async function* (
-  wasmModule: number[],
-  chunkSize = 700000
-) {
-  for (let start = 0; start < wasmModule.length; start += chunkSize) {
-    yield wasmModule.slice(start, start + chunkSize)
-  }
-}
+const resetRelease = (actor: B3User) => actor.unload_wasm()
 
 const loadRelease = async (
   actor: B3User,
   wasmModule: number[],
   version: string
 ) => {
-  console.log(`loading wasm code ${version} in User Canister.`)
+  console.log(`Loading wasm code ${version} in User Canister.`)
 
   console.log(`Wasm size:`, wasmModule.length)
 
   for await (const chunks of chunkGenerator(wasmModule)) {
-    const result = await actor.load_wasm(chunks, version)
+    const result = await actor.load_wasm(chunks)
     console.log(`Chunks :`, result)
   }
 
-  console.log(`loading done.`)
+  console.log(`Loading done.`)
 }
 
 const load = async (actor: B3User) => {
@@ -43,8 +34,16 @@ const load = async (actor: B3User) => {
   await loadRelease(actor, wasmModule, version)
 }
 
-;(async () => {
-  const actor = await userLocalActor()
+const loader = async (canisterId?: string) => {
+  if (!canisterId) {
+    console.log(`Start Loading on Canister ID:`, canisterId)
+  }
+
+  const actor = await userLocalActor(canisterId)
 
   await load(actor)
-})()
+}
+
+const canisterId = process.argv[2] as string
+
+loader(canisterId)

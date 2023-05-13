@@ -1,8 +1,12 @@
 /* eslint-disable @next/next/no-img-element */
+import { Principal } from "@dfinity/principal"
 import CreateAccount from "components/CreateAccount"
 import EthAccount from "components/EthAccount"
 import { Response } from "components/Response"
-import { Account, CanisterStatus } from "declarations/b3_signer/b3_signer.did"
+import {
+  CanisterStatus,
+  SignerAccount
+} from "declarations/b3_signer/b3_signer.did"
 import useAuthClient from "hooks/useAuthClient"
 import Head from "next/head"
 import { useCallback, useEffect, useState } from "react"
@@ -28,7 +32,7 @@ export const loadRelease = async (
   console.log(`Wasm size:`, wasmModule.length)
 
   for await (const chunks of chunkGenerator(wasmModule)) {
-    const result = await actor.load_wasm(chunks, version)
+    const result = await actor.load_wasm(chunks)
     console.log(`Chunks :`, result)
   }
 
@@ -43,8 +47,9 @@ function HomePage() {
   const [error, setError] = useState<string>()
 
   const [status, setStatus] = useState<CanisterStatus>()
-  const [accounts, setAccounts] = useState<Account[]>([])
+  const [accounts, setAccounts] = useState<SignerAccount[]>([])
   const [actor, setActor] = useState<B3User>()
+  const [canisterId, setCanisterId] = useState<string>("")
 
   const [version, setVersion] = useState<string>("")
 
@@ -87,7 +92,7 @@ function HomePage() {
       return
     }
 
-    const canisterId = control.signer_id.toString()
+    const canisterId = control.canister_id.toString()
 
     fetchUserActor(canisterId)
     setLoading(false)
@@ -114,20 +119,30 @@ function HomePage() {
     fetchCanisterId()
   }, [fetchCanisterId])
 
-  const createUserHandler = async () => {
+  const createUser = async () => {
     if (!systemActor || !authClient) {
       return
     }
     setLoading(true)
-    const userControl = await systemActor.create_signer()
+    const userControl = await systemActor.create_signer_canister()
 
-    if ("Err" in userControl) {
-      setError(userControl.Err)
-      setLoading(false)
+    fetchUserActor(userControl.canister_id.toString())
+    setLoading(false)
+  }
+
+  const installCanister = async () => {
+    if (!systemActor || !authClient) {
       return
     }
+    setLoading(true)
 
-    fetchUserActor(userControl.Ok.signer_id.toString())
+    const canisterPrincipal = Principal.fromText(canisterId)
+
+    const userControl = await systemActor.install_signer_canister(
+      canisterPrincipal
+    )
+
+    fetchUserActor(userControl.canister_id.toString())
     setLoading(false)
   }
 
@@ -161,7 +176,7 @@ function HomePage() {
       return
     }
 
-    const wasm_version = await actor.wasm_version()
+    const wasm_version = await actor.wasm_hash()
 
     console.log("Wasm version:", wasm_version)
 
@@ -215,7 +230,7 @@ function HomePage() {
         {loading && <p>Loading...</p>}
         {error && <p>{error}</p>}
         {!isAuthenticated ? (
-          <section
+          <div
             style={{
               display: "flex",
               flexDirection: "column",
@@ -223,26 +238,41 @@ function HomePage() {
             }}
           >
             <button onClick={login}>Login</button>
-          </section>
+          </div>
         ) : actor ? (
-          <section>
+          <div>
             <CreateAccount actor={actor} fetchAccounts={fetchAccounts} />
             <label>Accounts: &nbsp;</label>
             {accounts.map((account, index) => (
               <EthAccount key={index} {...account} actor={actor} />
             ))}
             <button onClick={reset_account}>Reset Account</button>
-            <button onClick={logout}>Logout</button>
-          </section>
+          </div>
         ) : (
-          <section
+          <div
             style={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center"
             }}
           >
-            <button onClick={() => createUserHandler()}>Create User</button>
+            <input
+              type="text"
+              placeholder="Enter Canister id"
+              value={canisterId}
+              onChange={e => setCanisterId(e.target.value)}
+            />
+            <button onClick={installCanister}>Install Canister</button>
+            <button onClick={createUser}>Create User</button>
+          </div>
+        )}
+        {isAuthenticated && (
+          <section
+            style={{
+              display: "flex",
+              justifyContent: "center"
+            }}
+          >
             <button onClick={logout}>Logout</button>
           </section>
         )}

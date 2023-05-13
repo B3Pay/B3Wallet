@@ -2,6 +2,8 @@ use ic_cdk::export::Principal;
 
 use crate::types::{Memo, Tokens};
 
+pub const RATE_LIMIT: u64 = 60000000000;
+
 pub const IC_TRANSACTION_FEE_ICP: Tokens = Tokens::from_e8s(10_000);
 
 pub const CREATE_SIGNER_CANISTER_CYCLES: u128 = 1_000_000_000_000;

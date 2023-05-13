@@ -3,66 +3,54 @@ mod guards;
 mod status;
 mod wasm;
 
-use b3_shared::types::{UserControlArgs, UserId};
+use b3_helper::types::{SignerCanisterInitArgs, UserId};
 use b3_signer_lib::{
     state::State,
-    store::{with_state, with_state_mut},
+    store::{with_owner, with_owner_mut, with_state, with_state_mut, with_wasm_mut},
 };
 use ic_cdk::{api::call::arg_data, export::candid::candid_method, init, post_upgrade, pre_upgrade};
-
-use guards::OWNER;
-use wasm::WASM;
 
 #[init]
 #[candid_method(init)]
 pub fn init() {
-    let (call_arg,) = arg_data::<(Option<UserControlArgs>,)>();
+    let (call_arg,) = arg_data::<(Option<SignerCanisterInitArgs>,)>();
 
     let owner = match call_arg {
         Some(args) => args.owner,
         None => ic_cdk::caller(),
     };
 
-    with_state_mut(|s| {
-        s.init();
-    });
+    with_state_mut(|s| s.init());
 
-    OWNER.with(|o| {
-        *o.borrow_mut() = owner;
-    });
+    with_owner_mut(|o| *o = owner);
 }
 
 #[pre_upgrade]
 pub fn pre_upgrade() {
-    let owner = OWNER.with(|o| o.borrow().clone());
-    with_state(|s| {
-        ic_cdk::storage::stable_save((s, owner)).unwrap();
-    });
+    let owner = with_owner(|o| o.clone());
+    let state = with_state(|s| s.clone());
 
-    WASM.with(|s| s.borrow_mut().reset());
+    ic_cdk::storage::stable_save((state, owner)).unwrap();
+
+    with_wasm_mut(|w| w.unload());
 }
 
 #[post_upgrade]
 pub fn post_upgrade() {
-    let (s_prev, owner_prev): (State, UserId) = ic_cdk::storage::stable_restore().unwrap();
-    with_state_mut(|s| {
-        *s = s_prev;
-    });
+    let (state_prev, owner_prev): (State, UserId) = ic_cdk::storage::stable_restore().unwrap();
 
-    OWNER.with(|o| {
-        *o.borrow_mut() = owner_prev;
-    });
+    with_state_mut(|s| *s = state_prev);
+
+    with_owner_mut(|o| *o = owner_prev);
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::wasm::WasmData;
-    use b3_shared::types::*;
-
+    use b3_helper::types::*;
     use b3_signer_lib::{
         account::SignerAccount,
+        ledger::network::Network,
         ledger::types::*,
-        ledger::{config::Environment, network::Network},
         request::EvmSignRequest,
         signed::SignedTransaction,
         state::State,

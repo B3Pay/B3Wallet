@@ -1,6 +1,6 @@
 use crate::guards::caller_is_owner;
-use b3_shared::error::TrapError;
-use b3_shared::{b3_canister_status, types::CanisterStatus};
+use b3_helper::error::TrapError;
+use b3_helper::{b3_canister_status, types::CanisterStatus};
 use b3_signer_lib::store::with_state;
 use b3_signer_lib::types::AccountsStatus;
 use ic_cdk::export::candid::candid_method;

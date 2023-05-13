@@ -7,10 +7,13 @@ use crate::types::{BlockIndex, Tokens};
 pub enum SharedError {
     CanisterStatusError(String),
     CreateCanisterError(String),
+    GetOwnerError(String),
     VersionError(String),
     InstallCodeError(String),
+    WasmHashError(String),
     EncodeError(String),
     SignerNotAvailable,
+    RateLimitExceeded,
     TxCreatedInFuture,
     InvalidAccountIdentifier,
     UpdateCanisterControllersError(String),
@@ -31,11 +34,14 @@ pub enum SharedError {
 pub trait TrapError {
     fn to_string(self) -> String;
 }
+
 #[rustfmt::skip]
 impl TrapError for SharedError {
     fn to_string(self) -> String {
         match self {
             SharedError::Processing => "Processing!".to_string(),
+            SharedError::GetOwnerError(e) => ["Get owner error: ", &e].concat(),
+            SharedError::WasmHashError(e) => ["Wasm hash error: ", &e].concat(),
             SharedError::InvalidTransaction(e) => ["Invalid transaction: ", &e].concat(),
             SharedError::TransactionTooOld(e) => ["Transaction too old:", & e.to_string()].concat(),
             SharedError::CreateCanisterError(e) => ["Create canister error: ", &e].concat(),
@@ -44,6 +50,7 @@ impl TrapError for SharedError {
             SharedError::VersionError(e) => ["Version error: ", &e].concat(),
             SharedError::CanisterStatusError(e) => ["Canister status error: ", &e].concat(),
             SharedError::SignerNotAvailable => "Signer not available!".to_string(),
+            SharedError::RateLimitExceeded => "Rate limit exceeded, please try again later!".to_string(),
             SharedError::UpdateCanisterControllersError(e) => ["Update canister controllers error: " , &e].concat(),
             SharedError::InvalidAccountIdentifier => "Invalid account identifier!".to_string(),
             SharedError::BadFee { expected_fee } => ["Invalid fee: Expected", &expected_fee.to_string(), "tokens"].join(" "),

@@ -87,7 +87,6 @@ type State = record {
   dev_counter : nat64;
 };
 type Tokens = record { e8s : nat64 };
-type WasmData = record { wasm : vec nat8; version : text };
 service : () -> {
   account_status : () -> (AccountsStatus) query;
   change_owner : (principal) -> (principal);
@@ -104,7 +103,7 @@ service : () -> {
   get_sign_requests : (text, principal) -> (EvmSignRequest) query;
   get_signed_transaction : (text) -> (SignedTransaction) query;
   hide_account : (text) -> ();
-  load_wasm : (vec nat8, text) -> (nat64);
+  load_wasm : (vec nat8) -> (nat64);
   reintall_canister : () -> ();
   remove_account : (text) -> ();
   rename_account : (text, text) -> (text);
@@ -114,12 +113,12 @@ service : () -> {
   request_sign_message : (text, vec nat8) -> (vec nat8);
   request_sign_transaction : (text, vec nat8, nat64) -> (SignedTransaction);
   reset_accounts : () -> (State);
-  reset_wasm : () -> (WasmData);
   send_icp : (text, text, Tokens, opt Tokens, opt nat64) -> (nat64);
   status : () -> (CanisterStatus);
   top_up_and_notify : (text, Tokens, opt principal, opt Tokens) -> (nat);
+  unload_wasm : () -> (nat64);
   update_canister_controllers : (vec principal) -> ();
   upgrade_canister : () -> ();
   version : () -> (text) query;
-  wasm_version : () -> (text) query;
+  wasm_hash : () -> (vec nat8) query;
 }

@@ -1,6 +1,6 @@
 use crate::error::SignerError;
-use b3_shared::b3_sha256;
-use b3_shared::types::{AccountIdentifier, Subaccount};
+use b3_helper::b3_sha256;
+use b3_helper::types::{AccountIdentifier, Subaccount};
 use easy_hasher::easy_hasher;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use ripemd::{Digest, Ripemd160};
@@ -29,9 +29,9 @@ impl Default for PublicKeys {
     }
 }
 
-impl PublicKeys {
-    pub fn new(subaccount: &Subaccount) -> Self {
-        let identifier = subaccount.get_account_identifier();
+impl From<Subaccount> for PublicKeys {
+    fn from(subaccount: Subaccount) -> Self {
+        let identifier = subaccount.account_identifier();
 
         let mut addresses = HashMap::new();
 
@@ -43,15 +43,17 @@ impl PublicKeys {
             addresses,
         }
     }
+}
 
-    pub fn is_available(&self) -> bool {
+impl PublicKeys {
+    pub fn is_ecdsa_set(&self) -> bool {
         self.ecdsa
             .clone()
             .map(|ecdsa| ecdsa.len() == 33)
             .unwrap_or(false)
     }
 
-    pub fn set_ecdsa(&mut self, ecdsa: Vec<u8>) -> Result<(), SignerError> {
+    pub fn set_ecdsa(&mut self, ecdsa: Vec<u8>) -> Result<Addresses, SignerError> {
         if ecdsa.len() != 33 {
             return Err(SignerError::InvalidEcdsaPublicKey);
         }
@@ -62,21 +64,21 @@ impl PublicKeys {
 
         self.generate_btc_address(BitcoinNetwork::Mainnet)?;
 
-        Ok(())
+        Ok(self.addresses())
     }
 
-    pub fn get_ecdsa(&self) -> Result<Vec<u8>, SignerError> {
+    pub fn ecdsa(&self) -> Result<Vec<u8>, SignerError> {
         match &self.ecdsa {
             Some(ecdsa) => Ok(ecdsa.clone()),
             None => Err(SignerError::MissingEcdsaPublicKey),
         }
     }
 
-    pub fn get_identifier(&self) -> AccountIdentifier {
+    pub fn identifier(&self) -> AccountIdentifier {
         self.identifier.clone()
     }
 
-    pub fn get_addresses(&self) -> HashMap<String, String> {
+    pub fn addresses(&self) -> HashMap<String, String> {
         self.addresses.clone()
     }
 
@@ -99,7 +101,7 @@ impl PublicKeys {
     }
 
     pub fn generate_eth_address(&mut self, chain: u64) -> Result<String, SignerError> {
-        let ecdsa = self.get_ecdsa()?;
+        let ecdsa = self.ecdsa()?;
 
         let pub_key_arr: [u8; 33] = ecdsa[..].try_into().unwrap();
 
@@ -121,7 +123,7 @@ impl PublicKeys {
         &mut self,
         bitcoin_network: BitcoinNetwork,
     ) -> Result<String, SignerError> {
-        let bytes = self.get_ecdsa()?;
+        let bytes = self.ecdsa()?;
 
         let mut hasher = Ripemd160::new();
         hasher.update(bytes);

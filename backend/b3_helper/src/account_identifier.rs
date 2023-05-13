@@ -14,6 +14,26 @@ impl Default for AccountIdentifier {
     }
 }
 
+impl AccountIdentifier {
+    pub fn new(owner: &Principal, subaccount: &Subaccount) -> Self {
+        let mut hasher = Sha224::new();
+        hasher.update(b"\x0Aaccount-id");
+        hasher.update(owner.as_slice());
+        hasher.update(&subaccount.0[..]);
+        let hash: [u8; 28] = hasher.finalize().into();
+
+        let mut hasher = crc32fast::Hasher::new();
+        hasher.update(&hash);
+        let crc32_bytes = hasher.finalize().to_be_bytes();
+
+        let mut result = [0u8; 32];
+        result[0..4].copy_from_slice(&crc32_bytes[..]);
+        result[4..32].copy_from_slice(hash.as_ref());
+
+        Self(result)
+    }
+}
+
 impl TryFrom<String> for AccountIdentifier {
     type Error = SharedError;
 
@@ -42,25 +62,5 @@ impl Display for AccountIdentifier {
             result.push_str(&format!("{:02x}", byte));
         }
         write!(f, "{}", result)
-    }
-}
-
-impl AccountIdentifier {
-    pub fn new(owner: &Principal, subaccount: &Subaccount) -> Self {
-        let mut hasher = Sha224::new();
-        hasher.update(b"\x0Aaccount-id");
-        hasher.update(owner.as_slice());
-        hasher.update(&subaccount.0[..]);
-        let hash: [u8; 28] = hasher.finalize().into();
-
-        let mut hasher = crc32fast::Hasher::new();
-        hasher.update(&hash);
-        let crc32_bytes = hasher.finalize().to_be_bytes();
-
-        let mut result = [0u8; 32];
-        result[0..4].copy_from_slice(&crc32_bytes[..]);
-        result[4..32].copy_from_slice(hash.as_ref());
-
-        Self(result)
     }
 }

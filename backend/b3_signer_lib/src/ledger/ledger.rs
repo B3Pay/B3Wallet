@@ -1,7 +1,10 @@
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use ic_cdk::{
+    api::call::{call, call_with_payment},
+    export::{candid::CandidType, serde::Deserialize},
+};
 
 use crate::{error::SignerError, ledger::public_keys::PublicKeys};
-use b3_shared::{
+use b3_helper::{
     constants::{
         CANISTER_TOP_UP_MEMO, CANISTER_TRANSFER_MEMO, IC_TRANSACTION_FEE_ICP,
         MAINNET_CYCLES_MINTING_CANISTER_ID, MAINNET_LEDGER_CANISTER_ID,
@@ -13,8 +16,6 @@ use b3_shared::{
         NotifyTopupArgs, Subaccount, Tokens, TransferArgs, TransferResult,
     },
 };
-
-use ic_cdk::api::call::{call, call_with_payment};
 
 use super::{
     subaccount::SubaccountTrait,
@@ -36,20 +37,22 @@ impl Default for Ledger {
     }
 }
 
-impl Ledger {
-    pub fn new(subaccount: Subaccount) -> Self {
-        let public_keys = PublicKeys::new(&subaccount);
+impl From<Subaccount> for Ledger {
+    fn from(subaccount: Subaccount) -> Self {
+        let public_keys = subaccount.clone().into();
 
         Ledger {
             subaccount,
             public_keys,
         }
     }
+}
 
+impl Ledger {
     pub async fn ecdsa_public_key(&self) -> Result<Vec<u8>, SignerError> {
-        let key_id = self.subaccount.get_key_id();
+        let key_id = self.subaccount.key_id();
 
-        let derivation_path = self.subaccount.get_derivation_path();
+        let derivation_path = self.subaccount.derivation_path();
 
         let request = ECDSAPublicKeyArgs {
             canister_id: None,
@@ -69,7 +72,7 @@ impl Ledger {
     }
 
     pub async fn sign_with_ecdsa(&self, message_hash: Vec<u8>) -> Result<Vec<u8>, SignerError> {
-        let (key_id, cycles, derivation_path) = self.subaccount.get_key_id_with_cycles_and_path();
+        let (key_id, cycles, derivation_path) = self.subaccount.key_id_with_cycles_and_path();
 
         let request = SignWithECDSAArgs {
             derivation_path,
@@ -90,7 +93,7 @@ impl Ledger {
     }
 
     pub async fn account_balance(&self) -> Result<Tokens, SignerError> {
-        let account = self.subaccount.get_account_identifier();
+        let account = self.subaccount.account_identifier();
 
         let args = AccountBalanceArgs { account };
 
@@ -130,7 +133,7 @@ impl Ledger {
         amount: Tokens,
         fee: Option<Tokens>,
     ) -> Result<NotifyTopUpResult, SignerError> {
-        let canister_subaccount = Subaccount::from(&canister_id);
+        let canister_subaccount: Subaccount = canister_id.into();
 
         let to = AccountIdentifier::new(&MAINNET_CYCLES_MINTING_CANISTER_ID, &canister_subaccount);
 

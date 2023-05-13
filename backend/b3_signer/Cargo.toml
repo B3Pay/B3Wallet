@@ -1,6 +1,6 @@
 [package]
 name = "b3_signer"
-version = "0.0.0-alpha.6"
+version = "0.0.0-alpha.7"
 edition = "2021"
 
 [lib]
@@ -8,6 +8,6 @@ crate-type = ["cdylib"]
 
 [dependencies]
 b3_signer_lib = { path = "../b3_signer_lib" }
-b3_shared = { path = "../b3_shared" }
+b3_helper = { path = "../b3_helper" }
 candid = "0.8.4"
 ic-cdk = "0.7.4"

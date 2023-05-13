@@ -1,6 +1,6 @@
 use crate::guards::caller_is_controller;
-use b3_shared::error::TrapError;
-use b3_shared::{b3_canister_status, types::CanisterStatus};
+use b3_helper::error::TrapError;
+use b3_helper::{b3_canister_status, types::CanisterStatus};
 use b3_system_lib::store::with_state;
 use ic_cdk::export::candid::candid_method;
 use ic_cdk::trap;
@@ -17,7 +17,7 @@ pub async fn status() -> CanisterStatus {
         .await
         .unwrap_or_else(|e| trap(&e.to_string()));
 
-    let account_counter = with_state(|s| s.get_number_of_signers());
+    let account_counter = with_state(|s| s.number_of_signers());
     let status_at = time();
 
     CanisterStatus {

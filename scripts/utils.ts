@@ -63,3 +63,12 @@ export const readVersion = async () => {
     await file.close()
   }
 }
+
+export const chunkGenerator = async function* (
+  wasmModule: number[],
+  chunkSize = 700000
+) {
+  for (let start = 0; start < wasmModule.length; start += chunkSize) {
+    yield wasmModule.slice(start, start + chunkSize)
+  }
+}

@@ -5,7 +5,7 @@ use ic_cdk::export::{
     serde::{Deserialize, Serialize},
 };
 
-use b3_shared::types::CanisterId;
+use b3_helper::types::CanisterId;
 
 pub type Addresses = HashMap<String, String>;
 

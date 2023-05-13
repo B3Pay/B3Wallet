@@ -1,4 +1,4 @@
-use b3_shared::error::TrapError;
+use b3_helper::error::TrapError;
 use ic_cdk::export::candid::{CandidType, Deserialize};
 
 #[rustfmt::skip]

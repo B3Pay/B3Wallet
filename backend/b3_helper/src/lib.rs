@@ -1,9 +1,10 @@
-pub mod canister;
+pub mod account_identifier;
 pub mod constants;
 pub mod error;
-pub mod identifier;
+pub mod signer_canister;
 pub mod subaccount;
 pub mod types;
+pub mod wasm;
 
 use error::{SharedError, TrapError};
 use ic_cdk::api::management_canister::{
@@ -11,22 +12,20 @@ use ic_cdk::api::management_canister::{
     provisional::{CanisterId, CanisterIdRecord},
 };
 use sha2::{Digest, Sha256};
+use types::WasmHash;
 
 pub fn b3_sha256(data: &[u8]) -> Vec<u8> {
     let mut hasher = Sha256::new();
     hasher.update(data);
+
     hasher.finalize().to_vec()
 }
 
-pub fn b3_sha256_hex(data: &[u8]) -> String {
+pub fn b3_sha256_wasm_hash(data: &[u8]) -> WasmHash {
     let mut hasher = Sha256::new();
     hasher.update(data);
 
-    hasher
-        .finalize()
-        .iter()
-        .map(|b| format!("{:02x}", b))
-        .collect::<String>()
+    hasher.finalize().into()
 }
 
 pub async fn b3_canister_status(
@@ -39,6 +38,6 @@ pub async fn b3_canister_status(
     Ok(status)
 }
 
-pub fn b3_trap<E: TrapError>(err: E) -> ! {
+pub fn b3_revert<E: TrapError>(err: E) -> ! {
     ic_cdk::trap(&err.to_string())
 }

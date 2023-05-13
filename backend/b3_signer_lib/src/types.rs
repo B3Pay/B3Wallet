@@ -1,5 +1,5 @@
 use crate::{account::SignerAccount, allowance::SignerAllowance, request::EvmSignRequest};
-use b3_shared::types::CanisterId;
+use b3_helper::types::CanisterId;
 use candid::CandidType;
 use serde::Deserialize;
 use std::collections::{BTreeMap, HashMap};

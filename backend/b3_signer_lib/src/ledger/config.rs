@@ -1,28 +1,21 @@
+use b3_helper::types::Environment;
 use ic_cdk::export::candid::{CandidType, Deserialize};
 
 use super::types::{EcdsaCurve, EcdsaKeyId};
 
-#[derive(CandidType, Deserialize, Clone, PartialEq, Default, Debug)]
-pub enum Environment {
-    Development,
-    Staging,
-    #[default]
-    Production,
-}
-
 #[derive(CandidType, Deserialize, Clone)]
-pub struct Config {
+pub struct EcdsaConfig {
     pub key_name: String,
     pub sign_cycles: u64,
 }
 
-impl Default for Config {
+impl Default for EcdsaConfig {
     fn default() -> Self {
         Self::from(Environment::Development)
     }
 }
 
-impl From<Environment> for Config {
+impl From<Environment> for EcdsaConfig {
     fn from(env: Environment) -> Self {
         if env == Environment::Production {
             Self {
@@ -43,7 +36,7 @@ impl From<Environment> for Config {
     }
 }
 
-impl Config {
+impl EcdsaConfig {
     pub fn key_name(&self) -> String {
         self.key_name.clone()
     }

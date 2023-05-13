@@ -1,8 +1,7 @@
-mod controller;
 mod guards;
 mod release;
-mod signer;
 mod status;
+mod user;
 
 use b3_system_lib::{
     store::{with_state, with_state_mut, with_wasm_map, with_wasm_map_mut},
@@ -47,17 +46,16 @@ pub fn post_upgrade() {
 
 #[cfg(test)]
 mod tests {
-    use b3_shared::types::*;
+    use b3_helper::types::*;
     use b3_system_lib::error::SystemError;
     use b3_system_lib::types::*;
-
-    use ic_cdk::export::Principal;
+    use ic_cdk::export::candid::export_service;
 
     #[test]
     fn generate_candid() {
         use std::io::Write;
 
-        ic_cdk::export::candid::export_service!();
+        export_service!();
 
         let candid = __export_service();
 

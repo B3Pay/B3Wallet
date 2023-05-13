@@ -2,15 +2,13 @@ use crate::{
     allowance::SignerAllowance,
     error::SignerError,
     evm_tx::get_evm_transaction,
-    ledger::{
-        config::Environment, ledger::Ledger, public_keys::PublicKeys, subaccount::SubaccountTrait,
-    },
+    ledger::{ledger::Ledger, public_keys::PublicKeys, subaccount::SubaccountTrait},
     request::EvmSignRequest,
     signed::SignedTransaction,
     types::CanisterAllowances,
     types::SignerAllowanceArgs,
 };
-use b3_shared::types::{CanisterId, Subaccount};
+use b3_helper::types::{CanisterId, Environment, Subaccount};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use std::collections::HashMap;
 
@@ -39,10 +37,10 @@ impl Default for SignerAccount {
     }
 }
 
-impl SignerAccount {
-    pub fn new(subaccount: Subaccount) -> Self {
-        let id = subaccount.get_id();
-        let ledger = Ledger::new(subaccount);
+impl From<Subaccount> for SignerAccount {
+    fn from(subaccount: Subaccount) -> Self {
+        let id = subaccount.id();
+        let ledger = subaccount.into();
 
         SignerAccount {
             id,
@@ -54,13 +52,15 @@ impl SignerAccount {
             signed: SignedTransaction::default(),
         }
     }
+}
 
-    pub async fn sign_transaction(
+impl SignerAccount {
+    pub async fn sign_eth_transaction(
         &self,
         hex_raw_tx: Vec<u8>,
         chain_id: u64,
     ) -> Result<SignedTransaction, SignerError> {
-        let ecdsa = self.ledger.public_keys.get_ecdsa()?;
+        let ecdsa = self.ledger.public_keys.ecdsa()?;
 
         let mut evm_tx =
             get_evm_transaction(&hex_raw_tx, chain_id).map_err(|e| SignerError::InvalidTx(e))?;
@@ -150,16 +150,24 @@ impl SignerAccount {
         self.name.clone()
     }
 
-    pub fn connected_canisters(&self) -> CanisterAllowances {
-        self.canisters.clone()
-    }
-
     pub fn hide(&mut self) {
         self.hidden = true;
     }
 
+    pub fn unhide(&mut self) {
+        self.hidden = false;
+    }
+
+    pub fn connected_canisters(&self) -> CanisterAllowances {
+        self.canisters.clone()
+    }
+
     pub fn public_keys(&self) -> PublicKeys {
         self.ledger.public_keys.clone()
+    }
+
+    pub fn environment(&self) -> Environment {
+        self.ledger.subaccount.environment()
     }
 
     pub fn name(&self) -> String {
@@ -168,9 +176,5 @@ impl SignerAccount {
 
     pub fn id(&self) -> String {
         self.id.clone()
-    }
-
-    pub fn env(&self) -> Environment {
-        self.ledger.subaccount.get_env()
     }
 }

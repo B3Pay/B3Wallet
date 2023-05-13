@@ -1,16 +1,7 @@
 import { ReleaseArgs } from "declarations/b3_system/b3_system.did"
 import { B3System } from "../src/service/actor"
 import { systemLocalActor } from "./actor"
-import { loadWasm, readVersion } from "./utils"
-
-const chunkGenerator = async function* (
-  wasmModule: number[],
-  chunkSize = 700000
-) {
-  for (let start = 0; start < wasmModule.length; start += chunkSize) {
-    yield wasmModule.slice(start, start + chunkSize)
-  }
-}
+import { chunkGenerator, loadWasm, readVersion } from "./utils"
 
 const loadRelease = async (
   actor: B3System,
@@ -31,7 +22,7 @@ const loadRelease = async (
     console.log(`Chunks :`, result)
   }
 
-  console.log(`loading done.`)
+  console.log(`Loading done.`)
 }
 
 export const load = async (actor: B3System, reload: boolean) => {

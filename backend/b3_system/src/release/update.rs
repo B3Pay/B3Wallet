@@ -1,5 +1,5 @@
-use b3_shared::{
-    b3_trap,
+use b3_helper::{
+    b3_revert,
     types::{Blob, Version},
 };
 use b3_system_lib::{
@@ -38,8 +38,8 @@ fn load_release(blob: Blob, release_args: ReleaseArgs) -> Result<LoadRelease, Sy
         });
 
     let total = with_release_mut(release_index, |r| r.load_wasm(&blob))
-        .unwrap_or_else(|e| b3_trap(e))
-        .unwrap_or_else(|e| b3_trap(e));
+        .unwrap_or_else(|e| b3_revert(e))
+        .unwrap_or_else(|e| b3_revert(e));
 
     let chunks = blob.len();
 

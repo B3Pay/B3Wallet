@@ -67,8 +67,10 @@ export const systemLocalActor = async () => {
   }) as Promise<B3System>
 }
 
-export const userLocalActor = async () => {
-  const canisterId = userPrincipalLocal()
+export const userLocalActor = async (canister_address?: string) => {
+  const canisterId = canister_address
+    ? Principal.fromText(canister_address)
+    : userPrincipalLocal()
 
   const agent = await localAgent()
 

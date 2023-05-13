@@ -1,4 +1,4 @@
-use b3_shared::{b3_trap, types::Version};
+use b3_helper::{b3_revert, types::Version};
 use b3_system_lib::{
     error::SystemError,
     store::{with_latest_release, with_release, with_releases, with_version_release},
@@ -15,7 +15,7 @@ fn releases() -> Releases {
 #[candid_method(query)]
 #[query]
 fn latest_release() -> Release {
-    with_latest_release(|r| r.clone()).unwrap_or_else(|err| b3_trap(err))
+    with_latest_release(|r| r.clone()).unwrap_or_else(|err| b3_revert(err))
 }
 
 #[candid_method(query)]

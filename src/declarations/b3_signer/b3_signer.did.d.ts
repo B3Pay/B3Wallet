@@ -1,35 +1,20 @@
 import type { Principal } from '@dfinity/principal';
 import type { ActorMethod } from '@dfinity/agent';
 
-export interface Account {
-  'id' : string,
-  'name' : string,
-  'ledger' : Ledger,
-  'canisters' : Array<[Principal, Allowance]>,
-  'requests' : Array<[Principal, EvmSignRequest]>,
-  'signed' : SignedTransaction,
-}
 export interface AccountsStatus {
   'stag_counter' : bigint,
   'prod_counter' : bigint,
   'dev_counter' : bigint,
-}
-export interface Allowance {
-  'updated_at' : bigint,
-  'metadata' : Array<[string, string]>,
-  'created_at' : bigint,
-  'limit' : [] | [number],
-  'expires_at' : [] | [bigint],
 }
 export type BitcoinNetwork = { 'Mainnet' : null } |
   { 'Regtest' : null } |
   { 'Testnet' : null };
 export interface CanisterStatus {
   'canister_id' : Principal,
-  'accounts_status' : AccountsStatus,
   'status_at' : bigint,
   'version' : string,
   'canister_status' : CanisterStatusResponse,
+  'account_counter' : bigint,
 }
 export interface CanisterStatusResponse {
   'status' : CanisterStatusType,
@@ -89,45 +74,65 @@ export interface PublicKeys {
   'addresses' : Array<[string, string]>,
   'identifier' : Uint8Array | number[],
 }
-export interface SetAllowance {
-  'metadata' : Array<[string, string]>,
-  'limit' : [] | [number],
-  'expires_at' : [] | [bigint],
-}
 export interface SignedTransaction {
   'data' : Uint8Array | number[],
   'timestamp' : bigint,
+}
+export interface SignerAccount {
+  'id' : string,
+  'name' : string,
+  'hidden' : boolean,
+  'ledger' : Ledger,
+  'canisters' : Array<[Principal, SignerAllowance]>,
+  'requests' : Array<[Principal, EvmSignRequest]>,
+  'signed' : SignedTransaction,
+}
+export interface SignerAllowance {
+  'updated_at' : bigint,
+  'metadata' : Array<[string, string]>,
+  'created_at' : bigint,
+  'limit' : [] | [number],
+  'expires_at' : [] | [bigint],
+}
+export interface SignerAllowanceArgs {
+  'metadata' : Array<[string, string]>,
+  'limit' : [] | [number],
+  'expires_at' : [] | [bigint],
 }
 export interface State {
   'stag_counter' : bigint,
   'metadata' : Array<[string, string]>,
   'prod_counter' : bigint,
-  'accounts' : Array<[string, Account]>,
+  'accounts' : Array<[string, SignerAccount]>,
   'dev_counter' : bigint,
 }
 export interface Tokens { 'e8s' : bigint }
-export interface WasmData { 'wasm' : Uint8Array | number[], 'version' : string }
 export interface _SERVICE {
+  'account_status' : ActorMethod<[], AccountsStatus>,
   'change_owner' : ActorMethod<[Principal], Principal>,
-  'create_account' : ActorMethod<[[] | [Environment], [] | [string]], Account>,
+  'create_account' : ActorMethod<
+    [[] | [Environment], [] | [string]],
+    SignerAccount
+  >,
   'generate_address' : ActorMethod<[string, Network], string>,
-  'get_account' : ActorMethod<[string], Account>,
+  'get_account' : ActorMethod<[string], SignerAccount>,
   'get_account_count' : ActorMethod<[], bigint>,
-  'get_accounts' : ActorMethod<[], Array<Account>>,
+  'get_accounts' : ActorMethod<[], Array<SignerAccount>>,
   'get_addresses' : ActorMethod<[string], Array<[string, string]>>,
   'get_connected_canisters' : ActorMethod<
     [string],
-    Array<[Principal, Allowance]>
+    Array<[Principal, SignerAllowance]>
   >,
   'get_owner' : ActorMethod<[], Principal>,
   'get_sign_requests' : ActorMethod<[string, Principal], EvmSignRequest>,
   'get_signed_transaction' : ActorMethod<[string], SignedTransaction>,
-  'load_wasm' : ActorMethod<[Uint8Array | number[], string], bigint>,
+  'hide_account' : ActorMethod<[string], undefined>,
+  'load_wasm' : ActorMethod<[Uint8Array | number[]], bigint>,
   'reintall_canister' : ActorMethod<[], undefined>,
   'remove_account' : ActorMethod<[string], undefined>,
   'rename_account' : ActorMethod<[string, string], string>,
   'request_allowance' : ActorMethod<
-    [string, Principal, SetAllowance],
+    [string, Principal, SignerAllowanceArgs],
     undefined
   >,
   'request_balance' : ActorMethod<[string], Tokens>,
@@ -141,7 +146,6 @@ export interface _SERVICE {
     SignedTransaction
   >,
   'reset_accounts' : ActorMethod<[], State>,
-  'reset_wasm' : ActorMethod<[], WasmData>,
   'send_icp' : ActorMethod<
     [string, string, Tokens, [] | [Tokens], [] | [bigint]],
     bigint
@@ -151,8 +155,9 @@ export interface _SERVICE {
     [string, Tokens, [] | [Principal], [] | [Tokens]],
     bigint
   >,
+  'unload_wasm' : ActorMethod<[], bigint>,
   'update_canister_controllers' : ActorMethod<[Array<Principal>], undefined>,
   'upgrade_canister' : ActorMethod<[], undefined>,
   'version' : ActorMethod<[], string>,
-  'wasm_version' : ActorMethod<[], string>,
+  'wasm_hash' : ActorMethod<[], Uint8Array | number[]>,
 }
