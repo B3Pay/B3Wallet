@@ -2,7 +2,8 @@ use crate::guards::caller_is_owner;
 use b3_helper::{
     b3_revert,
     types::{
-        AccountIdentifier, BlockIndex, CanisterId, Environment, Memo, NotifyTopUpResult, Tokens,
+        AccountIdentifier, BlockIndex, CanisterId, Environment, Memo, NotifyTopUpResult,
+        SignerAllowanceArgs, Tokens,
     },
 };
 use b3_signer_lib::{
@@ -14,7 +15,6 @@ use b3_signer_lib::{
     store::{
         with_account, with_account_mut, with_ledger, with_ledger_mut, with_state, with_state_mut,
     },
-    types::SignerAllowanceArgs,
 };
 use ic_cdk::{export::candid::candid_method, update};
 

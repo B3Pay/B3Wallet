@@ -1,9 +1,10 @@
-use crate::{
+use crate::types::SignerCanister;
+use b3_helper::{
     constants::RATE_LIMIT,
     error::SharedError,
     types::{
-        CanisterId, CanisterInstallArg, CanisterStatus, ControllerId, SignerCanister, UserId,
-        Version, WasmHash,
+        CanisterId, ControllerId, SignerCanisterInstallArg, SignerCanisterStatus, UserId, Version,
+        WasmHash,
     },
 };
 use ic_cdk::api::{
@@ -115,13 +116,12 @@ impl SignerCanister {
 
     /// Get the status of the canister.
     /// The caller must be a controller of the canister.
-    pub async fn status(&self) -> Result<CanisterStatus, SharedError> {
+    pub async fn status(&self) -> Result<SignerCanisterStatus, SharedError> {
         let canister_id = self.canister_id()?;
 
-        let (canister_status,): (CanisterStatus,) =
-            ic_cdk::call(canister_id, "status", ())
-                .await
-                .map_err(|(_, message)| SharedError::CanisterStatusError(message))?;
+        let (canister_status,): (SignerCanisterStatus,) = ic_cdk::call(canister_id, "status", ())
+            .await
+            .map_err(|(_, message)| SharedError::CanisterStatusError(message))?;
 
         Ok(canister_status)
     }
@@ -157,11 +157,11 @@ impl SignerCanister {
     /// Install the code for the canister.
     pub async fn install_code(
         &mut self,
-        CanisterInstallArg {
+        SignerCanisterInstallArg {
             arg,
             mode,
             wasm_module,
-        }: CanisterInstallArg,
+        }: SignerCanisterInstallArg,
     ) -> Result<(), SharedError> {
         let canister_id = self.canister_id()?;
 

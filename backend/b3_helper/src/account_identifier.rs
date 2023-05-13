@@ -1,12 +1,10 @@
-use std::fmt::Display;
-
-use ic_cdk::export::Principal;
-use sha2::{Digest, Sha224};
-
 use crate::{
     error::SharedError,
     types::{AccountIdentifier, Subaccount},
 };
+use ic_cdk::export::Principal;
+use sha2::{Digest, Sha224};
+use std::fmt::Display;
 
 impl Default for AccountIdentifier {
     fn default() -> Self {

@@ -33,14 +33,7 @@ pub struct Subaccount(pub [u8; 32]);
 #[derive(CandidType, Deserialize, Clone)]
 pub struct AccountIdentifier(pub [u8; 32]);
 
-#[derive(CandidType, Deserialize, Clone)]
-pub struct SignerCanister {
-    pub canister_id: Option<CanisterId>,
-    pub created_at: u64,
-    pub updated_at: u64,
-}
-
-pub struct CanisterInstallArg {
+pub struct SignerCanisterInstallArg {
     pub arg: Vec<u8>,
     pub wasm_module: WasmModule,
     pub mode: CanisterInstallMode,
@@ -58,11 +51,42 @@ impl SignerCanisterInitArgs {
 }
 
 #[derive(CandidType, Deserialize)]
-pub struct CanisterStatus {
+pub struct SignerAllowanceArgs {
+    pub limit: Option<u8>,
+    pub metadata: Metadata,
+    pub expires_at: Option<u64>,
+}
+
+#[derive(CandidType, Default, Deserialize)]
+pub enum TransactionStatus {
+    #[default]
+    Pending,
+    Success,
+    Failed,
+}
+
+#[derive(CandidType, Deserialize)]
+pub struct AccountsStatus {
+    pub dev_counter: u64,
+    pub prod_counter: u64,
+    pub stag_counter: u64,
+}
+
+#[derive(CandidType, Deserialize)]
+pub struct SignerCanisterStatus {
     pub status_at: u64,
     pub version: String,
     pub canister_id: CanisterId,
-    pub account_counter: usize,
+    pub account_status: AccountsStatus,
+    pub canister_status: CanisterStatusResponse,
+}
+
+#[derive(CandidType, Deserialize)]
+pub struct SystemCanisterStatus {
+    pub status_at: u64,
+    pub version: String,
+    pub user_status: usize,
+    pub canister_id: CanisterId,
     pub canister_status: CanisterStatusResponse,
 }
 

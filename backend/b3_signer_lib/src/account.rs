@@ -6,9 +6,8 @@ use crate::{
     request::EvmSignRequest,
     signed::SignedTransaction,
     types::CanisterAllowances,
-    types::SignerAllowanceArgs,
 };
-use b3_helper::types::{CanisterId, Environment, Subaccount};
+use b3_helper::types::{CanisterId, Environment, SignerAllowanceArgs, Subaccount};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use std::collections::HashMap;
 

@@ -1,10 +1,10 @@
-use b3_helper::types::{Environment, Subaccount};
+use b3_helper::types::{AccountsStatus, Environment, Subaccount};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 use crate::account::SignerAccount;
 use crate::error::SignerError;
 use crate::ledger::public_keys::PublicKeys;
-use crate::types::{Accounts, AccountsStatus, Metadata};
+use crate::types::{Accounts, Metadata};
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct State {
@@ -133,7 +133,7 @@ impl State {
         self.accounts.len()
     }
 
-    pub fn accounts_counters(&self) -> AccountsStatus {
+    pub fn account_status(&self) -> AccountsStatus {
         AccountsStatus {
             dev_counter: self.dev_counter,
             prod_counter: self.prod_counter,

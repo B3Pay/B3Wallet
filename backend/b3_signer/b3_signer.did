@@ -4,13 +4,6 @@ type AccountsStatus = record {
   dev_counter : nat64;
 };
 type BitcoinNetwork = variant { Mainnet; Regtest; Testnet };
-type CanisterStatus = record {
-  canister_id : principal;
-  status_at : nat64;
-  version : text;
-  canister_status : CanisterStatusResponse;
-  account_counter : nat64;
-};
 type CanisterStatusResponse = record {
   status : CanisterStatusType;
   memory_size : nat;
@@ -79,6 +72,13 @@ type SignerAllowanceArgs = record {
   limit : opt nat8;
   expires_at : opt nat64;
 };
+type SignerCanisterStatus = record {
+  canister_id : principal;
+  status_at : nat64;
+  version : text;
+  canister_status : CanisterStatusResponse;
+  account_status : AccountsStatus;
+};
 type State = record {
   stag_counter : nat64;
   metadata : vec record { text; text };
@@ -88,7 +88,6 @@ type State = record {
 };
 type Tokens = record { e8s : nat64 };
 service : () -> {
-  account_status : () -> (AccountsStatus) query;
   change_owner : (principal) -> (principal);
   create_account : (opt Environment, opt text) -> (SignerAccount);
   generate_address : (text, Network) -> (text);
@@ -114,7 +113,7 @@ service : () -> {
   request_sign_transaction : (text, vec nat8, nat64) -> (SignedTransaction);
   reset_accounts : () -> (State);
   send_icp : (text, text, Tokens, opt Tokens, opt nat64) -> (nat64);
-  status : () -> (CanisterStatus);
+  status : () -> (SignerCanisterStatus);
   top_up_and_notify : (text, Tokens, opt principal, opt Tokens) -> (nat);
   unload_wasm : () -> (nat64);
   update_canister_controllers : (vec principal) -> ();

@@ -48,13 +48,9 @@ pub fn post_upgrade() {
 mod tests {
     use b3_helper::types::*;
     use b3_signer_lib::{
-        account::SignerAccount,
-        ledger::network::Network,
-        ledger::types::*,
-        request::EvmSignRequest,
-        signed::SignedTransaction,
-        state::State,
-        types::{AccountsStatus, CanisterAllowances, SignerAllowanceArgs},
+        account::SignerAccount, ledger::network::Network, ledger::types::*,
+        request::EvmSignRequest, signed::SignedTransaction, state::State,
+        types::CanisterAllowances,
     };
     use ic_cdk::export::candid::export_service;
 

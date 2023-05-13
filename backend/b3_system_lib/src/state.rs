@@ -1,14 +1,11 @@
 use crate::{
     error::SystemError,
-    types::{Controllers, SignerCanisters, State},
+    types::{Controllers, SignerCanister, SignerCanisters, State},
     types::{Release, Users},
 };
 use b3_helper::{
     error::TrapError,
-    types::{
-        CanisterId, CanisterInstallArg, ControllerId, SignerCanister, SignerCanisterInitArgs,
-        UserId,
-    },
+    types::{CanisterId, ControllerId, SignerCanisterInitArgs, SignerCanisterInstallArg, UserId},
 };
 use ic_cdk::api::management_canister::main::CanisterInstallMode;
 
@@ -66,7 +63,7 @@ impl State {
         self.users.values().cloned().collect()
     }
 
-    pub fn number_of_signers(&self) -> usize {
+    pub fn number_of_users(&self) -> usize {
         self.users.len()
     }
 
@@ -92,7 +89,7 @@ impl State {
         &self,
         owner: UserId,
         mode: CanisterInstallMode,
-    ) -> Result<CanisterInstallArg, SystemError> {
+    ) -> Result<SignerCanisterInstallArg, SystemError> {
         let wasm_module = self.latest_release()?.wasm()?;
 
         let canister_args = SignerCanisterInitArgs { owner };
@@ -101,7 +98,7 @@ impl State {
             .encode()
             .map_err(|e| SystemError::InstallArgError(e.to_string()))?;
 
-        Ok(CanisterInstallArg {
+        Ok(SignerCanisterInstallArg {
             wasm_module,
             arg,
             mode,

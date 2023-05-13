@@ -1,8 +1,9 @@
+use b3_helper::types::SignerAllowanceArgs;
 use ic_cdk::api::time;
 use ic_cdk::export::candid::{CandidType, Deserialize};
 use std::collections::HashMap;
 
-use crate::types::{Metadata, SignerAllowanceArgs};
+use crate::types::Metadata;
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct SignerAllowance {

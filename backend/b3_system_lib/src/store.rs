@@ -1,8 +1,8 @@
-use b3_helper::types::{SignerCanister, UserId, Version, Wasm};
+use b3_helper::types::{UserId, Version, Wasm};
 
 use crate::{
     error::SystemError,
-    types::{Release, Releases, State, UserMap, WasmMap},
+    types::{Release, Releases, SignerCanister, State, UserMap, WasmMap},
 };
 use std::cell::RefCell;
 
