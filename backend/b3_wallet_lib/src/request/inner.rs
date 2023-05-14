@@ -17,8 +17,11 @@ pub enum InnerCanisterRequest {
 }
 
 impl InnerCanisterRequest {
-    pub fn new_rename_account(account_id: String, name: String) -> Self {
-        InnerCanisterRequest::RenameAccount(RenameAccountRequest::new(account_id, name))
+    pub fn new_rename_account(account_id: &String, name: &String) -> Self {
+        InnerCanisterRequest::RenameAccount(RenameAccountRequest::new(
+            account_id.clone(),
+            name.clone(),
+        ))
     }
 
     pub fn new_add_signer(
@@ -52,7 +55,6 @@ impl InnerCanisterRequest {
         arg: Vec<u8>,
         sender: Option<CanisterId>,
         cycles: Option<u64>,
-        deadline: u64,
     ) -> Self {
         InnerCanisterRequest::Call(CallRequest::new(
             canister_id,
@@ -60,7 +62,6 @@ impl InnerCanisterRequest {
             arg,
             sender,
             cycles,
-            deadline,
         ))
     }
 
@@ -69,32 +70,30 @@ impl InnerCanisterRequest {
         method_name: String,
         arg: Vec<u8>,
         sender: Option<CanisterId>,
-        deadline: u64,
     ) -> Self {
-        InnerCanisterRequest::Query(QueryRequest::new(
-            canister_id,
-            method_name,
-            arg,
-            sender,
-            deadline,
-        ))
+        InnerCanisterRequest::Query(QueryRequest::new(canister_id, method_name, arg, sender))
     }
 }
 
 #[derive(CandidType, Clone, Deserialize)]
 pub struct RenameAccountRequest {
     name: String,
-    deadline: u64,
     account_id: String,
 }
 
 impl RenameAccountRequest {
     pub fn new(account_id: String, name: String) -> Self {
-        Self {
-            account_id,
-            name,
-            deadline: 0,
-        }
+        Self { account_id, name }
+    }
+
+    pub fn execute<F, T>(&self, mut callback: F) -> Result<T, String>
+    where
+        F: FnMut(String, String) -> Result<T, String>,
+    {
+        let account_id = self.account_id.clone();
+        let name = self.name.clone();
+
+        callback(account_id, name)
     }
 }
 
@@ -104,7 +103,6 @@ pub struct AddSignerRequest {
     pub role: String,
     pub canister_id: CanisterId,
     pub expires_at: Option<u64>,
-    pub deadline: u64,
 }
 
 impl AddSignerRequest {
@@ -119,7 +117,6 @@ impl AddSignerRequest {
             role,
             canister_id,
             expires_at,
-            deadline: 0,
         }
     }
 }
@@ -127,15 +124,11 @@ impl AddSignerRequest {
 #[derive(CandidType, Clone, Deserialize)]
 pub struct UpdateSettingsRequest {
     pub settings: UpdateSettingsArgument,
-    pub deadline: u64,
 }
 
 impl UpdateSettingsRequest {
     pub fn new(settings: UpdateSettingsArgument) -> Self {
-        UpdateSettingsRequest {
-            settings,
-            deadline: 0,
-        }
+        UpdateSettingsRequest { settings }
     }
 }
 
@@ -144,7 +137,6 @@ pub struct UpgradeCanisterRequest {
     pub wasm_hash: WasmHash,
     pub wasm_version: WasmVersion,
     pub wasm_hash_string: WasmHashString,
-    pub deadline: u64,
 }
 
 impl UpgradeCanisterRequest {
@@ -153,7 +145,6 @@ impl UpgradeCanisterRequest {
             wasm_version,
             wasm_hash: wasm.generate_hash(),
             wasm_hash_string: wasm.generate_hash_string(),
-            deadline: 0,
         }
     }
 }
@@ -162,7 +153,6 @@ impl UpgradeCanisterRequest {
 pub struct TopUpCanisterRequest {
     pub canister_id: CanisterId,
     pub amount: u64,
-    pub deadline: u64,
 }
 
 impl TopUpCanisterRequest {
@@ -170,7 +160,6 @@ impl TopUpCanisterRequest {
         TopUpCanisterRequest {
             canister_id,
             amount,
-            deadline: 0,
         }
     }
 }
@@ -178,15 +167,11 @@ impl TopUpCanisterRequest {
 #[derive(CandidType, Clone, Deserialize)]
 pub struct RawRandRequest {
     pub length: u32,
-    pub deadline: u64,
 }
 
 impl RawRandRequest {
     pub fn new(length: u32) -> Self {
-        RawRandRequest {
-            length,
-            deadline: 0,
-        }
+        RawRandRequest { length }
     }
 }
 
@@ -197,7 +182,6 @@ pub struct CallRequest {
     pub arg: Vec<u8>,
     pub sender: Option<CanisterId>,
     pub cycles: Option<u64>,
-    pub deadline: u64,
 }
 
 impl CallRequest {
@@ -207,7 +191,6 @@ impl CallRequest {
         arg: Vec<u8>,
         sender: Option<CanisterId>,
         cycles: Option<u64>,
-        deadline: u64,
     ) -> Self {
         CallRequest {
             canister_id,
@@ -215,7 +198,6 @@ impl CallRequest {
             arg,
             sender,
             cycles,
-            deadline,
         }
     }
 }
@@ -226,7 +208,6 @@ pub struct QueryRequest {
     pub method_name: String,
     pub arg: Vec<u8>,
     pub sender: Option<CanisterId>,
-    pub deadline: u64,
 }
 
 impl QueryRequest {
@@ -235,14 +216,12 @@ impl QueryRequest {
         method_name: String,
         arg: Vec<u8>,
         sender: Option<CanisterId>,
-        deadline: u64,
     ) -> Self {
         QueryRequest {
             canister_id,
             method_name,
             arg,
             sender,
-            deadline,
         }
     }
 }

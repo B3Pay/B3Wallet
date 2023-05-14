@@ -1,5 +1,5 @@
 use b3_helper::{
-    b3_revert,
+    revert,
     types::{Blob, Version},
 };
 use b3_system_lib::{
@@ -25,7 +25,7 @@ fn releases() -> Releases {
 #[candid_method(query)]
 #[query]
 fn latest_release() -> Release {
-    with_latest_release(|r| r.clone()).unwrap_or_else(|err| b3_revert(err))
+    with_latest_release(|r| r.clone()).unwrap_or_else(revert)
 }
 
 #[candid_method(query)]
@@ -69,8 +69,8 @@ fn load_release(blob: Blob, release_args: ReleaseArgs) -> Result<LoadRelease, Sy
         });
 
     let total = with_release_mut(release_index, |r| r.load_wasm(&blob))
-        .unwrap_or_else(|e| b3_revert(e))
-        .unwrap_or_else(|e| b3_revert(e));
+        .unwrap_or_else(revert)
+        .unwrap_or_else(revert);
 
     let chunks = blob.len();
 

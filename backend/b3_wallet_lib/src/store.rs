@@ -1,11 +1,11 @@
 use crate::{
     account::WalletAccount,
-    error::SignerError,
+    error::WalletError,
     ledger::ledger::Ledger,
-    signed::SignedTransaction,
+    request::Request,
     signer::{Roles, Signer},
     state::State,
-    types::{RequestId, SignerMap},
+    types::{ConfirmedRequests, RequestId, SignerMap},
 };
 use b3_helper::{
     error::TrapError,
@@ -47,29 +47,54 @@ where
     })
 }
 
-// SIGNED ------------------------------------------------------------------------
+// REQUEST ------------------------------------------------------------------------
 
-/// Get all signed.
-pub fn with_confirmed<T, F>(request_id: RequestId, callback: F) -> Result<T, SignerError>
+/// Get Request.
+pub fn with_request<T, F>(request_id: RequestId, callback: F) -> Result<T, WalletError>
 where
-    F: FnOnce(&SignedTransaction) -> T,
+    F: FnOnce(&Request) -> T,
 {
-    with_state(|state| state.confirmed(request_id).map(callback))
+    with_state(|state| state.request(request_id).map(callback))
 }
 
-/// Get all signed mutably.
-pub fn with_confirmed_mut<T, F>(request_id: RequestId, callback: F) -> Result<T, SignerError>
+/// Get Request mutably.
+pub fn with_request_mut<T, F>(request_id: RequestId, callback: F) -> Result<T, WalletError>
 where
-    F: FnOnce(&mut SignedTransaction) -> T,
+    F: FnOnce(&mut Request) -> T,
 {
-    with_state_mut(|state| state.confirmed_mut(request_id).map(callback))
+    with_state_mut(|state| state.request_mut(request_id).map(callback))
+}
+
+// CONFIRMED ------------------------------------------------------------------------
+
+/// Get Confirmed.
+pub fn with_confirmed_requests<T, F>(callback: F) -> T
+where
+    F: FnOnce(&ConfirmedRequests) -> T,
+{
+    with_state(|state| callback(state.confirmed_requests()))
+}
+
+/// Get Confirmed mutably.
+pub fn with_confirmed_requests_mut<T, F>(callback: F) -> T
+where
+    F: FnOnce(&mut ConfirmedRequests) -> T,
+{
+    with_state_mut(|state| callback(state.confirmed_requests_mut()))
+}
+
+pub fn with_confirmed_request<T, F>(request_id: RequestId, callback: F) -> Result<T, WalletError>
+where
+    F: FnOnce(&Request) -> T,
+{
+    with_state(|state| state.confirmed(request_id).map(callback))
 }
 
 // ACCOUNTS ----------------------------------------------------------------------
 
 /// Retrieve an account.
 /// This accepts a callback function that will be called with a reference to the account data.
-pub fn with_account<T, F>(account_id: &String, callback: F) -> Result<T, SignerError>
+pub fn with_account<T, F>(account_id: &String, callback: F) -> Result<T, WalletError>
 where
     F: FnOnce(&WalletAccount) -> T,
 {
@@ -78,14 +103,14 @@ where
 
 /// Retrieve an account mutably.
 /// This accepts a callback function that will be called with a mutable reference to the account data.
-pub fn with_account_mut<T, F>(account_id: &String, callback: F) -> Result<T, SignerError>
+pub fn with_account_mut<T, F>(account_id: &String, callback: F) -> Result<T, WalletError>
 where
     F: FnOnce(&mut WalletAccount) -> T,
 {
     with_state_mut(|state| state.account_mut(account_id).map(callback))
 }
 
-pub fn with_ledger<T, F>(account_id: &String, callback: F) -> Result<T, SignerError>
+pub fn with_ledger<T, F>(account_id: &String, callback: F) -> Result<T, WalletError>
 where
     F: FnOnce(&Ledger) -> T,
 {
@@ -96,7 +121,7 @@ where
     })
 }
 
-pub fn with_ledger_mut<T, F>(account_id: &String, callback: F) -> Result<T, SignerError>
+pub fn with_ledger_mut<T, F>(account_id: &String, callback: F) -> Result<T, WalletError>
 where
     F: FnOnce(&mut Ledger) -> T,
 {
@@ -120,24 +145,40 @@ pub fn with_signers_mut<T>(f: impl FnOnce(&mut SignerMap) -> T) -> T {
 }
 
 /// Get a signer.
-pub fn with_signer<T, F>(signer_id: SignerId, callback: F) -> Result<T, SignerError>
+pub fn with_signer<T, F>(signer_id: SignerId, callback: F) -> Result<T, WalletError>
 where
     F: FnOnce(&Signer) -> T,
 {
     with_signers(|signers| {
         signers
             .get(&signer_id)
-            .ok_or(SignerError::SignerNotFound(signer_id.to_string()))
+            .ok_or(WalletError::SignerNotFound(signer_id.to_string()))
             .map(callback)
     })
 }
 
+/// Get all signers with a role, admins is always included.
+pub fn with_role_signer_ids<T, F>(role: Roles, callback: F) -> T
+where
+    F: FnOnce(&Vec<SignerId>) -> T,
+{
+    with_signers(|signers| {
+        let filtered_signers: Vec<SignerId> = signers
+            .iter()
+            .filter(|(_, signer)| signer.has_role(role))
+            .map(|(signer_id, _)| signer_id.clone())
+            .collect();
+
+        callback(&filtered_signers)
+    })
+}
+
 /// Check if a signer exists, and optionally check if it has a role.
-pub fn check_signer(signer_id: SignerId, opt_role: Option<Roles>) -> Result<(), String> {
+pub fn with_check_signer(signer_id: SignerId, opt_role: Option<Roles>) -> Result<(), String> {
     with_signer(signer_id, |signer| {
         if let Some(role) = opt_role {
             if !signer.has_role(role.clone()) {
-                return Err(SignerError::SignerRoleNotFound(
+                return Err(WalletError::SignerRoleNotFound(
                     signer_id.to_string(),
                     role.to_string(),
                 )

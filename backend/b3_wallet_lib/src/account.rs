@@ -1,8 +1,7 @@
 use crate::{
-    error::SignerError,
+    error::WalletError,
     evm_tx::get_evm_transaction,
     ledger::{ledger::Ledger, public_keys::PublicKeys, subaccount::SubaccountTrait},
-    signed::SignedTransaction,
 };
 use b3_helper::types::{Environment, Metadata, Subaccount};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
@@ -48,29 +47,27 @@ impl WalletAccount {
         &self,
         hex_raw_tx: Vec<u8>,
         chain_id: u64,
-    ) -> Result<SignedTransaction, SignerError> {
+    ) -> Result<Vec<u8>, WalletError> {
         let ecdsa = self.ledger.public_keys.ecdsa()?;
 
         let mut evm_tx =
-            get_evm_transaction(&hex_raw_tx, chain_id).map_err(|e| SignerError::InvalidTx(e))?;
+            get_evm_transaction(&hex_raw_tx, chain_id).map_err(|e| WalletError::InvalidTx(e))?;
 
         let message = evm_tx
             .get_message_to_sign()
-            .map_err(|e| SignerError::InvalidMsg(e))?;
+            .map_err(|e| WalletError::InvalidMsg(e))?;
 
         if message.len() != 32 {
-            return Err(SignerError::InvalidMessageLength);
+            return Err(WalletError::InvalidMessageLength);
         }
 
         let signature = self.ledger.sign_with_ecdsa(message).await?;
 
         let signed_evm_tx = evm_tx
             .sign(signature, ecdsa)
-            .map_err(|e| SignerError::InvalidSignature(e))?;
+            .map_err(|e| WalletError::InvalidSignature(e))?;
 
-        let signed_tx = SignedTransaction::new(signed_evm_tx);
-
-        Ok(signed_tx)
+        Ok(signed_evm_tx)
     }
 
     pub fn add_metadata(&mut self, key: String, value: String) {

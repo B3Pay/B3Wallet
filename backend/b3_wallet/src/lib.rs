@@ -1,5 +1,6 @@
 mod account;
 mod guard;
+mod helper;
 mod request;
 mod status;
 mod wasm;
@@ -42,7 +43,7 @@ pub fn init() {
         }
     };
 
-    with_state_mut(|state| state.init());
+    with_state_mut(|state| state.init_wallet());
 }
 
 #[pre_upgrade]
@@ -68,9 +69,8 @@ pub fn post_upgrade() {
 mod tests {
     use b3_helper::types::*;
     use b3_wallet_lib::{
-        account::WalletAccount, ledger::network::Network, ledger::types::*,
-        request::sign::SignRequest, signed::SignedTransaction, signer::Roles, state::State,
-        types::*,
+        account::WalletAccount, ledger::network::Network, ledger::types::*, request::Request,
+        signer::Roles, state::State, types::*,
     };
     use ic_cdk::export::candid::export_service;
 

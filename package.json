@@ -26,7 +26,7 @@
     "ledger:balance": "ts-node scripts/ledger.balance.ts",
     "ledger:transfer": "ts-node scripts/ledger.transfer.ts",
     "ledger:account-id": "ts-node ./scripts/ledger.account-id.ts",
-    "wasm:user": "ts-node ./scripts/wasm.user.ts",
+    "wasm:wallet": "ts-node ./scripts/wasm.wallet.ts",
     "wasm:system": "ts-node ./scripts/wasm.system.ts",
     "wasm:copy": "ts-node ./scripts/wasm.copy.ts"
   },

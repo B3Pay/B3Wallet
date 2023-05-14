@@ -1,12 +1,12 @@
 use b3_helper::{
-    b3_revert,
+    revert,
     types::{ControllerId, SignerId},
 };
 use b3_wallet_lib::{
-    error::SignerError,
+    error::WalletError,
     signer::Roles,
     signer::Signer,
-    store::{check_signer, with_signers, with_signers_mut},
+    store::{with_check_signer, with_signers, with_signers_mut},
     types::SignerMap,
 };
 use candid::candid_method;
@@ -21,25 +21,25 @@ use ic_cdk::{
 pub fn caller_is_owner() -> Result<(), String> {
     let caller_id = ic_cdk::caller();
 
-    check_signer(caller_id, Some(Roles::Owner))
+    with_check_signer(caller_id, Some(Roles::Owner))
 }
 
 pub fn caller_is_admin() -> Result<(), String> {
     let caller_id = ic_cdk::caller();
 
-    check_signer(caller_id, Some(Roles::Admin))
+    with_check_signer(caller_id, Some(Roles::Admin))
 }
 
 pub fn caller_is_operator() -> Result<(), String> {
     let caller_id = ic_cdk::caller();
 
-    check_signer(caller_id, Some(Roles::Operator))
+    with_check_signer(caller_id, Some(Roles::Operator))
 }
 
 pub fn caller_is_signer() -> Result<(), String> {
     let caller_id = ic_cdk::caller();
 
-    check_signer(caller_id, None)
+    with_check_signer(caller_id, None)
 }
 
 #[query]
@@ -91,6 +91,6 @@ pub async fn update_canister_controllers(mut controllers: Vec<ControllerId>) -> 
 
     update_settings(arg)
         .await
-        .map_err(|err| SignerError::UpdateSettingsError(err.1))
-        .unwrap_or_else(|err| b3_revert(err));
+        .map_err(|err| WalletError::UpdateSettingsError(err.1))
+        .unwrap_or_else(|err| revert(err));
 }

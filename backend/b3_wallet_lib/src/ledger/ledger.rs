@@ -3,7 +3,7 @@ use ic_cdk::{
     export::{candid::CandidType, serde::Deserialize},
 };
 
-use crate::{error::SignerError, ledger::public_keys::PublicKeys};
+use crate::{error::WalletError, ledger::public_keys::PublicKeys};
 use b3_helper::{
     constants::{
         CANISTER_TOP_UP_MEMO, CANISTER_TRANSFER_MEMO, IC_TRANSACTION_FEE_ICP,
@@ -49,7 +49,7 @@ impl From<Subaccount> for Ledger {
 }
 
 impl Ledger {
-    pub async fn ecdsa_public_key(&self) -> Result<Vec<u8>, SignerError> {
+    pub async fn ecdsa_public_key(&self) -> Result<Vec<u8>, WalletError> {
         let key_id = self.subaccount.key_id();
 
         let derivation_path = self.subaccount.derivation_path();
@@ -66,12 +66,12 @@ impl Ledger {
             (request,),
         )
         .await
-        .map_err(|e| SignerError::PublicKeyError(e.1))?;
+        .map_err(|e| WalletError::PublicKeyError(e.1))?;
 
         Ok(res.public_key)
     }
 
-    pub async fn sign_with_ecdsa(&self, message_hash: Vec<u8>) -> Result<Vec<u8>, SignerError> {
+    pub async fn sign_with_ecdsa(&self, message_hash: Vec<u8>) -> Result<Vec<u8>, WalletError> {
         let (key_id, cycles, derivation_path) = self.subaccount.key_id_with_cycles_and_path();
 
         let request = SignWithECDSAArgs {
@@ -87,19 +87,19 @@ impl Ledger {
             cycles,
         )
         .await
-        .map_err(|e| SignerError::SignError(e.1))?;
+        .map_err(|e| WalletError::SignError(e.1))?;
 
         Ok(res.signature)
     }
 
-    pub async fn account_balance(&self) -> Result<Tokens, SignerError> {
+    pub async fn account_balance(&self) -> Result<Tokens, WalletError> {
         let account = self.subaccount.account_identifier();
 
         let args = AccountBalanceArgs { account };
 
         let (res,): (Tokens,) = call(MAINNET_LEDGER_CANISTER_ID, "account_balance", (args,))
             .await
-            .map_err(|e| SignerError::LedgerError(e.1))?;
+            .map_err(|e| WalletError::LedgerError(e.1))?;
 
         Ok(res)
     }
@@ -110,7 +110,7 @@ impl Ledger {
         amount: Tokens,
         fee: Option<Tokens>,
         memo: Option<Memo>,
-    ) -> Result<TransferResult, SignerError> {
+    ) -> Result<TransferResult, WalletError> {
         let args = TransferArgs {
             memo: memo.unwrap_or(CANISTER_TRANSFER_MEMO),
             fee: fee.unwrap_or(IC_TRANSACTION_FEE_ICP),
@@ -122,7 +122,7 @@ impl Ledger {
 
         let (res,): (TransferResult,) = call(MAINNET_LEDGER_CANISTER_ID, "transfer", (args,))
             .await
-            .map_err(|e| SignerError::LedgerError(e.1))?;
+            .map_err(|e| WalletError::LedgerError(e.1))?;
 
         Ok(res)
     }
@@ -132,7 +132,7 @@ impl Ledger {
         canister_id: CanisterId,
         amount: Tokens,
         fee: Option<Tokens>,
-    ) -> Result<NotifyTopUpResult, SignerError> {
+    ) -> Result<NotifyTopUpResult, WalletError> {
         let canister_subaccount: Subaccount = canister_id.into();
 
         let to = AccountIdentifier::new(&MAINNET_CYCLES_MINTING_CANISTER_ID, &canister_subaccount);
@@ -140,7 +140,7 @@ impl Ledger {
         let block_index = self
             .transfer(to, amount, fee, Some(CANISTER_TOP_UP_MEMO))
             .await?
-            .map_err(|e| SignerError::LedgerError(e.to_string()))?;
+            .map_err(|e| WalletError::LedgerError(e.to_string()))?;
 
         let args = NotifyTopupArgs {
             block_index,
@@ -150,7 +150,7 @@ impl Ledger {
         let (res,): (NotifyTopUpResult,) =
             call(MAINNET_CYCLES_MINTING_CANISTER_ID, "notify_top_up", (args,))
                 .await
-                .map_err(|e| SignerError::CyclesMintingError(e.1))?;
+                .map_err(|e| WalletError::CyclesMintingError(e.1))?;
 
         Ok(res)
     }

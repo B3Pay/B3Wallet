@@ -1,22 +1,21 @@
+use std::borrow::{Borrow, BorrowMut};
+
+use crate::account::WalletAccount;
 use crate::counter::WalletCounters;
-use crate::request::sign::SignRequest;
+use crate::error::WalletError;
+use crate::ledger::public_keys::PublicKeys;
 use crate::request::Request;
-use crate::signed::SignedTransaction;
-use crate::types::{AccountId, ConfirmedMap, RequestId, Requests};
+use crate::types::WalletAccountMap;
+use crate::types::{AccountId, ConfirmedRequests, RequestId, RequestMap};
 use b3_helper::types::{AccountsCounter, Environment, Subaccount};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
-use crate::account::WalletAccount;
-use crate::error::SignerError;
-use crate::ledger::public_keys::PublicKeys;
-use crate::types::WalletAccountMap;
-
 #[derive(CandidType, Deserialize, Clone)]
 pub struct State {
-    counters: WalletCounters,
-    confirms: ConfirmedMap,
-    requests: Requests,
-    accounts: WalletAccountMap,
+    pub(crate) accounts: WalletAccountMap,
+    pub(crate) counters: WalletCounters,
+    pub(crate) requests: RequestMap,
+    pub(crate) confirmed_requests: ConfirmedRequests,
 }
 
 impl Default for State {
@@ -24,8 +23,8 @@ impl Default for State {
         State {
             counters: WalletCounters::new(),
             accounts: WalletAccountMap::new(),
-            confirms: ConfirmedMap::new(),
-            requests: Requests::new(),
+            confirmed_requests: ConfirmedRequests::new(),
+            requests: RequestMap::new(),
         }
     }
 }
@@ -55,12 +54,6 @@ impl State {
         Subaccount::new(env, counter)
     }
 
-    pub fn new_request(&self, request: SignRequest, deadline: Option<u64>) -> Request {
-        let id = self.request_counter();
-
-        Request::new(id, request, deadline)
-    }
-
     // Insert Functions
 
     pub fn insert_account(
@@ -85,54 +78,18 @@ impl State {
         id
     }
 
-    pub fn insert_request(&mut self, sign_request: Request) -> RequestId {
-        let id = sign_request.id();
-
-        self.requests.insert(id.clone(), sign_request);
-
-        id
-    }
-
     // Account Functions
 
-    pub fn remove_account(&mut self, id: &String) -> Result<(), SignerError> {
-        if id == "default" {
-            return Err(SignerError::CannotRemoveDefaultAccount);
-        }
-
-        self.accounts
-            .remove(id)
-            .ok_or(SignerError::WalletAccountNotExists)?;
-
-        Ok(())
-    }
-
-    pub fn hide_account(&mut self, id: &String) -> Result<(), SignerError> {
-        let account = self.account_mut(id)?;
-
-        account.hide();
-
-        Ok(())
-    }
-
-    pub fn unhide_account(&mut self, id: &String) -> Result<(), SignerError> {
-        let account = self.account_mut(id)?;
-
-        account.unhide();
-
-        Ok(())
-    }
-
-    pub fn account(&self, id: &String) -> Result<&WalletAccount, SignerError> {
+    pub fn account(&self, id: &String) -> Result<&WalletAccount, WalletError> {
         self.accounts
             .get(id)
-            .ok_or(SignerError::WalletAccountNotExists)
+            .ok_or(WalletError::WalletAccountNotExists)
     }
 
-    pub fn account_mut(&mut self, id: &String) -> Result<&mut WalletAccount, SignerError> {
+    pub fn account_mut(&mut self, id: &String) -> Result<&mut WalletAccount, WalletError> {
         self.accounts
             .get_mut(id)
-            .ok_or(SignerError::WalletAccountNotExists)
+            .ok_or(WalletError::WalletAccountNotExists)
     }
 
     pub fn accounts_public_keys(&self) -> Vec<PublicKeys> {
@@ -161,65 +118,69 @@ impl State {
         self.counters.account(env)
     }
 
-    // Request Functions
-
-    pub fn request_counter(&self) -> usize {
-        self.counters.request
-    }
-
-    pub fn remove_request(&mut self, request_id: RequestId) {
-        // remove request from requests Vec based on the id
-        let index = self
-            .requests
-            .iter()
-            .position(|request| request.id() == request_id);
-
-        if let Some(index) = index {
-            self.requests.remove(index);
+    pub fn remove_account(&mut self, id: &String) -> Result<(), WalletError> {
+        if id == "default" {
+            return Err(WalletError::CannotRemoveDefaultAccount);
         }
+
+        self.accounts
+            .remove(id)
+            .ok_or(WalletError::WalletAccountNotExists)?;
+
+        Ok(())
     }
 
-    pub fn sign_requests(&self) -> Requests {
-        self.requests.clone()
+    pub fn hide_account(&mut self, id: &String) -> Result<(), WalletError> {
+        let account = self.account_mut(id)?;
+
+        account.hide();
+
+        Ok(())
     }
 
-    pub fn sign_request(&self, request_id: RequestId) -> Result<Request, SignerError> {
-        self.requests
-            .iter()
-            .find(|request| request.id() == request_id)
-            .cloned()
-            .ok_or(SignerError::RequestNotFound(request_id))
+    pub fn unhide_account(&mut self, id: &String) -> Result<(), WalletError> {
+        let account = self.account_mut(id)?;
+
+        account.unhide();
+
+        Ok(())
     }
 
     // Confirmed Functions
+    pub fn confirm_request(&mut self, request_id: RequestId) -> Result<(), WalletError> {
+        let request = self
+            .requests
+            .remove(&request_id)
+            .ok_or(WalletError::RequestNotExists)?;
 
-    pub fn confirmed(&self, request_id: RequestId) -> Result<&SignedTransaction, SignerError> {
-        self.confirms
-            .get(&request_id)
-            .ok_or(SignerError::RequestNotFound(request_id))
+        self.confirmed_requests.push(request);
+
+        Ok(())
     }
 
-    pub fn confirmed_mut(
-        &mut self,
-        request_id: RequestId,
-    ) -> Result<&mut SignedTransaction, SignerError> {
-        self.confirms
-            .get_mut(&request_id)
-            .ok_or(SignerError::RequestNotFound(request_id))
+    pub fn confirmed(&self, request_id: RequestId) -> Result<&Request, WalletError> {
+        self.confirmed_requests
+            .iter()
+            .find(|request| request.id() == request_id)
+            .ok_or(WalletError::RequestNotConfirmed(request_id))
     }
 
-    pub fn insert_signed_transaction(
-        &mut self,
-        request_id: RequestId,
-        signed_tx: SignedTransaction,
-    ) {
-        self.confirms.insert(request_id, signed_tx);
+    pub fn confirmed_requests(&self) -> &ConfirmedRequests {
+        self.confirmed_requests.borrow()
+    }
+
+    pub fn confirmed_requests_mut(&mut self) -> &mut ConfirmedRequests {
+        self.confirmed_requests.borrow_mut()
+    }
+
+    pub fn insert_confirmed(&mut self, request: Request) {
+        self.confirmed_requests.push(request);
     }
 
     pub fn reset(&mut self) {
         self.accounts.clear();
         self.requests.clear();
-        self.confirms.clear();
+        self.confirmed_requests.clear();
         self.counters = WalletCounters::new();
     }
 }

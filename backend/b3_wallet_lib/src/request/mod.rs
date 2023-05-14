@@ -4,8 +4,9 @@ pub mod icp;
 pub mod inner;
 pub mod message;
 pub mod sign;
+pub mod state;
 
-use crate::{error::SignerError, types::RequestId};
+use crate::{error::WalletError, signer::Roles, types::RequestId};
 use b3_helper::types::SignerId;
 use ic_cdk::{
     api::time,
@@ -15,26 +16,41 @@ use sign::SignRequest;
 
 #[derive(CandidType, Clone, Deserialize)]
 pub struct Request {
+    id: RequestId,
+    role: Roles,
+    deadline: u64,
+    request: SignRequest,
+    signers: Vec<SignerId>,
+}
+
+pub struct RequestArgs {
     pub id: RequestId,
-    pub deadline: u64,
+    pub allowed_role: Roles,
     pub request: SignRequest,
-    pub signers: Vec<SignerId>,
+    pub deadline: Option<u64>,
+}
+
+impl From<RequestArgs> for Request {
+    fn from(args: RequestArgs) -> Self {
+        let deadline = args.deadline.unwrap_or(time() + 15 * 60 * 1_000_000_000);
+
+        Self {
+            deadline,
+            id: args.id,
+            signers: vec![],
+            request: args.request,
+            role: args.allowed_role,
+        }
+    }
 }
 
 impl Request {
-    pub fn new(id: RequestId, request: SignRequest, deadline: Option<u64>) -> Self {
-        let deadline = deadline.unwrap_or(time() + 15 * 60 * 1_000_000_000);
-
-        Self {
-            id,
-            request,
-            deadline,
-            signers: Vec::new(),
-        }
-    }
-
     pub fn id(&self) -> RequestId {
         self.id
+    }
+
+    pub fn role(&self) -> Roles {
+        self.role
     }
 
     pub fn request(&self) -> &SignRequest {
@@ -52,13 +68,18 @@ impl Request {
     pub fn is_expired(&self) -> bool {
         self.deadline < time()
     }
+
+    pub fn is_signed(&self, signer_id: &SignerId) -> bool {
+        self.signers.contains(signer_id)
+    }
+
     pub fn request_mut(&mut self) -> &mut SignRequest {
         &mut self.request
     }
 
-    pub fn sign(&mut self, signer: SignerId) -> Result<usize, SignerError> {
+    pub fn sign(&mut self, signer: SignerId) -> Result<usize, WalletError> {
         if self.signers.contains(&signer) {
-            return Err(SignerError::AlreadySigned(signer.to_string()));
+            return Err(WalletError::AlreadySigned(signer.to_string()));
         }
 
         self.signers.push(signer);

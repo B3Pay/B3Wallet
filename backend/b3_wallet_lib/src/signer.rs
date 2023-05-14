@@ -3,7 +3,7 @@ use std::fmt;
 use b3_helper::types::Metadata;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
-#[derive(CandidType, Deserialize, PartialEq, Clone)]
+#[derive(CandidType, Deserialize, PartialEq, Copy, Clone)]
 pub enum Roles {
     Canister,
     Operator,

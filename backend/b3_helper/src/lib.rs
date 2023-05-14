@@ -13,21 +13,21 @@ use ic_cdk::api::management_canister::{
 use sha2::{Digest, Sha256};
 use types::WasmHash;
 
-pub fn b3_sha256(data: &[u8]) -> Vec<u8> {
+pub fn sha2_sha256(data: &[u8]) -> Vec<u8> {
     let mut hasher = Sha256::new();
     hasher.update(data);
 
     hasher.finalize().to_vec()
 }
 
-pub fn b3_sha256_wasm_hash(data: &[u8]) -> WasmHash {
+pub fn sha2_sha256_wasm_hash(data: &[u8]) -> WasmHash {
     let mut hasher = Sha256::new();
     hasher.update(data);
 
     hasher.finalize().into()
 }
 
-pub fn b3_sha256_wasm_hash_string(data: &[u8]) -> String {
+pub fn sha2_sha256_wasm_hash_string(data: &[u8]) -> String {
     let mut hasher = Sha256::new();
     hasher.update(data);
 
@@ -48,6 +48,6 @@ pub async fn b3_canister_status(
     Ok(status)
 }
 
-pub fn b3_revert<E: TrapError>(err: E) -> ! {
-    ic_cdk::trap(&err.to_string())
+pub fn revert<T, E: TrapError>(err: E) -> T {
+    ic_cdk::trap(&err.to_string());
 }

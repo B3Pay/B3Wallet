@@ -14,6 +14,19 @@ pub enum SignRequest {
 }
 
 impl SignRequest {
+    pub fn new(sign_request: SignRequest) -> Self {
+        match sign_request {
+            SignRequest::Evm(evm_sign_request) => SignRequest::Evm(evm_sign_request),
+            SignRequest::Bitcoin(send_bitcoin_request) => {
+                SignRequest::Bitcoin(send_bitcoin_request)
+            }
+            SignRequest::Icp(send_icp_request) => SignRequest::Icp(send_icp_request),
+            SignRequest::InnerCanister(inner_canister_request) => {
+                SignRequest::InnerCanister(inner_canister_request)
+            }
+        }
+    }
+
     pub fn new_evm(hex_raw_tx: Vec<u8>, chain_id: u64, deadline: Option<u64>) -> Self {
         SignRequest::Evm(EvmSignRequest::new(hex_raw_tx, chain_id, deadline))
     }

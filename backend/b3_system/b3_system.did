@@ -72,6 +72,7 @@ service : () -> {
   create_signer_canister : () -> (Result);
   deprecate_release : (text) -> (Result_1);
   get_canister : () -> (SignerCanister) query;
+  get_canister_release : (principal) -> (Release) query;
   get_canister_version : (principal) -> (text) query;
   get_canister_version_by_user : (principal) -> (text) query;
   get_controllers : () -> (vec principal) query;
@@ -90,6 +91,5 @@ service : () -> {
   reset_users : () -> ();
   status : () -> (SystemCanisterStatus);
   update_release : (ReleaseArgs) -> (Result_1);
-  validate_canister_wasm_hash : (principal) -> (vec nat8) query;
   version : () -> (text) query;
 }

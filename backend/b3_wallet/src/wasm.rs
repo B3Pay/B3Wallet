@@ -1,7 +1,8 @@
 use crate::guard::caller_is_signer;
 use b3_helper::types::{WasmHash, WasmSize};
 use b3_wallet_lib::{
-    store::{with_wasm, with_wasm_mut},
+    state::State,
+    store::{with_state, with_state_mut, with_wasm, with_wasm_mut},
     wasm::WasmTrait,
 };
 use ic_cdk::{
@@ -40,4 +41,12 @@ fn load_wasm(blob: Vec<u8>) -> WasmSize {
 #[update(guard = "caller_is_signer")]
 fn unload_wasm() -> WasmSize {
     with_wasm_mut(|w| w.unload())
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_signer")]
+pub async fn reset_wallet() -> State {
+    with_state_mut(|s| s.reset());
+
+    with_state(|s| s.clone())
 }

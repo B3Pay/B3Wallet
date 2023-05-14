@@ -1,4 +1,4 @@
-use b3_helper::types::{SignerId, Version, Wasm};
+use b3_helper::types::{SignerId, Version, Wasm, WasmHash};
 
 use crate::{
     error::SystemError,
@@ -88,6 +88,19 @@ where
         releases
             .iter_mut()
             .find(|release| release.version == version)
+            .ok_or(SystemError::ReleaseNotFound)
+            .map(f)
+    })
+}
+
+pub fn with_hash_release<F, T>(hash: WasmHash, f: F) -> Result<T, SystemError>
+where
+    F: FnOnce(&Release) -> T,
+{
+    with_releases(|releases| {
+        releases
+            .iter()
+            .find(|release| release.hash == hash)
             .ok_or(SystemError::ReleaseNotFound)
             .map(f)
     })

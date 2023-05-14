@@ -1,7 +1,7 @@
 use serde_bytes::ByteBuf;
 
 use crate::{
-    b3_sha256_wasm_hash, b3_sha256_wasm_hash_string,
+    sha2_sha256_wasm_hash, sha2_sha256_wasm_hash_string,
     types::{Blob, Wasm, WasmHash, WasmSize},
 };
 
@@ -49,7 +49,7 @@ impl Wasm {
             return WasmHash::default();
         }
 
-        b3_sha256_wasm_hash(&self.0)
+        sha2_sha256_wasm_hash(&self.0)
     }
 
     pub fn generate_hash_string(&self) -> String {
@@ -57,7 +57,7 @@ impl Wasm {
             return String::default();
         }
 
-        b3_sha256_wasm_hash_string(&self.0)
+        sha2_sha256_wasm_hash_string(&self.0)
     }
 
     pub fn is_hashed(&self, hash: &WasmHash) -> bool {

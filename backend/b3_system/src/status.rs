@@ -1,11 +1,11 @@
 use crate::guard::caller_is_controller;
-use b3_helper::error::TrapError;
+use b3_helper::revert;
 use b3_helper::{b3_canister_status, types::SystemCanisterStatus};
 use b3_system_lib::store::with_state;
 use ic_cdk::{
     api::time,
     export::candid::candid_method,
-    {query, trap, update},
+    {query, update},
 };
 
 #[candid_method(update)]
@@ -15,9 +15,7 @@ pub async fn status() -> SystemCanisterStatus {
 
     let version = version();
 
-    let canister_status = b3_canister_status(canister_id)
-        .await
-        .unwrap_or_else(|e| trap(&e.to_string()));
+    let canister_status = b3_canister_status(canister_id).await.unwrap_or_else(revert);
 
     let user_status = with_state(|s| s.number_of_users());
     let status_at = time();
