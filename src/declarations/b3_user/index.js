@@ -1,8 +1,8 @@
 import { Actor, HttpAgent } from "@dfinity/agent"
 
 // Imports and re-exports candid interface
-import { idlFactory } from "./b3_signer.did.js"
-export { idlFactory } from "./b3_signer.did.js"
+import { idlFactory } from "./b3_wallet.did.js"
+export { idlFactory } from "./b3_wallet.did.js"
 
 // CANISTER_ID is replaced by webpack based on node environment
 export const canisterId = process.env.B3_USER_CANISTER_ID

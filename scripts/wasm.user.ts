@@ -35,7 +35,7 @@ const load = async (actor: B3User) => {
 }
 
 const loader = async (canisterId?: string) => {
-  if (!canisterId) {
+  if (canisterId) {
     console.log(`Start Loading on Canister ID:`, canisterId)
   }
 

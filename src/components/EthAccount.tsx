@@ -1,4 +1,4 @@
-import { Account } from "declarations/b3_signer/b3_signer.did"
+import { Account } from "declarations/b3_wallet/b3_wallet.did"
 import { BigNumber, ethers, providers } from "ethers"
 import { isAddress } from "ethers/lib/utils"
 import { useCallback, useEffect, useState } from "react"

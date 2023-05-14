@@ -1,0 +1,19 @@
+[package]
+name = "b3_wallet_lib"
+version = "0.0.10"
+edition = "2021"
+description = "This is user library for the B3 project."
+license = "Apache-2.0"
+readme = "./README.md"
+
+[dependencies]
+b3_helper = { path = "../b3_helper" }
+ethereum-rlp = "0.2.3"
+easy-hasher = "2.2.1"
+candid = "0.8.4"
+ic-cdk = "0.7.4"
+serde = "1"
+futures = "0.3.28"
+ripemd = "0.1.3"
+bs58 = "0.4.0"
+libsecp256k1 = { version = "0.6.0", default-features = false, features = ["lazy-static-context"] }

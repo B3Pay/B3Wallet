@@ -12,7 +12,7 @@ use b3_system_lib::{
 };
 use ic_cdk::{export::candid::candid_method, query, update};
 
-use crate::guards::caller_is_controller;
+use crate::guard::caller_is_controller;
 
 // QUERY CALLS
 

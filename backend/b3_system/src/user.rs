@@ -1,4 +1,4 @@
-use crate::guards::caller_is_controller;
+use crate::guard::caller_is_controller;
 use b3_helper::{
     b3_revert,
     constants::CREATE_SIGNER_CANISTER_CYCLES,

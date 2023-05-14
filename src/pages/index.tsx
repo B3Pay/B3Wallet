@@ -6,7 +6,7 @@ import { Response } from "components/Response"
 import {
   CanisterStatus,
   SignerAccount
-} from "declarations/b3_signer/b3_signer.did"
+} from "declarations/b3_wallet/b3_wallet.did"
 import useAuthClient from "hooks/useAuthClient"
 import Head from "next/head"
 import { useCallback, useEffect, useState } from "react"
@@ -154,7 +154,7 @@ function HomePage() {
 
     setLoading(true)
 
-    const wasm = await fetch("wasm/b3_signer.wasm")
+    const wasm = await fetch("wasm/b3_wallet.wasm")
 
     const wasm_buffer = await wasm.arrayBuffer()
     const wasm_module = Array.from(new Uint8Array(wasm_buffer))

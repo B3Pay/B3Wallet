@@ -1,11 +1,11 @@
 {
   "canisters": {
-    "b3_signer": {
+    "b3_wallet": {
       "type": "rust",
-      "package": "b3_signer",
-      "candid": "backend/b3_signer/b3_signer.did",
+      "package": "b3_wallet",
+      "candid": "backend/b3_wallet/b3_wallet.did",
       "declarations": {
-        "output": "src/declarations/b3_signer",
+        "output": "src/declarations/b3_wallet",
         "node_compatibility": true
       }
     },
@@ -13,14 +13,14 @@
       "type": "rust",
       "package": "b3_system",
       "candid": "backend/b3_system/b3_system.did",
-      "dependencies": ["b3_signer"],
+      "dependencies": ["b3_wallet"],
       "declarations": {
         "output": "src/declarations/b3_system",
         "node_compatibility": true
       }
     },
     "wallet_assets": {
-      "dependencies": ["b3_signer"],
+      "dependencies": ["b3_wallet"],
       "frontend": {
         "entrypoint": "out/index.html"
       },

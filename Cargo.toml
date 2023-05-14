@@ -2,7 +2,7 @@
 members = [
     "backend/b3_system",
     "backend/b3_system_lib",
-    "backend/b3_signer",
-    "backend/b3_signer_lib",
+    "backend/b3_wallet",
+    "backend/b3_wallet_lib",
     "backend/b3_helper",
 ]

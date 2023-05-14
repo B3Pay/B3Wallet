@@ -2,7 +2,7 @@ import { Actor, HttpAgent } from "@dfinity/agent"
 import { Principal } from "@dfinity/principal"
 import { readFileSync } from "fs"
 import { B3System, B3User } from "service/actor"
-import { idlFactory as userFactory } from "../src/declarations/b3_signer"
+import { idlFactory as userFactory } from "../src/declarations/b3_wallet"
 import { idlFactory as systemFactory } from "../src/declarations/b3_system"
 import { initIdentity } from "./utils"
 
@@ -20,8 +20,8 @@ const systemPrincipalLocal = () => {
 
 const userPrincipalLocal = () => {
   const buffer = readFileSync("./.dfx/local/canister_ids.json")
-  const { b3_signer } = JSON.parse(buffer.toString("utf-8"))
-  return Principal.fromText(b3_signer.local)
+  const { b3_wallet } = JSON.parse(buffer.toString("utf-8"))
+  return Principal.fromText(b3_wallet.local)
 }
 
 export const systemActorIC = async () => {

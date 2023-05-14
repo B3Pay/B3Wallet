@@ -1,7 +1,7 @@
 import {
   Environment,
   SignerAccount
-} from "declarations/b3_signer/b3_signer.did"
+} from "declarations/b3_wallet/b3_wallet.did"
 import { IS_LOCAL } from "helpers/config"
 import { useState } from "react"
 import { B3User } from "service/actor"

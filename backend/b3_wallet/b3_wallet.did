@@ -1,0 +1,201 @@
+type AccountsCounters = record {
+  staging : nat64;
+  production : nat64;
+  development : nat64;
+};
+type AccountsStatus = record {
+  staging : nat64;
+  production : nat64;
+  development : nat64;
+};
+type AddSignerRequest = record {
+  id : nat64;
+  name : text;
+  role : text;
+  canister_id : principal;
+  deadline : nat64;
+  expires_at : opt nat64;
+};
+type BitcoinNetwork = variant { Mainnet; Regtest; Testnet };
+type CallRequest = record {
+  id : nat64;
+  arg : vec nat8;
+  canister_id : principal;
+  deadline : nat64;
+  sender : opt principal;
+  cycles : opt nat64;
+  method_name : text;
+};
+type CanisterSettings = record {
+  freezing_threshold : opt nat;
+  controllers : opt vec principal;
+  memory_allocation : opt nat;
+  compute_allocation : opt nat;
+};
+type CanisterStatusResponse = record {
+  status : CanisterStatusType;
+  memory_size : nat;
+  cycles : nat;
+  settings : DefiniteCanisterSettings;
+  idle_cycles_burned_per_day : nat;
+  module_hash : opt vec nat8;
+};
+type CanisterStatusType = variant { stopped; stopping; running };
+type DefiniteCanisterSettings = record {
+  freezing_threshold : nat;
+  controllers : vec principal;
+  memory_allocation : nat;
+  compute_allocation : nat;
+};
+type Environment = variant { Production; Development; Staging };
+type EvmSignRequest = record {
+  id : nat64;
+  transaction : EvmTransaction;
+  deadline : nat64;
+  chain_id : nat64;
+  message : vec nat8;
+};
+type EvmTransaction = record {
+  r : text;
+  s : text;
+  v : text;
+  to : text;
+  transaction_type : EvmTransactionType;
+  value : nat64;
+  max_priority_fee_per_gas : opt nat64;
+  data : text;
+  max_fee_per_gas : opt nat64;
+  chain_id : nat64;
+  nonce : nat64;
+  gas_limit : nat64;
+  access_list : opt vec record { text; vec text };
+  gas_price : opt nat64;
+};
+type EvmTransactionType = variant { EIP1559; EIP2930; Legacy };
+type InnerCanisterRequest = variant {
+  AddSigner : AddSignerRequest;
+  Call : CallRequest;
+  TopUpCanister : TopUpCanisterRequest;
+  UpdateSettings : UpdateSettingsRequest;
+  UpdateCanister : UpgradeCanisterRequest;
+  RawRand : RawRandRequest;
+  Query : QueryRequest;
+};
+type Ledger = record { subaccount : vec nat8; public_keys : PublicKeys };
+type Network = variant { BTC : BitcoinNetwork; EVM : nat64; ICP; SNS : text };
+type PublicKeys = record {
+  ecdsa : opt vec nat8;
+  addresses : vec record { text; text };
+  identifier : vec nat8;
+};
+type QueryRequest = record {
+  id : nat64;
+  arg : vec nat8;
+  canister_id : principal;
+  deadline : nat64;
+  sender : opt principal;
+  method_name : text;
+};
+type RawRandRequest = record { id : nat64; deadline : nat64; length : nat32 };
+type Roles = variant { Operator; User; Canister; Admin; Owner };
+type SendBitcoinRequest = record {
+  id : nat64;
+  deadline : nat64;
+  address : text;
+  amount : nat64;
+};
+type SendIcpRequest = record {
+  id : nat64;
+  to : principal;
+  deadline : nat64;
+  amount : nat64;
+};
+type SignRequest = variant {
+  Evm : EvmSignRequest;
+  Icp : SendIcpRequest;
+  Bitcoin : SendBitcoinRequest;
+  InnerCanister : InnerCanisterRequest;
+};
+type SignedTransaction = record { data : vec nat8; timestamp : nat64 };
+type Signer = record {
+  metadata : vec record { text; text };
+  name : opt text;
+  role : Roles;
+  expires_at : opt nat64;
+};
+type SignerCanisterStatus = record {
+  canister_id : principal;
+  status_at : nat64;
+  version : text;
+  canister_status : CanisterStatusResponse;
+  account_status : AccountsStatus;
+};
+type State = record {
+  confirms : vec record { nat64; SignedTransaction };
+  accounts : vec record { text; WalletAccount };
+  counters : AccountsCounters;
+  requests : vec SignRequest;
+};
+type Tokens = record { e8s : nat64 };
+type TopUpCanisterRequest = record {
+  id : nat64;
+  canister_id : principal;
+  deadline : nat64;
+  amount : nat64;
+};
+type UpdateSettingsArgument = record {
+  canister_id : principal;
+  settings : CanisterSettings;
+};
+type UpdateSettingsRequest = record {
+  id : nat64;
+  deadline : nat64;
+  settings : UpdateSettingsArgument;
+};
+type UpgradeCanisterRequest = record {
+  id : nat64;
+  wasm_hash_string : text;
+  wasm_version : text;
+  deadline : nat64;
+  wasm_hash : vec nat8;
+};
+type WalletAccount = record {
+  id : text;
+  metadata : vec record { text; text };
+  name : text;
+  hidden : bool;
+  ledger : Ledger;
+};
+service : () -> {
+  account_create : (opt Environment, opt text) -> (WalletAccount);
+  account_generate_address : (text, Network) -> (text);
+  account_hide : (text) -> ();
+  account_icp_balance : (text) -> (Tokens);
+  account_remove : (text) -> ();
+  account_rename : (text, text) -> (text);
+  account_request_public_key : (text) -> (vec nat8);
+  account_send_icp : (text, text, Tokens, opt Tokens, opt nat64) -> (nat64);
+  account_top_up_and_notify : (text, Tokens, opt principal, opt Tokens) -> (
+      nat,
+    );
+  add_signer : (principal, Roles) -> (vec record { principal; Signer });
+  get_account : (text) -> (WalletAccount) query;
+  get_account_count : () -> (nat64) query;
+  get_accounts : () -> (vec WalletAccount) query;
+  get_addresses : (text) -> (vec record { text; text }) query;
+  get_sign_requests : (text, nat64) -> (SignRequest) query;
+  get_signed_transaction : (nat64) -> (SignedTransaction) query;
+  get_signers : () -> (vec record { principal; Signer }) query;
+  load_wasm : (vec nat8) -> (nat64);
+  reintall_canister : () -> ();
+  remove_signer : (principal) -> (vec record { principal; Signer });
+  request_sign_message : (text, vec nat8) -> (vec nat8);
+  request_sign_transaction : (text, vec nat8, nat64) -> (SignedTransaction);
+  reset_accounts : () -> (State);
+  status : () -> (SignerCanisterStatus);
+  unload_wasm : () -> (nat64);
+  update_canister_controllers : (vec principal) -> ();
+  upgrade_canister : () -> ();
+  version : () -> (text) query;
+  wasm_hash : () -> (vec nat8) query;
+}

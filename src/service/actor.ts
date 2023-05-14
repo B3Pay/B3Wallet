@@ -1,8 +1,8 @@
 import { HttpAgent, Identity } from "@dfinity/agent"
 import {
-  b3_signer,
+  b3_wallet,
   createActor as createUserActor
-} from "declarations/b3_signer"
+} from "declarations/b3_wallet"
 import {
   b3_system,
   canisterId,
@@ -33,6 +33,6 @@ export function makeB3SystemActor(identity: Identity) {
   })
 }
 
-export type B3User = typeof b3_signer
+export type B3User = typeof b3_wallet
 
 export type B3System = typeof b3_system

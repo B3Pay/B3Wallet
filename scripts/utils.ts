@@ -41,13 +41,13 @@ export const initIdentity = (mainnet: boolean) => {
 
 export const loadWasm = async () => {
   const buffer = await readFile(
-    `${process.cwd()}/.dfx/local/canisters/b3_signer/b3_signer.wasm`
+    `${process.cwd()}/.dfx/local/canisters/b3_wallet/b3_wallet.wasm`
   )
   return [...new Uint8Array(buffer)]
 }
 
 export const readVersion = async () => {
-  const file = await open(`${process.cwd()}/backend/b3_signer/Cargo.toml`)
+  const file = await open(`${process.cwd()}/backend/b3_wallet/Cargo.toml`)
 
   try {
     for await (const line of file.readLines()) {

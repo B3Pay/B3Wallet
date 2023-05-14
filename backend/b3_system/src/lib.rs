@@ -1,4 +1,4 @@
-mod guards;
+mod guard;
 mod release;
 mod status;
 mod user;

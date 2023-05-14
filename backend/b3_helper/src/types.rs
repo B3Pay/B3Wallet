@@ -16,18 +16,18 @@ pub type ControllerId = Principal;
 pub type CanisterId = Principal;
 pub type SignerId = Principal;
 
-pub type WasmSize = usize;
-pub type WasmModule = Vec<u8>;
-pub type WasmHash = [u8; 32];
-pub type WasmHashString = String;
-pub type WasmVersion = String;
-
 pub type Version = String;
 
 pub type Blob = Vec<u8>;
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct Wasm(pub ByteBuf);
+
+pub type WasmSize = usize;
+pub type WasmModule = Vec<u8>;
+pub type WasmHash = [u8; 32];
+pub type WasmHashString = String;
+pub type WasmVersion = String;
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct Subaccount(pub [u8; 32]);
@@ -68,11 +68,11 @@ pub enum TransactionStatus {
     Failed,
 }
 
-#[derive(CandidType, Deserialize)]
-pub struct AccountsStatus {
-    pub dev_counter: u64,
-    pub prod_counter: u64,
-    pub stag_counter: u64,
+#[derive(CandidType, Default, Clone, Deserialize)]
+pub struct AccountsCounter {
+    pub development: u64,
+    pub production: u64,
+    pub staging: u64,
 }
 
 #[derive(CandidType, Deserialize)]
@@ -80,7 +80,7 @@ pub struct SignerCanisterStatus {
     pub status_at: u64,
     pub version: String,
     pub canister_id: CanisterId,
-    pub account_status: AccountsStatus,
+    pub account_status: AccountsCounter,
     pub canister_status: CanisterStatusResponse,
 }
 
