@@ -1,7 +1,7 @@
 use crate::{
     account::WalletAccount,
     error::WalletError,
-    ledger::ledger::Ledger,
+    ledger::Ledger,
     request::Request,
     signer::{Roles, Signer},
     state::State,

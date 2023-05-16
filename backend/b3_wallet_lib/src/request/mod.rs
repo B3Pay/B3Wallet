@@ -5,6 +5,7 @@ pub mod inter;
 pub mod message;
 pub mod sign;
 pub mod state;
+mod test4;
 
 use crate::{error::WalletError, signer::Roles, types::RequestId};
 use b3_helper::types::SignerId;
@@ -26,10 +27,6 @@ impl RequestArgs {
             request,
         }
     }
-}
-
-pub trait Executable {
-    fn execute(&self) -> Result<(), WalletError>;
 }
 
 #[derive(CandidType, Clone, Deserialize)]
@@ -63,7 +60,8 @@ impl Request {
     }
 
     pub fn execute(&self) -> Result<(), WalletError> {
-        self.request.execute()
+        // self.request.execute();
+        Ok(())
     }
 
     pub fn deadline(&self) -> u64 {

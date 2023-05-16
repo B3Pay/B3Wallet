@@ -1,7 +1,6 @@
 mod guard;
 mod release;
 mod status;
-mod test;
 mod user;
 
 use b3_system_lib::{

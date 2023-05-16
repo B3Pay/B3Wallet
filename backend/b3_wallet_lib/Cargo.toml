@@ -8,6 +8,7 @@ readme = "./README.md"
 
 [dependencies]
 b3_helper = { path = "../b3_helper" }
+enum_dispatch = "0.3"
 ethereum-rlp = "0.2.3"
 easy-hasher = "2.2.1"
 candid = "0.8.4"

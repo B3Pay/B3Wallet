@@ -1,7 +1,7 @@
 use crate::guard::caller_is_signer;
 use b3_helper::revert;
 use b3_wallet_lib::{
-    request::{inter::RenameAccountRequest, RequestArgs},
+    request::{inter::RenameAccountRequest, sign::SignRequest, RequestArgs},
     signer::Roles,
     store::{with_account, with_ledger, with_state, with_state_mut},
     types::{PendingRequestMap, RequestId},
@@ -21,9 +21,9 @@ pub fn get_requests() -> PendingRequestMap {
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub fn request_account_rename(account_id: String, name: String) -> RequestId {
-    let rename_request = RenameAccountRequest::new(account_id, name);
+    let rename_request: SignRequest = RenameAccountRequest::new(account_id, name).into();
 
-    let request_args = RequestArgs::new(Roles::Admin, rename_request.into());
+    let request_args = RequestArgs::new(Roles::Admin, rename_request);
 
     with_state_mut(|s| {
         let new_request = s.new_request(request_args, None);

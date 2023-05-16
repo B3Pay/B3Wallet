@@ -1,7 +1,7 @@
 use crate::{
     error::WalletError,
     evm_tx::get_evm_transaction,
-    ledger::{ledger::Ledger, public_keys::PublicKeys, subaccount::SubaccountTrait},
+    ledger::{public_keys::PublicKeys, subaccount::SubaccountTrait, Ledger},
 };
 use b3_helper::types::{Environment, Metadata, Subaccount};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};

@@ -1,38 +1,30 @@
-use b3_helper::types::{CanisterId, SignerId, Wasm, WasmHash, WasmHashString, WasmVersion};
-use ic_cdk::{
-    api::management_canister::main::UpdateSettingsArgument,
-    export::{candid::CandidType, serde::Deserialize},
-};
-
+use super::sign::{Executable, SignRequest};
 use crate::{
     error::WalletError,
     signer::{Roles, Signer},
     store::{with_account_mut, with_signers_mut},
 };
+use b3_helper::types::{CanisterId, SignerId, Wasm, WasmHash, WasmHashString, WasmVersion};
+use enum_dispatch::enum_dispatch;
+use ic_cdk::{
+    api::management_canister::main::UpdateSettingsArgument,
+    export::{candid::CandidType, serde::Deserialize},
+};
 
-use super::{sign::SignRequest, Executable};
-
+#[enum_dispatch]
 #[derive(CandidType, Clone, Deserialize)]
 pub enum InterCanisterRequest {
-    RenameAccount(RenameAccountRequest),
-    AddSigner(AddSignerRequest),
-    UpdateSettings(UpdateSettingsRequest),
-    UpdateCanister(UpgradeCanisterRequest),
-    TopUpCanister(TopUpCanisterRequest),
-    RawRand(RawRandRequest),
-    Call(CallRequest),
-    Query(QueryRequest),
+    RenameAccountRequest,
+    AddSignerRequest,
+    UpdateSettingsRequest,
+    UpgradeCanisterRequest,
+    TopUpCanisterRequest,
+    RawRandRequest,
+    CallRequest,
+    QueryRequest,
 }
 
-impl Executable for InterCanisterRequest {
-    fn execute(&self) -> Result<(), WalletError> {
-        match self {
-            InterCanisterRequest::RenameAccount(args) => args.execute(),
-            _ => todo!("not implemented"),
-        }
-    }
-}
-
+// RENAME ACCOUNT - START
 #[derive(CandidType, Clone, Deserialize)]
 pub struct RenameAccountRequest {
     pub new_name: String,
@@ -41,7 +33,7 @@ pub struct RenameAccountRequest {
 
 impl From<RenameAccountRequest> for SignRequest {
     fn from(args: RenameAccountRequest) -> Self {
-        SignRequest::InnerCanister(InterCanisterRequest::RenameAccount(args))
+        SignRequest::InterCanisterRequest(InterCanisterRequest::RenameAccountRequest(args))
     }
 }
 
@@ -63,7 +55,9 @@ impl RenameAccountRequest {
         }
     }
 }
+// RENAME ACCOUNT - END
 
+// ADD SIGNER - START
 #[derive(CandidType, Clone, Deserialize)]
 pub struct AddSignerRequest {
     pub name: Option<String>,
@@ -102,10 +96,22 @@ impl AddSignerRequest {
         }
     }
 }
+// ADD SIGNER - END
 
+// UPDATE SETTINGS - START
 #[derive(CandidType, Clone, Deserialize)]
 pub struct UpdateSettingsRequest {
     pub settings: UpdateSettingsArgument,
+}
+
+impl Executable for UpdateSettingsRequest {
+    fn execute(&self) -> Result<(), WalletError> {
+        let settings = self.settings.clone();
+
+        // ic_cdk::api::management_canister::update_settings(settings)?;
+
+        Ok(())
+    }
 }
 
 impl UpdateSettingsRequest {
@@ -113,12 +119,26 @@ impl UpdateSettingsRequest {
         UpdateSettingsRequest { settings }
     }
 }
+// UPDATE SETTINGS - END
 
+// UPGRADE CANISTER - START
 #[derive(CandidType, Clone, Deserialize)]
 pub struct UpgradeCanisterRequest {
     pub wasm_hash: WasmHash,
     pub wasm_version: WasmVersion,
     pub wasm_hash_string: WasmHashString,
+}
+
+impl Executable for UpgradeCanisterRequest {
+    fn execute(&self) -> Result<(), WalletError> {
+        let wasm_hash = self.wasm_hash.clone();
+        let wasm_version = self.wasm_version.clone();
+        let wasm_hash_string = self.wasm_hash_string.clone();
+
+        // ic_cdk::api::canister::upgrade(wasm_hash, wasm_version, wasm_hash_string)?;
+
+        Ok(())
+    }
 }
 
 impl UpgradeCanisterRequest {
@@ -130,11 +150,24 @@ impl UpgradeCanisterRequest {
         }
     }
 }
+// UPGRADE CANISTER - END
 
+// TOP UP CANISTER - START
 #[derive(CandidType, Clone, Deserialize)]
 pub struct TopUpCanisterRequest {
     pub canister_id: CanisterId,
     pub amount: u64,
+}
+
+impl Executable for TopUpCanisterRequest {
+    fn execute(&self) -> Result<(), WalletError> {
+        let canister_id = self.canister_id.clone();
+        let amount = self.amount;
+
+        // ic_cdk::api::canister::add_cycles(amount)?;
+
+        Ok(())
+    }
 }
 
 impl TopUpCanisterRequest {
@@ -145,10 +178,22 @@ impl TopUpCanisterRequest {
         }
     }
 }
+// TOP UP CANISTER - END
 
+// RAW RAND - START
 #[derive(CandidType, Clone, Deserialize)]
 pub struct RawRandRequest {
     pub length: u32,
+}
+
+impl Executable for RawRandRequest {
+    fn execute(&self) -> Result<(), WalletError> {
+        let length = self.length;
+
+        // ic_cdk::api::raw_rand(length)?;
+
+        Ok(())
+    }
 }
 
 impl RawRandRequest {
@@ -156,7 +201,9 @@ impl RawRandRequest {
         RawRandRequest { length }
     }
 }
+// RAW RAND - END
 
+// CALL - START
 #[derive(CandidType, Clone, Deserialize)]
 pub struct CallRequest {
     pub canister_id: CanisterId,
@@ -164,6 +211,20 @@ pub struct CallRequest {
     pub arg: Vec<u8>,
     pub sender: Option<CanisterId>,
     pub cycles: Option<u64>,
+}
+
+impl Executable for CallRequest {
+    fn execute(&self) -> Result<(), WalletError> {
+        let canister_id = self.canister_id.clone();
+        let method_name = self.method_name.clone();
+        let arg = self.arg.clone();
+        let sender = self.sender.clone();
+        let cycles = self.cycles;
+
+        // ic_cdk::api::call::call(canister_id, method_name, arg, sender, cycles)?;
+
+        Ok(())
+    }
 }
 
 impl CallRequest {
@@ -183,13 +244,28 @@ impl CallRequest {
         }
     }
 }
+// CALL - END
 
+// QUERY - START
 #[derive(CandidType, Clone, Deserialize)]
 pub struct QueryRequest {
     pub canister_id: CanisterId,
     pub method_name: String,
     pub arg: Vec<u8>,
     pub sender: Option<CanisterId>,
+}
+
+impl Executable for QueryRequest {
+    fn execute(&self) -> Result<(), WalletError> {
+        let canister_id = self.canister_id.clone();
+        let method_name = self.method_name.clone();
+        let arg = self.arg.clone();
+        let sender = self.sender.clone();
+
+        // ic_cdk::api::call::call(canister_id, method_name, arg, sender, cycles)?;
+
+        Ok(())
+    }
 }
 
 impl QueryRequest {
@@ -207,3 +283,4 @@ impl QueryRequest {
         }
     }
 }
+// QUERY - END
