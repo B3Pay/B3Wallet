@@ -6,7 +6,7 @@ use b3_wallet_lib::{
     error::WalletError,
     signer::Roles,
     signer::Signer,
-    store::{with_check_signer, with_signers, with_signers_mut},
+    store::{with_signer_check, with_signers, with_signers_mut},
     types::SignerMap,
 };
 use candid::candid_method;
@@ -18,28 +18,28 @@ use ic_cdk::{
     query, update,
 };
 
-pub fn caller_is_owner() -> Result<(), String> {
+pub fn caller_is_canister_or_admin() -> Result<(), String> {
     let caller_id = ic_cdk::caller();
 
-    with_check_signer(caller_id, Some(Roles::Owner))
+    with_signer_check(caller_id, |signer| signer.is_canister_or_admin())
 }
 
 pub fn caller_is_admin() -> Result<(), String> {
     let caller_id = ic_cdk::caller();
 
-    with_check_signer(caller_id, Some(Roles::Admin))
+    with_signer_check(caller_id, |signer| signer.is_admin())
 }
 
-pub fn caller_is_operator() -> Result<(), String> {
+pub fn caller_is_user() -> Result<(), String> {
     let caller_id = ic_cdk::caller();
 
-    with_check_signer(caller_id, Some(Roles::Operator))
+    with_signer_check(caller_id, |signer| signer.is_user())
 }
 
 pub fn caller_is_signer() -> Result<(), String> {
     let caller_id = ic_cdk::caller();
 
-    with_check_signer(caller_id, None)
+    with_signer_check(caller_id, |_| true)
 }
 
 #[query]
@@ -50,7 +50,7 @@ pub fn get_signers() -> SignerMap {
 
 #[update(guard = "caller_is_signer")]
 #[candid_method(update)]
-pub fn add_signer(signer_id: SignerId, role: Roles) -> SignerMap {
+pub fn signer_add(signer_id: SignerId, role: Roles) -> SignerMap {
     let signer = Signer::from(role);
 
     with_signers_mut(|u| {
@@ -62,7 +62,7 @@ pub fn add_signer(signer_id: SignerId, role: Roles) -> SignerMap {
 
 #[update(guard = "caller_is_signer")]
 #[candid_method(update)]
-pub fn remove_signer(signer_id: SignerId) -> SignerMap {
+pub fn signer_remove(signer_id: SignerId) -> SignerMap {
     with_signers_mut(|u| {
         u.remove(&signer_id);
 

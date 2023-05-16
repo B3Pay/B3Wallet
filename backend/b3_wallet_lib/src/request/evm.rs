@@ -3,6 +3,8 @@ use crate::types::RequestId;
 use ic_cdk::api::time as ic_timestamp;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
+use super::Executable;
+
 #[derive(CandidType, Clone, Deserialize)]
 pub struct EvmSignRequest {
     pub id: RequestId,
@@ -10,6 +12,12 @@ pub struct EvmSignRequest {
     pub deadline: u64,
     pub message: Vec<u8>,
     pub transaction: EvmTransaction,
+}
+
+impl Executable for EvmSignRequest {
+    fn execute(&self) -> Result<(), crate::error::WalletError> {
+        Ok(())
+    }
 }
 
 impl EvmSignRequest {

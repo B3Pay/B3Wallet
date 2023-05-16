@@ -1,12 +1,10 @@
 use crate::guard::caller_is_signer;
 use b3_helper::revert;
 use b3_wallet_lib::{
-    request::Request,
-    store::{
-        with_account, with_confirmed_request, with_ledger, with_request, with_role_signer_ids,
-        with_state, with_state_mut,
-    },
-    types::{RequestId, RequestMap},
+    request::{inter::RenameAccountRequest, RequestArgs},
+    signer::Roles,
+    store::{with_account, with_ledger, with_state, with_state_mut},
+    types::{PendingRequestMap, RequestId},
 };
 use ic_cdk::{export::candid::candid_method, query, update};
 
@@ -14,13 +12,7 @@ use ic_cdk::{export::candid::candid_method, query, update};
 
 #[query]
 #[candid_method(query)]
-pub fn get_confirmed(request_id: RequestId) -> Request {
-    with_confirmed_request(request_id, |confirmed| confirmed.clone()).unwrap_or_else(revert)
-}
-
-#[query]
-#[candid_method(query)]
-pub fn get_requests() -> RequestMap {
+pub fn get_requests() -> PendingRequestMap {
     with_state(|s| s.requests())
 }
 
@@ -28,24 +20,15 @@ pub fn get_requests() -> RequestMap {
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub fn request_confirm(request_id: RequestId) -> Request {
-    let caller = ic_cdk::caller();
+pub fn request_account_rename(account_id: String, name: String) -> RequestId {
+    let rename_request = RenameAccountRequest::new(account_id, name);
 
-    let mut request = with_request(request_id, |request| request.clone()).unwrap_or_else(revert);
+    let request_args = RequestArgs::new(Roles::Admin, rename_request.into());
 
-    request.sign(caller).unwrap_or_else(revert);
-
-    let is_confirmed = with_role_signer_ids(request.role(), |role_signer_ids| {
-        role_signer_ids
-            .iter()
-            .all(|signer_id| request.is_signed(signer_id))
-    });
-
-    if is_confirmed {
-        with_state_mut(|s| s.confirm_request(request_id)).unwrap_or_else(revert);
-    }
-
-    request
+    with_state_mut(|s| {
+        let new_request = s.new_request(request_args, None);
+        s.insert_request(new_request)
+    })
 }
 
 #[candid_method(update)]

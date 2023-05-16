@@ -1,6 +1,6 @@
 mod account;
+mod confirm;
 mod guard;
-mod helper;
 mod request;
 mod status;
 mod wasm;
@@ -28,7 +28,7 @@ pub fn init() {
 
                 if let Some(system_id) = args.system_id {
                     let name = "system".to_owned();
-                    let system = Signer::new(Roles::Canister, Some(name));
+                    let system = Signer::new(Roles::Canister, Some(name), None);
 
                     signers.insert(system_id, system);
                 }
@@ -48,12 +48,13 @@ pub fn init() {
 
 #[pre_upgrade]
 pub fn pre_upgrade() {
+    // Unload wasm module that we don't need to upgrade anymore
+    with_wasm_mut(|wasm| wasm.unload());
+
     let signers = with_signers(|o| o.clone());
     let state = with_state(|s| s.clone());
 
     ic_cdk::storage::stable_save((state, signers)).unwrap();
-
-    with_wasm_mut(|wasm| wasm.unload());
 }
 
 #[post_upgrade]
@@ -70,7 +71,7 @@ mod tests {
     use b3_helper::types::*;
     use b3_wallet_lib::{
         account::WalletAccount, ledger::network::Network, ledger::types::*, request::Request,
-        signer::Roles, state::State, types::*,
+        signer::Roles, types::*,
     };
     use ic_cdk::export::candid::export_service;
 

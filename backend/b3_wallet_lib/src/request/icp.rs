@@ -1,3 +1,4 @@
+use super::Executable;
 use crate::types::RequestId;
 use b3_helper::types::CanisterId;
 use ic_cdk::api::time as ic_timestamp;
@@ -9,6 +10,12 @@ pub struct SendIcpRequest {
     pub to: CanisterId,
     pub amount: u64,
     pub deadline: u64,
+}
+
+impl Executable for SendIcpRequest {
+    fn execute(&self) -> Result<(), crate::error::WalletError> {
+        Ok(())
+    }
 }
 
 impl SendIcpRequest {

@@ -90,7 +90,7 @@ impl WalletAccount {
         &self.metadata
     }
 
-    pub fn update_name(&mut self, name: String) -> String {
+    pub fn rename(&mut self, name: String) -> String {
         self.name = name;
 
         self.name.clone()

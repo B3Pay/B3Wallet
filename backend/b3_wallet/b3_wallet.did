@@ -63,7 +63,7 @@ type EvmTransaction = record {
   gas_price : opt nat64;
 };
 type EvmTransactionType = variant { EIP1559; EIP2930; Legacy };
-type InnerCanisterRequest = variant {
+type InterCanisterRequest = variant {
   AddSigner : AddSignerRequest;
   Call : CallRequest;
   RenameAccount : RenameAccountRequest;
@@ -95,7 +95,7 @@ type Request = record {
   role : Roles;
   deadline : nat64;
 };
-type Roles = variant { Operator; User; Canister; Admin; Owner };
+type Roles = variant { User; Canister; Admin };
 type SendBitcoinRequest = record {
   id : nat64;
   deadline : nat64;
@@ -112,7 +112,7 @@ type SignRequest = variant {
   Evm : EvmSignRequest;
   Icp : SendIcpRequest;
   Bitcoin : SendBitcoinRequest;
-  InnerCanister : InnerCanisterRequest;
+  InnerCanister : InterCanisterRequest;
 };
 type Signer = record {
   metadata : vec record { text; text };
@@ -126,12 +126,6 @@ type SignerCanisterStatus = record {
   version : text;
   canister_status : CanisterStatusResponse;
   account_status : AccountsCounter;
-};
-type State = record {
-  accounts : vec record { text; WalletAccount };
-  counters : WalletCounters;
-  confirmed_requests : vec Request;
-  requests : vec record { nat64; Request };
 };
 type Tokens = record { e8s : nat64 };
 type TopUpCanisterRequest = record { canister_id : principal; amount : nat64 };
@@ -152,7 +146,6 @@ type WalletAccount = record {
   hidden : bool;
   ledger : Ledger;
 };
-type WalletCounters = record { request : nat64; account : AccountsCounter };
 service : () -> {
   account_create : (opt Environment, opt text) -> (WalletAccount);
   account_generate_address : (text, Network) -> (text);
@@ -165,7 +158,7 @@ service : () -> {
   account_top_up_and_notify : (text, Tokens, opt principal, opt Tokens) -> (
       nat,
     );
-  add_signer : (principal, Roles) -> (vec record { principal; Signer });
+  confirm_request : (nat64) -> (Request);
   get_account : (text) -> (WalletAccount) query;
   get_account_count : () -> (nat64) query;
   get_accounts : () -> (vec WalletAccount) query;
@@ -174,13 +167,13 @@ service : () -> {
   get_requests : () -> (vec record { nat64; Request }) query;
   get_signers : () -> (vec record { principal; Signer }) query;
   load_wasm : (vec nat8) -> (nat64);
-  reintall_canister : () -> ();
-  remove_signer : (principal) -> (vec record { principal; Signer });
+  reinstall_canister : () -> ();
   request_account_rename : (text, text) -> (nat64);
-  request_confirm : (nat64) -> (Request);
   request_sign_message : (text, vec nat8) -> (vec nat8);
   request_sign_transaction : (text, vec nat8, nat64) -> (vec nat8);
-  reset_wallet : () -> (State);
+  reset_wallet : () -> ();
+  signer_add : (principal, Roles) -> (vec record { principal; Signer });
+  signer_remove : (principal) -> (vec record { principal; Signer });
   status : () -> (SignerCanisterStatus);
   unload_wasm : () -> (nat64);
   update_canister_controllers : (vec principal) -> ();

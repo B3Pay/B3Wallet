@@ -13,6 +13,6 @@ pub type Metadata = HashMap<String, String>;
 
 pub type SignerMap = HashMap<SignerId, Signer>;
 
-pub type RequestMap = HashMap<RequestId, Request>;
+pub type PendingRequestMap = HashMap<RequestId, Request>;
 
 pub type WalletAccountMap = BTreeMap<String, WalletAccount>;

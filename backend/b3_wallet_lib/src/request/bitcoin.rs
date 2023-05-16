@@ -2,12 +2,20 @@ use crate::types::RequestId;
 use ic_cdk::api::time as ic_timestamp;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
+use super::Executable;
+
 #[derive(CandidType, Clone, Deserialize)]
 pub struct SendBitcoinRequest {
     pub id: RequestId,
     pub amount: u64,
     pub address: String,
     pub deadline: u64,
+}
+
+impl Executable for SendBitcoinRequest {
+    fn execute(&self) -> Result<(), crate::error::WalletError> {
+        Ok(())
+    }
 }
 
 impl SendBitcoinRequest {

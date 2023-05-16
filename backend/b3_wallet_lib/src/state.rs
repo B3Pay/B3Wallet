@@ -5,26 +5,25 @@ use crate::counter::WalletCounters;
 use crate::error::WalletError;
 use crate::ledger::public_keys::PublicKeys;
 use crate::request::Request;
-use crate::types::WalletAccountMap;
-use crate::types::{AccountId, ConfirmedRequests, RequestId, RequestMap};
+use crate::types::{AccountId, ConfirmedRequests, PendingRequestMap, RequestId, WalletAccountMap};
 use b3_helper::types::{AccountsCounter, Environment, Subaccount};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct State {
-    pub(crate) accounts: WalletAccountMap,
-    pub(crate) counters: WalletCounters,
-    pub(crate) requests: RequestMap,
-    pub(crate) confirmed_requests: ConfirmedRequests,
+    pub accounts: WalletAccountMap,
+    pub counters: WalletCounters,
+    pub pending_requests: PendingRequestMap,
+    pub confirmed_requests: ConfirmedRequests,
 }
 
 impl Default for State {
     fn default() -> Self {
         State {
+            confirmed_requests: ConfirmedRequests::new(),
+            pending_requests: PendingRequestMap::new(),
             counters: WalletCounters::new(),
             accounts: WalletAccountMap::new(),
-            confirmed_requests: ConfirmedRequests::new(),
-            requests: RequestMap::new(),
         }
     }
 }
@@ -39,7 +38,7 @@ impl State {
 
         let mut account = WalletAccount::from(Subaccount::default());
 
-        account.update_name("Main Account".to_owned());
+        account.rename("Main Account".to_owned());
 
         self.accounts.insert("default".to_owned(), account);
     }
@@ -62,13 +61,13 @@ impl State {
         opt_name: Option<String>,
     ) -> AccountId {
         if let Some(name) = opt_name {
-            account.update_name(name);
+            account.rename(name);
         } else {
             let env = account.environment();
 
             let name = self.counters.generate_next_account_name(env);
 
-            account.update_name(name);
+            account.rename(name);
         }
 
         let id = account.id();
@@ -147,9 +146,10 @@ impl State {
     }
 
     // Confirmed Functions
+
     pub fn confirm_request(&mut self, request_id: RequestId) -> Result<(), WalletError> {
         let request = self
-            .requests
+            .pending_requests
             .remove(&request_id)
             .ok_or(WalletError::RequestNotExists)?;
 
@@ -179,8 +179,10 @@ impl State {
 
     pub fn reset(&mut self) {
         self.accounts.clear();
-        self.requests.clear();
+        self.pending_requests.clear();
         self.confirmed_requests.clear();
         self.counters = WalletCounters::new();
+
+        self.init_wallet();
     }
 }

@@ -14,9 +14,9 @@ use b3_helper::{
 use std::cell::RefCell;
 
 thread_local! {
+    static SIGNER: RefCell<SignerMap> = RefCell::default();
     static STATE: RefCell<State> = RefCell::default();
-    static WASM: RefCell<Wasm> = RefCell::new(Wasm::default());
-    static SIGNER: RefCell<SignerMap> = RefCell::new(SignerMap::new());
+    static WASM: RefCell<Wasm> = RefCell::default();
 }
 
 // STATE ----------------------------------------------------------------------
@@ -157,8 +157,28 @@ where
     })
 }
 
+/// Check if a signer exists, and optionally check if it has a role.
+pub fn with_signer_check<F>(signer_id: SignerId, callback: F) -> Result<(), String>
+where
+    F: FnOnce(&Signer) -> bool,
+{
+    with_signers(|signers| {
+        signers
+            .get(&signer_id)
+            .ok_or(WalletError::SignerNotFound(signer_id.to_string()).to_string())
+            .map(callback)
+            .and_then(|result| {
+                if result {
+                    Ok(())
+                } else {
+                    Err(WalletError::SignerNotFound(signer_id.to_string()).to_string())
+                }
+            })
+    })
+}
+
 /// Get all signers with a role, admins is always included.
-pub fn with_role_signer_ids<T, F>(role: Roles, callback: F) -> T
+pub fn with_signer_ids_by_role<T, F>(role: Roles, callback: F) -> T
 where
     F: FnOnce(&Vec<SignerId>) -> T,
 {
@@ -171,24 +191,6 @@ where
 
         callback(&filtered_signers)
     })
-}
-
-/// Check if a signer exists, and optionally check if it has a role.
-pub fn with_check_signer(signer_id: SignerId, opt_role: Option<Roles>) -> Result<(), String> {
-    with_signer(signer_id, |signer| {
-        if let Some(role) = opt_role {
-            if !signer.has_role(role.clone()) {
-                return Err(WalletError::SignerRoleNotFound(
-                    signer_id.to_string(),
-                    role.to_string(),
-                )
-                .to_string());
-            }
-        }
-
-        Ok(())
-    })
-    .map_err(|err| err.to_string())?
 }
 
 // WASM ----------------------------------------------------------------------

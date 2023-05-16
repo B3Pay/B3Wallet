@@ -54,6 +54,10 @@ impl PublicKeys {
     }
 
     pub fn set_ecdsa(&mut self, ecdsa: Vec<u8>) -> Result<Addresses, WalletError> {
+        if self.is_ecdsa_set() {
+            return Err(WalletError::EcdsaPublicKeyAlreadySet);
+        }
+
         if ecdsa.len() != 33 {
             return Err(WalletError::InvalidEcdsaPublicKey);
         }

@@ -1,11 +1,19 @@
-use b3_helper::types::{CanisterId, Wasm, WasmHash, WasmHashString, WasmVersion};
+use b3_helper::types::{CanisterId, SignerId, Wasm, WasmHash, WasmHashString, WasmVersion};
 use ic_cdk::{
     api::management_canister::main::UpdateSettingsArgument,
     export::{candid::CandidType, serde::Deserialize},
 };
 
+use crate::{
+    error::WalletError,
+    signer::{Roles, Signer},
+    store::{with_account_mut, with_signers_mut},
+};
+
+use super::{sign::SignRequest, Executable};
+
 #[derive(CandidType, Clone, Deserialize)]
-pub enum InnerCanisterRequest {
+pub enum InterCanisterRequest {
     RenameAccount(RenameAccountRequest),
     AddSigner(AddSignerRequest),
     UpdateSettings(UpdateSettingsRequest),
@@ -16,106 +24,80 @@ pub enum InnerCanisterRequest {
     Query(QueryRequest),
 }
 
-impl InnerCanisterRequest {
-    pub fn new_rename_account(account_id: &String, name: &String) -> Self {
-        InnerCanisterRequest::RenameAccount(RenameAccountRequest::new(
-            account_id.clone(),
-            name.clone(),
-        ))
-    }
-
-    pub fn new_add_signer(
-        name: String,
-        role: String,
-        canister_id: CanisterId,
-        expires_at: Option<u64>,
-    ) -> Self {
-        InnerCanisterRequest::AddSigner(AddSignerRequest::new(name, role, canister_id, expires_at))
-    }
-
-    pub fn new_update_settings(settings: UpdateSettingsArgument) -> Self {
-        InnerCanisterRequest::UpdateSettings(UpdateSettingsRequest::new(settings))
-    }
-
-    pub fn new_upgrade_canister(wasm: Wasm, wasm_version: WasmVersion) -> Self {
-        InnerCanisterRequest::UpdateCanister(UpgradeCanisterRequest::new(wasm, wasm_version))
-    }
-
-    pub fn new_top_up_canister(canister_id: CanisterId, amount: u64) -> Self {
-        InnerCanisterRequest::TopUpCanister(TopUpCanisterRequest::new(canister_id, amount))
-    }
-
-    pub fn new_raw_rand(length: u32) -> Self {
-        InnerCanisterRequest::RawRand(RawRandRequest::new(length))
-    }
-
-    pub fn new_call(
-        canister_id: CanisterId,
-        method_name: String,
-        arg: Vec<u8>,
-        sender: Option<CanisterId>,
-        cycles: Option<u64>,
-    ) -> Self {
-        InnerCanisterRequest::Call(CallRequest::new(
-            canister_id,
-            method_name,
-            arg,
-            sender,
-            cycles,
-        ))
-    }
-
-    pub fn new_query(
-        canister_id: CanisterId,
-        method_name: String,
-        arg: Vec<u8>,
-        sender: Option<CanisterId>,
-    ) -> Self {
-        InnerCanisterRequest::Query(QueryRequest::new(canister_id, method_name, arg, sender))
+impl Executable for InterCanisterRequest {
+    fn execute(&self) -> Result<(), WalletError> {
+        match self {
+            InterCanisterRequest::RenameAccount(args) => args.execute(),
+            _ => todo!("not implemented"),
+        }
     }
 }
 
 #[derive(CandidType, Clone, Deserialize)]
 pub struct RenameAccountRequest {
-    name: String,
-    account_id: String,
+    pub new_name: String,
+    pub account_id: String,
+}
+
+impl From<RenameAccountRequest> for SignRequest {
+    fn from(args: RenameAccountRequest) -> Self {
+        SignRequest::InnerCanister(InterCanisterRequest::RenameAccount(args))
+    }
+}
+
+impl Executable for RenameAccountRequest {
+    fn execute(&self) -> Result<(), WalletError> {
+        let new_name = self.new_name.clone();
+
+        with_account_mut(&self.account_id, |account| account.rename(new_name))?;
+
+        Ok(())
+    }
 }
 
 impl RenameAccountRequest {
     pub fn new(account_id: String, name: String) -> Self {
-        Self { account_id, name }
-    }
-
-    pub fn execute<F, T>(&self, mut callback: F) -> Result<T, String>
-    where
-        F: FnMut(String, String) -> Result<T, String>,
-    {
-        let account_id = self.account_id.clone();
-        let name = self.name.clone();
-
-        callback(account_id, name)
+        Self {
+            account_id,
+            new_name: name,
+        }
     }
 }
 
 #[derive(CandidType, Clone, Deserialize)]
 pub struct AddSignerRequest {
-    pub name: String,
-    pub role: String,
-    pub canister_id: CanisterId,
+    pub name: Option<String>,
+    pub role: Roles,
+    pub signer_id: SignerId,
     pub expires_at: Option<u64>,
+}
+
+impl Executable for AddSignerRequest {
+    fn execute(&self) -> Result<(), WalletError> {
+        let signer_id = self.signer_id.clone();
+        let signer_name = self.name.clone();
+        let signer_role = self.role.clone();
+
+        let signer = Signer::new(signer_role, signer_name, self.expires_at);
+
+        with_signers_mut(|signers| signers.insert(signer_id, signer))
+            .ok_or(WalletError::UnknownError)?;
+
+        Ok(())
+    }
 }
 
 impl AddSignerRequest {
     pub fn new(
-        name: String,
-        role: String,
-        canister_id: CanisterId,
+        signer_id: SignerId,
+        name: Option<String>,
+        role: Roles,
         expires_at: Option<u64>,
     ) -> Self {
         AddSignerRequest {
             name,
             role,
-            canister_id,
+            signer_id,
             expires_at,
         }
     }

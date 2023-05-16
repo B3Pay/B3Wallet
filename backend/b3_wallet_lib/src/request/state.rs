@@ -1,29 +1,21 @@
-use super::{sign::SignRequest, Request, RequestArgs};
+use super::{Request, RequestArgs};
 use crate::{
     error::WalletError,
-    signer::Roles,
     state::State,
-    types::{RequestId, RequestMap},
+    types::{PendingRequestMap, RequestId},
 };
 
 impl State {
-    pub fn new_request(&self, role: Roles, request: SignRequest, deadline: Option<u64>) -> Request {
+    pub fn new_request(&self, args: RequestArgs, deadline: Option<u64>) -> Request {
         let id = self.request_counter();
 
-        let request_args = RequestArgs {
-            id,
-            request,
-            deadline,
-            allowed_role: role,
-        };
-
-        request_args.into()
+        Request::new(id, args, deadline)
     }
 
     pub fn insert_request(&mut self, sign_request: Request) -> RequestId {
         let id = sign_request.id();
 
-        self.requests.insert(id.clone(), sign_request);
+        self.pending_requests.insert(id.clone(), sign_request);
 
         id
     }
@@ -33,21 +25,21 @@ impl State {
     }
 
     pub fn remove_request(&mut self, request_id: RequestId) {
-        self.requests.remove(&request_id);
+        self.pending_requests.remove(&request_id);
     }
 
-    pub fn requests(&self) -> RequestMap {
-        self.requests.clone()
+    pub fn requests(&self) -> PendingRequestMap {
+        self.pending_requests.clone()
     }
 
     pub fn request(&self, request_id: RequestId) -> Result<&Request, WalletError> {
-        self.requests
+        self.pending_requests
             .get(&request_id)
             .ok_or(WalletError::RequestNotFound(request_id))
     }
 
     pub fn request_mut(&mut self, request_id: RequestId) -> Result<&mut Request, WalletError> {
-        self.requests
+        self.pending_requests
             .get_mut(&request_id)
             .ok_or(WalletError::RequestNotFound(request_id))
     }
@@ -57,7 +49,7 @@ impl State {
             return Err(WalletError::RequestAlreadyConfirmed(request_id));
         }
 
-        if !self.requests.contains_key(&request_id) {
+        if !self.pending_requests.contains_key(&request_id) {
             return Err(WalletError::RequestNotFound(request_id));
         }
 

@@ -1,7 +1,7 @@
 pub mod bitcoin;
 pub mod evm;
 pub mod icp;
-pub mod inner;
+pub mod inter;
 pub mod message;
 pub mod sign;
 pub mod state;
@@ -14,6 +14,24 @@ use ic_cdk::{
 };
 use sign::SignRequest;
 
+pub struct RequestArgs {
+    pub allowed_role: Roles,
+    pub request: SignRequest,
+}
+
+impl RequestArgs {
+    pub fn new(allowed_role: Roles, request: SignRequest) -> Self {
+        Self {
+            allowed_role,
+            request,
+        }
+    }
+}
+
+pub trait Executable {
+    fn execute(&self) -> Result<(), WalletError>;
+}
+
 #[derive(CandidType, Clone, Deserialize)]
 pub struct Request {
     id: RequestId,
@@ -23,28 +41,19 @@ pub struct Request {
     signers: Vec<SignerId>,
 }
 
-pub struct RequestArgs {
-    pub id: RequestId,
-    pub allowed_role: Roles,
-    pub request: SignRequest,
-    pub deadline: Option<u64>,
-}
-
-impl From<RequestArgs> for Request {
-    fn from(args: RequestArgs) -> Self {
-        let deadline = args.deadline.unwrap_or(time() + 15 * 60 * 1_000_000_000);
+impl Request {
+    pub fn new(id: RequestId, args: RequestArgs, deadline: Option<u64>) -> Self {
+        let deadline = deadline.unwrap_or(time() + 15 * 60 * 1_000_000_000);
 
         Self {
+            id,
             deadline,
-            id: args.id,
             signers: vec![],
             request: args.request,
             role: args.allowed_role,
         }
     }
-}
 
-impl Request {
     pub fn id(&self) -> RequestId {
         self.id
     }
@@ -53,8 +62,8 @@ impl Request {
         self.role
     }
 
-    pub fn request(&self) -> &SignRequest {
-        &self.request
+    pub fn execute(&self) -> Result<(), WalletError> {
+        self.request.execute()
     }
 
     pub fn deadline(&self) -> u64 {
