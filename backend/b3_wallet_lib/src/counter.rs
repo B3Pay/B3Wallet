@@ -11,8 +11,8 @@ impl From<WalletCounters> for AccountsCounter {
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct WalletCounters {
-    pub account: AccountsCounter,
-    pub request: RequestId,
+    account: AccountsCounter,
+    request: RequestId,
 }
 
 impl WalletCounters {
@@ -23,7 +23,7 @@ impl WalletCounters {
         }
     }
 
-    pub fn total(&self) -> u64 {
+    pub fn total_account(&self) -> u64 {
         self.account.development + self.account.production + self.account.staging
     }
 
@@ -35,7 +35,7 @@ impl WalletCounters {
         }
     }
 
-    pub fn increment(&mut self, environment: Environment) -> u64 {
+    pub fn increment_account(&mut self, environment: Environment) -> u64 {
         match environment {
             Environment::Development => {
                 self.account.development += 1;
@@ -52,7 +52,7 @@ impl WalletCounters {
         }
     }
 
-    pub fn decrement(&mut self, environment: Environment) {
+    pub fn decrement_account(&mut self, environment: Environment) {
         match environment {
             Environment::Development => self.account.development -= 1,
             Environment::Production => self.account.production -= 1,
@@ -61,7 +61,7 @@ impl WalletCounters {
     }
     /// Increment the account counter and return the new name based on the environment
     pub fn generate_next_account_name(&mut self, environment: Environment) -> String {
-        let counter = self.increment(environment.clone()).to_string();
+        let counter = self.increment_account(environment.clone()).to_string();
 
         match environment {
             Environment::Development => ["Development Account", &counter].join(" "),
@@ -69,6 +69,17 @@ impl WalletCounters {
             Environment::Staging => ["Staging Account", &counter].join(" "),
         }
     }
+
+    pub fn increment_request(&mut self) -> RequestId {
+        self.request += 1;
+
+        self.request
+    }
+
+    pub fn request(&self) -> RequestId {
+        self.request
+    }
+
     /// increment the request counter and return the new value
     pub fn generate_next_request_id(&mut self) -> RequestId {
         self.request += 1;

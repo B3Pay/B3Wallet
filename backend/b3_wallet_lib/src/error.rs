@@ -4,9 +4,10 @@ use ic_cdk::export::candid::{CandidType, Deserialize};
 use crate::types::RequestId;
 
 #[rustfmt::skip]
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Debug, PartialEq)]
 pub enum WalletError {
     UnknownError,
+    InvalidRequest,
     InvalidTx(String),
     InvalidMsg(String),
     SignError(String),
@@ -16,7 +17,6 @@ pub enum WalletError {
     RequestNotFound(RequestId),
     RequestNotConfirmed(RequestId),
     RequestAlreadyConfirmed(RequestId),
-    InvalidSignature(String),
     CyclesMintingError(String),
     CanisterStatusError(String),
     UpdateSettingsError(String),
@@ -24,8 +24,13 @@ pub enum WalletError {
     SignerRoleNotAuthorized(String),
     SignerRoleNotFound(String, String),
     SignerNotFound(String),
+    SignerAlreadyExists(String),
+    SignerDoesNotExist(String),
     TransactionTooOld(u64),
     AlreadySigned(String),
+    ExecutionError(String),
+    NotifyTopUpError(String),
+    DeadlineExceeded,
     Processing,
     InvalidMessageLength,
     CallerIsNotOwner,
@@ -37,7 +42,13 @@ pub enum WalletError {
     WalletAccountNotExists,
     RequestNotExists,
     InvalidAddress,
-
+    InvalidEvmTransactionType,
+    NotSignedTransaction,
+    InvalidController,
+    InvalidSignature,
+    InvalidMessage,
+    InvalidPublicKey,
+    RecoveryIdNotFound,
 }
 
 #[rustfmt::skip]
@@ -45,13 +56,16 @@ impl TrapError for WalletError {
     fn to_string(self) -> String {
         match self {
             WalletError::UnknownError => "Unknown error".to_string(),
+            WalletError::InvalidRequest => "Invalid request".to_string(),
+            WalletError::ExecutionError(msg) => ["Execution error: ", &msg].concat(),
             WalletError::InvalidMsg(msg) => ["Invalid message: ", &msg].concat(),
             WalletError::InvalidTx(msg) => ["Invalid transaction: ", &msg].concat(),
-            WalletError::InvalidSignature(msg) => ["Invalid signature: ", &msg].concat(),
             WalletError::SignError(msg) => ["Sign error: ", &msg].concat(),
             WalletError::SignerNotFound(msg) => [&msg, " is not a signer!"].concat(),
             WalletError::SignerRoleNotFound(signer, role) => ["Signer ", &signer, " does not have role ", &role].concat(),
             WalletError::SignerRoleNotAuthorized(signer) => ["Signer ", &signer, " is not authorized to sign!"].concat(),
+            WalletError::SignerAlreadyExists(signer) => ["Signer ", &signer, " already exists!"].concat(),
+            WalletError::SignerDoesNotExist(signer) => ["Signer ", &signer, " does not exist!"].concat(),
             WalletError::LedgerError(msg) => ["Ledger error: ", &msg].concat(),
             WalletError::RequestNotFound(msg) => ["Request not found: ", &msg.to_string()].concat(),
             WalletError::GenerateError(msg) => ["Generation error: ", &msg].concat(),
@@ -74,7 +88,16 @@ impl TrapError for WalletError {
             WalletError::RequestNotExists => "Request does not exist!".to_string(),
             WalletError::RequestNotConfirmed(request_id) => ["Request ", &request_id.to_string(), " not confirmed!"].concat(),
             WalletError::RequestAlreadyConfirmed(request_id) => ["Request ", &request_id.to_string(), " already confirmed!"].concat(),
+            WalletError::NotifyTopUpError(msg) => ["Notify top up error: ", &msg].concat(),
+            WalletError::InvalidController => "Invalid controller!".to_string(),
             WalletError::InvalidAddress => "Invalid address!".to_string(),
+            WalletError::InvalidEvmTransactionType => "Invalid EVM transaction type!".to_string(),
+            WalletError::NotSignedTransaction => "Not signed transaction!".to_string(),
+            WalletError::InvalidMessage => "Invalid message!".to_string(),
+            WalletError::InvalidPublicKey => "Invalid public key!".to_string(),
+            WalletError::RecoveryIdNotFound => "Recovery ID not found!".to_string(),
+            WalletError::InvalidSignature => "Invalid signature!".to_string(),
+            WalletError::DeadlineExceeded => "Deadline exceeded!".to_string(),
         }
     }
 }

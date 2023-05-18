@@ -68,12 +68,12 @@ export const idlFactory = ({ IDL }) => {
     'idle_cycles_burned_per_day' : IDL.Nat,
     'module_hash' : IDL.Opt(IDL.Vec(IDL.Nat8)),
   });
-  const CanisterStatus = IDL.Record({
+  const SystemCanisterStatus = IDL.Record({
     'canister_id' : IDL.Principal,
+    'user_status' : IDL.Nat64,
     'status_at' : IDL.Nat64,
     'version' : IDL.Text,
     'canister_status' : CanisterStatusResponse,
-    'account_counter' : IDL.Nat64,
   });
   return IDL.Service({
     'add_controller' : IDL.Func([IDL.Principal], [], []),
@@ -81,10 +81,11 @@ export const idlFactory = ({ IDL }) => {
     'create_signer_canister' : IDL.Func([], [Result], []),
     'deprecate_release' : IDL.Func([IDL.Text], [Result_1], []),
     'get_canister' : IDL.Func([], [SignerCanister], ['query']),
+    'get_canister_release' : IDL.Func([IDL.Principal], [Release], ['query']),
     'get_canister_version' : IDL.Func([IDL.Principal], [IDL.Text], ['query']),
-    'get_canister_wasmhash' : IDL.Func(
+    'get_canister_version_by_user' : IDL.Func(
         [IDL.Principal],
-        [IDL.Vec(IDL.Nat8)],
+        [IDL.Text],
         ['query'],
       ),
     'get_controllers' : IDL.Func([], [IDL.Vec(IDL.Principal)], ['query']),
@@ -105,7 +106,7 @@ export const idlFactory = ({ IDL }) => {
     'remove_release' : IDL.Func([IDL.Text], [Result_2], []),
     'remove_signer_canister' : IDL.Func([IDL.Principal], [], []),
     'reset_users' : IDL.Func([], [], []),
-    'status' : IDL.Func([], [CanisterStatus], []),
+    'status' : IDL.Func([], [SystemCanisterStatus], []),
     'update_release' : IDL.Func([ReleaseArgs], [Result_1], []),
     'version' : IDL.Func([], [IDL.Text], ['query']),
   });

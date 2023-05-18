@@ -43,19 +43,16 @@ impl From<Subaccount> for WalletAccount {
 }
 
 impl WalletAccount {
-    pub async fn sign_eth_transaction(
+    pub async fn sign_evm_transaction(
         &self,
         hex_raw_tx: Vec<u8>,
         chain_id: u64,
     ) -> Result<Vec<u8>, WalletError> {
         let ecdsa = self.ledger.public_keys.ecdsa()?;
 
-        let mut evm_tx =
-            get_evm_transaction(&hex_raw_tx, chain_id).map_err(|e| WalletError::InvalidTx(e))?;
+        let mut evm_tx = get_evm_transaction(&hex_raw_tx, chain_id)?;
 
-        let message = evm_tx
-            .get_message_to_sign()
-            .map_err(|e| WalletError::InvalidMsg(e))?;
+        let message = evm_tx.get_message_to_sign()?;
 
         if message.len() != 32 {
             return Err(WalletError::InvalidMessageLength);
@@ -63,9 +60,7 @@ impl WalletAccount {
 
         let signature = self.ledger.sign_with_ecdsa(message).await?;
 
-        let signed_evm_tx = evm_tx
-            .sign(signature, ecdsa)
-            .map_err(|e| WalletError::InvalidSignature(e))?;
+        let signed_evm_tx = evm_tx.sign(signature, ecdsa)?;
 
         Ok(signed_evm_tx)
     }

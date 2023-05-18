@@ -3,7 +3,7 @@ use std::fmt;
 use b3_helper::types::Metadata;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
-#[derive(CandidType, Deserialize, PartialEq, Copy, Clone)]
+#[derive(CandidType, Deserialize, PartialEq, Debug, Copy, Clone)]
 pub enum Roles {
     Canister,
     Admin,
@@ -31,6 +31,7 @@ pub struct Signer {
     pub role: Roles,
     pub name: Option<String>,
     pub metadata: Metadata,
+    pub threshold: Option<u8>,
     pub expires_at: Option<u64>,
 }
 
@@ -39,8 +40,9 @@ impl Default for Signer {
         Signer {
             role: Roles::User,
             name: None,
-            metadata: Metadata::default(),
+            threshold: None,
             expires_at: None,
+            metadata: Metadata::default(),
         }
     }
 }
@@ -50,6 +52,7 @@ impl From<Roles> for Signer {
         Signer {
             role,
             name: None,
+            threshold: None,
             expires_at: None,
             metadata: Metadata::default(),
         }
@@ -62,6 +65,7 @@ impl Signer {
             role,
             name,
             expires_at,
+            threshold: None,
             metadata: Metadata::default(),
         }
     }

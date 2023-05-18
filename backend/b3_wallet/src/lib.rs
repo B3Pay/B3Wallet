@@ -1,7 +1,7 @@
 mod account;
 mod confirm;
-mod guard;
 mod request;
+mod signer;
 mod status;
 mod wasm;
 
@@ -70,8 +70,10 @@ pub fn post_upgrade() {
 mod tests {
     use b3_helper::types::*;
     use b3_wallet_lib::{
-        account::WalletAccount, ledger::network::Network, ledger::types::*, request::Request,
-        signer::Roles, types::*,
+        account::WalletAccount, confirmed::ConfirmedRequest, ledger::network::Network,
+        ledger::types::*, request::inner::account::RenameAccountRequest,
+        request::inner::setting::UpdateCanisterSettingsRequest, request::Request, signer::Roles,
+        types::*,
     };
     use ic_cdk::export::candid::export_service;
 

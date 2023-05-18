@@ -1,13 +1,6 @@
 import type { Principal } from '@dfinity/principal';
 import type { ActorMethod } from '@dfinity/agent';
 
-export interface CanisterStatus {
-  'canister_id' : Principal,
-  'status_at' : bigint,
-  'version' : string,
-  'canister_status' : CanisterStatusResponse,
-  'account_counter' : bigint,
-}
 export interface CanisterStatusResponse {
   'status' : CanisterStatusType,
   'memory_size' : bigint,
@@ -56,6 +49,13 @@ export interface SignerCanister {
   'canister_id' : [] | [Principal],
   'created_at' : bigint,
 }
+export interface SystemCanisterStatus {
+  'canister_id' : Principal,
+  'user_status' : bigint,
+  'status_at' : bigint,
+  'version' : string,
+  'canister_status' : CanisterStatusResponse,
+}
 export type SystemError = { 'UserAlreadyExists' : null } |
   { 'WasmGetError' : string } |
   { 'CreateCanisterError' : string } |
@@ -83,8 +83,9 @@ export interface _SERVICE {
   'create_signer_canister' : ActorMethod<[], Result>,
   'deprecate_release' : ActorMethod<[string], Result_1>,
   'get_canister' : ActorMethod<[], SignerCanister>,
+  'get_canister_release' : ActorMethod<[Principal], Release>,
   'get_canister_version' : ActorMethod<[Principal], string>,
-  'get_canister_wasmhash' : ActorMethod<[Principal], Uint8Array | number[]>,
+  'get_canister_version_by_user' : ActorMethod<[Principal], string>,
   'get_controllers' : ActorMethod<[], Array<Principal>>,
   'get_release' : ActorMethod<[string], Result_2>,
   'get_release_by_index' : ActorMethod<[bigint], Result_2>,
@@ -99,7 +100,7 @@ export interface _SERVICE {
   'remove_release' : ActorMethod<[string], Result_2>,
   'remove_signer_canister' : ActorMethod<[Principal], undefined>,
   'reset_users' : ActorMethod<[], undefined>,
-  'status' : ActorMethod<[], CanisterStatus>,
+  'status' : ActorMethod<[], SystemCanisterStatus>,
   'update_release' : ActorMethod<[ReleaseArgs], Result_1>,
   'version' : ActorMethod<[], string>,
 }

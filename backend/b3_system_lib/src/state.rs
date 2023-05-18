@@ -18,11 +18,11 @@ impl State {
             return Err(SystemError::UserAlreadyExists);
         }
 
-        let signer_canister = SignerCanister::new();
+        let wallet_canister = SignerCanister::new();
 
-        self.users.insert(user, signer_canister.clone());
+        self.users.insert(user, wallet_canister.clone());
 
-        Ok(signer_canister)
+        Ok(wallet_canister)
     }
 
     pub fn get_or_init_user(
@@ -33,22 +33,22 @@ impl State {
         if let Some(canister) = self.users.get_mut(&user) {
             return canister
                 .get_with_update_rate()
-                .map_err(|e| SystemError::SignerCanisterRateError(e.to_string()));
+                .map_err(|e| SystemError::WalletCanisterRateError(e.to_string()));
         }
 
-        let signer_canister = if let Some(canister_id) = opt_canister_id {
+        let wallet_canister = if let Some(canister_id) = opt_canister_id {
             SignerCanister::from(canister_id)
         } else {
             SignerCanister::new()
         };
 
-        self.users.insert(user, signer_canister.clone());
+        self.users.insert(user, wallet_canister.clone());
 
-        Ok(signer_canister)
+        Ok(wallet_canister)
     }
 
-    pub fn add_user(&mut self, user: SignerId, signer_canister: SignerCanister) {
-        self.users.insert(user, signer_canister);
+    pub fn add_user(&mut self, user: SignerId, wallet_canister: SignerCanister) {
+        self.users.insert(user, wallet_canister);
     }
 
     pub fn remove_user(&mut self, user: &SignerId) {

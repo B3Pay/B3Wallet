@@ -32,7 +32,7 @@ pub type WasmVersion = String;
 #[derive(CandidType, Deserialize, Clone)]
 pub struct Subaccount(pub [u8; 32]);
 
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Deserialize, Clone, Debug, PartialEq)]
 pub struct AccountIdentifier(pub [u8; 32]);
 
 pub struct SignerCanisterInstallArg {
@@ -93,7 +93,7 @@ pub struct SystemCanisterStatus {
     pub canister_status: CanisterStatusResponse,
 }
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Deserialize, Clone, Debug, PartialEq)]
 pub struct Tokens {
     pub e8s: u64,
 }
@@ -123,7 +123,7 @@ impl Tokens {
     }
 }
 
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Deserialize, Debug, PartialEq, Clone)]
 pub struct Memo(pub u64);
 
 pub type BlockIndex = u64;

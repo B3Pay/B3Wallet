@@ -75,14 +75,14 @@ pub async fn create_signer_canister() -> Result<SignerCanister, String> {
     let user_id = ic_cdk::caller();
     let system_id = ic_cdk::id();
 
-    let mut signer_canister = with_state_mut(|s| s.init_user(user_id)).unwrap_or_else(revert);
+    let mut wallet_canister = with_state_mut(|s| s.init_user(user_id)).unwrap_or_else(revert);
 
-    signer_canister
+    wallet_canister
         .create_with_cycles(vec![user_id, system_id], CREATE_SIGNER_CANISTER_CYCLES)
         .await
         .unwrap_or_else(revert);
 
-    with_state_mut(|s| s.add_user(user_id, signer_canister.clone()));
+    with_state_mut(|s| s.add_user(user_id, wallet_canister.clone()));
 
     let install_arg_result = with_state_mut(|s| {
         s.get_latest_install_args(user_id, Some(system_id), CanisterInstallMode::Install)
@@ -91,13 +91,13 @@ pub async fn create_signer_canister() -> Result<SignerCanister, String> {
     match install_arg_result {
         Ok(install_arg) => {
             // Install the code.
-            let install_result = signer_canister.install_code(install_arg).await;
+            let install_result = wallet_canister.install_code(install_arg).await;
 
             // Update the controllers, and remove this canister as a controller.
-            let update_result = signer_canister.update_controllers(vec![user_id]).await;
+            let update_result = wallet_canister.update_controllers(vec![user_id]).await;
 
             match (install_result, update_result) {
-                (Ok(_), Ok(_)) => Ok(signer_canister),
+                (Ok(_), Ok(_)) => Ok(wallet_canister),
                 (Err(err), _) => Err(err.to_string()),
                 (_, Err(err)) => Err(err.to_string()),
             }
@@ -114,7 +114,7 @@ pub async fn install_signer_canister(
     let system_id = ic_cdk::id();
     let user_id = ic_cdk::caller();
 
-    let mut signer_canister =
+    let mut wallet_canister =
         with_state_mut(|s| s.get_or_init_user(user_id, canister_id)).unwrap_or_else(revert);
 
     let install_arg_result = with_state_mut(|s| {
@@ -123,20 +123,20 @@ pub async fn install_signer_canister(
 
     match install_arg_result {
         Ok(install_arg) => {
-            let status = signer_canister.status().await;
+            let status = wallet_canister.status().await;
 
             if status.is_ok() {
-                revert(SystemError::SignerCanisterAlreadyInstalled)
+                revert(SystemError::WalletCanisterAlreadyInstalled)
             }
 
             // Install the code.
-            let install_result = signer_canister.install_code(install_arg).await;
+            let install_result = wallet_canister.install_code(install_arg).await;
 
             // Update the controllers, and remove this canister as a controller.
-            let update_result = signer_canister.update_controllers(vec![user_id]).await;
+            let update_result = wallet_canister.update_controllers(vec![user_id]).await;
 
             match (install_result, update_result) {
-                (Ok(_), Ok(_)) => Ok(signer_canister),
+                (Ok(_), Ok(_)) => Ok(wallet_canister),
                 (Err(err), _) => Err(err.to_string()),
                 (_, Err(err)) => Err(err.to_string()),
             }

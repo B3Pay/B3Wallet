@@ -1,11 +1,12 @@
-use crate::utils::{
-    remove_leading, string_to_vec_u8, u64_to_vec_u8, vec_u8_to_string, vec_u8_to_u64,
+use crate::{
+    error::WalletError,
+    utils::{remove_leading, string_to_vec_u8, u64_to_vec_u8, vec_u8_to_string, vec_u8_to_u64},
 };
 use candid::CandidType;
 use easy_hasher::easy_hasher;
 use serde::Deserialize;
 
-#[derive(Clone, Deserialize, PartialEq, CandidType)]
+#[derive(Clone, Deserialize, PartialEq, CandidType, Debug)]
 pub struct EvmTransaction {
     pub chain_id: u64,
     pub nonce: u64,
@@ -78,7 +79,7 @@ impl EvmTransaction {
     }
 }
 
-#[derive(Clone, Deserialize, PartialEq, CandidType)]
+#[derive(Clone, Deserialize, PartialEq, CandidType, Debug)]
 pub enum EvmTransactionType {
     Legacy,
     EIP1559,
@@ -102,14 +103,14 @@ pub enum EvmTransactions<'a> {
 }
 
 pub trait EvmSign {
-    fn get_message_to_sign(&self) -> Result<Vec<u8>, String>;
-    fn sign(&mut self, signature: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, String>;
+    fn get_message_to_sign(&self) -> Result<Vec<u8>, WalletError>;
+    fn sign(&mut self, signature: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, WalletError>;
     fn is_signed(&self) -> bool;
-    fn get_signature(&self) -> Result<Vec<u8>, String>;
-    fn get_recovery_id(&self) -> Result<u8, String>;
-    fn get_nonce(&self) -> Result<u64, String>;
-    fn serialize(&self) -> Result<Vec<u8>, String>;
-    fn get_transaction(&self) -> Result<EvmTransaction, String>;
+    fn get_signature(&self) -> Result<Vec<u8>, WalletError>;
+    fn get_recovery_id(&self) -> Result<u8, WalletError>;
+    fn get_nonce(&self) -> Result<u64, WalletError>;
+    fn serialize(&self) -> Result<Vec<u8>, WalletError>;
+    fn get_transaction(&self) -> Result<EvmTransaction, WalletError>;
 }
 
 pub struct EvmTransactionLegacy {
@@ -173,7 +174,7 @@ impl From<(Vec<u8>, u64)> for EvmTransactionLegacy {
     }
 }
 impl EvmSign for EvmTransactionLegacy {
-    fn get_message_to_sign(&self) -> Result<Vec<u8>, String> {
+    fn get_message_to_sign(&self) -> Result<Vec<u8>, WalletError> {
         let mut stream = rlp::RlpStream::new_list(9);
 
         let items = [
@@ -199,7 +200,7 @@ impl EvmSign for EvmTransactionLegacy {
 
         Ok(keccak256.to_vec())
     }
-    fn sign(&mut self, signature: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, String> {
+    fn sign(&mut self, signature: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, WalletError> {
         let chain_id = u64::try_from(self.chain_id).unwrap();
 
         let r_remove_leading_zeros = remove_leading(signature[..32].to_vec(), 0);
@@ -209,8 +210,8 @@ impl EvmSign for EvmTransactionLegacy {
 
         let s = vec_u8_to_string(&s_remove_leading_zeros);
 
-        let message = self.get_message_to_sign().unwrap();
-        let recovery_id = get_recovery_id(&message, &signature, &public_key).unwrap();
+        let message = self.get_message_to_sign()?;
+        let recovery_id = get_recovery_id(&message, &signature, &public_key)?;
 
         let v_number = chain_id * 2 + 35 + u64::try_from(recovery_id).unwrap();
         let v = vec_u8_to_string(&u64_to_vec_u8(&v_number));
@@ -219,7 +220,7 @@ impl EvmSign for EvmTransactionLegacy {
         self.r = r;
         self.s = s;
 
-        let result = self.serialize().unwrap();
+        let result = self.serialize()?;
         Ok(result)
     }
     fn is_signed(&self) -> bool {
@@ -238,9 +239,9 @@ impl EvmSign for EvmTransactionLegacy {
 
         r != "00" || s != "00"
     }
-    fn get_signature(&self) -> Result<Vec<u8>, String> {
+    fn get_signature(&self) -> Result<Vec<u8>, WalletError> {
         if !self.is_signed() {
-            return Err("This is not a signed transaction".to_string());
+            return Err(WalletError::NotSignedTransaction);
         }
 
         let r = string_to_vec_u8(&self.r);
@@ -248,9 +249,9 @@ impl EvmSign for EvmTransactionLegacy {
 
         Ok([&r[..], &s[..]].concat())
     }
-    fn get_recovery_id(&self) -> Result<u8, String> {
+    fn get_recovery_id(&self) -> Result<u8, WalletError> {
         if !self.is_signed() {
-            return Err("This is not a signed transaction".to_string());
+            return Err(WalletError::NotSignedTransaction);
         }
         let chain_id = i64::try_from(self.chain_id).unwrap();
         let v = string_to_vec_u8(&self.v);
@@ -258,7 +259,7 @@ impl EvmSign for EvmTransactionLegacy {
         let recovery_id = -1 * ((chain_id * 2) + 35 - i64::try_from(v[0]).unwrap());
         Ok(u8::try_from(recovery_id).unwrap())
     }
-    fn serialize(&self) -> Result<Vec<u8>, String> {
+    fn serialize(&self) -> Result<Vec<u8>, WalletError> {
         let mut stream = rlp::RlpStream::new_list(9);
 
         let nonce = u64_to_vec_u8(&self.nonce);
@@ -290,11 +291,11 @@ impl EvmSign for EvmTransactionLegacy {
 
         Ok(stream.out().to_vec())
     }
-    fn get_nonce(&self) -> Result<u64, String> {
+    fn get_nonce(&self) -> Result<u64, WalletError> {
         Ok(self.nonce)
     }
 
-    fn get_transaction(&self) -> Result<EvmTransaction, String> {
+    fn get_transaction(&self) -> Result<EvmTransaction, WalletError> {
         let transaction = EvmTransaction::from(EvmTransactions::Legacy(self));
 
         Ok(transaction)
@@ -365,7 +366,7 @@ impl From<Vec<u8>> for EvmTransaction2930 {
     }
 }
 impl EvmSign for EvmTransaction2930 {
-    fn get_message_to_sign(&self) -> Result<Vec<u8>, String> {
+    fn get_message_to_sign(&self) -> Result<Vec<u8>, WalletError> {
         let mut stream = rlp::RlpStream::new_list(8);
         let items = [
             u64_to_vec_u8(&self.chain_id),
@@ -390,7 +391,7 @@ impl EvmSign for EvmTransaction2930 {
         let keccak256 = easy_hasher::raw_keccak256(msg);
         Ok(keccak256.to_vec())
     }
-    fn sign(&mut self, signature: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, String> {
+    fn sign(&mut self, signature: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, WalletError> {
         let r_remove_leading_zeros = remove_leading(signature[..32].to_vec(), 0);
         let s_remove_leading_zeros = remove_leading(signature[32..].to_vec(), 0);
 
@@ -398,8 +399,8 @@ impl EvmSign for EvmTransaction2930 {
 
         let s = vec_u8_to_string(&s_remove_leading_zeros);
 
-        let message = self.get_message_to_sign().unwrap();
-        let recovery_id = get_recovery_id(&message, &signature, &public_key).unwrap();
+        let message = self.get_message_to_sign()?;
+        let recovery_id = get_recovery_id(&message, &signature, &public_key)?;
         let v: String;
         if recovery_id == 0 {
             v = "".to_string();
@@ -411,7 +412,7 @@ impl EvmSign for EvmTransaction2930 {
         self.r = r;
         self.s = s;
 
-        let result = self.serialize().unwrap();
+        let result = self.serialize()?;
         Ok(result)
     }
     fn is_signed(&self) -> bool {
@@ -430,9 +431,9 @@ impl EvmSign for EvmTransaction2930 {
 
         r != "00" || s != "00"
     }
-    fn get_signature(&self) -> Result<Vec<u8>, String> {
+    fn get_signature(&self) -> Result<Vec<u8>, WalletError> {
         if !self.is_signed() {
-            return Err("This is not a signed transaction".to_string());
+            return Err(WalletError::NotSignedTransaction);
         }
 
         let r = string_to_vec_u8(&self.r);
@@ -440,9 +441,9 @@ impl EvmSign for EvmTransaction2930 {
 
         Ok([&r[..], &s[..]].concat())
     }
-    fn get_recovery_id(&self) -> Result<u8, String> {
+    fn get_recovery_id(&self) -> Result<u8, WalletError> {
         if !self.is_signed() {
-            return Err("This is not a signed transaction".to_string());
+            return Err(WalletError::NotSignedTransaction);
         }
 
         let v = string_to_vec_u8(&self.v);
@@ -453,7 +454,7 @@ impl EvmSign for EvmTransaction2930 {
             Ok(1 as u8)
         }
     }
-    fn serialize(&self) -> Result<Vec<u8>, String> {
+    fn serialize(&self) -> Result<Vec<u8>, WalletError> {
         let mut stream = rlp::RlpStream::new_list(11);
 
         let chain_id = u64_to_vec_u8(&self.chain_id);
@@ -493,10 +494,10 @@ impl EvmSign for EvmTransaction2930 {
 
         Ok([&[0x01], &result[..]].concat())
     }
-    fn get_nonce(&self) -> Result<u64, String> {
+    fn get_nonce(&self) -> Result<u64, WalletError> {
         Ok(self.nonce)
     }
-    fn get_transaction(&self) -> Result<EvmTransaction, String> {
+    fn get_transaction(&self) -> Result<EvmTransaction, WalletError> {
         let transaction = EvmTransaction::from(EvmTransactions::EIP2930(self));
 
         Ok(transaction)
@@ -574,7 +575,7 @@ impl From<Vec<u8>> for EvmTransaction1559 {
     }
 }
 impl EvmSign for EvmTransaction1559 {
-    fn get_message_to_sign(&self) -> Result<Vec<u8>, String> {
+    fn get_message_to_sign(&self) -> Result<Vec<u8>, WalletError> {
         let mut stream = rlp::RlpStream::new_list(9);
         let items = [
             u64_to_vec_u8(&self.chain_id),
@@ -604,7 +605,7 @@ impl EvmSign for EvmTransaction1559 {
 
         Ok(keccak256.to_vec())
     }
-    fn sign(&mut self, signature: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, String> {
+    fn sign(&mut self, signature: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, WalletError> {
         let r_remove_leading_zeros = remove_leading(signature[..32].to_vec(), 0);
         let s_remove_leading_zeros = remove_leading(signature[32..].to_vec(), 0);
 
@@ -612,8 +613,8 @@ impl EvmSign for EvmTransaction1559 {
 
         let s = vec_u8_to_string(&s_remove_leading_zeros);
 
-        let message = self.get_message_to_sign().unwrap();
-        let recovery_id = get_recovery_id(&message, &signature, &public_key).unwrap();
+        let message = self.get_message_to_sign()?;
+        let recovery_id = get_recovery_id(&message, &signature, &public_key)?;
         let v: String;
         if recovery_id == 0 {
             v = "".to_string();
@@ -625,7 +626,7 @@ impl EvmSign for EvmTransaction1559 {
         self.r = r;
         self.s = s;
 
-        let result = self.serialize().unwrap();
+        let result = self.serialize()?;
         Ok(result)
     }
     fn is_signed(&self) -> bool {
@@ -644,9 +645,9 @@ impl EvmSign for EvmTransaction1559 {
 
         r != "00" || s != "00"
     }
-    fn get_signature(&self) -> Result<Vec<u8>, String> {
+    fn get_signature(&self) -> Result<Vec<u8>, WalletError> {
         if !self.is_signed() {
-            return Err("This is not a signed transaction".to_string());
+            return Err(WalletError::NotSignedTransaction);
         }
 
         let r = string_to_vec_u8(&self.r);
@@ -654,9 +655,9 @@ impl EvmSign for EvmTransaction1559 {
 
         Ok([&r[..], &s[..]].concat())
     }
-    fn get_recovery_id(&self) -> Result<u8, String> {
+    fn get_recovery_id(&self) -> Result<u8, WalletError> {
         if !self.is_signed() {
-            return Err("This is not a signed transaction".to_string());
+            return Err(WalletError::NotSignedTransaction);
         }
         let v = &self.v;
 
@@ -666,7 +667,7 @@ impl EvmSign for EvmTransaction1559 {
             Ok(1 as u8)
         }
     }
-    fn serialize(&self) -> Result<Vec<u8>, String> {
+    fn serialize(&self) -> Result<Vec<u8>, WalletError> {
         let mut stream = rlp::RlpStream::new_list(12);
 
         let chain_id = u64_to_vec_u8(&self.chain_id);
@@ -710,10 +711,10 @@ impl EvmSign for EvmTransaction1559 {
 
         Ok([&[0x02], &result[..]].concat())
     }
-    fn get_nonce(&self) -> Result<u64, String> {
+    fn get_nonce(&self) -> Result<u64, WalletError> {
         Ok(self.nonce)
     }
-    fn get_transaction(&self) -> Result<EvmTransaction, String> {
+    fn get_transaction(&self) -> Result<EvmTransaction, WalletError> {
         let transaction = EvmTransaction::from(EvmTransactions::EIP1559(self));
 
         Ok(transaction)
@@ -723,8 +724,8 @@ impl EvmSign for EvmTransaction1559 {
 pub fn get_evm_transaction(
     hex_raw_tx: &Vec<u8>,
     chain_id: u64,
-) -> Result<Box<dyn EvmSign>, String> {
-    let tx_type = get_evm_transaction_type(hex_raw_tx).unwrap();
+) -> Result<Box<dyn EvmSign>, WalletError> {
+    let tx_type = get_evm_transaction_type(hex_raw_tx)?;
 
     if tx_type == EvmTransactionType::Legacy {
         Ok(Box::new(EvmTransactionLegacy::from((
@@ -736,11 +737,11 @@ pub fn get_evm_transaction(
     } else if tx_type == EvmTransactionType::EIP2930 {
         Ok(Box::new(EvmTransaction2930::from(hex_raw_tx.clone())))
     } else {
-        Err(String::from("Invalid type"))
+        Err(WalletError::InvalidEvmTransactionType)
     }
 }
 
-fn get_evm_transaction_type(hex_raw_tx: &Vec<u8>) -> Result<EvmTransactionType, String> {
+fn get_evm_transaction_type(hex_raw_tx: &Vec<u8>) -> Result<EvmTransactionType, WalletError> {
     if hex_raw_tx[0] >= 0xc0 {
         Ok(EvmTransactionType::Legacy)
     } else if hex_raw_tx[0] == 0x01 {
@@ -748,7 +749,7 @@ fn get_evm_transaction_type(hex_raw_tx: &Vec<u8>) -> Result<EvmTransactionType, 
     } else if hex_raw_tx[0] == 0x02 {
         Ok(EvmTransactionType::EIP1559)
     } else {
-        Err(String::from("Invalid type"))
+        Err(WalletError::InvalidEvmTransactionType)
     }
 }
 
@@ -756,15 +757,15 @@ fn get_recovery_id(
     message: &Vec<u8>,
     signature: &Vec<u8>,
     public_key: &Vec<u8>,
-) -> Result<u8, String> {
+) -> Result<u8, WalletError> {
     if signature.len() != 64 {
-        return Err("Invalid signature".to_string());
+        return Err(WalletError::InvalidSignature);
     }
     if message.len() != 32 {
-        return Err("Invalid message".to_string());
+        return Err(WalletError::InvalidMessage);
     }
     if public_key.len() != 33 {
-        return Err("Invalid public key".to_string());
+        return Err(WalletError::InvalidPublicKey);
     }
 
     for i in 0..3 {
@@ -782,7 +783,7 @@ fn get_recovery_id(
             return Ok(i as u8);
         }
     }
-    return Err("Not found".to_string());
+    return Err(WalletError::RecoveryIdNotFound);
 }
 
 fn encode_access_list(access_list: &Vec<(String, Vec<String>)>) -> Vec<u8> {
@@ -842,7 +843,7 @@ mod tests {
 
     #[test]
     fn get_recovery_id_with_invalid_signature() {
-        let expected = Err("Invalid signature".to_string());
+        let expected = Err(WalletError::InvalidSignature);
 
         let public_key =
             string_to_vec_u8("02c397f23149d3464517d57b7cdc8e287428407f9beabfac731e7c24d536266cd1");
@@ -850,30 +851,33 @@ mod tests {
         let message =
             string_to_vec_u8("79965df63d7d9364f4bc8ed54ffd1c267042d4db673e129e3c459afbcb73a6f1");
         let result = get_recovery_id(&message, &signature, &public_key);
+
         assert_eq!(result, expected);
     }
 
     #[test]
     fn get_recovery_id_with_invalid_message() {
-        let expected = Err("Invalid message".to_string());
+        let expected = Err(WalletError::InvalidMessage);
 
         let public_key =
             string_to_vec_u8("02c397f23149d3464517d57b7cdc8e287428407f9beabfac731e7c24d536266cd1");
         let signature = string_to_vec_u8("29edd4e1d65e1b778b464112d2febc6e97bb677aba5034408fd27b49921beca94c4e5b904d58553bcd9c788360e0bd55c513922cf1f33a6386033e886cd4f77f");
         let message = string_to_vec_u8("");
         let result = get_recovery_id(&message, &signature, &public_key);
+
         assert_eq!(result, expected);
     }
 
     #[test]
     fn get_recovery_id_with_invalid_public_key() {
-        let expected = Err("Invalid public key".to_string());
+        let expected = Err(WalletError::InvalidPublicKey);
 
         let public_key = string_to_vec_u8("");
         let signature = string_to_vec_u8("29edd4e1d65e1b778b464112d2febc6e97bb677aba5034408fd27b49921beca94c4e5b904d58553bcd9c788360e0bd55c513922cf1f33a6386033e886cd4f77f");
         let message =
             string_to_vec_u8("79965df63d7d9364f4bc8ed54ffd1c267042d4db673e129e3c459afbcb73a6f1");
         let result = get_recovery_id(&message, &signature, &public_key);
+
         assert_eq!(result, expected);
     }
 

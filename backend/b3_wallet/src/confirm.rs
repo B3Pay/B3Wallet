@@ -1,9 +1,9 @@
-use crate::guard::caller_is_signer;
+use crate::signer::caller_is_signer;
 use b3_helper::revert;
 use b3_wallet_lib::{
-    request::Request,
+    confirmed::ConfirmedRequest,
     store::{with_confirmed_request, with_request_mut, with_signer_ids_by_role, with_state_mut},
-    types::RequestId,
+    types::{ConfirmedRequestMap, RequestId},
 };
 use ic_cdk::{export::candid::candid_method, query, update};
 
@@ -11,15 +11,21 @@ use ic_cdk::{export::candid::candid_method, query, update};
 
 #[query]
 #[candid_method(query)]
-pub fn get_confirmed(request_id: RequestId) -> Request {
+pub fn get_confirmed(request_id: RequestId) -> ConfirmedRequest {
     with_confirmed_request(request_id, |confirmed| confirmed.clone()).unwrap_or_else(revert)
+}
+
+#[query]
+#[candid_method(query)]
+pub fn get_confirmed_requests() -> ConfirmedRequestMap {
+    with_state_mut(|s| s.confirmed_requests().clone())
 }
 
 // UPDATE
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub fn confirm_request(request_id: RequestId) -> Request {
+pub async fn confirm_request(request_id: RequestId) -> ConfirmedRequest {
     let caller = ic_cdk::caller();
 
     let request = with_request_mut(request_id, |request| {
@@ -35,10 +41,13 @@ pub fn confirm_request(request_id: RequestId) -> Request {
     });
 
     if is_confirmed {
-        with_state_mut(|s| s.confirm_request(request_id)).unwrap_or_else(revert);
+        let confirmed = request.execute().await;
 
-        request.execute().unwrap_or_else(revert);
+        with_state_mut(|s| s.insert_confirmed_request(request_id, confirmed.clone()))
+            .unwrap_or_else(revert);
+
+        return confirmed;
     }
 
-    request
+    request.into()
 }

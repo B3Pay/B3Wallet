@@ -1,11 +1,12 @@
 use crate::{
     account::WalletAccount,
+    confirmed::ConfirmedRequest,
     error::WalletError,
     ledger::Ledger,
-    request::Request,
+    request::PendingRequest,
     signer::{Roles, Signer},
     state::State,
-    types::{ConfirmedRequests, RequestId, SignerMap},
+    types::{ConfirmedRequestMap, RequestId, SignerMap},
 };
 use b3_helper::{
     error::TrapError,
@@ -52,7 +53,7 @@ where
 /// Get Request.
 pub fn with_request<T, F>(request_id: RequestId, callback: F) -> Result<T, WalletError>
 where
-    F: FnOnce(&Request) -> T,
+    F: FnOnce(&PendingRequest) -> T,
 {
     with_state(|state| state.request(request_id).map(callback))
 }
@@ -60,7 +61,7 @@ where
 /// Get Request mutably.
 pub fn with_request_mut<T, F>(request_id: RequestId, callback: F) -> Result<T, WalletError>
 where
-    F: FnOnce(&mut Request) -> T,
+    F: FnOnce(&mut PendingRequest) -> T,
 {
     with_state_mut(|state| state.request_mut(request_id).map(callback))
 }
@@ -70,7 +71,7 @@ where
 /// Get Confirmed.
 pub fn with_confirmed_requests<T, F>(callback: F) -> T
 where
-    F: FnOnce(&ConfirmedRequests) -> T,
+    F: FnOnce(&ConfirmedRequestMap) -> T,
 {
     with_state(|state| callback(state.confirmed_requests()))
 }
@@ -78,16 +79,16 @@ where
 /// Get Confirmed mutably.
 pub fn with_confirmed_requests_mut<T, F>(callback: F) -> T
 where
-    F: FnOnce(&mut ConfirmedRequests) -> T,
+    F: FnOnce(&mut ConfirmedRequestMap) -> T,
 {
     with_state_mut(|state| callback(state.confirmed_requests_mut()))
 }
 
 pub fn with_confirmed_request<T, F>(request_id: RequestId, callback: F) -> Result<T, WalletError>
 where
-    F: FnOnce(&Request) -> T,
+    F: FnOnce(&ConfirmedRequest) -> T,
 {
-    with_state(|state| state.confirmed(request_id).map(callback))
+    with_state(|state| state.confirmed_request(request_id).map(callback))
 }
 
 // ACCOUNTS ----------------------------------------------------------------------

@@ -2,7 +2,7 @@
   "name": "b3pay",
   "version": "0.4.0",
   "author": "b3hr4d",
-  "description": "Signer for the B3Pay on the Internet Computer",
+  "description": "Wallet and System Canister for the B3Pay on the Internet Computer",
   "keywords": [
     "nextjs",
     "internet computer",

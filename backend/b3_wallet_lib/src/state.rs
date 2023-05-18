@@ -1,11 +1,8 @@
-use std::borrow::{Borrow, BorrowMut};
-
 use crate::account::WalletAccount;
 use crate::counter::WalletCounters;
 use crate::error::WalletError;
 use crate::ledger::public_keys::PublicKeys;
-use crate::request::Request;
-use crate::types::{AccountId, ConfirmedRequests, PendingRequestMap, RequestId, WalletAccountMap};
+use crate::types::{AccountId, ConfirmedRequestMap, PendingRequestMap, WalletAccountMap};
 use b3_helper::types::{AccountsCounter, Environment, Subaccount};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
@@ -14,25 +11,24 @@ pub struct State {
     pub accounts: WalletAccountMap,
     pub counters: WalletCounters,
     pub pending_requests: PendingRequestMap,
-    pub confirmed_requests: ConfirmedRequests,
+    pub confirmed_requests: ConfirmedRequestMap,
 }
 
 impl Default for State {
     fn default() -> Self {
         State {
-            confirmed_requests: ConfirmedRequests::new(),
+            confirmed_requests: ConfirmedRequestMap::new(),
             pending_requests: PendingRequestMap::new(),
-            counters: WalletCounters::new(),
             accounts: WalletAccountMap::new(),
+            counters: WalletCounters::new(),
         }
     }
 }
 
 impl State {
     // Init Functions
-
     pub fn init_wallet(&mut self) {
-        if self.counters.total() > 0 {
+        if self.counters.total_account() > 0 {
             return;
         }
 
@@ -43,8 +39,6 @@ impl State {
         self.accounts.insert("default".to_owned(), account);
     }
 
-    // New Functions
-
     pub fn new_subaccount(&self, opt_env: Option<Environment>) -> Subaccount {
         let env = opt_env.unwrap_or(Environment::Production);
 
@@ -52,8 +46,6 @@ impl State {
 
         Subaccount::new(env, counter)
     }
-
-    // Insert Functions
 
     pub fn insert_account(
         &mut self,
@@ -76,8 +68,6 @@ impl State {
 
         id
     }
-
-    // Account Functions
 
     pub fn account(&self, id: &String) -> Result<&WalletAccount, WalletError> {
         self.accounts
@@ -143,46 +133,5 @@ impl State {
         account.unhide();
 
         Ok(())
-    }
-
-    // Confirmed Functions
-
-    pub fn confirm_request(&mut self, request_id: RequestId) -> Result<(), WalletError> {
-        let request = self
-            .pending_requests
-            .remove(&request_id)
-            .ok_or(WalletError::RequestNotExists)?;
-
-        self.confirmed_requests.push(request);
-
-        Ok(())
-    }
-
-    pub fn confirmed(&self, request_id: RequestId) -> Result<&Request, WalletError> {
-        self.confirmed_requests
-            .iter()
-            .find(|request| request.id() == request_id)
-            .ok_or(WalletError::RequestNotConfirmed(request_id))
-    }
-
-    pub fn confirmed_requests(&self) -> &ConfirmedRequests {
-        self.confirmed_requests.borrow()
-    }
-
-    pub fn confirmed_requests_mut(&mut self) -> &mut ConfirmedRequests {
-        self.confirmed_requests.borrow_mut()
-    }
-
-    pub fn insert_confirmed(&mut self, request: Request) {
-        self.confirmed_requests.push(request);
-    }
-
-    pub fn reset(&mut self) {
-        self.accounts.clear();
-        self.pending_requests.clear();
-        self.confirmed_requests.clear();
-        self.counters = WalletCounters::new();
-
-        self.init_wallet();
     }
 }

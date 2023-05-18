@@ -136,7 +136,7 @@ where
     with_users(|signers| {
         signers
             .get(user_id)
-            .ok_or(SystemError::SignerCanisterNotFound)
+            .ok_or(SystemError::WalletCanisterNotFound)
             .map(f)
     })
 }
@@ -148,7 +148,7 @@ where
     with_users_mut(|signers| {
         signers
             .get_mut(user_id)
-            .ok_or(SystemError::SignerCanisterNotFound)
+            .ok_or(SystemError::WalletCanisterNotFound)
             .map(f)
     })
 }

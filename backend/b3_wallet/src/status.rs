@@ -1,4 +1,4 @@
-use crate::guard::caller_is_signer;
+use crate::signer::caller_is_signer;
 use b3_helper::revert;
 use b3_helper::{b3_canister_status, types::SignerCanisterStatus};
 use b3_wallet_lib::store::with_state;

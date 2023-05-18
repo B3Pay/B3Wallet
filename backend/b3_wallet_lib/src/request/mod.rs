@@ -1,53 +1,100 @@
-pub mod bitcoin;
+pub mod btc;
 pub mod evm;
 pub mod icp;
-pub mod inter;
-pub mod message;
-pub mod sign;
+pub mod inner;
 pub mod state;
-mod test4;
 
-use crate::{error::WalletError, signer::Roles, types::RequestId};
+use crate::confirmed::ConfirmedRequest;
+use crate::error::WalletError;
+use crate::types::{Deadline, SignedMessage};
+use crate::{signer::Roles, types::RequestId};
 use b3_helper::types::SignerId;
-use ic_cdk::{
-    api::time,
-    export::{candid::CandidType, serde::Deserialize},
-};
-use sign::SignRequest;
+use enum_dispatch::enum_dispatch;
+use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
-pub struct RequestArgs {
-    pub allowed_role: Roles,
-    pub request: SignRequest,
+#[cfg(test)]
+use crate::mocks::ic_timestamp;
+#[cfg(not(test))]
+use ic_cdk::api::time as ic_timestamp;
+
+use btc::BtcRequest;
+use evm::EvmRequest;
+use icp::IcpRequest;
+use inner::InnerRequest;
+
+#[enum_dispatch(Request)]
+pub trait RequestTrait {}
+
+#[enum_dispatch]
+#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
+pub enum Request {
+    EvmRequest,
+    BtcRequest,
+    IcpRequest,
+    InnerRequest,
 }
 
-impl RequestArgs {
-    pub fn new(allowed_role: Roles, request: SignRequest) -> Self {
-        Self {
-            allowed_role,
-            request,
+impl Request {
+    pub async fn execute(&self) -> Result<SignedMessage, WalletError> {
+        match self {
+            Request::EvmRequest(args) => args.execute().await,
+            Request::BtcRequest(args) => args.execute().await,
+            Request::IcpRequest(args) => args.execute().await,
+            Request::InnerRequest(args) => args.execute().await,
         }
     }
 }
 
-#[derive(CandidType, Clone, Deserialize)]
-pub struct Request {
+pub struct RequestArgs {
+    role: Roles,
+    request: Request,
+    deadline: Option<Deadline>,
+}
+
+impl RequestArgs {
+    pub fn new(role: Roles, request: Request, deadline: Option<Deadline>) -> Self {
+        RequestArgs {
+            role,
+            request,
+            deadline,
+        }
+    }
+}
+
+#[derive(CandidType, Clone, Deserialize, Debug)]
+pub struct PendingRequest {
     id: RequestId,
     role: Roles,
-    deadline: u64,
-    request: SignRequest,
+    request: Request,
+    deadline: Deadline,
     signers: Vec<SignerId>,
 }
 
-impl Request {
-    pub fn new(id: RequestId, args: RequestArgs, deadline: Option<u64>) -> Self {
-        let deadline = deadline.unwrap_or(time() + 15 * 60 * 1_000_000_000);
+impl PendingRequest {
+    pub fn new(id: RequestId, args: RequestArgs) -> Self {
+        let deadline = if let Some(deadline) = args.deadline {
+            deadline
+        } else {
+            ic_timestamp() + 15 * 60 * 1_000_000_000
+        };
 
-        Self {
+        PendingRequest {
             id,
             deadline,
             signers: vec![],
+            role: args.role,
             request: args.request,
-            role: args.allowed_role,
+        }
+    }
+
+    pub async fn execute(&self) -> ConfirmedRequest {
+        let mut confirmed = ConfirmedRequest::new(&self);
+
+        let match_result = self.request.execute().await;
+
+        match match_result {
+            Ok(message) => confirmed.confirm(message),
+            Err(err) => confirmed.reject(err),
         }
     }
 
@@ -59,12 +106,7 @@ impl Request {
         self.role
     }
 
-    pub fn execute(&self) -> Result<(), WalletError> {
-        // self.request.execute();
-        Ok(())
-    }
-
-    pub fn deadline(&self) -> u64 {
+    pub fn deadline(&self) -> Deadline {
         self.deadline
     }
 
@@ -73,14 +115,14 @@ impl Request {
     }
 
     pub fn is_expired(&self) -> bool {
-        self.deadline < time()
+        self.deadline < ic_timestamp()
     }
 
     pub fn is_signed(&self, signer_id: &SignerId) -> bool {
         self.signers.contains(signer_id)
     }
 
-    pub fn request_mut(&mut self) -> &mut SignRequest {
+    pub fn request_mut(&mut self) -> &mut Request {
         &mut self.request
     }
 
@@ -92,5 +134,46 @@ impl Request {
         self.signers.push(signer);
 
         Ok(self.signers.len())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::request::inner::account::RenameAccountRequest;
+
+    use super::*;
+
+    #[test]
+    fn test_request_args() {
+        let request = RenameAccountRequest {
+            account_id: "test".to_string(),
+            new_name: "test".to_string(),
+        };
+
+        let args = RequestArgs::new(Roles::Admin, request.into(), None);
+
+        let pending = PendingRequest::new(1, args);
+
+        assert_eq!(pending.id(), 1);
+        assert_eq!(pending.role(), Roles::Admin);
+        assert_eq!(pending.deadline(), ic_timestamp() + 15 * 60 * 1_000_000_000);
+        assert_eq!(pending.is_expired(), false);
+    }
+
+    #[test]
+    fn test_request_args_with_deadline() {
+        let request = RenameAccountRequest {
+            account_id: "test".to_string(),
+            new_name: "test".to_string(),
+        };
+
+        let args = RequestArgs::new(Roles::Admin, request.into(), Some(1_000_000_000));
+
+        let pending = PendingRequest::new(1, args);
+
+        assert_eq!(pending.id(), 1);
+        assert_eq!(pending.role(), Roles::Admin);
+        assert_eq!(pending.deadline(), 1_000_000_000);
+        assert_eq!(pending.is_expired(), true);
     }
 }
