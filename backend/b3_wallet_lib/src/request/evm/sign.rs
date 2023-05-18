@@ -1,7 +1,7 @@
 use super::EvmRequest;
 use crate::{
     error::WalletError,
-    evm_tx::{get_evm_transaction, EvmTransaction},
+    evm::{get_evm_transaction, EvmTransaction},
     request::Request,
     store::with_ledger,
     types::SignedMessage,
@@ -49,7 +49,7 @@ impl TryFrom<EvmSignRawTransactionRequest> for EvmSignTranscationRequest {
 
         let message = tx.get_message_to_sign()?;
 
-        let transaction = tx.get_transaction()?;
+        let transaction = tx.get_transaction();
 
         Ok(EvmSignTranscationRequest {
             account_id: args.account_id,

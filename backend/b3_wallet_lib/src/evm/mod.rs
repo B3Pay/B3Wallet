@@ -1,0 +1,268 @@
+pub mod tx1559;
+pub mod tx2930;
+pub mod txlegacy;
+
+use crate::{
+    error::WalletError,
+    utils::{string_to_vec_u8, vec_u8_to_string},
+};
+use candid::CandidType;
+use enum_dispatch::enum_dispatch;
+use serde::Deserialize;
+use tx1559::EvmTransaction1559;
+use tx2930::EvmTransaction2930;
+use txlegacy::EvmTransactionLegacy;
+
+#[enum_dispatch]
+pub enum EvmTransactions {
+    EvmTransactionLegacy,
+    EvmTransaction1559,
+    EvmTransaction2930,
+}
+
+#[derive(Clone, Deserialize, PartialEq, CandidType, Debug)]
+pub struct EvmTransaction {
+    pub chain_id: u64,
+    pub nonce: u64,
+    pub gas_limit: u64,
+    pub to: String,
+    pub value: u64,
+    pub data: String,
+    pub v: String,
+    pub r: String,
+    pub s: String,
+    pub transaction_type: EvmTransactionType,
+    pub gas_price: Option<u64>,
+    pub max_fee_per_gas: Option<u64>,
+    pub max_priority_fee_per_gas: Option<u64>,
+    pub access_list: Option<Vec<(String, Vec<String>)>>,
+}
+
+#[derive(Clone, Deserialize, PartialEq, CandidType, Debug)]
+pub enum EvmTransactionType {
+    Legacy,
+    EIP1559,
+    EIP2930,
+}
+
+impl EvmTransactionType {
+    pub fn as_str(&self) -> &'static str {
+        match *self {
+            EvmTransactionType::Legacy => "legacy",
+            EvmTransactionType::EIP1559 => "eip1559",
+            EvmTransactionType::EIP2930 => "eip2930",
+        }
+    }
+}
+
+#[enum_dispatch]
+pub trait EvmSign {
+    fn sign(&mut self, signature: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, WalletError>;
+    fn get_message_to_sign(&self) -> Result<Vec<u8>, WalletError>;
+    fn get_signature(&self) -> Result<Vec<u8>, WalletError>;
+    fn get_recovery_id(&self) -> Result<u8, WalletError>;
+    fn get_nonce(&self) -> Result<u64, WalletError>;
+    fn serialize(&self) -> Result<Vec<u8>, WalletError>;
+    fn get_transaction(&self) -> EvmTransaction;
+    fn is_signed(&self) -> bool;
+}
+
+pub fn get_evm_transaction(
+    hex_raw_tx: &Vec<u8>,
+    chain_id: u64,
+) -> Result<Box<dyn EvmSign>, WalletError> {
+    let tx_type = get_evm_transaction_type(hex_raw_tx)?;
+
+    if tx_type == EvmTransactionType::Legacy {
+        Ok(Box::new(EvmTransactionLegacy::from((
+            hex_raw_tx.clone(),
+            chain_id,
+        ))))
+    } else if tx_type == EvmTransactionType::EIP1559 {
+        Ok(Box::new(EvmTransaction1559::from(hex_raw_tx.clone())))
+    } else if tx_type == EvmTransactionType::EIP2930 {
+        Ok(Box::new(EvmTransaction2930::from(hex_raw_tx.clone())))
+    } else {
+        Err(WalletError::InvalidEvmTransactionType)
+    }
+}
+
+fn get_evm_transaction_type(hex_raw_tx: &Vec<u8>) -> Result<EvmTransactionType, WalletError> {
+    if hex_raw_tx[0] >= 0xc0 {
+        Ok(EvmTransactionType::Legacy)
+    } else if hex_raw_tx[0] == 0x01 {
+        Ok(EvmTransactionType::EIP2930)
+    } else if hex_raw_tx[0] == 0x02 {
+        Ok(EvmTransactionType::EIP1559)
+    } else {
+        Err(WalletError::InvalidEvmTransactionType)
+    }
+}
+
+fn get_recovery_id(
+    message: &Vec<u8>,
+    signature: &Vec<u8>,
+    public_key: &Vec<u8>,
+) -> Result<u8, WalletError> {
+    if signature.len() != 64 {
+        return Err(WalletError::InvalidSignature);
+    }
+    if message.len() != 32 {
+        return Err(WalletError::InvalidMessage);
+    }
+    if public_key.len() != 33 {
+        return Err(WalletError::InvalidPublicKey);
+    }
+
+    for i in 0..3 {
+        let recovery_id = libsecp256k1::RecoveryId::parse_rpc(27 + i).unwrap();
+
+        let signature_bytes: [u8; 64] = signature[..].try_into().unwrap();
+        let signature_bytes_64 = libsecp256k1::Signature::parse_standard(&signature_bytes).unwrap();
+
+        let message_bytes: [u8; 32] = message[..].try_into().unwrap();
+        let message_bytes_32 = libsecp256k1::Message::parse(&message_bytes);
+
+        let key =
+            libsecp256k1::recover(&message_bytes_32, &signature_bytes_64, &recovery_id).unwrap();
+        if key.serialize_compressed() == public_key[..] {
+            return Ok(i as u8);
+        }
+    }
+    return Err(WalletError::RecoveryIdNotFound);
+}
+
+fn encode_access_list(access_list: &Vec<(String, Vec<String>)>) -> Vec<u8> {
+    let mut stream = rlp::RlpStream::new_list(access_list.len());
+
+    for list in access_list {
+        let mut stream_tuple = rlp::RlpStream::new_list(2);
+
+        // append address
+        stream_tuple.append(&string_to_vec_u8(&list.0[..]));
+
+        // append storage keys
+        let mut stream_storage_keys = rlp::RlpStream::new_list(list.1.len());
+        for storage_key in list.1.clone() {
+            stream_storage_keys.append(&string_to_vec_u8(&storage_key[..]));
+        }
+        stream_tuple.append_raw(&stream_storage_keys.out(), 1);
+
+        // append (address, storage_keys)
+        stream.append_raw(&stream_tuple.out(), 1);
+    }
+
+    stream.out().to_vec()
+}
+
+fn decode_access_list(access_list: &Vec<u8>) -> Vec<(String, Vec<String>)> {
+    let mut decoded_access_list = vec![];
+    let rlp = rlp::Rlp::new(access_list);
+    for item in rlp.iter() {
+        let address = item.at(0).as_val();
+        let storage_keys_u8 = item.at(1).as_list::<Vec<u8>>();
+        let storage_keys = storage_keys_u8
+            .iter()
+            .map(|x| vec_u8_to_string(x))
+            .collect::<Vec<String>>();
+        decoded_access_list.push((vec_u8_to_string(&address), storage_keys));
+    }
+    decoded_access_list
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn get_recovery_id_valid() {
+        let expected = 0;
+
+        let public_key =
+            string_to_vec_u8("02c397f23149d3464517d57b7cdc8e287428407f9beabfac731e7c24d536266cd1");
+        let signature =string_to_vec_u8("29edd4e1d65e1b778b464112d2febc6e97bb677aba5034408fd27b49921beca94c4e5b904d58553bcd9c788360e0bd55c513922cf1f33a6386033e886cd4f77f");
+        let message =
+            string_to_vec_u8("79965df63d7d9364f4bc8ed54ffd1c267042d4db673e129e3c459afbcb73a6f1");
+        let result = get_recovery_id(&message, &signature, &public_key).unwrap();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn get_recovery_id_with_invalid_signature() {
+        let expected = Err(WalletError::InvalidSignature);
+
+        let public_key =
+            string_to_vec_u8("02c397f23149d3464517d57b7cdc8e287428407f9beabfac731e7c24d536266cd1");
+        let signature = string_to_vec_u8("");
+        let message =
+            string_to_vec_u8("79965df63d7d9364f4bc8ed54ffd1c267042d4db673e129e3c459afbcb73a6f1");
+        let result = get_recovery_id(&message, &signature, &public_key);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn get_recovery_id_with_invalid_message() {
+        let expected = Err(WalletError::InvalidMessage);
+
+        let public_key =
+            string_to_vec_u8("02c397f23149d3464517d57b7cdc8e287428407f9beabfac731e7c24d536266cd1");
+        let signature = string_to_vec_u8("29edd4e1d65e1b778b464112d2febc6e97bb677aba5034408fd27b49921beca94c4e5b904d58553bcd9c788360e0bd55c513922cf1f33a6386033e886cd4f77f");
+        let message = string_to_vec_u8("");
+        let result = get_recovery_id(&message, &signature, &public_key);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn get_recovery_id_with_invalid_public_key() {
+        let expected = Err(WalletError::InvalidPublicKey);
+
+        let public_key = string_to_vec_u8("");
+        let signature = string_to_vec_u8("29edd4e1d65e1b778b464112d2febc6e97bb677aba5034408fd27b49921beca94c4e5b904d58553bcd9c788360e0bd55c513922cf1f33a6386033e886cd4f77f");
+        let message =
+            string_to_vec_u8("79965df63d7d9364f4bc8ed54ffd1c267042d4db673e129e3c459afbcb73a6f1");
+        let result = get_recovery_id(&message, &signature, &public_key);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn access_list_encode() {
+        let expected = "f872f85994de0b295669a9fd93d5f28d9ec85e40f4cb697baef842a00000000000000000000000000000000000000000000000000000000000000003a00000000000000000000000000000000000000000000000000000000000000007d694bb9bc244d798123fde783fcc1c72d3bb8c189413c0";
+        let address_1 = "0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae".to_string();
+        let storage_keys_1 = vec![
+            "0x0000000000000000000000000000000000000000000000000000000000000003".to_string(),
+            "0x0000000000000000000000000000000000000000000000000000000000000007".to_string(),
+        ];
+
+        let address_2 = "0xbb9bc244d798123fde783fcc1c72d3bb8c189413".to_string();
+        let storage_keys_2 = vec![];
+
+        let access_list = vec![(address_1, storage_keys_1), (address_2, storage_keys_2)];
+        let encoded = encode_access_list(&access_list);
+        assert_eq!(vec_u8_to_string(&encoded), expected)
+    }
+
+    #[test]
+    fn access_list_decode() {
+        let expected: Vec<(String, Vec<String>)> = vec![
+            (
+                "de0b295669a9fd93d5f28d9ec85e40f4cb697bae".to_string(),
+                vec![
+                    "0000000000000000000000000000000000000000000000000000000000000003".to_string(),
+                    "0000000000000000000000000000000000000000000000000000000000000007".to_string(),
+                ],
+            ),
+            (
+                "bb9bc244d798123fde783fcc1c72d3bb8c189413".to_string(),
+                vec![],
+            ),
+        ];
+        let access_list = "f872f85994de0b295669a9fd93d5f28d9ec85e40f4cb697baef842a00000000000000000000000000000000000000000000000000000000000000003a00000000000000000000000000000000000000000000000000000000000000007d694bb9bc244d798123fde783fcc1c72d3bb8c189413c0";
+        let access_list_hex = string_to_vec_u8(&access_list);
+
+        let decoded = decode_access_list(&access_list_hex);
+        assert_eq!(decoded, expected);
+    }
+}

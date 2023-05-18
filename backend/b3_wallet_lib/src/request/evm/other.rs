@@ -1,7 +1,7 @@
 use super::EvmRequest;
 use crate::{
     error::WalletError,
-    evm_tx::{EvmSign, EvmTransaction1559},
+    evm::{tx1559::EvmTransaction1559, EvmSign},
     request::Request,
     store::with_ledger,
     types::SignedMessage,

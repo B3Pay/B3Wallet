@@ -1,6 +1,6 @@
 use crate::{
     error::WalletError,
-    evm_tx::get_evm_transaction,
+    evm::get_evm_transaction,
     ledger::{public_keys::PublicKeys, subaccount::SubaccountTrait, Ledger},
 };
 use b3_helper::types::{Environment, Metadata, Subaccount};

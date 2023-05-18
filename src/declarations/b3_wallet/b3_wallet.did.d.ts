@@ -7,6 +7,7 @@ export interface AccountsCounter {
   'development' : bigint,
 }
 export interface AddSignerRequest {
+  'threshold' : [] | [number],
   'name' : [] | [string],
   'role' : Roles,
   'signer_id' : Principal,
@@ -15,17 +16,11 @@ export interface AddSignerRequest {
 export type BitcoinNetwork = { 'Mainnet' : null } |
   { 'Regtest' : null } |
   { 'Testnet' : null };
-export interface BtcRequest {
+export type BtcRequest = { 'BtcTransferRequest' : BtcTransferRequest };
+export interface BtcTransferRequest {
   'deadline' : bigint,
   'address' : string,
   'amount' : bigint,
-}
-export interface CallRequest {
-  'arg' : Uint8Array | number[],
-  'canister_id' : Principal,
-  'sender' : [] | [Principal],
-  'cycles' : [] | [bigint],
-  'method_name' : string,
 }
 export interface CanisterSettings {
   'freezing_threshold' : [] | [bigint],
@@ -48,6 +43,7 @@ export interface ConfirmedRequest {
   'status' : RequestStatus,
   'request' : PendingRequest,
   'error' : string,
+  'message' : Uint8Array | number[],
   'timestamp' : bigint,
 }
 export interface CreateAccountRequest {
@@ -60,15 +56,39 @@ export interface DefiniteCanisterSettings {
   'memory_allocation' : bigint,
   'compute_allocation' : bigint,
 }
-export interface EcdsaPublicKeyRequest { 'account_id' : string }
 export type Environment = { 'Production' : null } |
   { 'Development' : null } |
   { 'Staging' : null };
-export type EvmRequest = { 'EvmTranscationRequest' : EvmTranscationRequest } |
-  { 'EvmSignMessageRequest' : EvmSignMessageRequest };
+export interface EvmDeployContractRequest {
+  'account_id' : string,
+  'hex_byte_code' : Uint8Array | number[],
+  'max_priority_fee_per_gas' : [] | [bigint],
+  'max_fee_per_gas' : [] | [bigint],
+  'chain_id' : bigint,
+  'nonce' : bigint,
+  'gas_limit' : [] | [bigint],
+}
+export type EvmRequest = {
+    'EvmDeployContractRequest' : EvmDeployContractRequest
+  } |
+  { 'EvmSignRawTransactionRequest' : EvmSignRawTransactionRequest } |
+  { 'EvmSignMessageRequest' : EvmSignMessageRequest } |
+  { 'EvmTransferErc20Request' : EvmTransferErc20Request } |
+  { 'EvmSignTranscationRequest' : EvmSignTranscationRequest } |
+  { 'EvmTransferEthRequest' : EvmTransferEthRequest };
 export interface EvmSignMessageRequest {
-  'id' : bigint,
-  'deadline' : bigint,
+  'account_id' : string,
+  'message' : Uint8Array | number[],
+}
+export interface EvmSignRawTransactionRequest {
+  'account_id' : string,
+  'hex_raw_tx' : Uint8Array | number[],
+  'chain_id' : bigint,
+}
+export interface EvmSignTranscationRequest {
+  'account_id' : string,
+  'transaction' : EvmTransaction,
+  'chain_id' : bigint,
   'message' : Uint8Array | number[],
 }
 export interface EvmTransaction {
@@ -90,28 +110,49 @@ export interface EvmTransaction {
 export type EvmTransactionType = { 'EIP1559' : null } |
   { 'EIP2930' : null } |
   { 'Legacy' : null };
-export interface EvmTranscationRequest {
+export interface EvmTransferErc20Request {
   'account_id' : string,
-  'transaction' : EvmTransaction,
+  'value' : bigint,
+  'max_priority_fee_per_gas' : [] | [bigint],
+  'max_fee_per_gas' : [] | [bigint],
   'chain_id' : bigint,
-  'message' : Uint8Array | number[],
+  'address' : string,
+  'nonce' : bigint,
+  'gas_limit' : [] | [bigint],
+  'contract_address' : string,
 }
-export interface IcpRequest {
-  'to' : Principal,
-  'deadline' : bigint,
-  'amount' : bigint,
+export interface EvmTransferEthRequest {
+  'to' : string,
+  'account_id' : string,
+  'value' : bigint,
+  'max_priority_fee_per_gas' : [] | [bigint],
+  'max_fee_per_gas' : [] | [bigint],
+  'chain_id' : bigint,
+  'nonce' : bigint,
+  'gas_limit' : [] | [bigint],
+}
+export interface HideAccountRequest { 'account_id' : string }
+export type IcpRequest = { 'IcpTransferRequest' : IcpTransferRequest } |
+  { 'TopUpCanisterRequest' : TopUpCanisterRequest };
+export interface IcpTransferRequest {
+  'to' : Uint8Array | number[],
+  'fee' : [] | [Tokens],
+  'account_id' : string,
+  'memo' : [] | [bigint],
+  'amount' : Tokens,
 }
 export type InnerRequest = {
     'UpgradeCanisterRequest' : UpgradeCanisterRequest
   } |
   { 'RenameAccountRequest' : RenameAccountRequest } |
+  { 'UnhideAccountRequest' : HideAccountRequest } |
   { 'CreateAccountRequest' : CreateAccountRequest } |
-  { 'RawRandRequest' : RawRandRequest } |
-  { 'EcdsaPublicKeyRequest' : EcdsaPublicKeyRequest } |
-  { 'QueryRequest' : QueryRequest } |
+  { 'RemoveAccountRequest' : HideAccountRequest } |
+  { 'RemoveSignerRequest' : RemoveSignerRequest } |
+  { 'UpdateSignerThresholdRequest' : UpdateSignerThresholdRequest } |
+  { 'EcdsaPublicKeyRequest' : HideAccountRequest } |
   { 'AddSignerRequest' : AddSignerRequest } |
-  { 'CallRequest' : CallRequest } |
-  { 'TopUpCanisterRequest' : TopUpCanisterRequest } |
+  { 'HideAccountRequest' : HideAccountRequest } |
   { 'UpdateCanisterSettingsRequest' : UpdateCanisterSettingsRequest };
 export interface Ledger {
   'subaccount' : Uint8Array | number[],
@@ -133,13 +174,7 @@ export interface PublicKeys {
   'addresses' : Array<[string, string]>,
   'identifier' : Uint8Array | number[],
 }
-export interface QueryRequest {
-  'arg' : Uint8Array | number[],
-  'canister_id' : Principal,
-  'sender' : [] | [Principal],
-  'method_name' : string,
-}
-export interface RawRandRequest { 'length' : number }
+export interface RemoveSignerRequest { 'signer_id' : Principal }
 export interface RenameAccountRequest {
   'account_id' : string,
   'new_name' : string,
@@ -155,6 +190,7 @@ export type Roles = { 'User' : null } |
   { 'Canister' : null } |
   { 'Admin' : null };
 export interface Signer {
+  'threshold' : [] | [number],
   'metadata' : Array<[string, string]>,
   'name' : [] | [string],
   'role' : Roles,
@@ -177,6 +213,10 @@ export interface TopUpCanisterRequest {
 export interface UpdateCanisterSettingsRequest {
   'canister_id' : Principal,
   'settings' : CanisterSettings,
+}
+export interface UpdateSignerThresholdRequest {
+  'threshold' : number,
+  'signer_id' : Principal,
 }
 export interface UpgradeCanisterRequest {
   'wasm_hash_string' : string,
@@ -219,12 +259,11 @@ export interface _SERVICE {
   'get_requests' : ActorMethod<[], Array<PendingRequest>>,
   'get_signers' : ActorMethod<[], Array<[Principal, Signer]>>,
   'load_wasm' : ActorMethod<[Uint8Array | number[]], bigint>,
-  'reinstall_wallet' : ActorMethod<[], undefined>,
   'request_account_rename' : ActorMethod<
     [RenameAccountRequest, [] | [bigint]],
     bigint
   >,
-  'request_maker' : ActorMethod<[Request], bigint>,
+  'request_maker' : ActorMethod<[Request, [] | [bigint]], bigint>,
   'request_sign_message' : ActorMethod<
     [string, Uint8Array | number[]],
     Uint8Array | number[]
@@ -242,7 +281,6 @@ export interface _SERVICE {
   'signer_remove' : ActorMethod<[Principal], Array<[Principal, Signer]>>,
   'status' : ActorMethod<[], SignerCanisterStatus>,
   'unload_wasm' : ActorMethod<[], bigint>,
-  'upgrade_wallet' : ActorMethod<[], undefined>,
   'version' : ActorMethod<[], string>,
   'wasm_hash' : ActorMethod<[], Uint8Array | number[]>,
 }

@@ -2,7 +2,7 @@ pub mod account;
 pub mod confirmed;
 pub mod counter;
 pub mod error;
-pub mod evm_tx;
+pub mod evm;
 pub mod ledger;
 pub mod mocks;
 pub mod request;
