@@ -118,20 +118,4 @@ impl State {
 
         Ok(())
     }
-
-    pub fn hide_account(&mut self, id: &String) -> Result<(), WalletError> {
-        let account = self.account_mut(id)?;
-
-        account.hide();
-
-        Ok(())
-    }
-
-    pub fn unhide_account(&mut self, id: &String) -> Result<(), WalletError> {
-        let account = self.account_mut(id)?;
-
-        account.unhide();
-
-        Ok(())
-    }
 }
