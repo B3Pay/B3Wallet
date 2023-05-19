@@ -10,7 +10,7 @@ type AddSignerRequest = record {
   signer_id : principal;
   expires_at : opt nat64;
 };
-type BitcoinNetwork = variant { Mainnet; Regtest; Testnet };
+type BitcoinNetwork = variant { mainnet; regtest; testnet };
 type BtcRequest = variant { BtcTransferRequest : BtcTransferRequest };
 type BtcTransferRequest = record {
   deadline : nat64;
@@ -150,7 +150,7 @@ type PendingRequest = record {
 };
 type PublicKeys = record {
   ecdsa : opt vec nat8;
-  addresses : vec record { text; text };
+  addresses : vec record { Network; text };
   identifier : vec nat8;
 };
 type RemoveSignerRequest = record { signer_id : principal };
@@ -211,7 +211,7 @@ service : () -> {
   account_icp_balance : (text) -> (Tokens);
   account_remove : (text) -> ();
   account_rename : (text, text) -> (text);
-  account_request_public_key : (text) -> (vec record { text; text });
+  account_request_public_key : (text) -> (vec record { Network; text });
   account_send_icp : (text, text, Tokens, opt Tokens, opt nat64) -> (nat64);
   account_top_up_and_notify : (text, Tokens, opt principal, opt Tokens) -> (
       nat,
@@ -220,7 +220,7 @@ service : () -> {
   get_account : (text) -> (WalletAccount) query;
   get_account_count : () -> (nat64) query;
   get_accounts : () -> (vec WalletAccount) query;
-  get_addresses : (text) -> (vec record { text; text }) query;
+  get_addresses : (text) -> (vec record { Network; text }) query;
   get_confirmed : (nat64) -> (ConfirmedRequest) query;
   get_confirmed_requests : () -> (vec record { nat64; ConfirmedRequest }) query;
   get_requests : () -> (vec PendingRequest) query;

@@ -8,7 +8,7 @@ use b3_helper::{
 use b3_wallet_lib::{
     account::WalletAccount,
     error::WalletError,
-    ledger::{network::Network, types::Addresses},
+    ledger::{network::Network, types::AddressMap},
     store::{
         with_account, with_account_mut, with_ledger, with_ledger_mut, with_state, with_state_mut,
     },
@@ -37,7 +37,7 @@ pub fn get_accounts() -> Vec<WalletAccount> {
 
 #[query]
 #[candid_method(query)]
-pub fn get_addresses(account_id: String) -> Addresses {
+pub fn get_addresses(account_id: String) -> AddressMap {
     with_ledger(&account_id, |ledger| ledger.public_keys.addresses()).unwrap_or_else(revert)
 }
 
@@ -64,7 +64,7 @@ pub fn account_rename(account_id: String, name: String) -> String {
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub fn account_hide(account_id: String) {
-    with_state_mut(|s| s.hide_account(&account_id)).unwrap_or_else(revert)
+    with_account_mut(&account_id, |a| a.hide()).unwrap_or_else(revert)
 }
 
 #[candid_method(update)]
@@ -75,7 +75,7 @@ pub fn account_remove(account_id: String) {
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub async fn account_request_public_key(account_id: String) -> Addresses {
+pub async fn account_request_public_key(account_id: String) -> AddressMap {
     let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
     if ledger.public_keys.is_ecdsa_set() {

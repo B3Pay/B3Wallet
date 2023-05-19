@@ -1,15 +1,13 @@
+pub mod btc;
 pub mod config;
+pub mod constants;
 pub mod network;
 pub mod public_keys;
 pub mod subaccount;
 pub mod types;
+pub mod utils;
 
-use ic_cdk::{
-    api::call::{call, call_with_payment},
-    export::{candid::CandidType, serde::Deserialize},
-};
-
-use crate::{error::WalletError, ledger::public_keys::PublicKeys};
+use crate::error::WalletError;
 use b3_helper::{
     constants::{
         CANISTER_TOP_UP_MEMO, CANISTER_TRANSFER_MEMO, IC_TRANSACTION_FEE_ICP,
@@ -22,6 +20,11 @@ use b3_helper::{
         NotifyTopupArgs, Subaccount, Tokens, TransferArgs, TransferResult,
     },
 };
+use ic_cdk::{
+    api::call::{call, call_with_payment},
+    export::{candid::CandidType, serde::Deserialize},
+};
+use public_keys::PublicKeys;
 use subaccount::SubaccountTrait;
 use types::{ECDSAPublicKeyArgs, ECDSAPublicKeyResponse, SignWithECDSAArgs, SignWithECDSAResponse};
 

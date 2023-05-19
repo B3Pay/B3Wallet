@@ -1,6 +1,5 @@
-use easy_hasher::easy_hasher;
-
 use crate::error::WalletError;
+use easy_hasher::easy_hasher;
 
 pub fn get_transfer_data(address: &str, amount: u64) -> Result<String, WalletError> {
     if address.len() != 42 {
@@ -57,4 +56,38 @@ pub fn vec_u8_to_u64(vec: &Vec<u8>) -> u64 {
     let mut _vec = [0; 8];
     _vec[8 - vec.len()..].copy_from_slice(&vec);
     u64::from_be_bytes(_vec).try_into().unwrap()
+}
+
+// Converts a SEC1 ECDSA signature to the DER format.
+pub fn sec1_to_der(sec1_signature: Vec<u8>) -> Vec<u8> {
+    let r: Vec<u8> = if sec1_signature[0] & 0x80 != 0 {
+        // r is negative. Prepend a zero byte.
+        let mut tmp = vec![0x00];
+        tmp.extend(sec1_signature[..32].to_vec());
+        tmp
+    } else {
+        // r is positive.
+        sec1_signature[..32].to_vec()
+    };
+
+    let s: Vec<u8> = if sec1_signature[32] & 0x80 != 0 {
+        // s is negative. Prepend a zero byte.
+        let mut tmp = vec![0x00];
+        tmp.extend(sec1_signature[32..].to_vec());
+        tmp
+    } else {
+        // s is positive.
+        sec1_signature[32..].to_vec()
+    };
+
+    // Convert signature to DER.
+    vec![
+        vec![0x30, 4 + r.len() as u8 + s.len() as u8, 0x02, r.len() as u8],
+        r,
+        vec![0x02, s.len() as u8],
+        s,
+    ]
+    .into_iter()
+    .flatten()
+    .collect()
 }
