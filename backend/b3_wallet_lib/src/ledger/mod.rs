@@ -1,6 +1,5 @@
 pub mod btc;
 pub mod config;
-pub mod constants;
 pub mod network;
 pub mod public_keys;
 pub mod subaccount;

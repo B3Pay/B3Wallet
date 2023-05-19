@@ -1,9 +1,10 @@
 {
   "canisters": {
     "b3_wallet": {
-      "type": "rust",
+      "type": "custom",
       "package": "b3_wallet",
       "candid": "backend/b3_wallet/b3_wallet.did",
+      "wasm": "target/wasm32-unknown-unknown/release/b3_wallet.wasm",
       "declarations": {
         "output": "src/declarations/b3_wallet",
         "node_compatibility": true

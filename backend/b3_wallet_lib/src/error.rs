@@ -36,6 +36,7 @@ pub enum WalletError {
     AlreadySigned(String),
     ExecutionError(String),
     NotifyTopUpError(String),
+    RecoverableSignatureError(String),
     DeadlineExceeded,
     Processing,
     InvalidMessageLength,
@@ -51,10 +52,10 @@ pub enum WalletError {
     InvalidEvmTransactionType,
     NotSignedTransaction,
     InvalidController,
-    InvalidSignature,
-    InvalidMessage,
-    InvalidPublicKey,
-    RecoveryIdNotFound,
+    InvalidSignature(String),
+    InvalidMessage(String),
+    InvalidPublicKey(String),
+    InvalidRecoveryId(String),
 }
 
 #[rustfmt::skip]
@@ -101,14 +102,15 @@ impl TrapError for WalletError {
             WalletError::RequestNotConfirmed(request_id) => ["Request ", &request_id.to_string(), " not confirmed!"].concat(),
             WalletError::RequestAlreadyConfirmed(request_id) => ["Request ", &request_id.to_string(), " already confirmed!"].concat(),
             WalletError::NotifyTopUpError(msg) => ["Notify top up error: ", &msg].concat(),
+            WalletError::RecoverableSignatureError(msg) => ["Recoverable signature error: ", &msg].concat(),
             WalletError::InvalidController => "Invalid controller!".to_string(),
             WalletError::InvalidAddress => "Invalid address!".to_string(),
             WalletError::InvalidEvmTransactionType => "Invalid EVM transaction type!".to_string(),
             WalletError::NotSignedTransaction => "Not signed transaction!".to_string(),
-            WalletError::InvalidMessage => "Invalid message!".to_string(),
-            WalletError::InvalidPublicKey => "Invalid public key!".to_string(),
-            WalletError::RecoveryIdNotFound => "Recovery ID not found!".to_string(),
-            WalletError::InvalidSignature => "Invalid signature!".to_string(),
+            WalletError::InvalidMessage(msg) => ["Invalid message: ", &msg].concat(),
+            WalletError::InvalidPublicKey(msg) => ["Invalid public key: ", &msg].concat(),
+            WalletError::InvalidRecoveryId(msg) => ["Invalid recovery id: ", &msg].concat(),
+            WalletError::InvalidSignature(msg) => ["Invalid signature: ", &msg].concat(),
             WalletError::DeadlineExceeded => "Deadline exceeded!".to_string(),
         }
     }

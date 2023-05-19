@@ -1,7 +1,6 @@
 use super::{
-    constants::SIG_HASH_TYPE,
-    types::{BtcAddress, BtcTransaction, BtcTxId},
-    utils::{bitcoin_build_transaction, bitcoin_get_current_fee_percentiles},
+    types::{BtcTransaction, BtcTxId},
+    utils::{bitcoin_build_transaction, bitcoin_get_current_fee_percentiles, SIG_HASH_TYPE},
     Ledger,
 };
 use crate::{error::WalletError, utils::sec1_to_der};
@@ -9,7 +8,8 @@ use b3_helper::constants::{
     GET_BALANCE_COST_CYCLES, GET_UTXOS_COST_CYCLES, SEND_TRANSACTION_BASE_CYCLES,
     SEND_TRANSACTION_PER_BYTE_CYCLES,
 };
-use bitcoin::{blockdata::script::Builder, psbt::serialize::Serialize, Address};
+
+use bitcoin::{script::Builder, Address};
 use candid::Principal;
 use ic_cdk::api::{
     call::call_with_payment,
@@ -114,29 +114,31 @@ impl Ledger {
             fee_percentiles[49]
         };
 
-        let own_address = BtcAddress::from_str(&own_address).unwrap();
-        let dst_address = BtcAddress::from_str(&dst_address).unwrap();
+        let own_address = Address::from_str(&own_address).unwrap();
+        let dst_address = Address::from_str(&dst_address).unwrap();
 
         // Build the transaction that sends `amount` to the destination address.
-        let transaction = bitcoin_build_transaction(
-            &own_public_key,
-            &own_address,
-            &own_utxos,
-            &dst_address,
-            amount,
-            fee_per_byte,
-        )
-        .await;
+        // let transaction = bitcoin_build_transaction(
+        //     &own_public_key,
+        //     &own_address,
+        //     &own_utxos,
+        //     &dst_address,
+        //     amount,
+        //     fee_per_byte,
+        // )
+        // .await;
 
         // Sign the transaction.
-        let signed_transaction = self.bitcoin_sign_transaction(network, transaction).await?;
+        // let signed_transaction = self.bitcoin_sign_transaction(network, transaction).await?;
 
-        let signed_transaction_bytes = signed_transaction.serialize();
+        // let signed_transaction_bytes = signed_transaction.serialize();
 
-        self.bitcoin_send_transaction(network, signed_transaction_bytes)
-            .await?;
+        // self.bitcoin_send_transaction(network, signed_transaction_bytes)
+        //     .await?;
 
-        Ok(signed_transaction.txid())
+        // Ok(signed_transaction.txid())
+
+        todo!("bitcoin_transfer")
     }
 
     // Sign a bitcoin transaction.
@@ -158,19 +160,18 @@ impl Ledger {
 
         let txclone = transaction.clone();
         for (index, input) in transaction.input.iter_mut().enumerate() {
-            let sighash =
-                txclone.signature_hash(index, &own_address.script_pubkey(), SIG_HASH_TYPE.to_u32());
+            // let sighash = txclone.signature_hash(index, &own_public_key, SIG_HASH_TYPE.to_u32());
 
-            let signature = self.sign_with_ecdsa(sighash.to_vec()).await?;
+            // let signature = self.sign_with_ecdsa(sighash.to_vec()).await?;
 
-            let mut sig_with_hashtype = sec1_to_der(signature);
+            // let mut sig_with_hashtype = sec1_to_der(signature);
 
-            sig_with_hashtype.push(SIG_HASH_TYPE.to_u32() as u8);
+            // sig_with_hashtype.push(SIG_HASH_TYPE.to_u32() as u8);
 
-            input.script_sig = Builder::new()
-                .push_slice(sig_with_hashtype.as_slice())
-                .push_slice(&own_public_key)
-                .into_script();
+            // input.script_sig = Builder::new()
+            //     .push_slice(sig_with_hashtype.as_slice())
+            //     .push_slice(&own_public_key)
+            //     .into_script();
 
             input.witness.clear();
         }

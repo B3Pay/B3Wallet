@@ -1,6 +1,7 @@
 use crate::error::WalletError;
 use b3_helper::sha2_sha256;
 use b3_helper::types::{AccountIdentifier, Subaccount};
+use bitcoin::{base58, secp256k1};
 use easy_hasher::easy_hasher;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use ripemd::{Digest, Ripemd160};
@@ -139,7 +140,7 @@ impl PublicKeys {
 
         let pub_key_arr: [u8; 33] = ecdsa[..].try_into().unwrap();
 
-        let pub_key = libsecp256k1::PublicKey::parse_compressed(&pub_key_arr)
+        let pub_key = secp256k1::PublicKey::from_slice(&pub_key_arr)
             .map_err(|e| WalletError::GenerateError(e.to_string()))?
             .serialize();
 
@@ -172,7 +173,7 @@ impl PublicKeys {
         let mut full_address = data_with_prefix;
         full_address.extend(checksum);
 
-        let address: String = bs58::encode(full_address).into_string();
+        let address: String = base58::encode(&full_address);
 
         self.addresses
             .insert(Network::BTC(btc_network), address.clone());

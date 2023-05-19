@@ -1,15 +1,13 @@
-use super::types::{BtcAddress, BtcTransaction, BtcUtxo};
+use super::types::{BtcTransaction, BtcUtxo};
 use crate::{
     error::WalletError,
-    ledger::{
-        constants::SIG_HASH_TYPE,
-        types::{BtcTxId, BtcTxIn, BtcTxOut},
-    },
+    ledger::types::{BtcTxId, BtcTxIn, BtcTxOut},
     utils::sec1_to_der,
 };
 use b3_helper::constants::GET_CURRENT_FEE_PERCENTILES_CYCLES;
 use bitcoin::{
-    blockdata::script::Builder, hashes::Hash, psbt::serialize::Serialize, OutPoint, Script, Witness,
+    absolute::LockTime, blockdata::script::Builder, hashes::Hash, sighash::EcdsaSighashType,
+    Address, OutPoint, Script, ScriptBuf, Sequence, Witness,
 };
 use ic_cdk::{
     api::{
@@ -20,6 +18,8 @@ use ic_cdk::{
     },
     export::candid::Principal,
 };
+
+pub const SIG_HASH_TYPE: EcdsaSighashType = EcdsaSighashType::All;
 
 pub async fn bitcoin_get_current_fee_percentiles(
     network: BitcoinNetwork,
@@ -40,9 +40,9 @@ pub async fn bitcoin_get_current_fee_percentiles(
 // destination address.
 pub async fn bitcoin_build_transaction(
     own_public_key: &[u8],
-    own_address: &BtcAddress,
+    own_address: &Address,
     own_utxos: &[BtcUtxo],
-    dst_address: &BtcAddress,
+    dst_address: &Address,
     amount: Satoshi,
     fee_per_byte: MillisatoshiPerByte,
 ) -> BtcTransaction {
@@ -71,27 +71,39 @@ pub async fn bitcoin_build_transaction(
             let mut sig_with_hashtype = sec1_to_der(vec![255; 64]);
             sig_with_hashtype.push(SIG_HASH_TYPE.to_u32() as u8);
 
-            input.script_sig = Builder::new()
-                .push_slice(sig_with_hashtype.as_slice())
-                .push_slice(own_public_key)
-                .into_script();
+            // input.script_sig = ScriptBuf::new()
+            //     .push_slice(&sig_with_hashtype)
+            //     .push_slice(own_public_key)
+            //     .into_script()
+            //     .into();
+
             input.witness.clear();
         }
 
-        let signed_tx_bytes_len = transaction.serialize().len() as u64;
+        let transaction_size = transaction.size();
 
-        if (signed_tx_bytes_len * fee_per_byte) / 1000 == total_fee {
+        // Compute the fee based on the transaction size.
+        let fee = fee_per_byte * transaction_size as u64;
+
+        // If the fee is correct, we're done.
+        if fee == total_fee {
             return transaction;
-        } else {
-            total_fee = (signed_tx_bytes_len * fee_per_byte) / 1000;
+        }
+
+        // Otherwise, update the fee and try again.
+        total_fee = fee;
+
+        // If the fee is too high, we're done.
+        if total_fee > amount {
+            panic!("Fee is too high.");
         }
     }
 }
 
 pub fn bitcoin_build_transaction_with_fee(
     own_utxos: &[BtcUtxo],
-    own_address: &BtcAddress,
-    dst_address: &BtcAddress,
+    own_address: &Address,
+    dst_address: &Address,
     amount: u64,
     fee: u64,
 ) -> Result<BtcTransaction, String> {
@@ -122,14 +134,20 @@ pub fn bitcoin_build_transaction_with_fee(
 
     let inputs: Vec<BtcTxIn> = utxos_to_spend
         .into_iter()
-        .map(|utxo| BtcTxIn {
-            previous_output: OutPoint {
-                txid: BtcTxId::from_hash(Hash::from_slice(&utxo.outpoint.txid).unwrap()),
-                vout: utxo.outpoint.vout,
-            },
-            sequence: 0xffffffff,
-            witness: Witness::new(),
-            script_sig: Script::new(),
+        .map(|utxo| {
+            let txid = BtcTxId::from_slice(&utxo.outpoint.txid[..]).unwrap();
+
+            let previous_output = OutPoint::new(txid, utxo.outpoint.vout);
+            let sequence = Sequence::MAX;
+            let witness = Witness::new();
+            let script_sig = Script::empty().into();
+
+            BtcTxIn {
+                previous_output,
+                sequence,
+                witness,
+                script_sig,
+            }
         })
         .collect();
 
@@ -150,7 +168,7 @@ pub fn bitcoin_build_transaction_with_fee(
     Ok(BtcTransaction {
         input: inputs,
         output: outputs,
-        lock_time: 0,
+        lock_time: LockTime::ZERO,
         version: 1,
     })
 }

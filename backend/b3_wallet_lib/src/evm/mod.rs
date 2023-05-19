@@ -6,6 +6,11 @@ use crate::{
     error::WalletError,
     utils::{string_to_vec_u8, vec_u8_to_string},
 };
+
+use bitcoin::secp256k1::{
+    ecdsa::{RecoverableSignature, RecoveryId},
+    Message, PublicKey, Secp256k1,
+};
 use candid::CandidType;
 use enum_dispatch::enum_dispatch;
 use serde::Deserialize;
@@ -99,37 +104,34 @@ fn get_evm_transaction_type(hex_raw_tx: &Vec<u8>) -> Result<EvmTransactionType, 
     }
 }
 
-fn get_recovery_id(
-    message: &Vec<u8>,
-    signature: &Vec<u8>,
-    public_key: &Vec<u8>,
-) -> Result<u8, WalletError> {
-    if signature.len() != 64 {
-        return Err(WalletError::InvalidSignature);
-    }
-    if message.len() != 32 {
-        return Err(WalletError::InvalidMessage);
-    }
-    if public_key.len() != 33 {
-        return Err(WalletError::InvalidPublicKey);
-    }
+fn get_recovery_id(message: &[u8], signature: &[u8], public_key: &[u8]) -> Result<u8, WalletError> {
+    let message =
+        Message::from_slice(message).map_err(|err| WalletError::InvalidMessage(err.to_string()))?;
 
-    for i in 0..3 {
-        let recovery_id = libsecp256k1::RecoveryId::parse_rpc(27 + i).unwrap();
+    let pub_key = PublicKey::from_slice(public_key)
+        .map_err(|err| WalletError::InvalidPublicKey(err.to_string()))?;
 
-        let signature_bytes: [u8; 64] = signature[..].try_into().unwrap();
-        let signature_bytes_64 = libsecp256k1::Signature::parse_standard(&signature_bytes).unwrap();
+    let secp = Secp256k1::verification_only();
 
-        let message_bytes: [u8; 32] = message[..].try_into().unwrap();
-        let message_bytes_32 = libsecp256k1::Message::parse(&message_bytes);
+    for i in 0..4 {
+        let recovery_id = RecoveryId::from_i32(i)
+            .map_err(|err| WalletError::InvalidRecoveryId(err.to_string()))?;
 
-        let key =
-            libsecp256k1::recover(&message_bytes_32, &signature_bytes_64, &recovery_id).unwrap();
-        if key.serialize_compressed() == public_key[..] {
+        let signature = RecoverableSignature::from_compact(signature, recovery_id)
+            .map_err(|err| WalletError::InvalidSignature(err.to_string()))?;
+
+        let recovered_key = secp
+            .recover_ecdsa(&message, &signature)
+            .map_err(|err| WalletError::InvalidSignature(err.to_string()))?;
+
+        if recovered_key.eq(&pub_key) {
             return Ok(i as u8);
         }
     }
-    return Err(WalletError::RecoveryIdNotFound);
+
+    Err(WalletError::InvalidSignature(
+        "Not able to recover public key".to_string(),
+    ))
 }
 
 fn encode_access_list(access_list: &Vec<(String, Vec<String>)>) -> Vec<u8> {
@@ -189,7 +191,9 @@ mod tests {
 
     #[test]
     fn get_recovery_id_with_invalid_signature() {
-        let expected = Err(WalletError::InvalidSignature);
+        let expected = Err(WalletError::InvalidSignature(
+            "malformed signature".to_string(),
+        ));
 
         let public_key =
             string_to_vec_u8("02c397f23149d3464517d57b7cdc8e287428407f9beabfac731e7c24d536266cd1");
@@ -203,7 +207,9 @@ mod tests {
 
     #[test]
     fn get_recovery_id_with_invalid_message() {
-        let expected = Err(WalletError::InvalidMessage);
+        let expected = Err(WalletError::InvalidMessage(
+            "message was not 32 bytes (do you need to hash?)".to_string(),
+        ));
 
         let public_key =
             string_to_vec_u8("02c397f23149d3464517d57b7cdc8e287428407f9beabfac731e7c24d536266cd1");
@@ -216,7 +222,9 @@ mod tests {
 
     #[test]
     fn get_recovery_id_with_invalid_public_key() {
-        let expected = Err(WalletError::InvalidPublicKey);
+        let expected = Err(WalletError::InvalidPublicKey(
+            "malformed public key".to_string(),
+        ));
 
         let public_key = string_to_vec_u8("");
         let signature = string_to_vec_u8("29edd4e1d65e1b778b464112d2febc6e97bb677aba5034408fd27b49921beca94c4e5b904d58553bcd9c788360e0bd55c513922cf1f33a6386033e886cd4f77f");
