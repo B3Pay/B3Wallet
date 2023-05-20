@@ -5,8 +5,8 @@
 # - you can set an arbitrary canister ID as the governance canister id in the initial payload for CMC. This canister ID would then have be allowed to make the calls that only the governance canister could make. Or you can set it to aaaaa-aa and then no canister would be able to make the privileged calls.
 
 IC_VERSION=c9b2f9653afc2da47e5bd527c192090b860acbf0
-curl -o icp/cmc/cmc.wasm.gz "https://download.dfinity.systems/ic/$IC_VERSION/canisters/cycles-minting-canister.wasm.gz"
-gunzip icp/cmc/cmc.wasm.gz
+curl -o wasm/cmc/cmc.wasm.gz "https://download.dfinity.systems/ic/$IC_VERSION/canisters/cycles-minting-canister.wasm.gz"
+gunzip wasm/cmc/cmc.wasm.gz
 
 # We need a custom did file to install the Cmc locally because the did files in the repo has not initial param for the service
 # curl -o cmc.did "https://raw.githubusercontent.com/dfinity/ic/$IC_VERSION/rs/nns/cmc/cmc.did"

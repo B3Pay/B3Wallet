@@ -1,10 +1,9 @@
 use crate::error::WalletError;
-use b3_helper::sha2_sha256;
+use b3_helper::sha3_sha256;
 use b3_helper::types::{AccountIdentifier, Subaccount};
-use bitcoin::{base58, secp256k1};
-use easy_hasher::easy_hasher;
+
+use bitcoin::{Address, PublicKey};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
-use ripemd::{Digest, Ripemd160};
 use std::collections::HashMap;
 
 use super::subaccount::SubaccountTrait;
@@ -33,7 +32,9 @@ impl Default for PublicKeys {
 
 impl From<Subaccount> for PublicKeys {
     fn from(subaccount: Subaccount) -> Self {
-        let identifier = subaccount.account_identifier();
+        let canister = ic_cdk::id();
+
+        let identifier = subaccount.account_identifier(canister);
 
         let mut addresses = AddressMap::new();
 
@@ -140,12 +141,17 @@ impl PublicKeys {
 
         let pub_key_arr: [u8; 33] = ecdsa[..].try_into().unwrap();
 
-        let pub_key = secp256k1::PublicKey::from_slice(&pub_key_arr)
+        let pub_key = PublicKey::from_slice(&pub_key_arr)
             .map_err(|e| WalletError::GenerateError(e.to_string()))?
-            .serialize();
+            .to_bytes();
 
-        let keccak256 = easy_hasher::raw_keccak256(pub_key[1..].to_vec());
-        let keccak256_hex = keccak256.to_hex_string();
+        let keccak256 = sha3_sha256(&pub_key[1..]);
+
+        let keccak256_hex = keccak256
+            .iter()
+            .map(|byte| format!("{:02x}", byte))
+            .collect::<String>();
+
         let address: String = "0x".to_owned() + &keccak256_hex[24..];
 
         self.addresses.insert(Network::EVM(chain), address.clone());
@@ -156,28 +162,193 @@ impl PublicKeys {
     pub fn generate_btc_address(&mut self, btc_network: BtcNetwork) -> Result<String, WalletError> {
         let bytes = self.ecdsa()?;
 
-        let mut hasher = Ripemd160::new();
-        hasher.update(bytes);
-        let result = hasher.finalize();
+        let public_key =
+            PublicKey::from_slice(&bytes).map_err(|e| WalletError::GenerateError(e.to_string()))?;
 
-        let prefix = match btc_network {
-            BtcNetwork::Mainnet => 0x00,
-            _ => 0x6f,
-        };
-
-        let mut data_with_prefix = vec![prefix];
-        data_with_prefix.extend(result);
-
-        let checksum = &sha2_sha256(&sha2_sha256(&data_with_prefix.clone()))[..4];
-
-        let mut full_address = data_with_prefix;
-        full_address.extend(checksum);
-
-        let address: String = base58::encode(&full_address);
+        let address = Address::p2pkh(&public_key, bitcoin::Network::Bitcoin).to_string();
 
         self.addresses
             .insert(Network::BTC(btc_network), address.clone());
 
         Ok(address)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use b3_helper::types::CanisterId;
+
+    use super::*;
+
+    #[test]
+    fn test_generate_address1() {
+        let subaccount = Subaccount([
+            8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0,
+        ]);
+
+        let owner = CanisterId::from_text("bkyz2-fmaaa-aaaaa-qaaaq-cai").unwrap();
+
+        let mut public_keys = PublicKeys {
+            identifier: AccountIdentifier::new(owner, subaccount),
+            ecdsa: None,
+            addresses: AddressMap::new(),
+        };
+
+        let ecdsa = vec![
+            3, 94, 114, 171, 76, 217, 209, 126, 120, 169, 209, 205, 226, 55, 21, 238, 204, 199,
+            153, 192, 65, 30, 59, 177, 153, 39, 80, 76, 185, 200, 51, 255, 218,
+        ];
+
+        public_keys.set_ecdsa(ecdsa).unwrap();
+
+        let icp_address = public_keys.identifier().to_string();
+
+        assert_eq!(
+            icp_address,
+            "e237f0b05cb1dc302b3dae980ca9efab50dc7e2b165f7ac971c20a25d50b5f68"
+        );
+
+        println!("icp_address: {}", icp_address);
+
+        let eth_address = public_keys.generate_eth_address(1).unwrap();
+
+        assert_eq!(eth_address, "0x004014307c1bfb1dec4eec9661cea77b5826d01d");
+
+        println!("eth_address: {}", eth_address);
+
+        assert_eq!(eth_address.len(), 42);
+
+        let btc_address = public_keys
+            .generate_btc_address(BtcNetwork::Mainnet)
+            .unwrap();
+
+        assert_eq!(btc_address, "1MnmPQSjKMGaruN9vbc6NFWizXGz6SgpdC");
+
+        println!("btc_address: {}", btc_address);
+
+        assert_eq!(btc_address.len(), 34);
+    }
+
+    #[test]
+    fn test_generate_address2() {
+        let subaccount = Subaccount([
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0,
+        ]);
+
+        let owner = CanisterId::from_text("7uoyg-piaaa-aaaap-abbzq-cai").unwrap();
+
+        let mut public_keys = PublicKeys {
+            identifier: AccountIdentifier::new(owner, subaccount),
+            ecdsa: None,
+            addresses: AddressMap::new(),
+        };
+
+        let ecdsa: Ecdsa = vec![
+            2, 50, 207, 109, 252, 71, 63, 226, 215, 137, 36, 108, 105, 51, 80, 125, 193, 121, 151,
+            101, 197, 65, 64, 240, 22, 142, 247, 130, 65, 210, 0, 176, 231,
+        ];
+
+        let identifier = public_keys.identifier();
+
+        let expected_identifier = AccountIdentifier::from(vec![
+            89, 200, 125, 160, 1, 190, 8, 190, 208, 172, 35, 20, 163, 214, 155, 189, 28, 113, 45,
+            177, 78, 207, 45, 150, 87, 215, 96, 119, 136, 171, 118, 18,
+        ]);
+
+        println!("identifier: {}", identifier.to_string());
+
+        assert_eq!(identifier.to_string(), expected_identifier.to_string());
+
+        public_keys.set_ecdsa(ecdsa).unwrap();
+
+        let icp_address = public_keys.identifier().to_string();
+
+        assert_eq!(
+            icp_address,
+            "59c87da001be08bed0ac2314a3d69bbd1c712db14ecf2d9657d7607788ab7612"
+        );
+
+        println!("icp_address: {}", icp_address);
+
+        let eth_address = public_keys.generate_eth_address(1).unwrap();
+
+        assert_eq!(eth_address, "0x9eea1bf5d05e30b900db4471c3839e68417fbcc5");
+
+        println!("eth_address: {}", eth_address);
+
+        assert_eq!(eth_address.len(), 42);
+
+        let btc_address = public_keys
+            .generate_btc_address(BtcNetwork::Mainnet)
+            .unwrap();
+
+        assert_eq!(btc_address, "1L2NEvApixneBNULQzcC5qysuWXrCNDhhr");
+
+        println!("btc_address: {}", btc_address);
+
+        assert_eq!(btc_address.len(), 34);
+    }
+
+    #[test]
+    fn test_generate_address3() {
+        let subaccount = Subaccount([
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0,
+        ]);
+
+        let owner = CanisterId::from_text("us6ps-xaaaa-aaaap-aa5za-cai").unwrap();
+
+        let identifier = AccountIdentifier::new(owner, subaccount);
+
+        println!("identifier: {}", identifier.to_string());
+
+        let expected_identifier = AccountIdentifier::from(vec![
+            89, 200, 125, 160, 1, 190, 8, 190, 208, 172, 35, 20, 163, 214, 155, 189, 28, 113, 45,
+            177, 78, 207, 45, 150, 87, 215, 96, 119, 136, 171, 118, 18,
+        ]);
+
+        assert_eq!(identifier, expected_identifier);
+
+        let mut public_keys = PublicKeys {
+            identifier,
+            ecdsa: None,
+            addresses: AddressMap::new(),
+        };
+
+        let ecdsa: Ecdsa = vec![
+            2, 62, 198, 199, 5, 110, 183, 99, 191, 29, 195, 92, 118, 155, 254, 120, 1, 161, 5, 168,
+            26, 182, 33, 68, 123, 186, 216, 216, 41, 136, 9, 40, 38,
+        ];
+
+        public_keys.set_ecdsa(ecdsa).unwrap();
+
+        let icp_address = public_keys.identifier().to_string();
+
+        assert_eq!(
+            icp_address,
+            "59c87da001be08bed0ac2314a3d69bbd1c712db14ecf2d9657d7607788ab7612"
+        );
+
+        println!("icp_address: {}", icp_address);
+
+        let eth_address = public_keys.generate_eth_address(1).unwrap();
+
+        assert_eq!(eth_address, "0x9eea1bf5d05e30b900db4471c3839e68417fbcc5");
+
+        println!("eth_address: {}", eth_address);
+
+        assert_eq!(eth_address.len(), 42);
+
+        let btc_address = public_keys
+            .generate_btc_address(BtcNetwork::Mainnet)
+            .unwrap();
+
+        assert_eq!(btc_address, "1L2NEvApixneBNULQzcC5qysuWXrCNDhhr");
+
+        println!("btc_address: {}", btc_address);
+
+        assert_eq!(btc_address.len(), 34);
     }
 }

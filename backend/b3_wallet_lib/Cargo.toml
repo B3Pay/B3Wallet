@@ -10,10 +10,7 @@ readme = "./README.md"
 b3_helper = { path = "../b3_helper" }
 enum_dispatch = "0.3"
 ethereum-rlp = "0.2.3"
-easy-hasher = "2.2.1"
 candid = "0.8.4"
 ic-cdk = "0.7.4"
 serde = "1"
-futures = "0.3.28"
-ripemd = "0.1.3"
 bitcoin = { version = "0.30.0", default-features = false,  features = [ "no-std", "secp-recovery", "secp-lowmemory"] }

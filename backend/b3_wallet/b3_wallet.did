@@ -208,7 +208,7 @@ service : () -> {
   account_create : (opt Environment, opt text) -> (WalletAccount);
   account_generate_address : (text, Network) -> (text);
   account_hide : (text) -> ();
-  account_icp_balance : (text) -> (Tokens);
+  account_icp_balance : (text, opt principal) -> (Tokens);
   account_remove : (text) -> ();
   account_rename : (text, text) -> (text);
   account_request_public_key : (text) -> (vec record { Network; text });

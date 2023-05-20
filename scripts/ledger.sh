@@ -4,10 +4,10 @@
 # https://internetcomputer.org/docs/current/developer-docs/integrations/ledger/ledger-local-setup
 
 IC_VERSION=f02cc38677905e24a9016637fddc697039930808
-curl -o icp/ledger/ledger.wasm.gz "https://download.dfinity.systems/ic/$IC_VERSION/canisters/ledger-canister_notify-method.wasm.gz"
-gunzip icp/ledger/ledger.wasm.gz
-curl -o icp/ledger/ledger.private.did "https://raw.githubusercontent.com/dfinity/ic/$IC_VERSION/rs/rosetta-api/ledger.did"
-curl -o icp/ledger/ledger.public.did "https://raw.githubusercontent.com/dfinity/ic/$IC_VERSION/rs/rosetta-api/icp_ledger/ledger.did"
+curl -o wasm/ledger/ledger.wasm.gz "https://download.dfinity.systems/ic/$IC_VERSION/canisters/ledger-canister_notify-method.wasm.gz"
+gunzip wasm/ledger/ledger.wasm.gz
+curl -o wasm/ledger/ledger.private.did "https://raw.githubusercontent.com/dfinity/ic/$IC_VERSION/rs/rosetta-api/ledger.did"
+curl -o wasm/ledger/ledger.public.did "https://raw.githubusercontent.com/dfinity/ic/$IC_VERSION/rs/rosetta-api/icp_ledger/ledger.did"
 
 dfx identity new minter
 dfx identity use minter

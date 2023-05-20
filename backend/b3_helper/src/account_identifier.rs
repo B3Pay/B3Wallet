@@ -3,8 +3,8 @@ use crate::{
     types::{AccountIdentifier, Subaccount},
 };
 use ic_cdk::export::Principal;
-use sha2::{Digest, Sha224};
-use std::fmt::Display;
+use sha3::{Digest, Sha3_224};
+use std::fmt::{self, Display};
 
 impl Default for AccountIdentifier {
     fn default() -> Self {
@@ -13,8 +13,8 @@ impl Default for AccountIdentifier {
 }
 
 impl AccountIdentifier {
-    pub fn new(owner: &Principal, subaccount: &Subaccount) -> Self {
-        let mut hasher = Sha224::new();
+    pub fn new(owner: Principal, subaccount: Subaccount) -> Self {
+        let mut hasher = Sha3_224::new();
         hasher.update(b"\x0Aaccount-id");
         hasher.update(owner.as_slice());
         hasher.update(&subaccount.0[..]);
@@ -28,6 +28,14 @@ impl AccountIdentifier {
         result[0..4].copy_from_slice(&crc32_bytes[..]);
         result[4..32].copy_from_slice(hash.as_ref());
 
+        Self(result)
+    }
+}
+
+impl From<Vec<u8>> for AccountIdentifier {
+    fn from(bytes: Vec<u8>) -> Self {
+        let mut result = [0u8; 32];
+        result.copy_from_slice(&bytes[..]);
         Self(result)
     }
 }
@@ -54,7 +62,7 @@ impl TryFrom<String> for AccountIdentifier {
 }
 
 impl Display for AccountIdentifier {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
         let mut result = String::new();
         for byte in self.0.iter() {
             result.push_str(&format!("{:02x}", byte));

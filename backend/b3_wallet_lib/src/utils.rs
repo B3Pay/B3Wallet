@@ -1,20 +1,21 @@
+use b3_helper::get_method_id;
+
 use crate::error::WalletError;
-use easy_hasher::easy_hasher;
 
 pub fn get_transfer_data(address: &str, amount: u64) -> Result<String, WalletError> {
     if address.len() != 42 {
         return Err(WalletError::InvalidAddress);
     }
     let method_sig = "transfer(address,uint256)";
-    let keccak256 = easy_hasher::raw_keccak256(method_sig.as_bytes().to_vec());
-    let method_id = &keccak256.to_hex_string()[..8];
+
+    let method_id = get_method_id(method_sig);
 
     let address_64 = format!("{:0>64}", &address[2..]);
 
     let amount_hex = format!("{:02x}", amount);
     let amount_64 = format!("{:0>64}", amount_hex);
 
-    Ok(method_id.to_owned() + &address_64 + &amount_64)
+    Ok(method_id + &address_64 + &amount_64)
 }
 
 pub fn string_to_vec_u8(str: &str) -> Vec<u8> {
@@ -90,4 +91,21 @@ pub fn sec1_to_der(sec1_signature: Vec<u8>) -> Vec<u8> {
     .into_iter()
     .flatten()
     .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_transfer_data() {
+        let address = "0x7a9d2f53fea15e31f0a89d7f5d9e0e82b0b88ad6";
+        let amount = 12345;
+
+        let expected_result = "4b40e9010000000000000000000000007a9d2f53fea15e31f0a89d7f5d9e0e82b0b88ad60000000000000000000000000000000000000000000000000000000000003039";
+
+        let result = get_transfer_data(address, amount).unwrap();
+
+        assert_eq!(result, expected_result);
+    }
 }

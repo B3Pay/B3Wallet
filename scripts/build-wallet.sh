@@ -15,5 +15,32 @@ if [ "$(uname)" == "Darwin" ]; then
 else
   cargo build --target $TARGET --release
 fi
+  # go to the root directory
+  ROOT_DIR=$SCRIPT_DIR/..
+
+  NEW_WALLET_DIR=$ROOT_DIR/target/$TARGET/release/b3_wallet.wasm
+
+  OLD_WALLET_DIR=$ROOT_DIR/wasm/b3_wallet/b3_wallet.wasm
+
+  DID_FILE=$ROOT_DIR/backend/b3_wallet/b3_wallet.did
+
+  mkdir -p $ROOT_DIR/wasm/b3_wallet
+
+  printf "\nOptimizing wasm...\n"
+
+  printf "Before optimization: "
+  du -h $NEW_WALLET_DIR | cut -f1
+
+  #  optimize wasm
+  ic-wasm $NEW_WALLET_DIR -o $OLD_WALLET_DIR shrink --optimize Oz
+
+  printf "After optimization: "
+  du -h $OLD_WALLET_DIR | cut -f1
+
+  #  add candid interface
+  ic-wasm $NEW_WALLET_DIR -o $OLD_WALLET_DIR metadata candid:service -f $DID_FILE -v public
+
+  printf "After adding candid interface: "
+  du -h $OLD_WALLET_DIR | cut -f1
 
 popd

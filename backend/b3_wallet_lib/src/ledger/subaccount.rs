@@ -1,9 +1,9 @@
-use b3_helper::types::{AccountIdentifier, Environment, Subaccount};
+use b3_helper::types::{AccountIdentifier, CanisterId, Environment, Subaccount};
 
 use super::{config::EcdsaConfig, types::EcdsaKeyId};
 
 pub trait SubaccountTrait {
-    fn account_identifier(&self) -> AccountIdentifier;
+    fn account_identifier(&self, owner: CanisterId) -> AccountIdentifier;
     fn environment(&self) -> Environment;
     fn nonce(&self) -> u64;
     fn id(&self) -> String;
@@ -14,10 +14,8 @@ pub trait SubaccountTrait {
 }
 
 impl SubaccountTrait for Subaccount {
-    fn account_identifier(&self) -> AccountIdentifier {
-        let canister = ic_cdk::id();
-
-        AccountIdentifier::new(&canister, self)
+    fn account_identifier(&self, owner: CanisterId) -> AccountIdentifier {
+        AccountIdentifier::new(owner, self.clone())
     }
 
     fn environment(&self) -> Environment {
@@ -75,8 +73,6 @@ impl SubaccountTrait for Subaccount {
 
 #[cfg(test)]
 mod tests {
-    use candid::Principal;
-
     use super::*;
 
     #[test]
@@ -107,7 +103,7 @@ mod tests {
 
     #[test]
     fn test_subaccount_from_principal() {
-        let principal = Principal::from_text("rno2w-sqaaa-aaaaa-aaacq-cai").unwrap();
+        let principal = CanisterId::from_text("rno2w-sqaaa-aaaaa-aaacq-cai").unwrap();
         let subaccount = Subaccount::from(principal);
         assert_eq!(subaccount.environment(), Environment::Production);
         assert_eq!(subaccount.nonce(), 7);

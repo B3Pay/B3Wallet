@@ -1,10 +1,14 @@
 {
   "canisters": {
+    "b3_user": {
+      "candid": "backend/b3_user/b3_user.did"
+    },
     "b3_wallet": {
       "type": "custom",
       "package": "b3_wallet",
+      "build": "./scripts/build-wallet.sh",
       "candid": "backend/b3_wallet/b3_wallet.did",
-      "wasm": "target/wasm32-unknown-unknown/release/b3_wallet.wasm",
+      "wasm": "./optimized/b3_wallet.wasm",
       "declarations": {
         "output": "src/declarations/b3_wallet",
         "node_compatibility": true
@@ -30,8 +34,8 @@
     },
     "internet_identity": {
       "type": "custom",
-      "candid": "icp/identity/internet_identity.did",
-      "wasm": "icp/identity/internet_identity.wasm",
+      "candid": "wasm/identity/internet_identity.did",
+      "wasm": "wasm/identity/internet_identity.wasm",
       "remote": {
         "candid": "internet_identity.did",
         "id": {
@@ -44,8 +48,8 @@
     },
     "ledger": {
       "type": "custom",
-      "candid": "icp/ledger/ledger.private.did",
-      "wasm": "icp/ledger/ledger.wasm",
+      "candid": "wasm/ledger/ledger.private.did",
+      "wasm": "wasm/ledger/ledger.wasm",
       "remote": {
         "candid": "ledger.public.did",
         "id": {
@@ -58,8 +62,8 @@
     },
     "cmc": {
       "type": "custom",
-      "candid": "icp/cmc/cmc.did",
-      "wasm": "icp/cmc/cmc.wasm",
+      "candid": "wasm/cmc/cmc.did",
+      "wasm": "wasm/cmc/cmc.wasm",
       "remote": {
         "id": {
           "ic": "rkp4c-7iaaa-aaaaa-aaaca-cai"

@@ -1,7 +1,7 @@
 mod guard;
 mod release;
 mod status;
-mod user;
+mod wallet;
 
 use b3_system_lib::{
     store::{with_state, with_state_mut, with_wasm_map, with_wasm_map_mut},

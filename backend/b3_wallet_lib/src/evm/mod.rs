@@ -11,9 +11,8 @@ use bitcoin::secp256k1::{
     ecdsa::{RecoverableSignature, RecoveryId},
     Message, PublicKey, Secp256k1,
 };
-use candid::CandidType;
+use candid::{CandidType, Deserialize};
 use enum_dispatch::enum_dispatch;
-use serde::Deserialize;
 use tx1559::EvmTransaction1559;
 use tx2930::EvmTransaction2930;
 use txlegacy::EvmTransactionLegacy;

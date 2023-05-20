@@ -1,3 +1,5 @@
+use b3_helper::sha3_sha256;
+
 use super::{
     decode_access_list, encode_access_list, get_recovery_id, EvmSign, EvmTransaction,
     EvmTransactionType,
@@ -6,7 +8,6 @@ use crate::{
     error::WalletError,
     utils::{remove_leading, string_to_vec_u8, u64_to_vec_u8, vec_u8_to_string, vec_u8_to_u64},
 };
-use easy_hasher::easy_hasher;
 
 pub struct EvmTransaction1559 {
     pub chain_id: u64,
@@ -125,11 +126,11 @@ impl EvmSign for EvmTransaction1559 {
 
         let decode_tx = stream.out();
 
-        let msg = [&[0x02], &decode_tx[..]].concat();
+        let encoded_tx = [&[0x02], &decode_tx[..]].concat();
 
-        let keccak256 = easy_hasher::raw_keccak256(msg);
+        let result = sha3_sha256(&encoded_tx);
 
-        Ok(keccak256.to_vec())
+        Ok(result)
     }
     fn sign(&mut self, signature: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, WalletError> {
         let r_remove_leading_zeros = remove_leading(signature[..32].to_vec(), 0);

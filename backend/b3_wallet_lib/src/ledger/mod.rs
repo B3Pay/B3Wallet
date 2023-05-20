@@ -97,8 +97,10 @@ impl Ledger {
         Ok(res.signature)
     }
 
-    pub async fn account_balance(&self) -> Result<Tokens, WalletError> {
-        let account = self.subaccount.account_identifier();
+    pub async fn account_balance(&self, owner: Option<CanisterId>) -> Result<Tokens, WalletError> {
+        let owner = owner.unwrap_or(ic_cdk::id());
+
+        let account = self.subaccount.account_identifier(owner);
 
         let args = AccountBalanceArgs { account };
 
@@ -140,7 +142,7 @@ impl Ledger {
     ) -> Result<NotifyTopUpResult, WalletError> {
         let canister_subaccount: Subaccount = canister_id.into();
 
-        let to = AccountIdentifier::new(&MAINNET_CYCLES_MINTING_CANISTER_ID, &canister_subaccount);
+        let to = AccountIdentifier::new(MAINNET_CYCLES_MINTING_CANISTER_ID, canister_subaccount);
 
         let block_index = self
             .transfer(to, amount, fee, Some(CANISTER_TOP_UP_MEMO))

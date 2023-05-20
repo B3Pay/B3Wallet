@@ -97,10 +97,10 @@ pub async fn account_request_public_key(account_id: String) -> AddressMap {
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub async fn account_icp_balance(account_id: String) -> Tokens {
+pub async fn account_icp_balance(account_id: String, owner: Option<CanisterId>) -> Tokens {
     let account = with_account(&account_id, |account| account.clone()).unwrap_or_else(revert);
 
-    let tokens = account.ledger.account_balance().await;
+    let tokens = account.ledger.account_balance(owner).await;
 
     match tokens {
         Ok(tokens) => tokens,
