@@ -10,7 +10,7 @@ type AddSignerRequest = record {
   signer_id : principal;
   expires_at : opt nat64;
 };
-type BitcoinNetwork = variant { mainnet; regtest; testnet };
+type BtcNetwork = variant { mainnet; regtest; testnet };
 type BtcRequest = variant { BtcTransferRequest : BtcTransferRequest };
 type BtcTransferRequest = record {
   deadline : nat64;
@@ -140,7 +140,7 @@ type InnerRequest = variant {
   UpdateCanisterSettingsRequest : UpdateCanisterSettingsRequest;
 };
 type Ledger = record { subaccount : vec nat8; public_keys : PublicKeys };
-type Network = variant { BTC : BitcoinNetwork; EVM : nat64; ICP; SNS : text };
+type Network = variant { BTC : BtcNetwork; EVM : nat64; ICP; SNS : text };
 type PendingRequest = record {
   id : nat64;
   signers : vec principal;

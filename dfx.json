@@ -6,9 +6,9 @@
     "b3_wallet": {
       "type": "custom",
       "package": "b3_wallet",
-      "build": "./scripts/build-wallet.sh",
+      "build": "scripts/build-wallet.sh",
       "candid": "backend/b3_wallet/b3_wallet.did",
-      "wasm": "./optimized/b3_wallet.wasm",
+      "wasm": "wasm/b3_wallet/b3_wallet.wasm",
       "declarations": {
         "output": "src/declarations/b3_wallet",
         "node_compatibility": true

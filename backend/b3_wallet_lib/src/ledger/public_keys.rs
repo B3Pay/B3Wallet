@@ -6,16 +6,16 @@ use bitcoin::{Address, PublicKey};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use std::collections::HashMap;
 
+use super::network::BtcNetwork;
 use super::subaccount::SubaccountTrait;
-use super::types::BtcNetwork;
 use super::{
     network::Network,
-    types::{AddressMap, Ecdsa},
+    types::{AddressMap, EcdsaPublicKey},
 };
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct PublicKeys {
-    pub ecdsa: Option<Ecdsa>,
+    pub ecdsa: Option<EcdsaPublicKey>,
     pub addresses: AddressMap,
     pub identifier: AccountIdentifier,
 }
@@ -160,12 +160,12 @@ impl PublicKeys {
     }
 
     pub fn generate_btc_address(&mut self, btc_network: BtcNetwork) -> Result<String, WalletError> {
-        let bytes = self.ecdsa()?;
+        let ecdsa = self.ecdsa()?;
 
         let public_key =
-            PublicKey::from_slice(&bytes).map_err(|e| WalletError::GenerateError(e.to_string()))?;
+            PublicKey::from_slice(&ecdsa).map_err(|e| WalletError::GenerateError(e.to_string()))?;
 
-        let address = Address::p2pkh(&public_key, bitcoin::Network::Bitcoin).to_string();
+        let address = Address::p2pkh(&public_key, btc_network.into()).to_string();
 
         self.addresses
             .insert(Network::BTC(btc_network), address.clone());
@@ -225,6 +225,18 @@ mod tests {
 
         assert_eq!(btc_address, "1MnmPQSjKMGaruN9vbc6NFWizXGz6SgpdC");
 
+        let btc_address = public_keys
+            .generate_btc_address(BtcNetwork::Testnet)
+            .unwrap();
+
+        assert_eq!(btc_address, "n2JigTXi8Nhqe1qmeAaUCAj3rWsgxRzMe3");
+
+        let btc_address = public_keys
+            .generate_btc_address(BtcNetwork::Regtest)
+            .unwrap();
+
+        assert_eq!(btc_address, "n2JigTXi8Nhqe1qmeAaUCAj3rWsgxRzMe3");
+
         println!("btc_address: {}", btc_address);
 
         assert_eq!(btc_address.len(), 34);
@@ -245,7 +257,7 @@ mod tests {
             addresses: AddressMap::new(),
         };
 
-        let ecdsa: Ecdsa = vec![
+        let ecdsa: EcdsaPublicKey = vec![
             2, 50, 207, 109, 252, 71, 63, 226, 215, 137, 36, 108, 105, 51, 80, 125, 193, 121, 151,
             101, 197, 65, 64, 240, 22, 142, 247, 130, 65, 210, 0, 176, 231,
         ];
@@ -305,8 +317,8 @@ mod tests {
         println!("identifier: {}", identifier.to_string());
 
         let expected_identifier = AccountIdentifier::from(vec![
-            89, 200, 125, 160, 1, 190, 8, 190, 208, 172, 35, 20, 163, 214, 155, 189, 28, 113, 45,
-            177, 78, 207, 45, 150, 87, 215, 96, 119, 136, 171, 118, 18,
+            140, 144, 174, 128, 153, 211, 171, 43, 103, 68, 188, 143, 155, 91, 236, 172, 118, 117,
+            50, 203, 132, 3, 4, 30, 101, 124, 179, 110, 127, 51, 62, 0,
         ]);
 
         assert_eq!(identifier, expected_identifier);
@@ -317,7 +329,7 @@ mod tests {
             addresses: AddressMap::new(),
         };
 
-        let ecdsa: Ecdsa = vec![
+        let ecdsa: EcdsaPublicKey = vec![
             2, 62, 198, 199, 5, 110, 183, 99, 191, 29, 195, 92, 118, 155, 254, 120, 1, 161, 5, 168,
             26, 182, 33, 68, 123, 186, 216, 216, 41, 136, 9, 40, 38,
         ];
@@ -328,14 +340,14 @@ mod tests {
 
         assert_eq!(
             icp_address,
-            "59c87da001be08bed0ac2314a3d69bbd1c712db14ecf2d9657d7607788ab7612"
+            "8c90ae8099d3ab2b6744bc8f9b5becac767532cb8403041e657cb36e7f333e00"
         );
 
         println!("icp_address: {}", icp_address);
 
         let eth_address = public_keys.generate_eth_address(1).unwrap();
 
-        assert_eq!(eth_address, "0x9eea1bf5d05e30b900db4471c3839e68417fbcc5");
+        assert_eq!(eth_address, "0x0dd99dc1a94a3ca699f6bdbd87c7ff07a31cacb6");
 
         println!("eth_address: {}", eth_address);
 
@@ -345,7 +357,7 @@ mod tests {
             .generate_btc_address(BtcNetwork::Mainnet)
             .unwrap();
 
-        assert_eq!(btc_address, "1L2NEvApixneBNULQzcC5qysuWXrCNDhhr");
+        assert_eq!(btc_address, "18P7514xYnwxHcWuc96Ae7dPqhX2syiS2m");
 
         println!("btc_address: {}", btc_address);
 

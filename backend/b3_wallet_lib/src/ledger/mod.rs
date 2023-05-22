@@ -4,7 +4,6 @@ pub mod network;
 pub mod public_keys;
 pub mod subaccount;
 pub mod types;
-pub mod utils;
 
 use crate::error::WalletError;
 use b3_helper::{
