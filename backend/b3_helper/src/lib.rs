@@ -28,6 +28,7 @@ pub fn get_method_id(method_sig: &str) -> String {
         .take(4)
         .map(|byte| format!("{:02x}", byte))
         .collect::<String>();
+
     hex_string
 }
 

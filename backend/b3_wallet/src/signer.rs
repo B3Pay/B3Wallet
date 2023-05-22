@@ -20,7 +20,7 @@ pub fn caller_is_admin() -> Result<(), String> {
     with_signer_check(caller_id, |signer| signer.is_admin())
 }
 
-pub fn caller_is_user() -> Result<(), String> {
+pub fn _caller_is_user() -> Result<(), String> {
     let caller_id = ic_cdk::caller();
 
     with_signer_check(caller_id, |signer| signer.is_user())

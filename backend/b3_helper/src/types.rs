@@ -8,7 +8,10 @@ use ic_cdk::{
     },
 };
 use serde_bytes::ByteBuf;
-use std::{collections::HashMap, fmt::Display};
+use std::{
+    collections::HashMap,
+    fmt::{self, Display},
+};
 
 pub type Metadata = HashMap<String, String>;
 
@@ -177,4 +180,24 @@ pub enum Environment {
     Staging,
     #[default]
     Production,
+}
+
+impl fmt::Display for Environment {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Environment::Development => write!(f, "Development"),
+            Environment::Staging => write!(f, "Staging"),
+            Environment::Production => write!(f, "Production"),
+        }
+    }
+}
+
+impl Environment {
+    pub fn to_name(&self, counter: String) -> String {
+        match self {
+            Environment::Development => ["Development", "Account", &counter].join(" "),
+            Environment::Production => ["Account", &counter].join(" "),
+            Environment::Staging => ["Staging", "Account", &counter].join(" "),
+        }
+    }
 }

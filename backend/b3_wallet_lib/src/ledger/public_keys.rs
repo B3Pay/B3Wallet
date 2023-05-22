@@ -65,6 +65,10 @@ impl PublicKeys {
             return Err(WalletError::InvalidEcdsaPublicKey);
         }
 
+        let ecdsa = PublicKey::from_slice(&ecdsa)
+            .map_err(|e| WalletError::GenerateError(e.to_string()))?
+            .to_bytes();
+
         self.ecdsa = Some(ecdsa);
 
         self.generate_eth_address(0)?;
@@ -79,6 +83,15 @@ impl PublicKeys {
             Some(ecdsa) => Ok(ecdsa.clone()),
             None => Err(WalletError::MissingEcdsaPublicKey),
         }
+    }
+
+    pub fn get_public_key(&self) -> Result<PublicKey, WalletError> {
+        let ecdsa = self.ecdsa()?;
+
+        let public_key =
+            PublicKey::from_slice(&ecdsa).map_err(|_| WalletError::InvalidEcdsaPublicKey)?;
+
+        Ok(public_key)
     }
 
     pub fn identifier(&self) -> AccountIdentifier {
@@ -220,6 +233,14 @@ mod tests {
         assert_eq!(eth_address.len(), 42);
 
         let btc_address = public_keys
+            .generate_btc_address(BtcNetwork::Regtest)
+            .unwrap();
+
+        assert_eq!(btc_address, "n2JigTXi8Nhqe1qmeAaUCAj3rWsgxRzMe3");
+
+        println!("btc_address: {}", btc_address);
+
+        let btc_address = public_keys
             .generate_btc_address(BtcNetwork::Mainnet)
             .unwrap();
 
@@ -230,14 +251,6 @@ mod tests {
             .unwrap();
 
         assert_eq!(btc_address, "n2JigTXi8Nhqe1qmeAaUCAj3rWsgxRzMe3");
-
-        let btc_address = public_keys
-            .generate_btc_address(BtcNetwork::Regtest)
-            .unwrap();
-
-        assert_eq!(btc_address, "n2JigTXi8Nhqe1qmeAaUCAj3rWsgxRzMe3");
-
-        println!("btc_address: {}", btc_address);
 
         assert_eq!(btc_address.len(), 34);
     }

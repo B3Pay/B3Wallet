@@ -6,6 +6,7 @@ pub trait SubaccountTrait {
     fn account_identifier(&self, owner: CanisterId) -> AccountIdentifier;
     fn environment(&self) -> Environment;
     fn nonce(&self) -> u64;
+    fn name(&self) -> String;
     fn id(&self) -> String;
     fn derivation_path(&self) -> Vec<Vec<u8>>;
     fn config(&self) -> EcdsaConfig;
@@ -28,6 +29,10 @@ impl SubaccountTrait for Subaccount {
 
     fn nonce(&self) -> u64 {
         self.0[1..].iter().fold(0, |acc, x| acc + *x as u64)
+    }
+
+    fn name(&self) -> String {
+        self.environment().to_name(self.nonce().to_string())
     }
 
     fn id(&self) -> String {

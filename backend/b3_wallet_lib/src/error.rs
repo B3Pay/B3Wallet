@@ -60,6 +60,8 @@ pub enum WalletError {
     InvalidMessage(String),
     InvalidPublicKey(String),
     InvalidRecoveryId(String),
+    WalletAccountAlreadyExists,
+    WalletAccountCounterMismatch
 }
 
 #[rustfmt::skip]
@@ -120,6 +122,8 @@ impl TrapError for WalletError {
             WalletError::InvalidRecoveryId(msg) => ["Invalid recovery id: ", &msg].concat(),
             WalletError::InvalidSignature(msg) => ["Invalid signature: ", &msg].concat(),
             WalletError::DeadlineExceeded => "Deadline exceeded!".to_string(),
+            WalletError::WalletAccountAlreadyExists => "Wallet account already exists!".to_string(),
+            WalletError::WalletAccountCounterMismatch => "Wallet account counter mismatch!".to_string(),
         }
     }
 }

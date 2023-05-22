@@ -95,9 +95,8 @@ impl Ledger {
         dst_address: String,
     ) -> Result<BtcTxId, WalletError> {
         let own_address = self.public_keys.get_btc_address(network.into())?;
-        let own_public_key = self.public_keys.ecdsa()?;
 
-        let own_address = Address::from_str(&own_address)
+        let _own_address = Address::from_str(&own_address)
             .unwrap()
             .require_network(bitcoin::Network::Bitcoin)
             .unwrap();

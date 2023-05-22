@@ -2,11 +2,13 @@ use crate::signer::caller_is_signer;
 use b3_helper::{
     revert,
     types::{
-        AccountIdentifier, BlockIndex, CanisterId, Environment, Memo, NotifyTopUpResult, Tokens,
+        AccountIdentifier, BlockIndex, CanisterId, Environment, Memo, NotifyTopUpResult,
+        Subaccount, Tokens,
     },
 };
 use b3_wallet_lib::{
     account::WalletAccount,
+    counter::WalletCounters,
     error::WalletError,
     ledger::{network::Network, types::AddressMap},
     store::{
@@ -31,6 +33,12 @@ pub fn get_account_count() -> usize {
 
 #[query]
 #[candid_method(query)]
+pub fn get_account_counters() -> WalletCounters {
+    with_state(|s| s.counters())
+}
+
+#[query]
+#[candid_method(query)]
 pub fn get_accounts() -> Vec<WalletAccount> {
     with_state(|s| s.accounts())
 }
@@ -48,7 +56,7 @@ pub fn get_addresses(account_id: String) -> AddressMap {
 pub fn account_create(env: Option<Environment>, name: Option<String>) -> WalletAccount {
     let subaccount = with_state(|s| s.new_subaccount(env));
 
-    let new_account: WalletAccount = subaccount.into();
+    let new_account = WalletAccount::from(subaccount);
 
     let id = with_state_mut(|s| s.insert_account(new_account, name));
 
@@ -71,6 +79,14 @@ pub fn account_hide(account_id: String) {
 #[update(guard = "caller_is_signer")]
 pub fn account_remove(account_id: String) {
     with_state_mut(|s| s.remove_account(&account_id)).unwrap_or_else(revert)
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_signer")]
+pub fn account_restore(env: Environment, index: u64) -> WalletAccount {
+    let subaccount = Subaccount::new(env, index);
+
+    with_state_mut(|s| s.restore_account(subaccount)).unwrap_or_else(revert)
 }
 
 #[candid_method(update)]

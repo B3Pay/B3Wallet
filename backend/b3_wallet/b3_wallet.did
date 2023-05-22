@@ -204,6 +204,7 @@ type WalletAccount = record {
   hidden : bool;
   ledger : Ledger;
 };
+type WalletCounters = record { request : nat64; account : AccountsCounter };
 service : () -> {
   account_create : (opt Environment, opt text) -> (WalletAccount);
   account_generate_address : (text, Network) -> (text);
@@ -212,6 +213,7 @@ service : () -> {
   account_remove : (text) -> ();
   account_rename : (text, text) -> (text);
   account_request_public_key : (text) -> (vec record { Network; text });
+  account_restore : (Environment, nat64) -> (WalletAccount);
   account_send_icp : (text, text, Tokens, opt Tokens, opt nat64) -> (nat64);
   account_top_up_and_notify : (text, Tokens, opt principal, opt Tokens) -> (
       nat,
@@ -219,6 +221,7 @@ service : () -> {
   confirm_request : (nat64) -> (ConfirmedRequest);
   get_account : (text) -> (WalletAccount) query;
   get_account_count : () -> (nat64) query;
+  get_account_counters : () -> (WalletCounters) query;
   get_accounts : () -> (vec WalletAccount) query;
   get_addresses : (text) -> (vec record { Network; text }) query;
   get_confirmed : (nat64) -> (ConfirmedRequest) query;

@@ -63,11 +63,7 @@ impl WalletCounters {
     pub fn generate_next_account_name(&mut self, environment: Environment) -> String {
         let counter = self.increment_account(environment.clone()).to_string();
 
-        match environment {
-            Environment::Development => ["Development Account", &counter].join(" "),
-            Environment::Production => ["Account", &counter].join(" "),
-            Environment::Staging => ["Staging Account", &counter].join(" "),
-        }
+        environment.to_name(counter)
     }
 
     pub fn increment_request(&mut self) -> RequestId {

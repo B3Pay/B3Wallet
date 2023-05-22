@@ -2,6 +2,7 @@ use crate::account::WalletAccount;
 use crate::counter::WalletCounters;
 use crate::error::WalletError;
 use crate::ledger::public_keys::PublicKeys;
+use crate::ledger::subaccount::SubaccountTrait;
 use crate::types::{AccountId, ConfirmedRequestMap, PendingRequestMap, WalletAccountMap};
 use b3_helper::types::{AccountsCounter, Environment, Subaccount};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
@@ -69,6 +70,10 @@ impl State {
         id
     }
 
+    pub fn counters(&self) -> WalletCounters {
+        self.counters.clone()
+    }
+
     pub fn account(&self, id: &String) -> Result<&WalletAccount, WalletError> {
         self.accounts
             .get(id)
@@ -117,5 +122,26 @@ impl State {
             .ok_or(WalletError::WalletAccountNotExists)?;
 
         Ok(())
+    }
+
+    pub fn restore_account(
+        &mut self,
+        subaccount: Subaccount,
+    ) -> Result<WalletAccount, WalletError> {
+        if self.accounts.contains_key(&subaccount.id()) {
+            return Err(WalletError::WalletAccountAlreadyExists);
+        }
+
+        if self.counters.account(&subaccount.environment()) <= subaccount.nonce() {
+            return Err(WalletError::WalletAccountCounterMismatch);
+        }
+
+        let name = subaccount.name();
+
+        let account = WalletAccount::from(subaccount);
+
+        let id = self.insert_account(account, Some(name));
+
+        self.account(&id).map(|account| account.clone())
     }
 }
