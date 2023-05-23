@@ -139,7 +139,12 @@ type InnerRequest = variant {
   HideAccountRequest : HideAccountRequest;
   UpdateCanisterSettingsRequest : UpdateCanisterSettingsRequest;
 };
-type Ledger = record { subaccount : vec nat8; public_keys : PublicKeys };
+type Keys = record {
+  ecdsa : opt vec nat8;
+  addresses : vec record { Network; text };
+  identifier : vec nat8;
+};
+type Ledger = record { keys : Keys; subaccount : vec nat8 };
 type Network = variant { BTC : BtcNetwork; EVM : nat64; ICP; SNS : text };
 type PendingRequest = record {
   id : nat64;
@@ -147,11 +152,6 @@ type PendingRequest = record {
   request : Request;
   role : Roles;
   deadline : nat64;
-};
-type PublicKeys = record {
-  ecdsa : opt vec nat8;
-  addresses : vec record { Network; text };
-  identifier : vec nat8;
 };
 type RemoveSignerRequest = record { signer_id : principal };
 type RenameAccountRequest = record { account_id : text; new_name : text };
@@ -204,16 +204,23 @@ type WalletAccount = record {
   hidden : bool;
   ledger : Ledger;
 };
+type WalletAccountView = record {
+  id : text;
+  metadata : vec record { text; text };
+  name : text;
+  hidden : bool;
+  environment : Environment;
+};
 type WalletCounters = record { request : nat64; account : AccountsCounter };
 service : () -> {
-  account_create : (opt Environment, opt text) -> (WalletAccount);
-  account_generate_address : (text, Network) -> (text);
+  account_create : (opt Environment, opt text) -> ();
+  account_generate_address : (text, Network) -> ();
   account_hide : (text) -> ();
   account_icp_balance : (text, opt principal) -> (Tokens);
   account_remove : (text) -> ();
-  account_rename : (text, text) -> (text);
-  account_request_public_key : (text) -> (vec record { Network; text });
-  account_restore : (Environment, nat64) -> (WalletAccount);
+  account_rename : (text, text) -> ();
+  account_request_public_key : (text) -> ();
+  account_restore : (Environment, nat64) -> ();
   account_send_icp : (text, text, Tokens, opt Tokens, opt nat64) -> (nat64);
   account_top_up_and_notify : (text, Tokens, opt principal, opt Tokens) -> (
       nat,
@@ -222,6 +229,7 @@ service : () -> {
   get_account : (text) -> (WalletAccount) query;
   get_account_count : () -> (nat64) query;
   get_account_counters : () -> (WalletCounters) query;
+  get_account_views : () -> (vec WalletAccountView) query;
   get_accounts : () -> (vec WalletAccount) query;
   get_addresses : (text) -> (vec record { Network; text }) query;
   get_confirmed : (nat64) -> (ConfirmedRequest) query;

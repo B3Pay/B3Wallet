@@ -3,16 +3,28 @@ use crate::{
     evm::get_evm_transaction,
     ledger::{keys::Keys, subaccount::SubaccountTrait, Ledger},
 };
-use b3_helper::types::{Environment, Metadata, Subaccount};
+use b3_helper::types::{Environment, Metadata, Subaccount, WalletAccountView};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+
+impl From<&WalletAccount> for WalletAccountView {
+    fn from(account: &WalletAccount) -> Self {
+        Self {
+            id: account.id.clone(),
+            name: account.name.clone(),
+            hidden: account.hidden,
+            metadata: account.metadata.clone(),
+            environment: account.environment().clone(),
+        }
+    }
+}
 
 #[derive(CandidType, Clone, Deserialize)]
 pub struct WalletAccount {
-    pub id: String,
-    pub name: String,
-    pub hidden: bool,
-    pub ledger: Ledger,
-    pub metadata: Metadata,
+    id: String,
+    name: String,
+    hidden: bool,
+    ledger: Ledger,
+    metadata: Metadata,
 }
 
 impl Default for WalletAccount {
@@ -60,9 +72,47 @@ impl WalletAccount {
 
         let signature = self.ledger.sign_with_ecdsa(message).await?;
 
-        let signed_evm_tx = evm_tx.sign(signature, ecdsa)?;
+        let signed_evm_tx = evm_tx.sign(signature, ecdsa.to_vec())?;
 
         Ok(signed_evm_tx)
+    }
+
+    pub fn view(&self) -> WalletAccountView {
+        WalletAccountView {
+            id: self.id.clone(),
+            name: self.name.clone(),
+            hidden: self.hidden,
+            metadata: self.metadata.clone(),
+            environment: self.ledger.subaccount.environment(),
+        }
+    }
+
+    pub fn public_keys(&self) -> &Keys {
+        &self.ledger.keys
+    }
+
+    pub fn environment(&self) -> Environment {
+        self.ledger.subaccount.environment()
+    }
+
+    pub fn metadata(&self) -> &Metadata {
+        &self.metadata
+    }
+
+    pub fn name(&self) -> &String {
+        &self.name
+    }
+
+    pub fn id(&self) -> &String {
+        &self.id
+    }
+
+    pub fn ledger(&self) -> &Ledger {
+        &self.ledger
+    }
+
+    pub fn ledger_mut(&mut self) -> &mut Ledger {
+        &mut self.ledger
     }
 
     pub fn add_metadata(&mut self, key: String, value: String) {
@@ -81,14 +131,8 @@ impl WalletAccount {
         &mut self.metadata
     }
 
-    pub fn metadata(&self) -> &Metadata {
-        &self.metadata
-    }
-
-    pub fn rename(&mut self, name: String) -> String {
+    pub fn rename(&mut self, name: String) {
         self.name = name;
-
-        self.name.clone()
     }
 
     pub fn hide(&mut self) {
@@ -97,21 +141,5 @@ impl WalletAccount {
 
     pub fn unhide(&mut self) {
         self.hidden = false;
-    }
-
-    pub fn public_keys(&self) -> Keys {
-        self.ledger.keys.clone()
-    }
-
-    pub fn environment(&self) -> Environment {
-        self.ledger.subaccount.environment()
-    }
-
-    pub fn name(&self) -> String {
-        self.name.clone()
-    }
-
-    pub fn id(&self) -> String {
-        self.id.clone()
     }
 }

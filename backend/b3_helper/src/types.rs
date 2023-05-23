@@ -38,6 +38,15 @@ pub struct Subaccount(pub [u8; 32]);
 #[derive(CandidType, Deserialize, Clone, Debug, PartialEq)]
 pub struct AccountIdentifier(pub [u8; 32]);
 
+#[derive(CandidType, Clone, Deserialize)]
+pub struct WalletAccountView {
+    pub id: String,
+    pub name: String,
+    pub hidden: bool,
+    pub metadata: Metadata,
+    pub environment: Environment,
+}
+
 pub struct SignerCanisterInstallArg {
     pub arg: Vec<u8>,
     pub wasm_module: WasmModule,

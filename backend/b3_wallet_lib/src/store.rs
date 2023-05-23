@@ -118,7 +118,7 @@ where
     with_state(|state| {
         state
             .account(account_id)
-            .map(|account| callback(&account.ledger))
+            .map(|account| callback(&account.ledger()))
     })
 }
 
@@ -129,7 +129,7 @@ where
     with_state_mut(|state| {
         state
             .account_mut(account_id)
-            .map(|account| callback(&mut account.ledger))
+            .map(|account| callback(&mut account.ledger_mut()))
     })
 }
 

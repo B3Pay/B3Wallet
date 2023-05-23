@@ -3,7 +3,7 @@ use b3_helper::{
     revert,
     types::{
         AccountIdentifier, BlockIndex, CanisterId, Environment, Memo, NotifyTopUpResult,
-        Subaccount, Tokens,
+        Subaccount, Tokens, WalletAccountView,
     },
 };
 use b3_wallet_lib::{
@@ -34,7 +34,7 @@ pub fn get_account_count() -> usize {
 #[query]
 #[candid_method(query)]
 pub fn get_account_counters() -> WalletCounters {
-    with_state(|s| s.counters())
+    with_state(|s| s.counters().clone())
 }
 
 #[query]
@@ -45,27 +45,31 @@ pub fn get_accounts() -> Vec<WalletAccount> {
 
 #[query]
 #[candid_method(query)]
+pub fn get_account_views() -> Vec<WalletAccountView> {
+    with_state(|s| s.account_views())
+}
+
+#[query]
+#[candid_method(query)]
 pub fn get_addresses(account_id: String) -> AddressMap {
-    with_ledger(&account_id, |ledger| ledger.keys.addresses()).unwrap_or_else(revert)
+    with_ledger(&account_id, |ledger| ledger.keys.addresses().clone()).unwrap_or_else(revert)
 }
 
 // UPDATE
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub fn account_create(env: Option<Environment>, name: Option<String>) -> WalletAccount {
+pub fn account_create(env: Option<Environment>, name: Option<String>) {
     let subaccount = with_state(|s| s.new_subaccount(env));
 
     let new_account = WalletAccount::from(subaccount);
 
-    let id = with_state_mut(|s| s.insert_account(new_account, name));
-
-    with_account(&id, |account| account.clone()).unwrap_or_else(revert)
+    with_state_mut(|s| s.insert_account(new_account, name));
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub fn account_rename(account_id: String, name: String) -> String {
+pub fn account_rename(account_id: String, name: String) {
     with_account_mut(&account_id, |a| a.rename(name)).unwrap_or_else(revert)
 }
 
@@ -78,20 +82,20 @@ pub fn account_hide(account_id: String) {
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub fn account_remove(account_id: String) {
-    with_state_mut(|s| s.remove_account(&account_id)).unwrap_or_else(revert)
+    with_state_mut(|s| s.remove_account(&account_id)).unwrap_or_else(revert);
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub fn account_restore(env: Environment, index: u64) -> WalletAccount {
+pub fn account_restore(env: Environment, index: u64) {
     let subaccount = Subaccount::new(env, index);
 
-    with_state_mut(|s| s.restore_account(subaccount)).unwrap_or_else(revert)
+    with_state_mut(|s| s.restore_account(subaccount)).unwrap_or_else(revert);
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub async fn account_request_public_key(account_id: String) -> AddressMap {
+pub async fn account_request_public_key(account_id: String) {
     let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
     if ledger.keys.is_ecdsa_set() {
@@ -100,21 +104,17 @@ pub async fn account_request_public_key(account_id: String) -> AddressMap {
 
     let ecdsa = ledger.ecdsa_public_key().await.unwrap_or_else(revert);
 
-    let result = with_ledger_mut(&account_id, |ledger| ledger.keys.set_ecdsa(ecdsa.clone()))
+    with_ledger_mut(&account_id, |ledger| ledger.keys.set_ecdsa(ecdsa.clone()))
+        .unwrap_or_else(revert)
         .unwrap_or_else(revert);
-
-    match result {
-        Ok(addresses) => addresses,
-        Err(err) => revert(err),
-    }
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub async fn account_icp_balance(account_id: String, owner: Option<CanisterId>) -> Tokens {
-    let account = with_account(&account_id, |account| account.clone()).unwrap_or_else(revert);
+    let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
-    let tokens = account.ledger.account_balance(owner).await;
+    let tokens = ledger.account_balance(owner).await;
 
     match tokens {
         Ok(tokens) => tokens,
@@ -133,10 +133,9 @@ pub async fn account_send_icp(
 ) -> BlockIndex {
     let to = AccountIdentifier::try_from(to).unwrap_or_else(revert);
 
-    let account = with_account(&account_id, |account| account.clone()).unwrap_or_else(revert);
+    let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
-    let result = account
-        .ledger
+    let result = ledger
         .transfer(to, amount, fee, memo)
         .await
         .unwrap_or_else(revert);
@@ -172,12 +171,8 @@ pub async fn account_top_up_and_notify(
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub async fn account_generate_address(account_id: String, network: Network) -> String {
-    let result = with_ledger_mut(&account_id, |ledger| ledger.keys.generate_address(network))
+pub async fn account_generate_address(account_id: String, network: Network) {
+    with_ledger_mut(&account_id, |ledger| ledger.keys.generate_address(network))
+        .unwrap_or_else(revert)
         .unwrap_or_else(revert);
-
-    match result {
-        Ok(result) => result,
-        Err(err) => revert(err),
-    }
 }

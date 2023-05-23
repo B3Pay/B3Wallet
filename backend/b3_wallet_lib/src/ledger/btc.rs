@@ -92,7 +92,7 @@ impl Ledger {
         &self,
         network: BitcoinNetwork,
         amount: Satoshi,
-        dst_address: String,
+        dst_address: &str,
     ) -> Result<BtcTxId, WalletError> {
         let own_address = self.keys.get_btc_address(network.into())?;
 
@@ -118,7 +118,7 @@ impl Ledger {
             fee_percentiles[49]
         };
 
-        let dst_address = Address::from_str(&dst_address)
+        let dst_address = Address::from_str(dst_address)
             .unwrap()
             .require_network(bitcoin::Network::Bitcoin)
             .unwrap();
@@ -206,9 +206,8 @@ impl Ledger {
         // rebuild the transaction, until the fee is set to the correct amount.
         let mut total_fee = 0;
         loop {
-            let mut transaction = self
-                .bitcoin_build_transaction_with_fee(utxos, recipient, amount, total_fee)
-                .expect("Error building transaction.");
+            let mut transaction =
+                self.bitcoin_build_transaction_with_fee(utxos, recipient, amount, total_fee)?;
 
             // Sign the transaction. In this case, we only care about the size
             // of the signed transaction, so we use a mock signer here for efficiency.
@@ -317,21 +316,47 @@ impl Ledger {
 
 #[cfg(test)]
 mod test {
+    use crate::ledger::{keys::Keys, types::AddressMap};
+
     use super::super::types::BtcUtxo;
     use super::*;
-    use b3_helper::types::{Environment, Subaccount};
+    use b3_helper::types::{AccountIdentifier, CanisterId, Subaccount};
     use ic_cdk::api::management_canister::bitcoin::Outpoint;
 
     #[test]
     fn test_build_unsigned_transaction() {
-        let subaccount = Subaccount::new(Environment::Production, 0);
+        let subaccount = Subaccount([
+            8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0,
+        ]);
 
-        let ledger = Ledger::from(subaccount);
+        let owner = CanisterId::from_text("bkyz2-fmaaa-aaaaa-qaaaq-cai").unwrap();
+
+        let mut public_keys = Keys {
+            identifier: AccountIdentifier::new(owner, subaccount.clone()),
+            ecdsa: None,
+            addresses: AddressMap::new(),
+        };
+
+        let ecdsa = vec![
+            3, 94, 114, 171, 76, 217, 209, 126, 120, 169, 209, 205, 226, 55, 21, 238, 204, 199,
+            153, 192, 65, 30, 59, 177, 153, 39, 80, 76, 185, 200, 51, 255, 218,
+        ];
+
+        public_keys.set_ecdsa(ecdsa).unwrap();
+
+        let ledger = Ledger {
+            keys: public_keys,
+            subaccount,
+        };
 
         let utxos = vec![
             BtcUtxo {
                 outpoint: Outpoint {
-                    txid: vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                    txid: vec![
+                        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4,
+                        5, 6, 7, 8, 9, 8, 9,
+                    ],
                     vout: 0,
                 },
                 value: 100_000_000,
@@ -339,7 +364,10 @@ mod test {
             },
             BtcUtxo {
                 outpoint: Outpoint {
-                    txid: vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                    txid: vec![
+                        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4,
+                        5, 6, 7, 8, 9, 8, 9,
+                    ],
                     vout: 1,
                 },
                 value: 100_000_000,
@@ -355,9 +383,9 @@ mod test {
             .build_unsigned_transaction(&utxos, &recipient, 100_000_000, 0)
             .unwrap();
 
-        assert_eq!(transaction.input.len(), 2);
+        assert_eq!(transaction.input.len(), 1);
 
-        assert_eq!(transaction.output.len(), 2);
+        assert_eq!(transaction.output.len(), 1);
 
         assert_eq!(transaction.output[0].value, 100_000_000);
     }

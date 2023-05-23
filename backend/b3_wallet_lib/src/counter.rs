@@ -52,13 +52,6 @@ impl WalletCounters {
         }
     }
 
-    pub fn decrement_account(&mut self, environment: Environment) {
-        match environment {
-            Environment::Development => self.account.development -= 1,
-            Environment::Production => self.account.production -= 1,
-            Environment::Staging => self.account.staging -= 1,
-        }
-    }
     /// Increment the account counter and return the new name based on the environment
     pub fn generate_next_account_name(&mut self, environment: Environment) -> String {
         let counter = self.increment_account(environment.clone()).to_string();

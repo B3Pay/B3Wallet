@@ -3,8 +3,8 @@ use crate::counter::WalletCounters;
 use crate::error::WalletError;
 use crate::ledger::keys::Keys;
 use crate::ledger::subaccount::SubaccountTrait;
-use crate::types::{AccountId, ConfirmedRequestMap, PendingRequestMap, WalletAccountMap};
-use b3_helper::types::{AccountsCounter, Environment, Subaccount};
+use crate::types::{ConfirmedRequestMap, PendingRequestMap, WalletAccountMap};
+use b3_helper::types::{AccountsCounter, Environment, Subaccount, WalletAccountView};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 #[derive(CandidType, Deserialize, Clone)]
@@ -48,11 +48,7 @@ impl State {
         Subaccount::new(env, counter)
     }
 
-    pub fn insert_account(
-        &mut self,
-        mut account: WalletAccount,
-        opt_name: Option<String>,
-    ) -> AccountId {
+    pub fn insert_account(&mut self, mut account: WalletAccount, opt_name: Option<String>) {
         if let Some(name) = opt_name {
             account.rename(name);
         } else {
@@ -66,12 +62,10 @@ impl State {
         let id = account.id();
 
         self.accounts.insert(id.clone(), account);
-
-        id
     }
 
-    pub fn counters(&self) -> WalletCounters {
-        self.counters.clone()
+    pub fn counters(&self) -> &WalletCounters {
+        &self.counters
     }
 
     pub fn account(&self, id: &String) -> Result<&WalletAccount, WalletError> {
@@ -86,18 +80,23 @@ impl State {
             .ok_or(WalletError::WalletAccountNotExists)
     }
 
-    pub fn accounts_public_keys(&self) -> Vec<Keys> {
+    pub fn accounts_public_keys(&self) -> Vec<&Keys> {
         self.accounts
             .iter()
             .map(|(_, account)| account.public_keys())
             .collect()
     }
 
-    pub fn accounts(&self) -> Vec<WalletAccount> {
+    pub fn account_views(&self) -> Vec<WalletAccountView> {
         self.accounts
-            .iter()
-            .map(|(_, account)| account.clone())
+            .values()
+            .map(WalletAccountView::from)
             .collect()
+    }
+
+    // TODO: Remove this function and use account_views() instead
+    pub fn accounts(&self) -> Vec<WalletAccount> {
+        self.accounts.values().cloned().collect()
     }
 
     pub fn accounts_len(&self) -> usize {
@@ -124,10 +123,7 @@ impl State {
         Ok(())
     }
 
-    pub fn restore_account(
-        &mut self,
-        subaccount: Subaccount,
-    ) -> Result<WalletAccount, WalletError> {
+    pub fn restore_account(&mut self, subaccount: Subaccount) -> Result<(), WalletError> {
         if self.accounts.contains_key(&subaccount.id()) {
             return Err(WalletError::WalletAccountAlreadyExists);
         }
@@ -140,8 +136,8 @@ impl State {
 
         let account = WalletAccount::from(subaccount);
 
-        let id = self.insert_account(account, Some(name));
+        self.insert_account(account, Some(name));
 
-        self.account(&id).map(|account| account.clone())
+        Ok(())
     }
 }

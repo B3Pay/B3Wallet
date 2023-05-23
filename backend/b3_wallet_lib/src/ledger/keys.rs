@@ -51,36 +51,22 @@ impl From<Subaccount> for Keys {
 impl Keys {
     pub fn is_ecdsa_set(&self) -> bool {
         self.ecdsa
-            .clone()
+            .as_ref()
             .map(|ecdsa| ecdsa.len() == 33)
             .unwrap_or(false)
     }
 
-    pub fn set_ecdsa(&mut self, ecdsa: Vec<u8>) -> Result<AddressMap, WalletError> {
-        if self.is_ecdsa_set() {
-            return Err(WalletError::EcdsaPublicKeyAlreadySet);
-        }
-
-        if ecdsa.len() != 33 {
-            return Err(WalletError::InvalidEcdsaPublicKey);
-        }
-
-        let ecdsa = PublicKey::from_slice(&ecdsa)
-            .map_err(|e| WalletError::GenerateError(e.to_string()))?
-            .to_bytes();
-
-        self.ecdsa = Some(ecdsa);
-
-        self.generate_eth_address(0)?;
-
-        self.generate_btc_address(BtcNetwork::Mainnet)?;
-
-        Ok(self.addresses())
+    pub fn identifier(&self) -> &AccountIdentifier {
+        &self.identifier
     }
 
-    pub fn ecdsa(&self) -> Result<Vec<u8>, WalletError> {
+    pub fn addresses(&self) -> &AddressMap {
+        &self.addresses
+    }
+
+    pub fn ecdsa(&self) -> Result<&Vec<u8>, WalletError> {
         match &self.ecdsa {
-            Some(ecdsa) => Ok(ecdsa.clone()),
+            Some(ecdsa) => Ok(ecdsa),
             None => Err(WalletError::MissingEcdsaPublicKey),
         }
     }
@@ -92,14 +78,6 @@ impl Keys {
             PublicKey::from_slice(&ecdsa).map_err(|_| WalletError::InvalidEcdsaPublicKey)?;
 
         Ok(public_key)
-    }
-
-    pub fn identifier(&self) -> AccountIdentifier {
-        self.identifier.clone()
-    }
-
-    pub fn addresses(&self) -> AddressMap {
-        self.addresses.clone()
     }
 
     pub fn get_address(&self, network: Network) -> Result<String, WalletError> {
@@ -132,24 +110,46 @@ impl Keys {
         }
     }
 
-    pub fn generate_address(&mut self, network: Network) -> Result<String, WalletError> {
+    pub fn set_ecdsa(&mut self, ecdsa: Vec<u8>) -> Result<(), WalletError> {
+        if self.is_ecdsa_set() {
+            return Err(WalletError::EcdsaPublicKeyAlreadySet);
+        }
+
+        if ecdsa.len() != 33 {
+            return Err(WalletError::InvalidEcdsaPublicKey);
+        }
+
+        let ecdsa = PublicKey::from_slice(&ecdsa)
+            .map_err(|e| WalletError::GenerateError(e.to_string()))?
+            .to_bytes();
+
+        self.ecdsa = Some(ecdsa);
+
+        self.generate_eth_address(0)?;
+
+        self.generate_btc_address(BtcNetwork::Mainnet)?;
+
+        Ok(())
+    }
+
+    pub fn generate_address(&mut self, network: Network) -> Result<(), WalletError> {
         match network {
             Network::EVM(chain) => self.generate_eth_address(chain),
             Network::SNS(token) => self.generate_sns_address(token),
             Network::BTC(btc_network) => self.generate_btc_address(btc_network),
-            Network::ICP => Ok(self.identifier.to_string()),
+            Network::ICP => Ok(()),
         }
     }
 
-    pub fn generate_sns_address(&mut self, token: String) -> Result<String, WalletError> {
+    pub fn generate_sns_address(&mut self, token: String) -> Result<(), WalletError> {
         let address = self.identifier.to_string();
 
         self.addresses.insert(Network::SNS(token), address.clone());
 
-        Ok(address)
+        Ok(())
     }
 
-    pub fn generate_eth_address(&mut self, chain: u64) -> Result<String, WalletError> {
+    pub fn generate_eth_address(&mut self, chain: u64) -> Result<(), WalletError> {
         let ecdsa = self.ecdsa()?;
 
         let pub_key_arr: [u8; 33] = ecdsa[..].try_into().unwrap();
@@ -169,10 +169,10 @@ impl Keys {
 
         self.addresses.insert(Network::EVM(chain), address.clone());
 
-        Ok(address)
+        Ok(())
     }
 
-    pub fn generate_btc_address(&mut self, btc_network: BtcNetwork) -> Result<String, WalletError> {
+    pub fn generate_btc_address(&mut self, btc_network: BtcNetwork) -> Result<(), WalletError> {
         let ecdsa = self.ecdsa()?;
 
         let public_key =
@@ -183,7 +183,7 @@ impl Keys {
         self.addresses
             .insert(Network::BTC(btc_network), address.clone());
 
-        Ok(address)
+        Ok(())
     }
 }
 
@@ -224,7 +224,9 @@ mod tests {
 
         println!("icp_address: {}", icp_address);
 
-        let eth_address = public_keys.generate_eth_address(1).unwrap();
+        public_keys.generate_eth_address(1).unwrap();
+
+        let eth_address = public_keys.addresses.get(&Network::EVM(1)).unwrap();
 
         assert_eq!(eth_address, "0x004014307c1bfb1dec4eec9661cea77b5826d01d");
 
@@ -232,22 +234,34 @@ mod tests {
 
         assert_eq!(eth_address.len(), 42);
 
-        let btc_address = public_keys
+        public_keys
             .generate_btc_address(BtcNetwork::Regtest)
+            .unwrap();
+
+        let btc_address = public_keys
+            .get_address(Network::BTC(BtcNetwork::Regtest))
             .unwrap();
 
         assert_eq!(btc_address, "n2JigTXi8Nhqe1qmeAaUCAj3rWsgxRzMe3");
 
         println!("btc_address: {}", btc_address);
 
-        let btc_address = public_keys
+        public_keys
             .generate_btc_address(BtcNetwork::Mainnet)
+            .unwrap();
+
+        let btc_address = public_keys
+            .get_address(Network::BTC(BtcNetwork::Mainnet))
             .unwrap();
 
         assert_eq!(btc_address, "1MnmPQSjKMGaruN9vbc6NFWizXGz6SgpdC");
 
-        let btc_address = public_keys
+        public_keys
             .generate_btc_address(BtcNetwork::Testnet)
+            .unwrap();
+
+        let btc_address = public_keys
+            .get_address(Network::BTC(BtcNetwork::Testnet))
             .unwrap();
 
         assert_eq!(btc_address, "n2JigTXi8Nhqe1qmeAaUCAj3rWsgxRzMe3");
@@ -297,7 +311,9 @@ mod tests {
 
         println!("icp_address: {}", icp_address);
 
-        let eth_address = public_keys.generate_eth_address(1).unwrap();
+        public_keys.generate_eth_address(1).unwrap();
+
+        let eth_address = public_keys.get_address(Network::EVM(1)).unwrap();
 
         assert_eq!(eth_address, "0x9eea1bf5d05e30b900db4471c3839e68417fbcc5");
 
@@ -305,8 +321,12 @@ mod tests {
 
         assert_eq!(eth_address.len(), 42);
 
-        let btc_address = public_keys
+        public_keys
             .generate_btc_address(BtcNetwork::Mainnet)
+            .unwrap();
+
+        let btc_address = public_keys
+            .get_address(Network::BTC(BtcNetwork::Mainnet))
             .unwrap();
 
         assert_eq!(btc_address, "1L2NEvApixneBNULQzcC5qysuWXrCNDhhr");
@@ -358,7 +378,9 @@ mod tests {
 
         println!("icp_address: {}", icp_address);
 
-        let eth_address = public_keys.generate_eth_address(1).unwrap();
+        public_keys.generate_eth_address(1).unwrap();
+
+        let eth_address = public_keys.get_address(Network::EVM(1)).unwrap();
 
         assert_eq!(eth_address, "0x0dd99dc1a94a3ca699f6bdbd87c7ff07a31cacb6");
 
@@ -366,8 +388,12 @@ mod tests {
 
         assert_eq!(eth_address.len(), 42);
 
-        let btc_address = public_keys
+        public_keys
             .generate_btc_address(BtcNetwork::Mainnet)
+            .unwrap();
+
+        let btc_address = public_keys
+            .get_address(Network::BTC(BtcNetwork::Mainnet))
             .unwrap();
 
         assert_eq!(btc_address, "18P7514xYnwxHcWuc96Ae7dPqhX2syiS2m");

@@ -4,7 +4,6 @@ pub mod keys;
 pub mod network;
 pub mod subaccount;
 pub mod types;
-mod utils;
 
 use crate::error::WalletError;
 use b3_helper::{
@@ -44,7 +43,7 @@ impl Default for Ledger {
 
 impl From<Subaccount> for Ledger {
     fn from(subaccount: Subaccount) -> Self {
-        let public_keys = subaccount.clone().into();
+        let public_keys = Keys::from(subaccount.clone());
 
         Ledger {
             subaccount,
@@ -140,7 +139,7 @@ impl Ledger {
         amount: Tokens,
         fee: Option<Tokens>,
     ) -> Result<NotifyTopUpResult, WalletError> {
-        let canister_subaccount: Subaccount = canister_id.into();
+        let canister_subaccount = Subaccount::from(canister_id);
 
         let to = AccountIdentifier::new(MAINNET_CYCLES_MINTING_CANISTER_ID, canister_subaccount);
 

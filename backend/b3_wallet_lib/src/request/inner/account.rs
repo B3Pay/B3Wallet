@@ -28,9 +28,9 @@ impl CreateAccountRequest {
 
         let new_account: WalletAccount = subaccount.into();
 
-        let account_id = with_state_mut(|s| s.insert_account(new_account, self.name.clone()));
+        with_state_mut(|s| s.insert_account(new_account, self.name.clone()));
 
-        Ok(account_id.into())
+        Ok(SignedMessage::default())
     }
 }
 
@@ -69,11 +69,11 @@ impl From<RenameAccountRequest> for Request {
 
 impl RenameAccountRequest {
     pub fn execute(&self) -> Result<SignedMessage, WalletError> {
-        let new_name = with_account_mut(&self.account_id, |account| {
+        with_account_mut(&self.account_id, |account| {
             account.rename(self.new_name.clone())
         })?;
 
-        Ok(new_name.into())
+        Ok(SignedMessage::default())
     }
 }
 
@@ -147,6 +147,6 @@ impl EcdsaPublicKeyRequest {
             ledger.keys.set_ecdsa(ecdsa.clone())
         })??;
 
-        Ok(SignedMessage::default())
+        Ok(SignedMessage::from(ecdsa))
     }
 }
