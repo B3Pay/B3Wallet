@@ -3,7 +3,7 @@ use super::{
     types::{BtcOutPoint, BtcTransaction, BtcTxId, BtcUtxo},
     Ledger,
 };
-use crate::{error::WalletError, utils::sec1_to_der};
+use crate::{error::WalletError, ledger::types::BtcTxOut, utils::sec1_to_der};
 use b3_helper::constants::{
     GET_BALANCE_COST_CYCLES, GET_CURRENT_FEE_PERCENTILES_CYCLES, GET_UTXOS_COST_CYCLES,
 };
@@ -11,7 +11,7 @@ use bitcoin::{
     absolute::LockTime,
     hashes::Hash,
     sighash::{EcdsaSighashType, SighashCache},
-    Address, OutPoint, PublicKey, Script, Transaction, TxIn, TxOut, Txid, Witness,
+    Address, PublicKey, Script, TxIn, Txid, Witness,
 };
 use bitcoin::{consensus::serialize, psbt::PartiallySignedTransaction};
 use candid::Principal;
@@ -30,7 +30,7 @@ impl Ledger {
         &self,
         network: BitcoinNetwork,
     ) -> Result<Satoshi, WalletError> {
-        let address = self.public_keys.get_btc_address(network.into())?;
+        let address = self.keys.get_btc_address(network.into())?;
 
         let (satoshi,): (Satoshi,) = call_with_payment(
             Principal::management_canister(),
@@ -67,7 +67,7 @@ impl Ledger {
         &self,
         network: BitcoinNetwork,
     ) -> Result<GetUtxosResponse, WalletError> {
-        let address = self.public_keys.get_btc_address(network.into())?;
+        let address = self.keys.get_btc_address(network.into())?;
 
         let (utxos,): (GetUtxosResponse,) = call_with_payment(
             Principal::management_canister(),
@@ -94,7 +94,7 @@ impl Ledger {
         amount: Satoshi,
         dst_address: String,
     ) -> Result<BtcTxId, WalletError> {
-        let own_address = self.public_keys.get_btc_address(network.into())?;
+        let own_address = self.keys.get_btc_address(network.into())?;
 
         let _own_address = Address::from_str(&own_address)
             .unwrap()
@@ -157,7 +157,7 @@ impl Ledger {
         &self,
         psbt: &mut PartiallySignedTransaction,
     ) -> Result<BtcTransaction, WalletError> {
-        let own_public_key = self.public_keys.ecdsa()?;
+        let own_public_key = self.keys.ecdsa()?;
         let pub_key = PublicKey::from_slice(&own_public_key).unwrap();
 
         let psbt_clone = psbt.clone();
@@ -186,115 +186,179 @@ impl Ledger {
         Ok(psbt.clone().extract_tx())
     }
 
-    pub fn bitcoin_build_transaction(
-        &self,
-        inputs: Vec<(OutPoint, Address)>,
-        outputs: Vec<(Address, u64)>,
-    ) -> Result<PartiallySignedTransaction, Box<dyn std::error::Error>> {
-        // Create an empty transaction
-        let mut transaction = Transaction {
-            version: 2,
-            input: Vec::new(),
-            output: Vec::new(),
-            lock_time: LockTime::ZERO,
-        };
-
-        // Create inputs for the transaction
-        for (outpoint, _) in &inputs {
-            let mut txin = TxIn::default();
-
-            txin.previous_output = *outpoint;
-
-            transaction.input.push(txin);
-        }
-
-        // Create outputs for the transaction
-        for (address, amount) in &outputs {
-            let script_pubkey = address.script_pubkey();
-            let txout = TxOut {
-                script_pubkey,
-                value: *amount,
-            };
-            transaction.output.push(txout);
-        }
-
-        // Create a PSBT from the transaction
-        let mut psbt = PartiallySignedTransaction::from_unsigned_tx(transaction)?;
-
-        // Fill in the necessary information for signing in the PSBT
-        for (index, (_, address)) in inputs.iter().enumerate() {
-            let pubkey = address.script_pubkey();
-            psbt.inputs[index].witness_script = Some(pubkey);
-            psbt.inputs[index].non_witness_utxo = None;
-            psbt.inputs[index].sighash_type = Some(EcdsaSighashType::All.into());
-        }
-
-        // Return the built PSBT
-        Ok(psbt)
-    }
-
     pub fn build_unsigned_transaction(
         &self,
         utxos: &[BtcUtxo],
         recipient: &Address,
         amount: u64,
+        fee_rate: u64,
+    ) -> Result<BtcTransaction, WalletError> {
+        let own_public_key = self.keys.ecdsa()?;
+        let pub_key = PublicKey::from_slice(&own_public_key).unwrap();
+
+        // We have a chicken-and-egg problem where we need to know the length
+        // of the transaction in order to compute its proper fee, but we need
+        // to know the proper fee in order to figure out the inputs needed for
+        // the transaction.
+        //
+        // We solve this problem iteratively. We start with a fee of zero, build
+        // and sign a transaction, see what its size is, and then update the fee,
+        // rebuild the transaction, until the fee is set to the correct amount.
+        let mut total_fee = 0;
+        loop {
+            let mut transaction = self
+                .bitcoin_build_transaction_with_fee(utxos, recipient, amount, total_fee)
+                .expect("Error building transaction.");
+
+            // Sign the transaction. In this case, we only care about the size
+            // of the signed transaction, so we use a mock signer here for efficiency.
+            for (_, input) in transaction.input.iter_mut().enumerate() {
+                let mut sig_with_hashtype = sec1_to_der(vec![255; 64]);
+
+                sig_with_hashtype.push(EcdsaSighashType::All as u8);
+
+                let script = Script::from_bytes(&sig_with_hashtype);
+
+                let builder = Script::builder()
+                    .push_slice(script.script_hash())
+                    .push_key(&pub_key);
+
+                input.script_sig = builder.into_script();
+            }
+
+            let transaction_size = transaction.strippedsize();
+
+            // Compute the fee based on the transaction size.
+            let fee = fee_rate * transaction_size as u64;
+
+            // If the fee is correct, we're done.
+            if fee == total_fee {
+                return Ok(transaction);
+            }
+
+            // Otherwise, update the fee and try again.
+            total_fee = fee;
+
+            // If the fee is too high, we're done.
+            if total_fee > amount {
+                panic!("Fee is too high.");
+            }
+        }
+    }
+
+    pub fn bitcoin_build_transaction_with_fee(
+        &self,
+        own_utxos: &[BtcUtxo],
+        dst_address: &Address,
+        amount: u64,
         fee: u64,
     ) -> Result<BtcTransaction, WalletError> {
-        let mut tx = Transaction {
+        // Assume that any amount below this threshold is dust.
+        const DUST_THRESHOLD: u64 = 1_000;
+
+        let mut tx = BtcTransaction {
             version: 2,
             input: Vec::new(),
             output: Vec::new(),
             lock_time: LockTime::ZERO,
         };
 
-        // Calculate the total value of the UTXOs
-        let total_value: u64 = utxos.iter().map(|utxo| utxo.value).sum();
+        // Select which UTXOs to spend. We naively spend the oldest available UTXOs,
+        // even if they were previously spent in a transaction. This isn't a
+        // problem as long as at most one transaction is created per block and
+        // we're using min_confirmations of 1.
+        let mut total_spent = 0;
+        for utxo in own_utxos.iter().rev() {
+            total_spent += utxo.value;
+
+            let mut tx_in = TxIn::default();
+
+            let txid = Txid::from_slice(&utxo.outpoint.txid).unwrap();
+            tx_in.previous_output = BtcOutPoint::new(txid, utxo.outpoint.vout);
+
+            tx.input.push(tx_in);
+            if total_spent >= amount + fee {
+                // We have enough inputs to cover the amount we want to spend.
+                break;
+            }
+        }
 
         // Check if the total value is sufficient
-        if total_value < amount + fee {
+        if total_spent < amount + fee {
             return Err(WalletError::BitcoinInsufficientBalanceError(
-                total_value,
+                total_spent,
                 amount,
             ));
         }
 
-        // Add inputs to the transaction
-
-        for utxo in utxos {
-            let mut txin = TxIn::default();
-
-            let txid = Txid::from_slice(&utxo.outpoint.txid).unwrap();
-
-            txin.previous_output = BtcOutPoint::new(txid, utxo.outpoint.vout);
-
-            tx.input.push(txin);
-        }
-
-        // Add output for the recipient
-        let recipient_output = TxOut {
+        tx.output.push(BtcTxOut {
+            script_pubkey: dst_address.script_pubkey(),
             value: amount,
-            script_pubkey: recipient.script_pubkey(), // Assuming `recipient_script_pubkey` is the script pubkey of the recipient
-        };
+        });
 
-        tx.output.push(recipient_output);
+        let remaining_amount = total_spent - amount - fee;
 
-        // Calculate the change value (total UTXO value - amount - fee)
-        let change_value = total_value - amount - fee;
+        if remaining_amount >= DUST_THRESHOLD {
+            let address = self.keys.get_btc_address(BtcNetwork::Mainnet).unwrap();
+            let own_address = Address::from_str(&address)
+                .unwrap()
+                .require_network(bitcoin::Network::Bitcoin)
+                .unwrap();
 
-        let address = self.public_keys.get_btc_address(BtcNetwork::Mainnet)?;
-        let own_address = Address::from_str(&address)
-            .unwrap()
-            .require_network(bitcoin::Network::Bitcoin)
-            .unwrap();
-
-        if change_value > 0 {
-            let change_output = TxOut {
-                value: change_value,
-                script_pubkey: own_address.script_pubkey(), // Assuming `change_script_pubkey` is the script pubkey of the change address
-            };
-            tx.output.push(change_output);
+            tx.output.push(BtcTxOut {
+                script_pubkey: own_address.script_pubkey(),
+                value: remaining_amount,
+            });
         }
 
         Ok(tx)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::super::types::BtcUtxo;
+    use super::*;
+    use b3_helper::types::{Environment, Subaccount};
+    use ic_cdk::api::management_canister::bitcoin::Outpoint;
+
+    #[test]
+    fn test_build_unsigned_transaction() {
+        let subaccount = Subaccount::new(Environment::Production, 0);
+
+        let ledger = Ledger::from(subaccount);
+
+        let utxos = vec![
+            BtcUtxo {
+                outpoint: Outpoint {
+                    txid: vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                    vout: 0,
+                },
+                value: 100_000_000,
+                height: 0,
+            },
+            BtcUtxo {
+                outpoint: Outpoint {
+                    txid: vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                    vout: 1,
+                },
+                value: 100_000_000,
+                height: 1,
+            },
+        ];
+
+        let recipient = Address::from_str("bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq")
+            .unwrap()
+            .assume_checked();
+
+        let transaction = ledger
+            .build_unsigned_transaction(&utxos, &recipient, 100_000_000, 0)
+            .unwrap();
+
+        assert_eq!(transaction.input.len(), 2);
+
+        assert_eq!(transaction.output.len(), 2);
+
+        assert_eq!(transaction.output[0].value, 100_000_000);
     }
 }

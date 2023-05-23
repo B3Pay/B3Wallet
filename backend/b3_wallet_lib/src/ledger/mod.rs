@@ -1,9 +1,10 @@
 pub mod btc;
 pub mod config;
+pub mod keys;
 pub mod network;
-pub mod public_keys;
 pub mod subaccount;
 pub mod types;
+mod utils;
 
 use crate::error::WalletError;
 use b3_helper::{
@@ -22,20 +23,20 @@ use ic_cdk::{
     api::call::{call, call_with_payment},
     export::{candid::CandidType, serde::Deserialize},
 };
-use public_keys::PublicKeys;
+use keys::Keys;
 use subaccount::SubaccountTrait;
 use types::{ECDSAPublicKeyArgs, ECDSAPublicKeyResponse, SignWithECDSAArgs, SignWithECDSAResponse};
 
 #[derive(CandidType, Clone, Deserialize)]
 pub struct Ledger {
-    pub public_keys: PublicKeys,
+    pub keys: Keys,
     pub subaccount: Subaccount,
 }
 
 impl Default for Ledger {
     fn default() -> Self {
         Self {
-            public_keys: PublicKeys::default(),
+            keys: Keys::default(),
             subaccount: Subaccount::default(),
         }
     }
@@ -47,7 +48,7 @@ impl From<Subaccount> for Ledger {
 
         Ledger {
             subaccount,
-            public_keys,
+            keys: public_keys,
         }
     }
 }

@@ -1,7 +1,7 @@
 use crate::{
     error::WalletError,
     evm::get_evm_transaction,
-    ledger::{public_keys::PublicKeys, subaccount::SubaccountTrait, Ledger},
+    ledger::{keys::Keys, subaccount::SubaccountTrait, Ledger},
 };
 use b3_helper::types::{Environment, Metadata, Subaccount};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
@@ -48,7 +48,7 @@ impl WalletAccount {
         hex_raw_tx: Vec<u8>,
         chain_id: u64,
     ) -> Result<Vec<u8>, WalletError> {
-        let ecdsa = self.ledger.public_keys.ecdsa()?;
+        let ecdsa = self.ledger.keys.ecdsa()?;
 
         let mut evm_tx = get_evm_transaction(&hex_raw_tx, chain_id)?;
 
@@ -99,8 +99,8 @@ impl WalletAccount {
         self.hidden = false;
     }
 
-    pub fn public_keys(&self) -> PublicKeys {
-        self.ledger.public_keys.clone()
+    pub fn public_keys(&self) -> Keys {
+        self.ledger.keys.clone()
     }
 
     pub fn environment(&self) -> Environment {

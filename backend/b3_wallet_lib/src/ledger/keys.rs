@@ -14,15 +14,15 @@ use super::{
 };
 
 #[derive(CandidType, Deserialize, Clone)]
-pub struct PublicKeys {
+pub struct Keys {
     pub ecdsa: Option<EcdsaPublicKey>,
     pub addresses: AddressMap,
     pub identifier: AccountIdentifier,
 }
 
-impl Default for PublicKeys {
+impl Default for Keys {
     fn default() -> Self {
-        PublicKeys {
+        Keys {
             ecdsa: None,
             addresses: HashMap::new(),
             identifier: AccountIdentifier::default(),
@@ -30,7 +30,7 @@ impl Default for PublicKeys {
     }
 }
 
-impl From<Subaccount> for PublicKeys {
+impl From<Subaccount> for Keys {
     fn from(subaccount: Subaccount) -> Self {
         let canister = ic_cdk::id();
 
@@ -40,7 +40,7 @@ impl From<Subaccount> for PublicKeys {
 
         addresses.insert(Network::ICP, identifier.to_string());
 
-        PublicKeys {
+        Keys {
             ecdsa: None,
             identifier,
             addresses,
@@ -48,7 +48,7 @@ impl From<Subaccount> for PublicKeys {
     }
 }
 
-impl PublicKeys {
+impl Keys {
     pub fn is_ecdsa_set(&self) -> bool {
         self.ecdsa
             .clone()
@@ -202,7 +202,7 @@ mod tests {
 
         let owner = CanisterId::from_text("bkyz2-fmaaa-aaaaa-qaaaq-cai").unwrap();
 
-        let mut public_keys = PublicKeys {
+        let mut public_keys = Keys {
             identifier: AccountIdentifier::new(owner, subaccount),
             ecdsa: None,
             addresses: AddressMap::new(),
@@ -264,7 +264,7 @@ mod tests {
 
         let owner = CanisterId::from_text("7uoyg-piaaa-aaaap-abbzq-cai").unwrap();
 
-        let mut public_keys = PublicKeys {
+        let mut public_keys = Keys {
             identifier: AccountIdentifier::new(owner, subaccount),
             ecdsa: None,
             addresses: AddressMap::new(),
@@ -336,7 +336,7 @@ mod tests {
 
         assert_eq!(identifier, expected_identifier);
 
-        let mut public_keys = PublicKeys {
+        let mut public_keys = Keys {
             identifier,
             ecdsa: None,
             addresses: AddressMap::new(),

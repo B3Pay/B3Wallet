@@ -46,7 +46,7 @@ pub fn get_accounts() -> Vec<WalletAccount> {
 #[query]
 #[candid_method(query)]
 pub fn get_addresses(account_id: String) -> AddressMap {
-    with_ledger(&account_id, |ledger| ledger.public_keys.addresses()).unwrap_or_else(revert)
+    with_ledger(&account_id, |ledger| ledger.keys.addresses()).unwrap_or_else(revert)
 }
 
 // UPDATE
@@ -94,16 +94,14 @@ pub fn account_restore(env: Environment, index: u64) -> WalletAccount {
 pub async fn account_request_public_key(account_id: String) -> AddressMap {
     let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
-    if ledger.public_keys.is_ecdsa_set() {
+    if ledger.keys.is_ecdsa_set() {
         revert(WalletError::EcdsaPublicKeyAlreadySet)
     }
 
     let ecdsa = ledger.ecdsa_public_key().await.unwrap_or_else(revert);
 
-    let result = with_ledger_mut(&account_id, |ledger| {
-        ledger.public_keys.set_ecdsa(ecdsa.clone())
-    })
-    .unwrap_or_else(revert);
+    let result = with_ledger_mut(&account_id, |ledger| ledger.keys.set_ecdsa(ecdsa.clone()))
+        .unwrap_or_else(revert);
 
     match result {
         Ok(addresses) => addresses,
@@ -175,10 +173,8 @@ pub async fn account_top_up_and_notify(
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub async fn account_generate_address(account_id: String, network: Network) -> String {
-    let result = with_ledger_mut(&account_id, |ledger| {
-        ledger.public_keys.generate_address(network)
-    })
-    .unwrap_or_else(revert);
+    let result = with_ledger_mut(&account_id, |ledger| ledger.keys.generate_address(network))
+        .unwrap_or_else(revert);
 
     match result {
         Ok(result) => result,

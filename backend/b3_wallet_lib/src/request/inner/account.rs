@@ -137,14 +137,14 @@ impl EcdsaPublicKeyRequest {
     pub async fn execute(&self) -> Result<SignedMessage, WalletError> {
         let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
 
-        if ledger.public_keys.is_ecdsa_set() {
+        if ledger.keys.is_ecdsa_set() {
             return Err(WalletError::EcdsaPublicKeyAlreadySet);
         }
 
         let ecdsa = ledger.ecdsa_public_key().await?;
 
         with_ledger_mut(&self.account_id, |ledger| {
-            ledger.public_keys.set_ecdsa(ecdsa.clone())
+            ledger.keys.set_ecdsa(ecdsa.clone())
         })??;
 
         Ok(SignedMessage::default())
