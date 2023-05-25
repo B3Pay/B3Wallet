@@ -1,21 +1,18 @@
 use std::collections::HashMap;
 
 use bitcoin::{AddressType, OutPoint, Transaction, TxIn, TxOut, Txid};
-use ic_cdk::{
-    api::management_canister::bitcoin::Utxo,
-    export::{
-        candid::CandidType,
-        serde::{Deserialize, Serialize},
-    },
+use ic_cdk::export::{
+    candid::CandidType,
+    serde::{Deserialize, Serialize},
 };
 
 use b3_helper::types::CanisterId;
 
-use super::network::Network;
+use super::chains::Chains;
 
 pub type ChainId = u64;
 
-pub type AddressMap = HashMap<Network, String>;
+pub type AddressMap = HashMap<Chains, String>;
 
 pub type EcdsaPublicKey = Vec<u8>;
 
@@ -28,8 +25,6 @@ pub type BtcTxIn = TxIn;
 pub type BtcTxOut = TxOut;
 
 pub type BtcTxId = Txid;
-
-pub type BtcUtxo = Utxo;
 
 pub type BtcOutPoint = OutPoint;
 

@@ -1,7 +1,7 @@
 pub mod btc;
+pub mod chains;
 pub mod config;
 pub mod keys;
-pub mod network;
 pub mod subaccount;
 pub mod types;
 
@@ -18,6 +18,7 @@ use b3_helper::{
         NotifyTopupArgs, Subaccount, Tokens, TransferArgs, TransferResult,
     },
 };
+use bitcoin::secp256k1::ecdsa::Signature;
 use ic_cdk::{
     api::call::{call, call_with_payment},
     export::{candid::CandidType, serde::Deserialize},
@@ -73,6 +74,18 @@ impl Ledger {
         .map_err(|e| WalletError::PublicKeyError(e.1))?;
 
         Ok(res.public_key)
+    }
+
+    pub async fn sign_btc_transaction(
+        &self,
+        message_hash: Vec<u8>,
+    ) -> Result<Signature, WalletError> {
+        let sig = self.sign_with_ecdsa(message_hash).await?;
+
+        let signature =
+            Signature::from_compact(&sig).map_err(|err| WalletError::SignError(err.to_string()))?;
+
+        Ok(signature)
     }
 
     pub async fn sign_with_ecdsa(&self, message_hash: Vec<u8>) -> Result<Vec<u8>, WalletError> {

@@ -10,12 +10,16 @@ use b3_wallet_lib::{
     account::WalletAccount,
     counter::WalletCounters,
     error::WalletError,
-    ledger::{network::Network, types::AddressMap},
+    ledger::{btc::network::BtcNetwork, chains::Chains, types::AddressMap},
     store::{
         with_account, with_account_mut, with_ledger, with_ledger_mut, with_state, with_state_mut,
     },
 };
-use ic_cdk::{export::candid::candid_method, query, update};
+use ic_cdk::{
+    api::management_canister::bitcoin::{GetUtxosResponse, Satoshi, UtxoFilter},
+    export::candid::candid_method,
+    query, update,
+};
 
 // QUERY
 
@@ -148,6 +152,71 @@ pub async fn account_send_icp(
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
+pub async fn request_btc_utxos(
+    account_id: String,
+    network: BtcNetwork,
+    filter: Option<UtxoFilter>,
+) -> GetUtxosResponse {
+    let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
+
+    let utxos = ledger.bitcoin_get_utxos(network.into(), filter).await;
+
+    match utxos {
+        Ok(utxos) => utxos,
+        Err(err) => revert(err),
+    }
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_signer")]
+pub async fn request_btc_fees(network: BtcNetwork, num_blocks: u8) -> u64 {
+    let rate = network.fee_rate(num_blocks).await;
+
+    match rate {
+        Ok(rate) => rate,
+        Err(err) => revert(err),
+    }
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_signer")]
+pub async fn request_balance_btc(
+    account_id: String,
+    network: BtcNetwork,
+    min_confirmations: Option<u32>,
+) -> Satoshi {
+    let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
+
+    let balance = ledger
+        .bitcoin_balance(network.into(), min_confirmations)
+        .await;
+
+    match balance {
+        Ok(balance) => balance,
+        Err(err) => revert(err),
+    }
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_signer")]
+pub async fn request_transfer_btc(
+    account_id: String,
+    network: BtcNetwork,
+    to: String,
+    amount: Satoshi,
+) -> String {
+    let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
+
+    let result = ledger.bitcoin_transfer(network, &to, amount).await;
+
+    match result {
+        Ok(result) => result.to_string(),
+        Err(err) => revert(err),
+    }
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_signer")]
 pub async fn account_top_up_and_notify(
     account_id: String,
     amount: Tokens,
@@ -171,7 +240,7 @@ pub async fn account_top_up_and_notify(
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub async fn account_generate_address(account_id: String, network: Network) {
+pub async fn account_generate_address(account_id: String, network: Chains) {
     with_ledger_mut(&account_id, |ledger| ledger.keys.generate_address(network))
         .unwrap_or_else(revert)
         .unwrap_or_else(revert);

@@ -1,4 +1,5 @@
 use b3_helper::get_method_id;
+use bitcoin::{PublicKey, Script, ScriptBuf};
 
 use crate::error::WalletError;
 
@@ -91,6 +92,16 @@ pub fn sec1_to_der(sec1_signature: Vec<u8>) -> Vec<u8> {
     .into_iter()
     .flatten()
     .collect()
+}
+
+pub fn mock_signer(public_key: &PublicKey) -> ScriptBuf {
+    // Add signature and public key to script
+    let script = Script::builder()
+        .push_slice(&[0; 72])
+        .push_key(&public_key)
+        .into_script();
+
+    script
 }
 
 #[cfg(test)]

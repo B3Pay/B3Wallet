@@ -1,75 +1,17 @@
-use super::types::ChainId;
+use super::{btc::network::BtcNetwork, types::ChainId};
 use crate::error::WalletError;
-use bitcoin::Network as BitcoinCrateNetwork;
 use candid::{CandidType, Deserialize};
-use ic_cdk::api::management_canister::bitcoin::BitcoinNetwork;
-use serde::Serialize;
 use std::fmt;
 
 #[derive(CandidType, Clone, Deserialize, PartialEq, Eq, Hash, Debug)]
-pub enum Network {
+pub enum Chains {
     SNS(String),
     BTC(BtcNetwork),
     EVM(ChainId),
     ICP,
 }
 
-/// Bitcoin Network.
-#[derive(
-    CandidType, Serialize, Deserialize, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy,
-)]
-pub enum BtcNetwork {
-    /// Mainnet.
-    #[serde(rename = "mainnet")]
-    Mainnet,
-    /// Testnet.
-    #[serde(rename = "testnet")]
-    Testnet,
-    /// Regtest.
-    ///
-    /// This is only available when developing with local replica.
-    #[serde(rename = "regtest")]
-    Regtest,
-}
-
-impl Default for BtcNetwork {
-    fn default() -> Self {
-        Self::Regtest
-    }
-}
-
-impl From<BitcoinNetwork> for BtcNetwork {
-    fn from(network: BitcoinNetwork) -> Self {
-        match network {
-            BitcoinNetwork::Mainnet => BtcNetwork::Mainnet,
-            BitcoinNetwork::Testnet => BtcNetwork::Testnet,
-            BitcoinNetwork::Regtest => BtcNetwork::Regtest,
-        }
-    }
-}
-
-impl From<BitcoinCrateNetwork> for BtcNetwork {
-    fn from(network: BitcoinCrateNetwork) -> Self {
-        match network {
-            BitcoinCrateNetwork::Bitcoin => BtcNetwork::Mainnet,
-            BitcoinCrateNetwork::Testnet => BtcNetwork::Testnet,
-            BitcoinCrateNetwork::Regtest => BtcNetwork::Regtest,
-            _ => panic!("Invalid network"),
-        }
-    }
-}
-
-impl From<BtcNetwork> for BitcoinCrateNetwork {
-    fn from(network: BtcNetwork) -> Self {
-        match network {
-            BtcNetwork::Mainnet => BitcoinCrateNetwork::Bitcoin,
-            BtcNetwork::Testnet => BitcoinCrateNetwork::Testnet,
-            BtcNetwork::Regtest => BitcoinCrateNetwork::Regtest,
-        }
-    }
-}
-
-impl fmt::Display for Network {
+impl fmt::Display for Chains {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::BTC(network) => match network {
@@ -84,7 +26,7 @@ impl fmt::Display for Network {
     }
 }
 
-impl Network {
+impl Chains {
     pub fn from_str(network: &str) -> Result<Self, WalletError> {
         match network {
             "btc" => Ok(Self::BTC(BtcNetwork::Mainnet)),

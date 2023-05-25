@@ -13,8 +13,5 @@ ethereum-rlp = "0.2.3"
 candid = "0.8.4"
 ic-cdk = "0.7.4"
 serde = "1"
-# bitcoin = { version = "0.30.0", default-features = false,  features = [ "no-std", "secp-recovery", "secp-lowmemory"] }
-bitcoin = "0.30.0"
+bitcoin = { version = "0.30.0", default-features = false,  features = [ "no-std", "secp-recovery", "secp-lowmemory"] }
 
-[[example]]
-name = "ecdsa-psbt"

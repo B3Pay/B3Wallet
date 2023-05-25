@@ -71,10 +71,12 @@ mod tests {
     use b3_helper::types::*;
     use b3_wallet_lib::{
         account::WalletAccount, confirmed::ConfirmedRequest, counter::WalletCounters,
-        ledger::network::Network, ledger::types::*, request::inner::account::RenameAccountRequest,
+        ledger::btc::network::BtcNetwork, ledger::chains::Chains, ledger::types::*,
+        request::inner::account::RenameAccountRequest,
         request::inner::setting::UpdateCanisterSettingsRequest, request::Request, signer::Roles,
         types::*,
     };
+    use ic_cdk::api::management_canister::bitcoin::{GetUtxosResponse, Satoshi, UtxoFilter};
     use ic_cdk::export::candid::export_service;
 
     #[test]

@@ -6,10 +6,10 @@ use bitcoin::{Address, PublicKey};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use std::collections::HashMap;
 
-use super::network::BtcNetwork;
-use super::subaccount::SubaccountTrait;
+use super::btc::network::BtcNetwork;
 use super::{
-    network::Network,
+    chains::Chains,
+    subaccount::SubaccountTrait,
     types::{AddressMap, EcdsaPublicKey},
 };
 
@@ -38,7 +38,7 @@ impl From<Subaccount> for Keys {
 
         let mut addresses = AddressMap::new();
 
-        addresses.insert(Network::ICP, identifier.to_string());
+        addresses.insert(Chains::ICP, identifier.to_string());
 
         Keys {
             ecdsa: None,
@@ -80,31 +80,31 @@ impl Keys {
         Ok(public_key)
     }
 
-    pub fn get_address(&self, network: Network) -> Result<String, WalletError> {
+    pub fn get_address(&self, network: Chains) -> Result<String, WalletError> {
         match network {
-            Network::EVM(chain) => self.get_eth_address(chain),
-            Network::SNS(token) => self.get_sns_address(token),
-            Network::BTC(btc_network) => self.get_btc_address(btc_network),
-            Network::ICP => Ok(self.identifier.to_string()),
+            Chains::EVM(chain) => self.get_eth_address(chain),
+            Chains::SNS(token) => self.get_sns_address(token),
+            Chains::BTC(btc_network) => self.get_btc_address(btc_network),
+            Chains::ICP => Ok(self.identifier.to_string()),
         }
     }
 
     pub fn get_sns_address(&self, token: String) -> Result<String, WalletError> {
-        match self.addresses.get(&Network::SNS(token)) {
+        match self.addresses.get(&Chains::SNS(token)) {
             Some(address) => Ok(address.clone()),
             None => Err(WalletError::MissingAddress),
         }
     }
 
     pub fn get_eth_address(&self, chain: u64) -> Result<String, WalletError> {
-        match self.addresses.get(&Network::EVM(chain)) {
+        match self.addresses.get(&Chains::EVM(chain)) {
             Some(address) => Ok(address.clone()),
             None => Err(WalletError::MissingAddress),
         }
     }
 
     pub fn get_btc_address(&self, btc_network: BtcNetwork) -> Result<String, WalletError> {
-        match self.addresses.get(&Network::BTC(btc_network)) {
+        match self.addresses.get(&Chains::BTC(btc_network)) {
             Some(address) => Ok(address.clone()),
             None => Err(WalletError::MissingAddress),
         }
@@ -132,19 +132,19 @@ impl Keys {
         Ok(())
     }
 
-    pub fn generate_address(&mut self, network: Network) -> Result<(), WalletError> {
+    pub fn generate_address(&mut self, network: Chains) -> Result<(), WalletError> {
         match network {
-            Network::EVM(chain) => self.generate_eth_address(chain),
-            Network::SNS(token) => self.generate_sns_address(token),
-            Network::BTC(btc_network) => self.generate_btc_address(btc_network),
-            Network::ICP => Ok(()),
+            Chains::EVM(chain) => self.generate_eth_address(chain),
+            Chains::SNS(token) => self.generate_sns_address(token),
+            Chains::BTC(btc_network) => self.generate_btc_address(btc_network),
+            Chains::ICP => Ok(()),
         }
     }
 
     pub fn generate_sns_address(&mut self, token: String) -> Result<(), WalletError> {
         let address = self.identifier.to_string();
 
-        self.addresses.insert(Network::SNS(token), address.clone());
+        self.addresses.insert(Chains::SNS(token), address.clone());
 
         Ok(())
     }
@@ -167,7 +167,7 @@ impl Keys {
 
         let address: String = "0x".to_owned() + &keccak256_hex[24..];
 
-        self.addresses.insert(Network::EVM(chain), address.clone());
+        self.addresses.insert(Chains::EVM(chain), address.clone());
 
         Ok(())
     }
@@ -181,7 +181,7 @@ impl Keys {
         let address = Address::p2pkh(&public_key, btc_network.into()).to_string();
 
         self.addresses
-            .insert(Network::BTC(btc_network), address.clone());
+            .insert(Chains::BTC(btc_network), address.clone());
 
         Ok(())
     }
@@ -226,7 +226,7 @@ mod tests {
 
         public_keys.generate_eth_address(1).unwrap();
 
-        let eth_address = public_keys.addresses.get(&Network::EVM(1)).unwrap();
+        let eth_address = public_keys.addresses.get(&Chains::EVM(1)).unwrap();
 
         assert_eq!(eth_address, "0x004014307c1bfb1dec4eec9661cea77b5826d01d");
 
@@ -239,7 +239,7 @@ mod tests {
             .unwrap();
 
         let btc_address = public_keys
-            .get_address(Network::BTC(BtcNetwork::Regtest))
+            .get_address(Chains::BTC(BtcNetwork::Regtest))
             .unwrap();
 
         assert_eq!(btc_address, "n2JigTXi8Nhqe1qmeAaUCAj3rWsgxRzMe3");
@@ -251,7 +251,7 @@ mod tests {
             .unwrap();
 
         let btc_address = public_keys
-            .get_address(Network::BTC(BtcNetwork::Mainnet))
+            .get_address(Chains::BTC(BtcNetwork::Mainnet))
             .unwrap();
 
         assert_eq!(btc_address, "1MnmPQSjKMGaruN9vbc6NFWizXGz6SgpdC");
@@ -261,7 +261,7 @@ mod tests {
             .unwrap();
 
         let btc_address = public_keys
-            .get_address(Network::BTC(BtcNetwork::Testnet))
+            .get_address(Chains::BTC(BtcNetwork::Testnet))
             .unwrap();
 
         assert_eq!(btc_address, "n2JigTXi8Nhqe1qmeAaUCAj3rWsgxRzMe3");
@@ -313,7 +313,7 @@ mod tests {
 
         public_keys.generate_eth_address(1).unwrap();
 
-        let eth_address = public_keys.get_address(Network::EVM(1)).unwrap();
+        let eth_address = public_keys.get_address(Chains::EVM(1)).unwrap();
 
         assert_eq!(eth_address, "0x9eea1bf5d05e30b900db4471c3839e68417fbcc5");
 
@@ -326,7 +326,7 @@ mod tests {
             .unwrap();
 
         let btc_address = public_keys
-            .get_address(Network::BTC(BtcNetwork::Mainnet))
+            .get_address(Chains::BTC(BtcNetwork::Mainnet))
             .unwrap();
 
         assert_eq!(btc_address, "1L2NEvApixneBNULQzcC5qysuWXrCNDhhr");
@@ -380,7 +380,7 @@ mod tests {
 
         public_keys.generate_eth_address(1).unwrap();
 
-        let eth_address = public_keys.get_address(Network::EVM(1)).unwrap();
+        let eth_address = public_keys.get_address(Chains::EVM(1)).unwrap();
 
         assert_eq!(eth_address, "0x0dd99dc1a94a3ca699f6bdbd87c7ff07a31cacb6");
 
@@ -393,7 +393,7 @@ mod tests {
             .unwrap();
 
         let btc_address = public_keys
-            .get_address(Network::BTC(BtcNetwork::Mainnet))
+            .get_address(Chains::BTC(BtcNetwork::Mainnet))
             .unwrap();
 
         assert_eq!(btc_address, "18P7514xYnwxHcWuc96Ae7dPqhX2syiS2m");
