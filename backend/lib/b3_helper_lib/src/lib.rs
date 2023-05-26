@@ -4,7 +4,7 @@ pub mod impls;
 pub mod types;
 pub mod wasm;
 
-use error::{SharedError, TrapError};
+use error::{HelperError, TrapError};
 use ic_cdk::api::management_canister::{
     main::{canister_status, CanisterStatusResponse},
     provisional::{CanisterId, CanisterIdRecord},
@@ -17,18 +17,6 @@ pub fn sha3_sha256(data: &[u8]) -> Vec<u8> {
     hasher.update(data);
 
     hasher.finalize().to_vec()
-}
-
-pub fn get_method_id(method_sig: &str) -> String {
-    let result = sha3_sha256(method_sig.as_bytes());
-
-    let hex_string = result
-        .iter()
-        .take(4)
-        .map(|byte| format!("{:02x}", byte))
-        .collect::<String>();
-
-    hex_string
 }
 
 pub fn sha2_sha256_wasm_hash(data: &[u8]) -> WasmHash {
@@ -51,10 +39,10 @@ pub fn sha2_sha256_wasm_hash_string(data: &[u8]) -> String {
 
 pub async fn b3_canister_status(
     canister_id: CanisterId,
-) -> Result<CanisterStatusResponse, SharedError> {
+) -> Result<CanisterStatusResponse, HelperError> {
     let (status,) = canister_status(CanisterIdRecord { canister_id })
         .await
-        .map_err(|e| SharedError::CanisterStatusError(e.1))?;
+        .map_err(|e| HelperError::CanisterStatusError(e.1))?;
 
     Ok(status)
 }

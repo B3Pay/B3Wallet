@@ -1,7 +1,7 @@
 use b3_helper_lib::types::SignerId;
-use b3_link_lib::{
+use b3_permit_lib::{
     signer::{Roles, Signer},
-    store::{with_link, with_link_mut, with_signer_check},
+    store::{with_permit, with_permit_mut, with_signer_check},
     types::SignerMap,
 };
 use candid::candid_method;
@@ -34,7 +34,7 @@ pub fn caller_is_signer() -> Result<(), String> {
 #[query]
 #[candid_method(query)]
 pub fn get_signers() -> SignerMap {
-    with_link(|u| u.signers.clone())
+    with_permit(|u| u.signers.clone())
 }
 
 #[update(guard = "caller_is_admin")]
@@ -42,7 +42,7 @@ pub fn get_signers() -> SignerMap {
 pub fn signer_add(signer_id: SignerId, role: Roles) -> SignerMap {
     let signer = Signer::from(role);
 
-    with_link_mut(|u| {
+    with_permit_mut(|u| {
         u.signers.insert(signer_id.clone(), signer);
 
         u.signers.clone()
@@ -52,7 +52,7 @@ pub fn signer_add(signer_id: SignerId, role: Roles) -> SignerMap {
 #[update(guard = "caller_is_admin")]
 #[candid_method(update)]
 pub fn signer_remove(signer_id: SignerId) -> SignerMap {
-    with_link_mut(|u| {
+    with_permit_mut(|u| {
         u.signers.remove(&signer_id);
 
         u.signers.clone()

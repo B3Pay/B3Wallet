@@ -1,6 +1,4 @@
-use ic_cdk::export::Principal;
-
-use crate::types::{Memo, Tokens};
+use crate::types::{CanisterId, Memo, Tokens};
 
 pub const RATE_LIMIT: u64 = 60000000000;
 
@@ -14,15 +12,15 @@ pub const CANISTER_TOP_UP_MEMO: Memo = Memo(0x50555054);
 
 pub const CANISTER_TRANSFER_MEMO: Memo = Memo(0x544153);
 
-pub const MAINNET_MANAGMENT_CANISTER_ID: Principal = Principal::management_canister();
+pub const MAINNET_MANAGMENT_CANISTER_ID: CanisterId = CanisterId::management_canister();
 
 pub const LEDGER: [u8; 10] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x01, 0x01];
 
-pub const MAINNET_LEDGER_CANISTER_ID: Principal = Principal::from_slice(&LEDGER);
+pub const MAINNET_LEDGER_CANISTER_ID: CanisterId = CanisterId::from_slice(&LEDGER);
 
 pub const CMC: [u8; 10] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x01, 0x01];
 
-pub const MAINNET_CYCLES_MINTING_CANISTER_ID: Principal = Principal::from_slice(&CMC);
+pub const MAINNET_CYCLES_MINTING_CANISTER_ID: CanisterId = CanisterId::from_slice(&CMC);
 
 pub const GET_BALANCE_COST_CYCLES: u64 = 100_000_000;
 

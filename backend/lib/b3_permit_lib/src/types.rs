@@ -1,15 +1,7 @@
 use crate::{confirmed::ConfirmedRequest, pending::PendingRequest, signer::Signer};
-use b3_helper_lib::types::SignerId;
+use b3_helper_lib::types::{RequestId, SignerId};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use std::collections::{BTreeMap, HashMap};
-
-pub type RequestId = usize;
-
-pub type Deadline = u64;
-
-pub type AccountId = String;
-
-pub type Metadata = HashMap<String, String>;
 
 pub type SignerMap = HashMap<SignerId, Signer>;
 

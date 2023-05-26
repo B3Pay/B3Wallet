@@ -1,7 +1,7 @@
 use crate::types::SignerCanister;
 use b3_helper_lib::{
     constants::RATE_LIMIT,
-    error::SharedError,
+    error::HelperError,
     types::{
         CanisterId, ControllerId, SignerCanisterInstallArg, SignerCanisterStatus, SignerId,
         Version, WasmHash,
@@ -41,7 +41,7 @@ impl SignerCanister {
     }
 
     /// get with updated_at.
-    pub fn get_with_update_rate(&mut self) -> Result<SignerCanister, SharedError> {
+    pub fn get_with_update_rate(&mut self) -> Result<SignerCanister, HelperError> {
         self.check_rate()?;
         self.updated_at = time();
 
@@ -62,66 +62,66 @@ impl SignerCanister {
     }
 
     /// Returns the canister id, throws an error if it is not available.
-    pub fn canister_id(&self) -> Result<CanisterId, SharedError> {
+    pub fn canister_id(&self) -> Result<CanisterId, HelperError> {
         match self.canister_id {
             Some(canister_id) => Ok(canister_id),
-            None => Err(SharedError::SignerNotAvailable),
+            None => Err(HelperError::SignerNotAvailable),
         }
     }
 
     /// Make an function that use updated_at and check the rate of the user.
-    pub fn check_rate(&self) -> Result<(), SharedError> {
+    pub fn check_rate(&self) -> Result<(), HelperError> {
         let now = time();
         let updated_at = self.updated_at;
 
         if now - updated_at < RATE_LIMIT {
-            Err(SharedError::RateLimitExceeded)
+            Err(HelperError::RateLimitExceeded)
         } else {
             Ok(())
         }
     }
 
     /// Get the owner of the canister.
-    pub async fn get_owner(&self) -> Result<SignerId, SharedError> {
+    pub async fn get_owner(&self) -> Result<SignerId, HelperError> {
         let canister_id = self.canister_id()?;
 
         let (owner,): (SignerId,) = ic_cdk::call(canister_id, "get_owner", ())
             .await
-            .map_err(|(_, message)| SharedError::GetOwnerError(message))?;
+            .map_err(|(_, message)| HelperError::GetOwnerError(message))?;
 
         Ok(owner)
     }
 
     /// Get the wasm hash of the canister.
-    pub async fn wasm_hash(&self) -> Result<WasmHash, SharedError> {
+    pub async fn wasm_hash(&self) -> Result<WasmHash, HelperError> {
         let canister_id = self.canister_id()?;
 
         let (wasm_hash,): (WasmHash,) = ic_cdk::call(canister_id, "wasm_hash", ())
             .await
-            .map_err(|(_, message)| SharedError::WasmHashError(message))?;
+            .map_err(|(_, message)| HelperError::WasmHashError(message))?;
 
         Ok(wasm_hash)
     }
 
     /// Get the version of the canister.
-    pub async fn version(&self) -> Result<Version, SharedError> {
+    pub async fn version(&self) -> Result<Version, HelperError> {
         let canister_id = self.canister_id()?;
 
         let (version,): (Version,) = ic_cdk::call(canister_id, "version", ())
             .await
-            .map_err(|(_, message)| SharedError::VersionError(message))?;
+            .map_err(|(_, message)| HelperError::VersionError(message))?;
 
         Ok(version)
     }
 
     /// Get the status of the canister.
     /// The caller must be a controller of the canister.
-    pub async fn status(&self) -> Result<SignerCanisterStatus, SharedError> {
+    pub async fn status(&self) -> Result<SignerCanisterStatus, HelperError> {
         let canister_id = self.canister_id()?;
 
         let (canister_status,): (SignerCanisterStatus,) = ic_cdk::call(canister_id, "status", ())
             .await
-            .map_err(|(_, message)| SharedError::CanisterStatusError(message))?;
+            .map_err(|(_, message)| HelperError::CanisterStatusError(message))?;
 
         Ok(canister_status)
     }
@@ -131,7 +131,7 @@ impl SignerCanister {
         &mut self,
         controllers: Vec<ControllerId>,
         cycles: u128,
-    ) -> Result<CanisterId, SharedError> {
+    ) -> Result<CanisterId, HelperError> {
         let settings = Some(CanisterSettings {
             controllers: Some(controllers.clone()),
             compute_allocation: None,
@@ -143,7 +143,7 @@ impl SignerCanister {
             create_canister_with_extra_cycles(CreateCanisterArgument { settings }, cycles).await;
 
         match result {
-            Err((_, message)) => Err(SharedError::CreateCanisterError(message)),
+            Err((_, message)) => Err(HelperError::CreateCanisterError(message)),
             Ok(result) => {
                 let canister_id = result.0.canister_id;
 
@@ -162,7 +162,7 @@ impl SignerCanister {
             mode,
             wasm_module,
         }: SignerCanisterInstallArg,
-    ) -> Result<(), SharedError> {
+    ) -> Result<(), HelperError> {
         let canister_id = self.canister_id()?;
 
         let install_args = InstallCodeArgument {
@@ -174,7 +174,7 @@ impl SignerCanister {
 
         install_code(install_args)
             .await
-            .map_err(|(_, message)| SharedError::InstallCodeError(message))
+            .map_err(|(_, message)| HelperError::InstallCodeError(message))
     }
 
     /// Update the controllers of the canister.
@@ -183,7 +183,7 @@ impl SignerCanister {
     pub async fn update_controllers(
         &self,
         mut controllers: Vec<ControllerId>,
-    ) -> Result<(), SharedError> {
+    ) -> Result<(), HelperError> {
         let canister_id = self.canister_id()?;
 
         if !controllers.contains(&canister_id) {
@@ -202,6 +202,6 @@ impl SignerCanister {
 
         update_settings(arg)
             .await
-            .map_err(|(_, message)| SharedError::UpdateCanisterControllersError(message))
+            .map_err(|(_, message)| HelperError::UpdateCanisterControllersError(message))
     }
 }

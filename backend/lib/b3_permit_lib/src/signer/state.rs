@@ -1,10 +1,10 @@
 use b3_helper_lib::types::SignerId;
 
-use crate::{error::RequestError, state::LinkState, types::SignerMap};
+use crate::{error::RequestError, state::PrmitState, types::SignerMap};
 
 use super::Signer;
 
-impl LinkState {
+impl PrmitState {
     pub fn signers(&self) -> SignerMap {
         self.signers.clone()
     }

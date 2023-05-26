@@ -1,7 +1,5 @@
-use b3_helper_lib::types::{AccountsCounter, Environment};
+use b3_helper_lib::types::{AccountsCounter, Environment, RequestId};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
-
-use crate::types::RequestId;
 
 impl From<RequestCounters> for AccountsCounter {
     fn from(status: RequestCounters) -> Self {

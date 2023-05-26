@@ -1,5 +1,5 @@
 use crate::{
-    error::SharedError,
+    error::HelperError,
     types::{AccountIdentifier, Environment, Subaccount},
 };
 use ic_cdk::export::Principal;
@@ -91,20 +91,20 @@ impl From<Vec<u8>> for AccountIdentifier {
 }
 
 impl TryFrom<String> for AccountIdentifier {
-    type Error = SharedError;
+    type Error = HelperError;
 
-    fn try_from(str: String) -> Result<Self, SharedError> {
+    fn try_from(str: String) -> Result<Self, HelperError> {
         let mut result = [0u8; 32];
         let mut i = 0;
         for byte in str.as_bytes().chunks(2) {
             if byte.len() != 2 {
-                return Err(SharedError::InvalidAccountIdentifier);
+                return Err(HelperError::InvalidAccountIdentifier);
             }
             result[i] = u8::from_str_radix(
-                std::str::from_utf8(byte).map_err(|_| SharedError::InvalidAccountIdentifier)?,
+                std::str::from_utf8(byte).map_err(|_| HelperError::InvalidAccountIdentifier)?,
                 16,
             )
-            .map_err(|_| SharedError::InvalidAccountIdentifier)?;
+            .map_err(|_| HelperError::InvalidAccountIdentifier)?;
             i += 1;
         }
         Ok(Self(result))

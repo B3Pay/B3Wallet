@@ -5,16 +5,16 @@ use crate::{
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 #[derive(CandidType, Deserialize, Clone)]
-pub struct LinkState {
+pub struct PrmitState {
     pub counters: RequestCounters,
     pub signers: SignerMap,
     pub pending: PendingRequestMap,
     pub confirmed: ConfirmedRequestMap,
 }
 
-impl Default for LinkState {
+impl Default for PrmitState {
     fn default() -> Self {
-        LinkState {
+        PrmitState {
             signers: SignerMap::new(),
             pending: PendingRequestMap::new(),
             confirmed: ConfirmedRequestMap::new(),
@@ -23,4 +23,4 @@ impl Default for LinkState {
     }
 }
 
-impl LinkState {}
+impl PrmitState {}

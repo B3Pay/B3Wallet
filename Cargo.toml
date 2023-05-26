@@ -2,10 +2,10 @@
 members = [
     "backend/b3_system",
     "backend/b3_wallet",
-    "lib/b3_helper_lib",
-    "lib/b3_system_lib",
-    "lib/b3_wallet_lib",
-    "lib/b3_link_lib",
+    "backend/lib/b3_helper_lib",
+    "backend/lib/b3_system_lib",
+    "backend/lib/b3_wallet_lib",
+    "backend/lib/b3_permit_lib",
 ]
 
 [workspace.dependencies]

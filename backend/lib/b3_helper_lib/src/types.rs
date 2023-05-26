@@ -1,4 +1,4 @@
-use crate::error::SharedError;
+use crate::error::HelperError;
 use ic_cdk::{
     api::management_canister::main::{CanisterInstallMode, CanisterStatusResponse},
     export::{
@@ -18,6 +18,10 @@ pub type Metadata = HashMap<String, String>;
 pub type ControllerId = Principal;
 pub type CanisterId = Principal;
 pub type SignerId = Principal;
+
+pub type AccountId = String;
+pub type RequestId = usize;
+pub type Deadline = u64;
 
 pub type Version = String;
 
@@ -51,8 +55,8 @@ pub struct SignerCanisterInitArgs {
 }
 
 impl SignerCanisterInitArgs {
-    pub fn encode(&self) -> Result<Vec<u8>, SharedError> {
-        Encode!(&self).map_err(|e| SharedError::EncodeError(e.to_string()))
+    pub fn encode(&self) -> Result<Vec<u8>, HelperError> {
+        Encode!(&self).map_err(|e| HelperError::EncodeError(e.to_string()))
     }
 }
 
@@ -158,12 +162,12 @@ pub struct TransferArgs {
     pub created_at_time: Option<Timestamp>,
 }
 
-pub type TransferResult = Result<BlockIndex, SharedError>;
+pub type TransferResult = Result<BlockIndex, HelperError>;
 
 #[derive(CandidType, Deserialize)]
 pub enum NotifyTopUpResult {
     Ok(u128),
-    Err(SharedError),
+    Err(HelperError),
 }
 
 #[derive(CandidType, Deserialize)]

@@ -6,10 +6,10 @@ pub mod state;
 
 use crate::confirmed::ConfirmedRequest;
 use crate::error::RequestError;
-use crate::types::{ConsentMessageResponse, Deadline};
-use crate::{signer::Roles, types::RequestId};
-use b3_helper_lib::error::TrapError;
-use b3_helper_lib::types::SignerId;
+use crate::signer::Roles;
+use crate::types::ConsentMessageResponse;
+use b3_helper_lib::types::{RequestId, SignerId};
+use b3_helper_lib::{error::TrapError, types::Deadline};
 use b3_wallet_lib::error::WalletError;
 use enum_dispatch::enum_dispatch;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};

@@ -6,10 +6,10 @@ mod status;
 mod wasm;
 
 use b3_helper_lib::{types::SignerCanisterInitArgs, wasm::with_wasm_mut};
-use b3_link_lib::{
+use b3_permit_lib::{
     signer::{Roles, Signer},
-    state::LinkState,
-    store::{with_link, with_link_mut},
+    state::PrmitState,
+    store::{with_permit, with_permit_mut},
 };
 use b3_wallet_lib::{
     state::WalletState,
@@ -26,7 +26,7 @@ pub fn init() {
 
     match call_arg {
         Some(args) => {
-            with_link_mut(|link| {
+            with_permit_mut(|link| {
                 link.signers.insert(args.owner_id, owner);
 
                 if let Some(system_id) = args.system_id {
@@ -40,7 +40,7 @@ pub fn init() {
         None => {
             let owner_id = ic_cdk::caller();
 
-            with_link_mut(|link| {
+            with_permit_mut(|link| {
                 link.signers.insert(owner_id, owner);
             });
         }
@@ -54,7 +54,7 @@ pub fn pre_upgrade() {
     // Unload wasm module that we don't need to upgrade anymore
     with_wasm_mut(|wasm| wasm.unload());
 
-    let link = with_link(|o| o.clone());
+    let link = with_permit(|o| o.clone());
     let state = with_wallet(|s| s.clone());
 
     ic_cdk::storage::stable_save((state, link)).unwrap();
@@ -62,23 +62,23 @@ pub fn pre_upgrade() {
 
 #[post_upgrade]
 pub fn post_upgrade() {
-    let (state_prev, sign_prev): (WalletState, LinkState) =
+    let (state_prev, sign_prev): (WalletState, PrmitState) =
         ic_cdk::storage::stable_restore().unwrap();
 
     with_wallet_mut(|state| *state = state_prev);
 
-    with_link_mut(|link| *link = sign_prev);
+    with_permit_mut(|link| *link = sign_prev);
 }
 
 #[cfg(test)]
 mod tests {
     use b3_helper_lib::types::*;
-    use b3_link_lib::confirmed::ConfirmedRequest;
-    use b3_link_lib::pending::inner::account::RenameAccountRequest;
-    use b3_link_lib::pending::inner::setting::UpdateCanisterSettingsRequest;
-    use b3_link_lib::pending::Request;
-    use b3_link_lib::signer::Roles;
-    use b3_link_lib::types::*;
+    use b3_permit_lib::confirmed::ConfirmedRequest;
+    use b3_permit_lib::pending::inner::account::RenameAccountRequest;
+    use b3_permit_lib::pending::inner::setting::UpdateCanisterSettingsRequest;
+    use b3_permit_lib::pending::Request;
+    use b3_permit_lib::signer::Roles;
+    use b3_permit_lib::types::*;
     use b3_wallet_lib::account::WalletAccount;
     use b3_wallet_lib::ledger::btc::network::BtcNetwork;
     use b3_wallet_lib::ledger::chains::Chains;

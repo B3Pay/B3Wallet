@@ -1,7 +1,9 @@
-use super::ConfirmedRequest;
-use crate::{error::RequestError, state::LinkState, types::RequestId};
+use b3_helper_lib::types::RequestId;
 
-impl LinkState {
+use super::ConfirmedRequest;
+use crate::{error::RequestError, state::PrmitState};
+
+impl PrmitState {
     pub fn insert_confirmed(
         &mut self,
         request_id: RequestId,

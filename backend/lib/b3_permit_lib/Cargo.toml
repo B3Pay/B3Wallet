@@ -1,5 +1,5 @@
 [package]
-name = "b3_link_lib"
+name = "b3_permit_lib"
 version = "0.1.0"
 edition = "2021"
 description = "This is request library for the B3Pay project."

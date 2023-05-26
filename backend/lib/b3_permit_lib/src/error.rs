@@ -1,7 +1,5 @@
-use b3_helper_lib::error::TrapError;
+use b3_helper_lib::{error::TrapError, types::RequestId};
 use ic_cdk::export::candid::{CandidType, Deserialize};
-
-use crate::types::RequestId;
 
 #[rustfmt::skip]
 #[derive(CandidType, Deserialize, Debug, PartialEq)]

@@ -1,11 +1,9 @@
-use super::{PendingRequest, RequestArgs};
-use crate::{
-    error::RequestError,
-    state::LinkState,
-    types::{PendingRequestList, RequestId},
-};
+use b3_helper_lib::types::RequestId;
 
-impl LinkState {
+use super::{PendingRequest, RequestArgs};
+use crate::{error::RequestError, state::PrmitState, types::PendingRequestList};
+
+impl PrmitState {
     pub fn new_request(&self, args: RequestArgs) -> PendingRequest {
         let id = self.request_counter();
 

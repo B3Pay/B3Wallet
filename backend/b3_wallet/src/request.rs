@@ -1,14 +1,16 @@
 use crate::signer::{caller_is_admin, caller_is_signer};
-use b3_helper_lib::revert;
-
-use b3_link_lib::{
+use b3_helper_lib::{
+    revert,
+    types::{Deadline, RequestId},
+};
+use b3_permit_lib::{
     pending::{
         inner::{account::RenameAccountRequest, setting::UpdateCanisterSettingsRequest},
         Request, RequestArgs,
     },
     signer::Roles,
-    store::{with_link, with_link_mut},
-    types::{Deadline, PendingRequestList, RequestId},
+    store::{with_permit, with_permit_mut},
+    types::PendingRequestList,
 };
 use b3_wallet_lib::store::{with_account, with_ledger};
 use ic_cdk::{export::candid::candid_method, query, update};
@@ -18,7 +20,7 @@ use ic_cdk::{export::candid::candid_method, query, update};
 #[query]
 #[candid_method(query)]
 pub fn get_requests() -> PendingRequestList {
-    with_link(|s| s.requests())
+    with_permit(|s| s.requests())
 }
 
 // UPDATE ---------------------------------------------------------------------
@@ -27,7 +29,7 @@ pub fn get_requests() -> PendingRequestList {
 pub fn request_maker(request: Request, deadline: Option<Deadline>) -> RequestId {
     let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
 
-    with_link_mut(|s| {
+    with_permit_mut(|s| {
         let new_request = s.new_request(request_args);
         s.insert_new_request(new_request)
     })
@@ -43,7 +45,7 @@ pub fn request_update_settings(
 
     let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
 
-    with_link_mut(|s| {
+    with_permit_mut(|s| {
         let new_request = s.new_request(request_args);
         s.insert_new_request(new_request)
     })
@@ -57,7 +59,7 @@ pub fn request_account_rename(
 ) -> RequestId {
     let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
 
-    with_link_mut(|s| {
+    with_permit_mut(|s| {
         let new_request = s.new_request(request_args);
         s.insert_new_request(new_request)
     })

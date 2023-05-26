@@ -1,7 +1,7 @@
 use crate::{
     pending::Request,
     signer::{Roles, Signer},
-    store::with_link_mut,
+    store::with_permit_mut,
     types::ConsentMessageResponse,
 };
 use b3_helper_lib::types::{Metadata, SignerId};
@@ -41,7 +41,7 @@ impl From<AddSignerRequest> for Request {
 impl AddSignerRequest {
     pub fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
         let signer_id = self.signer_id.clone();
-        with_link_mut(|link| {
+        with_permit_mut(|link| {
             if link.signers.contains_key(&signer_id) {
                 return Err(WalletError::SignerAlreadyExists(signer_id.to_string()));
             }
@@ -68,7 +68,7 @@ impl From<RemoveSignerRequest> for Request {
 impl RemoveSignerRequest {
     pub fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
         let signer_id = self.signer_id.clone();
-        with_link_mut(|link| {
+        with_permit_mut(|link| {
             if !link.signers.contains_key(&signer_id) {
                 return Err(WalletError::SignerDoesNotExist(signer_id.to_string()));
             }
@@ -96,7 +96,7 @@ impl From<UpdateSignerThresholdRequest> for Request {
 impl UpdateSignerThresholdRequest {
     pub fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
         let signer_id = self.signer_id.clone();
-        with_link_mut(|link| {
+        with_permit_mut(|link| {
             if !link.signers.contains_key(&signer_id) {
                 return Err(WalletError::SignerDoesNotExist(signer_id.to_string()));
             }
