@@ -1,8 +1,13 @@
 [workspace]
 members = [
     "backend/b3_system",
-    "backend/b3_system_lib",
     "backend/b3_wallet",
-    "backend/b3_wallet_lib",
-    "backend/b3_helper",
+    "lib/b3_helper_lib",
+    "lib/b3_system_lib",
+    "lib/b3_wallet_lib",
+    "lib/b3_link_lib",
 ]
+
+[workspace.dependencies]
+candid = "0.8.4"
+ic-cdk = "0.8.0"

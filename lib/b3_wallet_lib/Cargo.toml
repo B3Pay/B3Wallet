@@ -1,0 +1,15 @@
+[package]
+name = "b3_wallet_lib"
+version = "0.1.0"
+edition = "2021"
+description = "This is wallet library for the B3Pay project."
+license = "Apache-2.0"
+readme = "./README.md"
+
+[dependencies]
+bitcoin = { version = "0.30.0", default-features = false,  features = [ "no-std", "secp-recovery", "secp-lowmemory"] }
+serde = "1"
+b3_helper_lib = { path = "../b3_helper_lib" }
+candid = { workspace = true }
+ic-cdk = { workspace = true }
+ethereum-rlp = "0.2.3"

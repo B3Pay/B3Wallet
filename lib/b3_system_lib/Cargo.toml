@@ -1,0 +1,10 @@
+[package]
+name = "b3_system_lib"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+b3_helper_lib = { path = "../b3_helper_lib" }
+serde = { version = "1.0.163", features = ["derive"] }
+candid = { workspace = true }
+ic-cdk = { workspace = true }

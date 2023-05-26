@@ -1,6 +1,6 @@
 use crate::guard::caller_is_controller;
-use b3_helper::revert;
-use b3_helper::{b3_canister_status, types::SystemCanisterStatus};
+use b3_helper_lib::revert;
+use b3_helper_lib::{b3_canister_status, types::SystemCanisterStatus};
 use b3_system_lib::store::with_state;
 use ic_cdk::{
     api::time,

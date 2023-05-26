@@ -37,8 +37,15 @@ type ConfirmedRequest = record {
   status : RequestStatus;
   request : PendingRequest;
   error : text;
-  message : vec nat8;
+  message : ConsentMessageResponse;
   timestamp : nat64;
+};
+type ConsendInfo = record { consent_message : text; language : text };
+type ConsentMessageResponse = variant {
+  MalformedCall : ErrorInfo;
+  Valid : ConsendInfo;
+  Other : text;
+  Forbidden : ErrorInfo;
 };
 type CreateAccountRequest = record { env : opt Environment; name : opt text };
 type DefiniteCanisterSettings = record {
@@ -48,6 +55,7 @@ type DefiniteCanisterSettings = record {
   compute_allocation : nat;
 };
 type Environment = variant { Production; Development; Staging };
+type ErrorInfo = record { description : text; error_code : nat64 };
 type EvmDeployContractRequest = record {
   account_id : text;
   hex_byte_code : vec nat8;
@@ -200,7 +208,6 @@ type UpdateSignerThresholdRequest = record {
   signer_id : principal;
 };
 type UpgradeCanisterRequest = record {
-  wasm_hash_string : text;
   wasm_version : text;
   wasm_hash : vec nat8;
 };
@@ -218,9 +225,9 @@ type WalletAccountView = record {
   metadata : vec record { text; text };
   name : text;
   hidden : bool;
+  addresses : vec record { Chains; text };
   environment : Environment;
 };
-type WalletCounters = record { request : nat64; account : AccountsCounter };
 service : () -> {
   account_create : (opt Environment, opt text) -> ();
   account_generate_address : (text, Chains) -> ();
@@ -237,7 +244,7 @@ service : () -> {
   confirm_request : (nat64) -> (ConfirmedRequest);
   get_account : (text) -> (WalletAccount) query;
   get_account_count : () -> (nat64) query;
-  get_account_counters : () -> (WalletCounters) query;
+  get_account_counters : () -> (AccountsCounter) query;
   get_account_views : () -> (vec WalletAccountView) query;
   get_accounts : () -> (vec WalletAccount) query;
   get_addresses : (text) -> (vec record { Chains; text }) query;

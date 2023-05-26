@@ -1,14 +1,16 @@
 use crate::signer::{caller_is_admin, caller_is_signer};
-use b3_helper::revert;
-use b3_wallet_lib::{
-    request::{
+use b3_helper_lib::revert;
+
+use b3_link_lib::{
+    pending::{
         inner::{account::RenameAccountRequest, setting::UpdateCanisterSettingsRequest},
         Request, RequestArgs,
     },
     signer::Roles,
-    store::{with_account, with_ledger, with_state, with_state_mut},
-    types::{Deadline, PendingRequestList, RequestId, SignedMessage},
+    store::{with_link, with_link_mut},
+    types::{Deadline, PendingRequestList, RequestId},
 };
+use b3_wallet_lib::store::{with_account, with_ledger};
 use ic_cdk::{export::candid::candid_method, query, update};
 
 // QUERY ---------------------------------------------------------------------
@@ -16,7 +18,7 @@ use ic_cdk::{export::candid::candid_method, query, update};
 #[query]
 #[candid_method(query)]
 pub fn get_requests() -> PendingRequestList {
-    with_state(|s| s.requests())
+    with_link(|s| s.requests())
 }
 
 // UPDATE ---------------------------------------------------------------------
@@ -25,7 +27,7 @@ pub fn get_requests() -> PendingRequestList {
 pub fn request_maker(request: Request, deadline: Option<Deadline>) -> RequestId {
     let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
 
-    with_state_mut(|s| {
+    with_link_mut(|s| {
         let new_request = s.new_request(request_args);
         s.insert_new_request(new_request)
     })
@@ -41,7 +43,7 @@ pub fn request_update_settings(
 
     let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
 
-    with_state_mut(|s| {
+    with_link_mut(|s| {
         let new_request = s.new_request(request_args);
         s.insert_new_request(new_request)
     })
@@ -55,7 +57,7 @@ pub fn request_account_rename(
 ) -> RequestId {
     let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
 
-    with_state_mut(|s| {
+    with_link_mut(|s| {
         let new_request = s.new_request(request_args);
         s.insert_new_request(new_request)
     })
@@ -63,7 +65,7 @@ pub fn request_account_rename(
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub async fn request_sign_message(account_id: String, message_hash: Vec<u8>) -> SignedMessage {
+pub async fn request_sign_message(account_id: String, message_hash: Vec<u8>) -> Vec<u8> {
     let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
     ledger
@@ -78,7 +80,7 @@ pub async fn request_sign_transaction(
     account_id: String,
     hex_raw_tx: Vec<u8>,
     chain_id: u64,
-) -> SignedMessage {
+) -> Vec<u8> {
     let account = with_account(&account_id, |account| account.clone()).unwrap_or_else(revert);
 
     account

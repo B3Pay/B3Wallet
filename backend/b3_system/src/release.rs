@@ -1,4 +1,4 @@
-use b3_helper::{
+use b3_helper_lib::{
     revert,
     types::{Blob, Version},
 };

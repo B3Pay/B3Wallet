@@ -37,10 +37,10 @@ fi
   printf "After optimization: "
   du -h $OLD_WALLET_DIR | cut -f1
 
-  #  add candid interface
-  ic-wasm $NEW_WALLET_DIR -o $OLD_WALLET_DIR metadata candid:service -f $DID_FILE -v public
+  # #  add candid interface
+  # ic-wasm $NEW_WALLET_DIR -o $OLD_WALLET_DIR metadata candid:service -f $DID_FILE -v public
 
-  printf "After adding candid interface: "
-  du -h $OLD_WALLET_DIR | cut -f1
+  # printf "After adding candid interface: "
+  # du -h $OLD_WALLET_DIR | cut -f1
 
 popd

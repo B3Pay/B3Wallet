@@ -1,8 +1,7 @@
-use b3_helper::types::SignerId;
-use b3_wallet_lib::{
-    signer::Roles,
-    signer::Signer,
-    store::{with_signer_check, with_signers, with_signers_mut},
+use b3_helper_lib::types::SignerId;
+use b3_link_lib::{
+    signer::{Roles, Signer},
+    store::{with_link, with_link_mut, with_signer_check},
     types::SignerMap,
 };
 use candid::candid_method;
@@ -35,7 +34,7 @@ pub fn caller_is_signer() -> Result<(), String> {
 #[query]
 #[candid_method(query)]
 pub fn get_signers() -> SignerMap {
-    with_signers(|u| u.clone())
+    with_link(|u| u.signers.clone())
 }
 
 #[update(guard = "caller_is_admin")]
@@ -43,19 +42,19 @@ pub fn get_signers() -> SignerMap {
 pub fn signer_add(signer_id: SignerId, role: Roles) -> SignerMap {
     let signer = Signer::from(role);
 
-    with_signers_mut(|u| {
-        u.insert(signer_id.clone(), signer);
+    with_link_mut(|u| {
+        u.signers.insert(signer_id.clone(), signer);
 
-        u.clone()
+        u.signers.clone()
     })
 }
 
 #[update(guard = "caller_is_admin")]
 #[candid_method(update)]
 pub fn signer_remove(signer_id: SignerId) -> SignerMap {
-    with_signers_mut(|u| {
-        u.remove(&signer_id);
+    with_link_mut(|u| {
+        u.signers.remove(&signer_id);
 
-        u.clone()
+        u.signers.clone()
     })
 }

@@ -1,4 +1,4 @@
-use b3_helper::types::ControllerId;
+use b3_helper_lib::types::ControllerId;
 use b3_system_lib::store::{with_state, with_state_mut};
 use ic_cdk::{caller, export::candid::candid_method, query, update};
 

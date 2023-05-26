@@ -1,5 +1,5 @@
 use crate::guard::caller_is_controller;
-use b3_helper::{
+use b3_helper_lib::{
     constants::CREATE_SIGNER_CANISTER_CYCLES,
     error::TrapError,
     revert,
