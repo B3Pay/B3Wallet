@@ -1,4 +1,4 @@
-use b3_helper_lib::sha3_sha256;
+use b3_helper_lib::raw_keccak256;
 
 use super::utils::{
     remove_leading, string_to_vec_u8, u64_to_vec_u8, vec_u8_to_string, vec_u8_to_u64,
@@ -128,9 +128,9 @@ impl EvmSign for EvmTransaction1559 {
 
         let encoded_tx = [&[0x02], &decode_tx[..]].concat();
 
-        let result = sha3_sha256(&encoded_tx);
+        let result = raw_keccak256(&encoded_tx);
 
-        Ok(result)
+        Ok(result.to_vec())
     }
     fn sign(&mut self, signature: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, WalletError> {
         let r_remove_leading_zeros = remove_leading(signature[..32].to_vec(), 0);

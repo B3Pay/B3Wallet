@@ -81,10 +81,14 @@ mod tests {
 
     #[test]
     fn test_initial_subaccount() {
-        let subaccount = Subaccount([0; 32]);
+        let subaccount = Subaccount::default();
         assert_eq!(subaccount.environment(), Environment::Production);
         assert_eq!(subaccount.nonce(), 0);
         assert_eq!(subaccount.id(), "default");
+        let identifier = subaccount
+            .account_identifier(CanisterId::from_text("rdmx6-jaaaa-aaaaa-aaadq-cai").unwrap());
+
+        println!("{:?}", identifier.to_string());
     }
 
     #[test]

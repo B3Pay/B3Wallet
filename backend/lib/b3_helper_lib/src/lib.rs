@@ -4,37 +4,36 @@ pub mod impls;
 pub mod types;
 pub mod wasm;
 
+use ::easy_hasher::easy_hasher::Hash;
+use easy_hasher::easy_hasher;
 use error::{HelperError, TrapError};
 use ic_cdk::api::management_canister::{
     main::{canister_status, CanisterStatusResponse},
     provisional::{CanisterId, CanisterIdRecord},
 };
-use sha3::{Digest, Sha3_256};
 use types::WasmHash;
 
-pub fn sha3_sha256(data: &[u8]) -> Vec<u8> {
-    let mut hasher = Sha3_256::new();
-    hasher.update(data);
+pub fn raw_keccak256(data: &[u8]) -> Hash {
+    easy_hasher::raw_keccak256(data.to_vec())
+}
 
-    hasher.finalize().to_vec()
+pub fn sha2_sha256(data: &[u8]) -> Vec<u8> {
+    let hash = easy_hasher::raw_sha256(data.to_vec());
+    hash.to_vec()
 }
 
 pub fn sha2_sha256_wasm_hash(data: &[u8]) -> WasmHash {
-    let mut hasher = Sha3_256::new();
-    hasher.update(data);
+    let hash = easy_hasher::raw_sha256(data.to_vec());
+    let bytes = hash.to_vec();
 
-    hasher.finalize().into()
+    let mut wasm_hash: WasmHash = [0; 32];
+    wasm_hash.copy_from_slice(&bytes[0..32]);
+    wasm_hash
 }
 
 pub fn sha2_sha256_wasm_hash_string(data: &[u8]) -> String {
-    let mut hasher = Sha3_256::new();
-    hasher.update(data);
-
-    hasher
-        .finalize()
-        .iter()
-        .map(|b| format!("{:02x}", b))
-        .collect::<String>()
+    let hash = easy_hasher::raw_sha256(data.to_vec());
+    hash.to_hex_string()
 }
 
 pub async fn b3_canister_status(

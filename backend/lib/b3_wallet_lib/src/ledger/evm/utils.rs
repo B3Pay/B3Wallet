@@ -1,14 +1,10 @@
 use crate::error::WalletError;
-use b3_helper_lib::sha3_sha256;
+use b3_helper_lib::raw_keccak256;
 
 pub fn get_method_id(method_sig: &str) -> String {
-    let result = sha3_sha256(method_sig.as_bytes());
+    let result = raw_keccak256(method_sig.as_bytes());
 
-    let hex_string = result
-        .iter()
-        .take(4)
-        .map(|byte| format!("{:02x}", byte))
-        .collect::<String>();
+    let hex_string = result.to_hex_string()[..8].to_string();
 
     hex_string
 }
@@ -79,7 +75,7 @@ mod tests {
         let address = "0x7a9d2f53fea15e31f0a89d7f5d9e0e82b0b88ad6";
         let amount = 12345;
 
-        let expected_result = "4b40e9010000000000000000000000007a9d2f53fea15e31f0a89d7f5d9e0e82b0b88ad60000000000000000000000000000000000000000000000000000000000003039";
+        let expected_result = "a9059cbb0000000000000000000000007a9d2f53fea15e31f0a89d7f5d9e0e82b0b88ad60000000000000000000000000000000000000000000000000000000000003039";
 
         let result = get_transfer_data(address, amount).unwrap();
 

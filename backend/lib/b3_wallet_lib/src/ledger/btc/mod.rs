@@ -70,6 +70,14 @@ impl Ledger {
 
         let signed_transaction_bytes = serialize(&signed_transaction);
 
+        println!(
+            "Sending transaction: {:?}",
+            signed_transaction_bytes
+                .iter()
+                .map(|b| format!("{:02x}", b))
+                .collect::<String>()
+        );
+
         network.send_transaction(signed_transaction_bytes).await?;
 
         Ok(signed_transaction.txid())

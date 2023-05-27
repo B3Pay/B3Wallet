@@ -56,8 +56,14 @@ const CreateAccount: React.FC<CreateAccountProps> = ({
 
   return (
     <div>
-      <section>
-        <h2>MultiChain Wallet</h2>
+      <div
+        style={{
+          display: "flex",
+          width: "100vw",
+          justifyContent: "space-between",
+          marginTop: "20px"
+        }}
+      >
         <label htmlFor="name">Enter Account name: &nbsp;</label>
         <input
           id="name"
@@ -79,8 +85,8 @@ const CreateAccount: React.FC<CreateAccountProps> = ({
           <option value="Staging">Staging</option>
         </select>
         <button onClick={createAccount}>Create</button>
-        <Response response={response} loading={loading} />
-      </section>
+      </div>
+      {response && <Response response={response} loading={loading} />}
     </div>
   )
 }

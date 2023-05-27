@@ -6,7 +6,7 @@ use super::{
     EvmTransactionType,
 };
 use crate::error::WalletError;
-use b3_helper_lib::sha3_sha256;
+use b3_helper_lib::raw_keccak256;
 
 pub struct EvmTransaction2930 {
     pub chain_id: u64,
@@ -117,9 +117,9 @@ impl EvmSign for EvmTransaction2930 {
 
         let encoded_tx = [&[0x01], &decode_tx[..]].concat();
 
-        let result = sha3_sha256(&encoded_tx);
+        let result = raw_keccak256(&encoded_tx);
 
-        Ok(result)
+        Ok(result.to_vec())
     }
     fn sign(&mut self, signature: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, WalletError> {
         let r_remove_leading_zeros = remove_leading(signature[..32].to_vec(), 0);

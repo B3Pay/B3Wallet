@@ -27,7 +27,7 @@ pub type Version = String;
 
 pub type Blob = Vec<u8>;
 
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Deserialize, Clone, Debug, PartialEq)]
 pub struct Subaccount(pub [u8; 32]);
 
 #[derive(CandidType, Deserialize, Clone, Debug, PartialEq)]

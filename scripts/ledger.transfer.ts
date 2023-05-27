@@ -4,6 +4,11 @@ import { localAgent } from "./actor"
 import { LEDGER_CANISTER_ID_LOCAL } from "./env"
 
 const transfer = async (account: string) => {
+  console.log(
+    "Transfering 5.5 ICP to",
+    account ?? "qaa6y-5yaaa-aaaaa-aaafa-cai"
+  )
+
   const agent = await localAgent()
 
   const ledger = IcrcLedgerCanister.create({
@@ -22,4 +27,4 @@ const transfer = async (account: string) => {
 
 const account = process.argv[2]
 
-transfer(account).then(() => console.log("Transfer complete"))
+transfer(account).then(block_number => console.log("Transfered ", block_number))

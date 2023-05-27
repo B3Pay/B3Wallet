@@ -44,7 +44,7 @@ impl Default for WalletAccount {
 impl From<Subaccount> for WalletAccount {
     fn from(subaccount: Subaccount) -> Self {
         let id = subaccount.id();
-        let ledger = subaccount.into();
+        let ledger = Ledger::from(subaccount);
 
         WalletAccount {
             id,

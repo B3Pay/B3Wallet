@@ -1,8 +1,8 @@
 use crate::error::WalletError;
-use b3_helper_lib::sha3_sha256;
+use b3_helper_lib::raw_keccak256;
 use b3_helper_lib::types::{AccountIdentifier, Subaccount};
 
-use bitcoin::{Address, PublicKey};
+use bitcoin::{secp256k1, Address, PublicKey};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use std::collections::HashMap;
 
@@ -91,18 +91,13 @@ impl Keys {
     pub fn get_eth_address(&self) -> Result<String, WalletError> {
         let ecdsa = self.ecdsa()?;
 
-        let pub_key_arr: [u8; 33] = ecdsa[..].try_into().unwrap();
-
-        let pub_key = PublicKey::from_slice(&pub_key_arr)
+        let pub_key = secp256k1::PublicKey::from_slice(&ecdsa)
             .map_err(|e| WalletError::GenerateError(e.to_string()))?
-            .to_bytes();
+            .serialize_uncompressed();
 
-        let keccak256 = sha3_sha256(&pub_key[1..]);
+        let keccak256 = raw_keccak256(&pub_key[1..]);
 
-        let keccak256_hex = keccak256
-            .iter()
-            .map(|byte| format!("{:02x}", byte))
-            .collect::<String>();
+        let keccak256_hex = keccak256.to_hex_string();
 
         let address: String = "0x".to_owned() + &keccak256_hex[24..];
 
@@ -121,12 +116,12 @@ impl Keys {
     }
 
     pub fn set_ecdsa(&mut self, ecdsa: Vec<u8>) -> Result<(), WalletError> {
-        if self.is_ecdsa_set() {
-            return Err(WalletError::EcdsaPublicKeyAlreadySet);
-        }
-
         if ecdsa.len() != 33 {
             return Err(WalletError::InvalidEcdsaPublicKey);
+        }
+
+        if self.is_ecdsa_set() {
+            return Err(WalletError::EcdsaPublicKeyAlreadySet);
         }
 
         let ecdsa = PublicKey::from_slice(&ecdsa)
@@ -162,18 +157,13 @@ impl Keys {
     pub fn generate_eth_address(&mut self, chain: u64) -> Result<(), WalletError> {
         let ecdsa = self.ecdsa()?;
 
-        let pub_key_arr: [u8; 33] = ecdsa[..].try_into().unwrap();
-
-        let pub_key = PublicKey::from_slice(&pub_key_arr)
+        let pub_key = secp256k1::PublicKey::from_slice(&ecdsa)
             .map_err(|e| WalletError::GenerateError(e.to_string()))?
-            .to_bytes();
+            .serialize_uncompressed();
 
-        let keccak256 = sha3_sha256(&pub_key[1..]);
+        let keccak256 = raw_keccak256(&pub_key[1..]);
 
-        let keccak256_hex = keccak256
-            .iter()
-            .map(|byte| format!("{:02x}", byte))
-            .collect::<String>();
+        let keccak256_hex = keccak256.to_hex_string();
 
         let address: String = "0x".to_owned() + &keccak256_hex[24..];
 
@@ -229,16 +219,16 @@ mod tests {
 
         assert_eq!(
             icp_address,
-            "e237f0b05cb1dc302b3dae980ca9efab50dc7e2b165f7ac971c20a25d50b5f68"
+            "368aef23bd675b853b05526e0d6fc91fb6cf20d111c51105a041eedc12b91111"
         );
 
         println!("icp_address: {}", icp_address);
 
         public_keys.generate_eth_address(1).unwrap();
 
-        let eth_address = public_keys.addresses.get(&Chains::EVM(1)).unwrap();
+        let eth_address = public_keys.get_eth_address().unwrap();
 
-        assert_eq!(eth_address, "0x004014307c1bfb1dec4eec9661cea77b5826d01d");
+        assert_eq!(eth_address, "0x7e87f653ec3e9c6cde261e0e2e3e9c14bbe86802");
 
         println!("eth_address: {}", eth_address);
 
@@ -302,11 +292,11 @@ mod tests {
         let identifier = public_keys.identifier();
 
         let expected_identifier = AccountIdentifier::from(vec![
-            89, 200, 125, 160, 1, 190, 8, 190, 208, 172, 35, 20, 163, 214, 155, 189, 28, 113, 45,
-            177, 78, 207, 45, 150, 87, 215, 96, 119, 136, 171, 118, 18,
+            58, 236, 90, 93, 136, 79, 92, 97, 73, 20, 45, 129, 49, 134, 70, 254, 51, 92, 198, 124,
+            199, 3, 100, 84, 204, 249, 218, 50, 237, 120, 84, 113,
         ]);
 
-        println!("identifier: {}", identifier.to_string());
+        println!("identifier: {:?}", identifier);
 
         assert_eq!(identifier.to_string(), expected_identifier.to_string());
 
@@ -316,7 +306,7 @@ mod tests {
 
         assert_eq!(
             icp_address,
-            "59c87da001be08bed0ac2314a3d69bbd1c712db14ecf2d9657d7607788ab7612"
+            "3aec5a5d884f5c6149142d81318646fe335cc67cc7036454ccf9da32ed785471"
         );
 
         println!("icp_address: {}", icp_address);
@@ -325,7 +315,7 @@ mod tests {
 
         let eth_address = public_keys.get_address(Chains::EVM(1)).unwrap();
 
-        assert_eq!(eth_address, "0x9eea1bf5d05e30b900db4471c3839e68417fbcc5");
+        assert_eq!(eth_address, "0xd0406029f0703f6c04176c16451ce3a324f723c0");
 
         println!("eth_address: {}", eth_address);
 
@@ -360,8 +350,8 @@ mod tests {
         println!("identifier: {}", identifier.to_string());
 
         let expected_identifier = AccountIdentifier::from(vec![
-            140, 144, 174, 128, 153, 211, 171, 43, 103, 68, 188, 143, 155, 91, 236, 172, 118, 117,
-            50, 203, 132, 3, 4, 30, 101, 124, 179, 110, 127, 51, 62, 0,
+            222, 100, 102, 206, 2, 155, 237, 69, 41, 46, 16, 39, 70, 114, 4, 61, 28, 30, 202, 20,
+            83, 162, 177, 143, 70, 7, 126, 129, 179, 65, 189, 8,
         ]);
 
         assert_eq!(identifier, expected_identifier);
@@ -383,7 +373,7 @@ mod tests {
 
         assert_eq!(
             icp_address,
-            "8c90ae8099d3ab2b6744bc8f9b5becac767532cb8403041e657cb36e7f333e00"
+            "de6466ce029bed45292e10274672043d1c1eca1453a2b18f46077e81b341bd08"
         );
 
         println!("icp_address: {}", icp_address);
@@ -392,7 +382,7 @@ mod tests {
 
         let eth_address = public_keys.get_address(Chains::EVM(1)).unwrap();
 
-        assert_eq!(eth_address, "0x0dd99dc1a94a3ca699f6bdbd87c7ff07a31cacb6");
+        assert_eq!(eth_address, "0x82f3031c7bd2cd7e5c6d4d83584656b873304502");
 
         println!("eth_address: {}", eth_address);
 

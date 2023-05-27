@@ -1,3 +1,4 @@
+use super::utils::mock_signer;
 use crate::{
     error::WalletError,
     ledger::types::{BtcOutPoint, BtcTransaction, BtcTxOut},
@@ -9,8 +10,6 @@ use ic_cdk::{
     api::management_canister::bitcoin::{GetUtxosResponse, Utxo},
     println,
 };
-
-use super::utils::mock_signer;
 
 pub struct BtcUtxos(Vec<Utxo>);
 

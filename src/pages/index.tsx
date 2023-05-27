@@ -1,7 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 import { Principal } from "@dfinity/principal"
+import Account from "components/Account"
 import CreateAccount from "components/CreateAccount"
-import EthAccount from "components/EthAccount"
+import { Footer } from "components/Footer"
 import { Response } from "components/Response"
 import {
   WalletAccount,
@@ -13,45 +14,18 @@ import { useCallback, useEffect, useState } from "react"
 import { B3User, makeB3UserActor } from "service/actor"
 import styles from "styles/Home.module.css"
 
-const chunkGenerator = async function* (
-  wasmModule: number[],
-  chunkSize = 700000
-) {
-  for (let start = 0; start < wasmModule.length; start += chunkSize) {
-    yield wasmModule.slice(start, start + chunkSize)
-  }
-}
-
-export const loadRelease = async (
-  actor: B3User,
-  wasmModule: number[],
-  version: string
-) => {
-  console.log(`loading wasm code ${version} in User Canister.`)
-
-  console.log(`Wasm size:`, wasmModule.length)
-
-  for await (const chunks of chunkGenerator(wasmModule)) {
-    const result = await actor.load_wasm(chunks)
-    console.log(`Chunks :`, result)
-  }
-
-  console.log(`loading done.`)
-}
-
 function HomePage() {
   const { isAuthenticated, authClient, login, logout, systemActor } =
     useAuthClient()
 
   const [loading, setLoading] = useState(false)
-  const [error] = useState<string>()
+  const [error, setError] = useState<string>()
+  const [version, setVersion] = useState<string>("")
 
   const [status, setStatus] = useState<WalletCanisterStatus>()
   const [accounts, setAccounts] = useState<WalletAccount[]>([])
   const [actor, setActor] = useState<B3User>()
   const [canisterId, setCanisterId] = useState<string>("")
-
-  const [version, setVersion] = useState<string>("")
 
   const fetchUserActor = useCallback(
     async (canisterId: string) => {
@@ -59,19 +33,25 @@ function HomePage() {
         console.log("no canisterId or authClient")
         return
       }
-      setLoading(true)
-
       const userActor = makeB3UserActor(canisterId, authClient.getIdentity())
 
-      const status = await userActor.status()
+      userActor
+        .version()
+        .then(async version => {
+          setLoading(true)
 
-      setStatus(status)
+          const status = await userActor.status()
 
-      const version = await userActor.version()
+          setStatus(status)
 
-      setVersion(version)
-      setActor(userActor)
-      setLoading(false)
+          setVersion(version)
+          setActor(userActor)
+          setLoading(false)
+        })
+        .catch(e => {
+          console.log(e)
+          setLoading(false)
+        })
     },
     [authClient]
   )
@@ -84,9 +64,10 @@ function HomePage() {
 
     systemActor
       .get_canister()
-      .then(canister_id => {
+      .then(({ canister_id }) => {
         const canisterId = canister_id.toString()
 
+        setCanisterId(canisterId)
         fetchUserActor(canisterId)
         setLoading(false)
       })
@@ -118,6 +99,7 @@ function HomePage() {
   }, [fetchCanisterId])
 
   const createUser = async () => {
+    setError(undefined)
     if (!systemActor || !authClient) {
       return
     }
@@ -134,6 +116,7 @@ function HomePage() {
   }
 
   const installCanister = async () => {
+    setError(undefined)
     if (!systemActor || !authClient) {
       return
     }
@@ -147,67 +130,15 @@ function HomePage() {
 
     if ("Err" in userControl) {
       setLoading(false)
-      return console.log(userControl.Err)
+      return setError(userControl.Err)
     }
 
     fetchUserActor(userControl.Ok.canister_id.toString())
     setLoading(false)
   }
 
-  const updateCanisterWasm = async () => {
-    if (!actor || !authClient) {
-      console.log("no actor")
-      return
-    }
-
-    setLoading(true)
-
-    const wasm = await fetch("wasm/b3_wallet.wasm")
-
-    const wasm_buffer = await wasm.arrayBuffer()
-    const wasm_module = Array.from(new Uint8Array(wasm_buffer))
-
-    await loadRelease(actor, wasm_module, "0.0.0-alpha.1")
-
-    console.log("Wasm loaded")
-
-    setVersion(version)
-    setLoading(false)
-  }
-
-  const upgradeCanister = async () => {
-    if (!actor || !authClient) {
-      console.log("no actor")
-      return
-    }
-
-    const wasm_version = await actor.wasm_hash_string()
-
-    console.log("Wasm version:", wasm_version)
-
-    if (!wasm_version || wasm_version === version) {
-      console.log("Canister already upgraded")
-      return
-    }
-
-    setLoading(true)
-
-    try {
-      await actor.upgrage_wallet()
-    } catch (e) {
-      console.log(e)
-    }
-
-    console.log("Canister upgraded")
-
-    const current_version = await actor.version()
-
-    setVersion(current_version)
-
-    setLoading(false)
-  }
-
   const reset_account = async () => {
+    setError(undefined)
     if (!actor || !authClient) {
       console.log("no actor")
       return
@@ -227,13 +158,41 @@ function HomePage() {
   return (
     <div className={styles.container}>
       <Head>
-        <title>B3Pay System</title>
+        <title>B3Wallet</title>
       </Head>
+      {loading && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0,0,0,0.5)",
+            zIndex: 1000
+          }}
+        >
+          Loading...
+        </div>
+      )}
+
       <main className={styles.main}>
-        <h3 className={styles.title}>Welcome to B3Pay User Wallet!</h3>
-        <img src="/logo.png" alt="DFINITY logo" className={styles.logo} />
-        {loading && <p>Loading...</p>}
-        {error && <p>{error}</p>}
+        {error && (
+          <p
+            style={{
+              color: "red"
+            }}
+          >
+            {error}
+          </p>
+        )}
+        <div>
+          <label>Canister Id: &nbsp;</label>
+          <span>{canisterId.toString()}</span>
+        </div>
         {!isAuthenticated ? (
           <div
             style={{
@@ -247,9 +206,8 @@ function HomePage() {
         ) : actor ? (
           <div>
             <CreateAccount actor={actor} fetchAccounts={fetchAccounts} />
-            <label>Accounts: &nbsp;</label>
             {accounts.map((account, index) => (
-              <EthAccount key={index} {...account} actor={actor} />
+              <Account key={index} {...account} actor={actor} />
             ))}
             <button onClick={reset_account}>Reset Account</button>
           </div>
@@ -272,28 +230,25 @@ function HomePage() {
           </div>
         )}
         {isAuthenticated && (
-          <section
+          <div
             style={{
               display: "flex",
               justifyContent: "center"
             }}
           >
             <button onClick={logout}>Logout</button>
-          </section>
+          </div>
         )}
       </main>
       <Response response={status} />
-      <footer
-        className={styles.footer}
-        style={{
-          display: "flex",
-          justifyContent: "space-between"
-        }}
-      >
-        <p>Version: {version}</p>
-        <button onClick={updateCanisterWasm}>Load Wasm</button>
-        <button onClick={upgradeCanister}>Upgrade Canister</button>
-      </footer>
+      <Footer
+        actor={actor}
+        authClient={authClient}
+        version={version}
+        setError={setError}
+        setLoading={setLoading}
+        setVersion={setVersion}
+      />
     </div>
   )
 }

@@ -32,18 +32,21 @@ const child = (value: any) =>
 
 export const Response: React.FC<ResponseProps> = ({ response, loading }) => {
   return loading ? (
-    <section>
-      <label>Loading...</label>
-    </section>
+    <label>Loading...</label>
   ) : response ? (
-    <section>
-      <label>Response: &nbsp;</label>
+    <div
+      style={{
+        width: "100%",
+        overflow: "hidden"
+      }}
+    >
+      <label>Status: &nbsp;</label>
       {loading}
       <ul>
         {response &&
           Object.entries(response).map(([key, value]) => parent(key, value))}
       </ul>
-    </section>
+    </div>
   ) : (
     <section>
       <label>No response</label>

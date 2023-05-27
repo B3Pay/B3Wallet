@@ -2,8 +2,8 @@ use crate::{
     error::HelperError,
     types::{AccountIdentifier, Environment, Subaccount},
 };
+use easy_hasher::easy_hasher;
 use ic_cdk::export::Principal;
-use sha3::{Digest, Sha3_224};
 use std::{fmt, mem::size_of};
 
 impl Default for AccountIdentifier {
@@ -64,19 +64,19 @@ impl fmt::Display for Subaccount {
 
 impl AccountIdentifier {
     pub fn new(owner: Principal, subaccount: Subaccount) -> Self {
-        let mut hasher = Sha3_224::new();
-        hasher.update(b"\x0Aaccount-id");
-        hasher.update(owner.as_slice());
-        hasher.update(&subaccount.0[..]);
-        let hash: [u8; 28] = hasher.finalize().into();
+        let mut data = Vec::new();
+        data.push(0x0A);
+        data.extend_from_slice("account-id".as_bytes());
+        data.extend_from_slice(owner.as_slice());
+        data.extend_from_slice(subaccount.0.as_ref());
 
-        let mut hasher = crc32fast::Hasher::new();
-        hasher.update(&hash);
-        let crc32_bytes = hasher.finalize().to_be_bytes();
+        let account_hash = easy_hasher::raw_sha224(data);
+
+        let crc32_hash = easy_hasher::raw_crc32(account_hash.to_vec());
 
         let mut result = [0u8; 32];
-        result[0..4].copy_from_slice(&crc32_bytes[..]);
-        result[4..32].copy_from_slice(hash.as_ref());
+        result[0..4].copy_from_slice(&crc32_hash.to_vec());
+        result[4..32].copy_from_slice(&account_hash.to_vec());
 
         Self(result)
     }
@@ -118,5 +118,45 @@ impl fmt::Display for AccountIdentifier {
             result.push_str(&format!("{:02x}", byte));
         }
         write!(f, "{}", result)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_subaccount() {
+        let env = Environment::Production;
+        let subaccount = Subaccount::new(env, 0);
+        assert_eq!(
+            subaccount.to_owned(),
+            Subaccount([
+                32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            ])
+        );
+    }
+
+    #[test]
+    fn test_account_identifier() {
+        let principal = Principal::from_text("rdmx6-jaaaa-aaaaa-aaadq-cai").unwrap();
+        let subaccount = Subaccount([0; 32]);
+
+        let account_id = AccountIdentifier::new(principal, subaccount);
+        assert_eq!(
+            account_id.to_string(),
+            "c8734e0cde2404bb36b86bff86ee6df4f69c16fbc9a37f3f1d4aad574fa8cb5c"
+        );
+
+        let principal = Principal::from_text("rdmx6-jaaaa-aaaaa-aaadq-cai").unwrap();
+
+        let account_id =
+            AccountIdentifier::new(principal, Subaccount::new(Environment::Production, 0));
+        assert_eq!(
+            account_id.to_string(),
+            "9d4f8f6c5ef4767dbe7a933f3e95bb30f3f8e7d6b833c90871e5bbd3213aad87"
+        );
     }
 }
