@@ -9,7 +9,7 @@ use b3_system_lib::{
     error::SystemError,
     store::with_hash_release,
     store::{
-        with_signer_canister, with_signer_canister_mut, with_state, with_state_mut, with_users_mut,
+        with_state, with_state_mut, with_users_mut, with_wallet_canister, with_wallet_canister_mut,
     },
     types::SignerCanisters,
     types::{Release, SignerCanister},
@@ -26,7 +26,7 @@ use ic_cdk::{
 pub fn get_canister() -> SignerCanister {
     let user_id = ic_cdk::caller();
 
-    with_signer_canister(&user_id, |c| c.clone()).unwrap_or_else(revert)
+    with_wallet_canister(&user_id, |c| c.clone()).unwrap_or_else(revert)
 }
 
 #[candid_method(query)]
@@ -52,14 +52,14 @@ pub async fn get_canister_version(canister_id: CanisterId) -> Version {
 #[candid_method(query)]
 #[query(guard = "caller_is_controller")]
 pub async fn get_canister_version_by_user(user_id: SignerId) -> Version {
-    let signer = with_signer_canister(&user_id, |c| c.clone()).unwrap_or_else(revert);
+    let signer = with_wallet_canister(&user_id, |c| c.clone()).unwrap_or_else(revert);
 
     signer.version().await.unwrap_or_else(revert)
 }
 
 #[candid_method(query)]
 #[query(guard = "caller_is_controller")]
-pub async fn get_canister_release(canister_id: CanisterId) -> Release {
+pub async fn get_wallet_release(canister_id: CanisterId) -> Release {
     let signer = SignerCanister::from(canister_id);
 
     let wasm_hash = signer.wasm_hash().await.unwrap_or_else(revert);
@@ -71,7 +71,7 @@ pub async fn get_canister_release(canister_id: CanisterId) -> Release {
 
 #[update]
 #[candid_method(update)]
-pub async fn create_signer_canister() -> Result<SignerCanister, String> {
+pub async fn create_wallet_canister() -> Result<SignerCanister, String> {
     let user_id = ic_cdk::caller();
     let system_id = ic_cdk::id();
 
@@ -94,6 +94,7 @@ pub async fn create_signer_canister() -> Result<SignerCanister, String> {
             let install_result = wallet_canister.install_code(install_arg).await;
 
             // Update the controllers, and remove this canister as a controller.
+            // and get full control of the canister to the user.
             let update_result = wallet_canister.update_controllers(vec![user_id]).await;
 
             match (install_result, update_result) {
@@ -108,7 +109,7 @@ pub async fn create_signer_canister() -> Result<SignerCanister, String> {
 
 #[update]
 #[candid_method(update)]
-pub async fn install_signer_canister(
+pub async fn install_wallet_canister(
     canister_id: Option<CanisterId>,
 ) -> Result<SignerCanister, String> {
     let system_id = ic_cdk::id();
@@ -133,6 +134,7 @@ pub async fn install_signer_canister(
             let install_result = wallet_canister.install_code(install_arg).await;
 
             // Update the controllers, and remove this canister as a controller.
+            // and get full control of the canister to the user.
             let update_result = wallet_canister.update_controllers(vec![user_id]).await;
 
             match (install_result, update_result) {
@@ -147,15 +149,15 @@ pub async fn install_signer_canister(
 
 #[update]
 #[candid_method(update)]
-fn change_signer_canister(canister_id: CanisterId) {
+fn change_wallet_canister(canister_id: CanisterId) {
     let user_id = ic_cdk::caller();
 
-    with_signer_canister_mut(&user_id, |c| c.set_canister_id(canister_id)).unwrap_or_else(revert);
+    with_wallet_canister_mut(&user_id, |c| c.set_canister_id(canister_id)).unwrap_or_else(revert);
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_controller")]
-fn remove_signer_canister(user_id: SignerId) {
+fn remove_wallet_canister(user_id: SignerId) {
     with_state_mut(|s| s.remove_user(&user_id));
 }
 

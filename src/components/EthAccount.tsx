@@ -1,4 +1,4 @@
-import { Account } from "declarations/b3_wallet/b3_wallet.did"
+import { WalletAccount } from "declarations/b3_wallet/b3_wallet.did"
 import { BigNumber, ethers, providers } from "ethers"
 import { isAddress } from "ethers/lib/utils"
 import { useCallback, useEffect, useState } from "react"
@@ -8,7 +8,7 @@ const provider = new providers.JsonRpcProvider(
   "https://data-seed-prebsc-2-s1.binance.org:8545"
 )
 
-interface EthAccountProps extends Account {
+interface EthAccountProps extends WalletAccount {
   actor: B3User
 }
 
@@ -26,7 +26,7 @@ const EthAccount: React.FC<EthAccountProps> = ({
   actor,
   id,
   name,
-  ledger: { public_keys }
+  ledger: { keys }
 }) => {
   const [to, setTo] = useState<string>("")
   const [amount, setAmount] = useState<string>("")
@@ -44,7 +44,7 @@ const EthAccount: React.FC<EthAccountProps> = ({
     if (!actor) {
       return
     }
-    const eth_address = public_keys.addresses[0][0]
+    const eth_address = keys.addresses[0][0]
 
     if (isAddress(eth_address) === false) {
       setWaiting("Error")
@@ -98,7 +98,7 @@ const EthAccount: React.FC<EthAccountProps> = ({
     }
   }
   const getEthBalance = useCallback(async () => {
-    const eth_address = public_keys.addresses[0][0]
+    const eth_address = keys.addresses[0][0]
 
     if (isAddress(eth_address) === false) {
       return
@@ -106,14 +106,14 @@ const EthAccount: React.FC<EthAccountProps> = ({
 
     const balance = await provider.getBalance(eth_address)
     setEthBalance(balance)
-  }, [public_keys.addresses])
+  }, [keys.addresses])
 
   const getIcpBalance = useCallback(async () => {
     if (!actor) {
       return
     }
 
-    const balance = await actor.request_balance(id)
+    const balance = await actor.account_icp_balance(id, [])
 
     const balanceBigNumber = BigNumber.from(balance.e8s)
 
@@ -130,11 +130,11 @@ const EthAccount: React.FC<EthAccountProps> = ({
       return
     }
 
-    await actor.request_public_key(id)
+    await actor.account_request_public_key(id)
   }
 
   const removeAccount = async () => {
-    await actor.remove_account(id)
+    await actor.account_remove(id)
   }
 
   const handleIcpTransfer = async () => {
@@ -148,7 +148,7 @@ const EthAccount: React.FC<EthAccountProps> = ({
 
     setWaiting("Sending...")
 
-    const res = await actor.send_icp(id, to, tokenAmount, [], [])
+    const res = await actor.account_send_icp(id, to, tokenAmount, [], [])
 
     console.log(res)
 
@@ -192,8 +192,8 @@ const EthAccount: React.FC<EthAccountProps> = ({
             }}
             onClick={async () => {
               if (editMode) {
-                const currentName = await actor.rename_account(id, newName)
-                setNewName(currentName)
+                await actor.account_rename(id, newName)
+                setNewName(newName)
                 setEditMode(false)
               } else setEditMode(true)
             }}
@@ -220,10 +220,10 @@ const EthAccount: React.FC<EthAccountProps> = ({
         </button>
       </div>
       <br />
-      {public_keys.ecdsa.length ? (
+      {keys.ecdsa.length ? (
         <div>
           <label>ECDSA Public Keys: &nbsp;</label>
-          {JSON.stringify(public_keys.ecdsa)}
+          {JSON.stringify(keys.ecdsa)}
         </div>
       ) : (
         <div>
@@ -244,7 +244,7 @@ const EthAccount: React.FC<EthAccountProps> = ({
       <button
         onClick={() => {
           // generate address
-          actor.generate_address(id, {
+          actor.account_generate_address(id, {
             EVM: 0n
           })
         }}
@@ -254,9 +254,9 @@ const EthAccount: React.FC<EthAccountProps> = ({
 
       <br />
       <ul>
-        {public_keys.addresses.map(([key, value]) => (
-          <li key={key}>
-            <label>{key}: &nbsp;</label>
+        {keys.addresses.map(([key, value]) => (
+          <li key={JSON.stringify(key)}>
+            <label>{JSON.stringify(key)}: &nbsp;</label>
             {value}
           </li>
         ))}

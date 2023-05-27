@@ -4,29 +4,13 @@ export const idlFactory = ({ IDL }) => {
     'Development' : IDL.Null,
     'Staging' : IDL.Null,
   });
-  const PublicKeys = IDL.Record({
-    'ecdsa' : IDL.Opt(IDL.Vec(IDL.Nat8)),
-    'addresses' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
-    'identifier' : IDL.Vec(IDL.Nat8),
-  });
-  const Ledger = IDL.Record({
-    'subaccount' : IDL.Vec(IDL.Nat8),
-    'public_keys' : PublicKeys,
-  });
-  const WalletAccount = IDL.Record({
-    'id' : IDL.Text,
-    'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
-    'name' : IDL.Text,
-    'hidden' : IDL.Bool,
-    'ledger' : Ledger,
-  });
-  const BitcoinNetwork = IDL.Variant({
+  const BtcNetwork = IDL.Variant({
     'Mainnet' : IDL.Null,
     'Regtest' : IDL.Null,
     'Testnet' : IDL.Null,
   });
-  const Network = IDL.Variant({
-    'BTC' : BitcoinNetwork,
+  const Chains = IDL.Variant({
+    'BTC' : BtcNetwork,
     'EVM' : IDL.Nat64,
     'ICP' : IDL.Null,
     'SNS' : IDL.Text,
@@ -135,7 +119,6 @@ export const idlFactory = ({ IDL }) => {
     'TopUpCanisterRequest' : TopUpCanisterRequest,
   });
   const UpgradeCanisterRequest = IDL.Record({
-    'wasm_hash_string' : IDL.Text,
     'wasm_version' : IDL.Text,
     'wasm_hash' : IDL.Vec(IDL.Nat8),
   });
@@ -201,12 +184,55 @@ export const idlFactory = ({ IDL }) => {
     'role' : Roles,
     'deadline' : IDL.Nat64,
   });
+  const ErrorInfo = IDL.Record({
+    'description' : IDL.Text,
+    'error_code' : IDL.Nat64,
+  });
+  const ConsendInfo = IDL.Record({
+    'consent_message' : IDL.Text,
+    'language' : IDL.Text,
+  });
+  const ConsentMessageResponse = IDL.Variant({
+    'MalformedCall' : ErrorInfo,
+    'Valid' : ConsendInfo,
+    'Other' : IDL.Text,
+    'Forbidden' : ErrorInfo,
+  });
   const ConfirmedRequest = IDL.Record({
     'status' : RequestStatus,
     'request' : PendingRequest,
     'error' : IDL.Text,
-    'message' : IDL.Vec(IDL.Nat8),
+    'message' : ConsentMessageResponse,
     'timestamp' : IDL.Nat64,
+  });
+  const Keys = IDL.Record({
+    'ecdsa' : IDL.Opt(IDL.Vec(IDL.Nat8)),
+    'addresses' : IDL.Vec(IDL.Tuple(Chains, IDL.Text)),
+    'identifier' : IDL.Vec(IDL.Nat8),
+  });
+  const Ledger = IDL.Record({
+    'keys' : Keys,
+    'subaccount' : IDL.Vec(IDL.Nat8),
+  });
+  const WalletAccount = IDL.Record({
+    'id' : IDL.Text,
+    'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
+    'name' : IDL.Text,
+    'hidden' : IDL.Bool,
+    'ledger' : Ledger,
+  });
+  const AccountsCounter = IDL.Record({
+    'staging' : IDL.Nat64,
+    'production' : IDL.Nat64,
+    'development' : IDL.Nat64,
+  });
+  const WalletAccountView = IDL.Record({
+    'id' : IDL.Text,
+    'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
+    'name' : IDL.Text,
+    'hidden' : IDL.Bool,
+    'addresses' : IDL.Vec(IDL.Tuple(Chains, IDL.Text)),
+    'environment' : Environment,
   });
   const Signer = IDL.Record({
     'threshold' : IDL.Opt(IDL.Nat8),
@@ -214,6 +240,25 @@ export const idlFactory = ({ IDL }) => {
     'name' : IDL.Opt(IDL.Text),
     'role' : Roles,
     'expires_at' : IDL.Opt(IDL.Nat64),
+  });
+  const UtxoFilter = IDL.Variant({
+    'page' : IDL.Vec(IDL.Nat8),
+    'min_confirmations' : IDL.Nat32,
+  });
+  const Outpoint = IDL.Record({
+    'txid' : IDL.Vec(IDL.Nat8),
+    'vout' : IDL.Nat32,
+  });
+  const Utxo = IDL.Record({
+    'height' : IDL.Nat32,
+    'value' : IDL.Nat64,
+    'outpoint' : Outpoint,
+  });
+  const GetUtxosResponse = IDL.Record({
+    'next_page' : IDL.Opt(IDL.Vec(IDL.Nat8)),
+    'tip_height' : IDL.Nat32,
+    'tip_block_hash' : IDL.Vec(IDL.Nat8),
+    'utxos' : IDL.Vec(Utxo),
   });
   const CanisterStatusType = IDL.Variant({
     'stopped' : IDL.Null,
@@ -234,12 +279,7 @@ export const idlFactory = ({ IDL }) => {
     'idle_cycles_burned_per_day' : IDL.Nat,
     'module_hash' : IDL.Opt(IDL.Vec(IDL.Nat8)),
   });
-  const AccountsCounter = IDL.Record({
-    'staging' : IDL.Nat64,
-    'production' : IDL.Nat64,
-    'development' : IDL.Nat64,
-  });
-  const SignerCanisterStatus = IDL.Record({
+  const WalletCanisterStatus = IDL.Record({
     'canister_id' : IDL.Principal,
     'status_at' : IDL.Nat64,
     'version' : IDL.Text,
@@ -249,19 +289,20 @@ export const idlFactory = ({ IDL }) => {
   return IDL.Service({
     'account_create' : IDL.Func(
         [IDL.Opt(Environment), IDL.Opt(IDL.Text)],
-        [WalletAccount],
+        [],
         [],
       ),
-    'account_generate_address' : IDL.Func([IDL.Text, Network], [IDL.Text], []),
+    'account_generate_address' : IDL.Func([IDL.Text, Chains], [], []),
     'account_hide' : IDL.Func([IDL.Text], [], []),
-    'account_icp_balance' : IDL.Func([IDL.Text], [Tokens], []),
-    'account_remove' : IDL.Func([IDL.Text], [], []),
-    'account_rename' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text], []),
-    'account_request_public_key' : IDL.Func(
-        [IDL.Text],
-        [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text))],
+    'account_icp_balance' : IDL.Func(
+        [IDL.Text, IDL.Opt(IDL.Principal)],
+        [Tokens],
         [],
       ),
+    'account_remove' : IDL.Func([IDL.Text], [], []),
+    'account_rename' : IDL.Func([IDL.Text, IDL.Text], [], []),
+    'account_request_public_key' : IDL.Func([IDL.Text], [], []),
+    'account_restore' : IDL.Func([Environment, IDL.Nat64], [], []),
     'account_send_icp' : IDL.Func(
         [IDL.Text, IDL.Text, Tokens, IDL.Opt(Tokens), IDL.Opt(IDL.Nat64)],
         [IDL.Nat64],
@@ -275,10 +316,12 @@ export const idlFactory = ({ IDL }) => {
     'confirm_request' : IDL.Func([IDL.Nat64], [ConfirmedRequest], []),
     'get_account' : IDL.Func([IDL.Text], [WalletAccount], ['query']),
     'get_account_count' : IDL.Func([], [IDL.Nat64], ['query']),
+    'get_account_counters' : IDL.Func([], [AccountsCounter], ['query']),
+    'get_account_views' : IDL.Func([], [IDL.Vec(WalletAccountView)], ['query']),
     'get_accounts' : IDL.Func([], [IDL.Vec(WalletAccount)], ['query']),
     'get_addresses' : IDL.Func(
         [IDL.Text],
-        [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text))],
+        [IDL.Vec(IDL.Tuple(Chains, IDL.Text))],
         ['query'],
       ),
     'get_confirmed' : IDL.Func([IDL.Nat64], [ConfirmedRequest], ['query']),
@@ -299,6 +342,17 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Nat64],
         [],
       ),
+    'request_balance_btc' : IDL.Func(
+        [IDL.Text, BtcNetwork, IDL.Opt(IDL.Nat32)],
+        [IDL.Nat64],
+        [],
+      ),
+    'request_btc_fees' : IDL.Func([BtcNetwork, IDL.Nat8], [IDL.Nat64], []),
+    'request_btc_utxos' : IDL.Func(
+        [IDL.Text, BtcNetwork, IDL.Opt(UtxoFilter)],
+        [GetUtxosResponse],
+        [],
+      ),
     'request_maker' : IDL.Func([Request, IDL.Opt(IDL.Nat64)], [IDL.Nat64], []),
     'request_sign_message' : IDL.Func(
         [IDL.Text, IDL.Vec(IDL.Nat8)],
@@ -308,6 +362,11 @@ export const idlFactory = ({ IDL }) => {
     'request_sign_transaction' : IDL.Func(
         [IDL.Text, IDL.Vec(IDL.Nat8), IDL.Nat64],
         [IDL.Vec(IDL.Nat8)],
+        [],
+      ),
+    'request_transfer_btc' : IDL.Func(
+        [IDL.Text, BtcNetwork, IDL.Text, IDL.Nat64],
+        [IDL.Text],
         [],
       ),
     'request_update_settings' : IDL.Func(
@@ -326,10 +385,12 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(IDL.Tuple(IDL.Principal, Signer))],
         [],
       ),
-    'status' : IDL.Func([], [SignerCanisterStatus], []),
+    'status' : IDL.Func([], [WalletCanisterStatus], []),
     'unload_wasm' : IDL.Func([], [IDL.Nat64], []),
+    'upgrage_wallet' : IDL.Func([], [], []),
     'version' : IDL.Func([], [IDL.Text], ['query']),
     'wasm_hash' : IDL.Func([], [IDL.Vec(IDL.Nat8)], ['query']),
+    'wasm_hash_string' : IDL.Func([], [IDL.Text], ['query']),
   });
 };
 export const init = ({ IDL }) => { return []; };

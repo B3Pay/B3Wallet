@@ -5,7 +5,7 @@ use crate::{
 };
 use b3_helper_lib::{
     error::TrapError,
-    types::{CanisterId, ControllerId, SignerCanisterInitArgs, SignerCanisterInstallArg, SignerId},
+    types::{CanisterId, ControllerId, SignerId, WalletCanisterInitArgs, WalletCanisterInstallArg},
 };
 use ic_cdk::api::management_canister::main::CanisterInstallMode;
 
@@ -90,10 +90,10 @@ impl State {
         owner: SignerId,
         system: Option<CanisterId>,
         mode: CanisterInstallMode,
-    ) -> Result<SignerCanisterInstallArg, SystemError> {
+    ) -> Result<WalletCanisterInstallArg, SystemError> {
         let wasm_module = self.latest_release()?.wasm()?;
 
-        let canister_args = SignerCanisterInitArgs {
+        let canister_args = WalletCanisterInitArgs {
             owner_id: owner,
             system_id: system,
         };
@@ -102,7 +102,7 @@ impl State {
             .encode()
             .map_err(|e| SystemError::InstallArgError(e.to_string()))?;
 
-        Ok(SignerCanisterInstallArg {
+        Ok(WalletCanisterInstallArg {
             wasm_module,
             arg,
             mode,

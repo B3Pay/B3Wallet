@@ -1,8 +1,5 @@
 {
   "canisters": {
-    "b3_user": {
-      "candid": "backend/b3_user/b3_user.did"
-    },
     "b3_wallet": {
       "type": "custom",
       "package": "b3_wallet",
@@ -18,14 +15,12 @@
       "type": "rust",
       "package": "b3_system",
       "candid": "backend/b3_system/b3_system.did",
-      "dependencies": ["b3_wallet"],
       "declarations": {
         "output": "src/declarations/b3_system",
         "node_compatibility": true
       }
     },
     "wallet_assets": {
-      "dependencies": ["b3_wallet"],
       "frontend": {
         "entrypoint": "out/index.html"
       },

@@ -38,12 +38,6 @@ export interface ReleaseArgs {
 }
 export type Result = { 'Ok' : SignerCanister } |
   { 'Err' : string };
-export type Result_1 = { 'Ok' : null } |
-  { 'Err' : SystemError };
-export type Result_2 = { 'Ok' : Release } |
-  { 'Err' : SystemError };
-export type Result_3 = { 'Ok' : LoadRelease } |
-  { 'Err' : SystemError };
 export interface SignerCanister {
   'updated_at' : bigint,
   'canister_id' : [] | [Principal],
@@ -56,51 +50,33 @@ export interface SystemCanisterStatus {
   'version' : string,
   'canister_status' : CanisterStatusResponse,
 }
-export type SystemError = { 'UserAlreadyExists' : null } |
-  { 'WasmGetError' : string } |
-  { 'CreateCanisterError' : string } |
-  { 'SignerCanisterAlreadyExists' : string } |
-  { 'EncodeError' : string } |
-  { 'SignerCanisterRateError' : string } |
-  { 'InstallArgError' : string } |
-  { 'SignerCanisterNotFound' : null } |
-  { 'OwnerMismatch' : { 'owner' : string, 'user' : string } } |
-  { 'InvalidAccountIdentifier' : null } |
-  { 'UpdateControllersError' : string } |
-  { 'ReleaseNotFound' : null } |
-  { 'WasmNotFound' : null } |
-  { 'WasmInstallError' : string } |
-  { 'SignerCanisterAlreadyInstalled' : null } |
-  { 'SignerCanisterDoesNotExist' : string } |
-  { 'InstallCodeError' : string } |
-  { 'UserNotFound' : null } |
-  { 'CanisterStatusError' : string } |
-  { 'WasmAlreadyLoaded' : null } |
-  { 'ReleaseAlreadyExists' : null };
 export interface _SERVICE {
   'add_controller' : ActorMethod<[Principal], undefined>,
-  'change_signer_canister' : ActorMethod<[Principal], undefined>,
-  'create_signer_canister' : ActorMethod<[], Result>,
-  'deprecate_release' : ActorMethod<[string], Result_1>,
+  'change_wallet_canister' : ActorMethod<[Principal], undefined>,
+  'create_wallet_canister' : ActorMethod<[], Result>,
+  'deprecate_release' : ActorMethod<[string], undefined>,
   'get_canister' : ActorMethod<[], SignerCanister>,
-  'get_canister_release' : ActorMethod<[Principal], Release>,
   'get_canister_version' : ActorMethod<[Principal], string>,
   'get_canister_version_by_user' : ActorMethod<[Principal], string>,
   'get_controllers' : ActorMethod<[], Array<Principal>>,
-  'get_release' : ActorMethod<[string], Result_2>,
-  'get_release_by_index' : ActorMethod<[bigint], Result_2>,
+  'get_release' : ActorMethod<[string], Release>,
+  'get_release_by_index' : ActorMethod<[bigint], Release>,
   'get_signer_canisters' : ActorMethod<[], Array<SignerCanister>>,
   'get_user_ids' : ActorMethod<[], Array<Principal>>,
-  'install_signer_canister' : ActorMethod<[[] | [Principal]], Result>,
+  'get_wallet_release' : ActorMethod<[Principal], Release>,
+  'install_wallet_canister' : ActorMethod<[[] | [Principal]], Result>,
   'latest_release' : ActorMethod<[], Release>,
-  'load_release' : ActorMethod<[Uint8Array | number[], ReleaseArgs], Result_3>,
+  'load_release' : ActorMethod<
+    [Uint8Array | number[], ReleaseArgs],
+    LoadRelease
+  >,
   'releases' : ActorMethod<[], Array<Release>>,
   'remove_controller' : ActorMethod<[Principal], undefined>,
   'remove_latest_release' : ActorMethod<[], undefined>,
-  'remove_release' : ActorMethod<[string], Result_2>,
-  'remove_signer_canister' : ActorMethod<[Principal], undefined>,
+  'remove_release' : ActorMethod<[string], Release>,
+  'remove_wallet_canister' : ActorMethod<[Principal], undefined>,
   'reset_users' : ActorMethod<[], undefined>,
   'status' : ActorMethod<[], SystemCanisterStatus>,
-  'update_release' : ActorMethod<[ReleaseArgs], Result_1>,
+  'update_release' : ActorMethod<[ReleaseArgs], undefined>,
   'version' : ActorMethod<[], string>,
 }

@@ -4,8 +4,8 @@ import CreateAccount from "components/CreateAccount"
 import EthAccount from "components/EthAccount"
 import { Response } from "components/Response"
 import {
-  CanisterStatus,
-  SignerAccount
+  WalletAccount,
+  WalletCanisterStatus
 } from "declarations/b3_wallet/b3_wallet.did"
 import useAuthClient from "hooks/useAuthClient"
 import Head from "next/head"
@@ -44,10 +44,10 @@ function HomePage() {
     useAuthClient()
 
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string>()
+  const [error] = useState<string>()
 
-  const [status, setStatus] = useState<CanisterStatus>()
-  const [accounts, setAccounts] = useState<SignerAccount[]>([])
+  const [status, setStatus] = useState<WalletCanisterStatus>()
+  const [accounts, setAccounts] = useState<WalletAccount[]>([])
   const [actor, setActor] = useState<B3User>()
   const [canisterId, setCanisterId] = useState<string>("")
 
@@ -82,20 +82,18 @@ function HomePage() {
     }
     setLoading(true)
 
-    const [control] = await systemActor.get_signer()
+    systemActor
+      .get_canister()
+      .then(canister_id => {
+        const canisterId = canister_id.toString()
 
-    console.log(control)
-
-    if (!control) {
-      setError("No user control found")
-      setLoading(false)
-      return
-    }
-
-    const canisterId = control.canister_id.toString()
-
-    fetchUserActor(canisterId)
-    setLoading(false)
+        fetchUserActor(canisterId)
+        setLoading(false)
+      })
+      .catch(e => {
+        console.log(e)
+        setLoading(false)
+      })
   }, [authClient, systemActor, fetchUserActor])
 
   const fetchAccounts = useCallback(async () => {
@@ -124,9 +122,14 @@ function HomePage() {
       return
     }
     setLoading(true)
-    const userControl = await systemActor.create_signer_canister()
+    const userControl = await systemActor.create_wallet_canister()
 
-    fetchUserActor(userControl.canister_id.toString())
+    if ("Err" in userControl) {
+      setLoading(false)
+      return console.log(userControl.Err)
+    }
+
+    fetchUserActor(userControl.Ok.canister_id.toString())
     setLoading(false)
   }
 
@@ -138,11 +141,16 @@ function HomePage() {
 
     const canisterPrincipal = Principal.fromText(canisterId)
 
-    const userControl = await systemActor.install_signer_canister(
+    const userControl = await systemActor.install_wallet_canister([
       canisterPrincipal
-    )
+    ])
 
-    fetchUserActor(userControl.canister_id.toString())
+    if ("Err" in userControl) {
+      setLoading(false)
+      return console.log(userControl.Err)
+    }
+
+    fetchUserActor(userControl.Ok.canister_id.toString())
     setLoading(false)
   }
 
@@ -159,10 +167,7 @@ function HomePage() {
     const wasm_buffer = await wasm.arrayBuffer()
     const wasm_module = Array.from(new Uint8Array(wasm_buffer))
 
-    const result = await actor.reset_wasm()
-    console.log(result)
-
-    await loadRelease(actor, wasm_module, "0.0.0-alpha.4")
+    await loadRelease(actor, wasm_module, "0.0.0-alpha.1")
 
     console.log("Wasm loaded")
 
@@ -176,7 +181,7 @@ function HomePage() {
       return
     }
 
-    const wasm_version = await actor.wasm_hash()
+    const wasm_version = await actor.wasm_hash_string()
 
     console.log("Wasm version:", wasm_version)
 
@@ -188,7 +193,7 @@ function HomePage() {
     setLoading(true)
 
     try {
-      await actor.upgrade_canister()
+      await actor.upgrage_wallet()
     } catch (e) {
       console.log(e)
     }
@@ -210,7 +215,7 @@ function HomePage() {
 
     setLoading(true)
 
-    const result = await actor.reset_accounts()
+    const result = await actor.reset_wallet()
 
     console.log(result)
 

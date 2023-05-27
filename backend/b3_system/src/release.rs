@@ -30,31 +30,32 @@ fn latest_release() -> Release {
 
 #[candid_method(query)]
 #[query]
-pub fn get_release(version: Version) -> Result<Release, SystemError> {
-    with_version_release(version, |r| r.clone())
+pub fn get_release(version: Version) -> Release {
+    with_version_release(version, |r| r.clone()).unwrap_or_else(revert)
 }
 
 #[candid_method(query)]
 #[query]
-pub fn get_release_by_index(index: usize) -> Result<Release, SystemError> {
-    with_release(index, |r| r.clone())
+pub fn get_release_by_index(index: usize) -> Release {
+    with_release(index, |r| r.clone()).unwrap_or_else(revert)
 }
 
 // UPDATE CALLS
 
 #[candid_method(update)]
 #[update(guard = "caller_is_controller")]
-fn update_release(release_args: ReleaseArgs) -> Result<(), SystemError> {
+fn update_release(release_args: ReleaseArgs) {
     let version = release_args.version.clone();
 
     with_version_release_mut(version, |vrs| {
         vrs.update(release_args);
     })
+    .unwrap_or_else(revert)
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_controller")]
-fn load_release(blob: Blob, release_args: ReleaseArgs) -> Result<LoadRelease, SystemError> {
+fn load_release(blob: Blob, release_args: ReleaseArgs) -> LoadRelease {
     let version = release_args.version.clone();
 
     let release_index =
@@ -74,20 +75,21 @@ fn load_release(blob: Blob, release_args: ReleaseArgs) -> Result<LoadRelease, Sy
 
     let chunks = blob.len();
 
-    Ok(LoadRelease {
+    LoadRelease {
         version,
         chunks,
         total,
-    })
+    }
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_controller")]
-pub fn remove_release(version: Version) -> Result<Release, SystemError> {
+pub fn remove_release(version: Version) -> Release {
     with_releases_mut(|rs| match rs.iter().position(|r| r.version == version) {
         Some(index) => Ok(rs.remove(index)),
         None => Err(SystemError::ReleaseNotFound),
     })
+    .unwrap_or_else(revert)
 }
 
 #[candid_method(update)]
@@ -100,8 +102,9 @@ fn remove_latest_release() {
 
 #[candid_method(update)]
 #[update(guard = "caller_is_controller")]
-fn deprecate_release(version: Version) -> Result<(), SystemError> {
+fn deprecate_release(version: Version) {
     with_version_release_mut(version, |vrs| {
         vrs.deprecate();
     })
+    .unwrap_or_else(revert)
 }

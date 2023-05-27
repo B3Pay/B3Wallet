@@ -1,16 +1,26 @@
-use crate::signer::{caller_is_admin, caller_is_canister_or_admin};
+use crate::permit::{caller_is_admin, caller_is_canister_or_admin};
 use b3_helper_lib::{
+    revert,
     types::{WasmHash, WasmSize},
-    wasm::with_wasm_mut,
+    wasm::{with_wasm, with_wasm_mut},
 };
-use b3_wallet_lib::store::with_wallet_mut;
-use ic_cdk::{export::candid::candid_method, query, update};
+use b3_wallet_lib::error::WalletError;
+use ic_cdk::{
+    api::management_canister::main::{install_code, CanisterInstallMode, InstallCodeArgument},
+    export::candid::candid_method,
+    query, update,
+};
+
+#[candid_method(query)]
+#[query]
+fn wasm_hash_string() -> String {
+    with_wasm(|w| w.generate_hash_string())
+}
 
 #[candid_method(query)]
 #[query]
 fn wasm_hash() -> WasmHash {
-    // with_wasm(|w| w.generate_hash())
-    WasmHash::default()
+    with_wasm(|w| w.generate_hash())
 }
 
 #[candid_method(update)]
@@ -27,6 +37,21 @@ fn unload_wasm() -> WasmSize {
 
 #[candid_method(update)]
 #[update(guard = "caller_is_admin")]
-pub async fn reset_wallet() {
-    with_wallet_mut(|s| s.reset());
+async fn upgrage_wallet() {
+    let canister_id = ic_cdk::id();
+    let wasm_module = with_wasm(|w| {
+        if w.is_empty() {
+            return revert(WalletError::WasmNotLoaded);
+        }
+        w.get()
+    });
+
+    let args = InstallCodeArgument {
+        canister_id,
+        wasm_module,
+        arg: Vec::new(),
+        mode: CanisterInstallMode::Upgrade,
+    };
+
+    install_code(args).await.unwrap();
 }

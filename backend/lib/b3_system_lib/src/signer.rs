@@ -3,8 +3,8 @@ use b3_helper_lib::{
     constants::RATE_LIMIT,
     error::HelperError,
     types::{
-        CanisterId, ControllerId, SignerCanisterInstallArg, SignerCanisterStatus, SignerId,
-        Version, WasmHash,
+        CanisterId, ControllerId, SignerId, Version, WalletCanisterInstallArg,
+        WalletCanisterStatus, WasmHash,
     },
 };
 use ic_cdk::api::{
@@ -87,7 +87,7 @@ impl SignerCanister {
 
         let (owner,): (SignerId,) = ic_cdk::call(canister_id, "get_owner", ())
             .await
-            .map_err(|(_, message)| HelperError::GetOwnerError(message))?;
+            .map_err(|err| HelperError::GetOwnerError(err.1))?;
 
         Ok(owner)
     }
@@ -98,7 +98,7 @@ impl SignerCanister {
 
         let (wasm_hash,): (WasmHash,) = ic_cdk::call(canister_id, "wasm_hash", ())
             .await
-            .map_err(|(_, message)| HelperError::WasmHashError(message))?;
+            .map_err(|err| HelperError::WasmHashError(err.1))?;
 
         Ok(wasm_hash)
     }
@@ -109,19 +109,19 @@ impl SignerCanister {
 
         let (version,): (Version,) = ic_cdk::call(canister_id, "version", ())
             .await
-            .map_err(|(_, message)| HelperError::VersionError(message))?;
+            .map_err(|err| HelperError::VersionError(err.1))?;
 
         Ok(version)
     }
 
     /// Get the status of the canister.
     /// The caller must be a controller of the canister.
-    pub async fn status(&self) -> Result<SignerCanisterStatus, HelperError> {
+    pub async fn status(&self) -> Result<WalletCanisterStatus, HelperError> {
         let canister_id = self.canister_id()?;
 
-        let (canister_status,): (SignerCanisterStatus,) = ic_cdk::call(canister_id, "status", ())
+        let (canister_status,): (WalletCanisterStatus,) = ic_cdk::call(canister_id, "status", ())
             .await
-            .map_err(|(_, message)| HelperError::CanisterStatusError(message))?;
+            .map_err(|err| HelperError::CanisterStatusError(err.1))?;
 
         Ok(canister_status)
     }
@@ -143,7 +143,6 @@ impl SignerCanister {
             create_canister_with_extra_cycles(CreateCanisterArgument { settings }, cycles).await;
 
         match result {
-            Err((_, message)) => Err(HelperError::CreateCanisterError(message)),
             Ok(result) => {
                 let canister_id = result.0.canister_id;
 
@@ -151,17 +150,18 @@ impl SignerCanister {
 
                 Ok(canister_id)
             }
+            Err(err) => Err(HelperError::CreateCanisterError(err.1)),
         }
     }
 
     /// Install the code for the canister.
     pub async fn install_code(
         &mut self,
-        SignerCanisterInstallArg {
+        WalletCanisterInstallArg {
             arg,
             mode,
             wasm_module,
-        }: SignerCanisterInstallArg,
+        }: WalletCanisterInstallArg,
     ) -> Result<(), HelperError> {
         let canister_id = self.canister_id()?;
 
@@ -174,7 +174,7 @@ impl SignerCanister {
 
         install_code(install_args)
             .await
-            .map_err(|(_, message)| HelperError::InstallCodeError(message))
+            .map_err(|err| HelperError::InstallCodeError(err.1))
     }
 
     /// Update the controllers of the canister.
@@ -202,6 +202,6 @@ impl SignerCanister {
 
         update_settings(arg)
             .await
-            .map_err(|(_, message)| HelperError::UpdateCanisterControllersError(message))
+            .map_err(|err| HelperError::UpdateCanisterControllersError(err.1))
     }
 }

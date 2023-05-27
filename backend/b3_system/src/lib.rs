@@ -47,7 +47,6 @@ pub fn post_upgrade() {
 #[cfg(test)]
 mod tests {
     use b3_helper_lib::types::*;
-    use b3_system_lib::error::SystemError;
     use b3_system_lib::types::*;
     use ic_cdk::export::candid::export_service;
 

@@ -28,6 +28,12 @@ pub type Version = String;
 pub type Blob = Vec<u8>;
 
 #[derive(CandidType, Deserialize, Clone)]
+pub struct Subaccount(pub [u8; 32]);
+
+#[derive(CandidType, Deserialize, Clone, Debug, PartialEq)]
+pub struct AccountIdentifier(pub [u8; 32]);
+
+#[derive(CandidType, Deserialize, Clone)]
 pub struct Wasm(pub ByteBuf);
 
 pub type WasmSize = usize;
@@ -36,32 +42,26 @@ pub type WasmHash = [u8; 32];
 pub type WasmHashString = String;
 pub type WasmVersion = String;
 
-#[derive(CandidType, Deserialize, Clone)]
-pub struct Subaccount(pub [u8; 32]);
-
-#[derive(CandidType, Deserialize, Clone, Debug, PartialEq)]
-pub struct AccountIdentifier(pub [u8; 32]);
-
-pub struct SignerCanisterInstallArg {
+pub struct WalletCanisterInstallArg {
     pub arg: Vec<u8>,
     pub wasm_module: WasmModule,
     pub mode: CanisterInstallMode,
 }
 
 #[derive(CandidType, Deserialize)]
-pub struct SignerCanisterInitArgs {
+pub struct WalletCanisterInitArgs {
     pub owner_id: SignerId,
     pub system_id: Option<CanisterId>,
 }
 
-impl SignerCanisterInitArgs {
+impl WalletCanisterInitArgs {
     pub fn encode(&self) -> Result<Vec<u8>, HelperError> {
         Encode!(&self).map_err(|e| HelperError::EncodeError(e.to_string()))
     }
 }
 
 #[derive(CandidType, Deserialize)]
-pub struct SignerAllowanceArgs {
+pub struct WalletAllowanceArgs {
     pub limit: Option<u8>,
     pub metadata: Metadata,
     pub expires_at: Option<u64>,
@@ -83,7 +83,7 @@ pub struct AccountsCounter {
 }
 
 #[derive(CandidType, Deserialize)]
-pub struct SignerCanisterStatus {
+pub struct WalletCanisterStatus {
     pub status_at: u64,
     pub version: String,
     pub canister_id: CanisterId,

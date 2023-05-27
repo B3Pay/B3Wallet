@@ -129,7 +129,7 @@ where
     with_state_mut(|state| f(&mut state.users))
 }
 
-pub fn with_signer_canister<F, T>(user_id: &SignerId, f: F) -> Result<T, SystemError>
+pub fn with_wallet_canister<F, T>(user_id: &SignerId, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&SignerCanister) -> T,
 {
@@ -141,7 +141,7 @@ where
     })
 }
 
-pub fn with_signer_canister_mut<F, T>(user_id: &SignerId, f: F) -> Result<T, SystemError>
+pub fn with_wallet_canister_mut<F, T>(user_id: &SignerId, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&mut SignerCanister) -> T,
 {

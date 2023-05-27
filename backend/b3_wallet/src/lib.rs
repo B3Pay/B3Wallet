@@ -1,11 +1,11 @@
 mod account;
 mod confirm;
+mod permit;
 mod request;
-mod signer;
 mod status;
 mod wasm;
 
-use b3_helper_lib::{types::SignerCanisterInitArgs, wasm::with_wasm_mut};
+use b3_helper_lib::{types::WalletCanisterInitArgs, wasm::with_wasm_mut};
 use b3_permit_lib::{
     signer::{Roles, Signer},
     state::PrmitState,
@@ -20,7 +20,7 @@ use ic_cdk::{api::call::arg_data, export::candid::candid_method, init, post_upgr
 #[init]
 #[candid_method(init)]
 pub fn init() {
-    let (call_arg,) = arg_data::<(Option<SignerCanisterInitArgs>,)>();
+    let (call_arg,) = arg_data::<(Option<WalletCanisterInitArgs>,)>();
 
     let owner = Signer::from(Roles::Admin);
 

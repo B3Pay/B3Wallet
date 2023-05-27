@@ -1,6 +1,6 @@
 import {
   Environment,
-  SignerAccount
+  WalletAccount
 } from "declarations/b3_wallet/b3_wallet.did"
 import { IS_LOCAL } from "helpers/config"
 import { useState } from "react"
@@ -28,7 +28,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({
   )
 
   const [loading, setLoading] = useState("")
-  const [response, setResponse] = useState<SignerAccount>()
+  const [response, setResponse] = useState<WalletAccount>()
 
   function onChangeName(e: React.ChangeEvent<HTMLInputElement>) {
     const newName = e.target.value
@@ -43,7 +43,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({
     setResponse(undefined)
     setLoading("Loading...")
 
-    const account = await actor.create_account(
+    const account = await actor.account_create(
       [environment],
       name ? [name] : []
     )

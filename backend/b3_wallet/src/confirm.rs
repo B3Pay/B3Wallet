@@ -1,4 +1,4 @@
-use crate::signer::caller_is_signer;
+use crate::permit::caller_is_signer;
 use b3_helper_lib::{revert, types::RequestId};
 use b3_permit_lib::{
     confirmed::ConfirmedRequest,

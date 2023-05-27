@@ -1,4 +1,4 @@
-use crate::signer::caller_is_signer;
+use crate::permit::{caller_is_admin, caller_is_signer};
 use b3_helper_lib::{
     revert,
     types::{
@@ -244,4 +244,10 @@ pub async fn account_generate_address(account_id: String, network: Chains) {
     with_ledger_mut(&account_id, |ledger| ledger.keys.generate_address(network))
         .unwrap_or_else(revert)
         .unwrap_or_else(revert);
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_admin")]
+pub fn reset_wallet() {
+    with_wallet_mut(|s| s.reset());
 }

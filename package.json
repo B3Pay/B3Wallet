@@ -11,7 +11,7 @@
     "dfinity"
   ],
   "scripts": {
-    "dfx:start": "dfx start --background --clean && dfx canister create internet_identity && dfx canister create ledger && dfx deploy internet_identity && scripts/ledger.sh && scripts/cmc.sh",
+    "dfx:start": "dfx start --enable-bitcoin --background --clean && dfx canister create internet_identity && dfx canister create ledger && dfx deploy internet_identity && scripts/ledger.sh && scripts/cmc.sh",
     "dev": "yarn env && next dev",
     "ic:dev": "DFX_NETWORK=ic next dev",
     "build:wallet": "./scripts/build-wallet.sh",

@@ -1,13 +1,13 @@
-use crate::signer::caller_is_signer;
+use crate::permit::caller_is_signer;
 use b3_helper_lib::revert;
-use b3_helper_lib::{b3_canister_status, types::SignerCanisterStatus};
+use b3_helper_lib::{b3_canister_status, types::WalletCanisterStatus};
 use b3_wallet_lib::store::with_wallet;
 use ic_cdk::export::candid::candid_method;
 use ic_cdk::{api::time, query, update};
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub async fn status() -> SignerCanisterStatus {
+pub async fn status() -> WalletCanisterStatus {
     let canister_id = ic_cdk::id();
 
     let version = version();
@@ -17,7 +17,7 @@ pub async fn status() -> SignerCanisterStatus {
     let account_status = with_wallet(|s| s.account_status());
     let status_at = time();
 
-    SignerCanisterStatus {
+    WalletCanisterStatus {
         canister_id,
         version,
         status_at,
