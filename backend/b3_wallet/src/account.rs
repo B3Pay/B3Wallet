@@ -55,6 +55,12 @@ pub fn get_account_views() -> Vec<WalletAccountView> {
 
 #[query]
 #[candid_method(query)]
+pub fn get_account_view(account_id: String) -> WalletAccountView {
+    with_account(&account_id, |account| account.view()).unwrap_or_else(revert)
+}
+
+#[query]
+#[candid_method(query)]
 pub fn get_addresses(account_id: String) -> AddressMap {
     with_ledger(&account_id, |ledger| ledger.keys.addresses().clone()).unwrap_or_else(revert)
 }
@@ -91,6 +97,14 @@ pub fn account_remove(account_id: String) {
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
+pub fn account_remove_address(account_id: String, chains: Chains) {
+    with_ledger_mut(&account_id, |ledger| ledger.keys.remove_address(chains))
+        .unwrap_or_else(revert)
+        .unwrap_or_else(revert);
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_signer")]
 pub fn account_restore(env: Environment, index: u64) {
     let subaccount = Subaccount::new(env, index);
 
@@ -108,7 +122,7 @@ pub async fn account_request_public_key(account_id: String) {
 
     let ecdsa = ledger.ecdsa_public_key().await.unwrap_or_else(revert);
 
-    with_ledger_mut(&account_id, |ledger| ledger.keys.set_ecdsa(ecdsa.clone()))
+    with_ledger_mut(&account_id, |ledger| ledger.set_ecdsa_public_key(ecdsa))
         .unwrap_or_else(revert)
         .unwrap_or_else(revert);
 }
@@ -152,7 +166,7 @@ pub async fn account_send_icp(
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub async fn request_btc_utxos(
+pub async fn account_btc_utxos(
     account_id: String,
     network: BtcNetwork,
     filter: Option<UtxoFilter>,
@@ -169,7 +183,7 @@ pub async fn request_btc_utxos(
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub async fn request_btc_fees(network: BtcNetwork, num_blocks: u8) -> u64 {
+pub async fn account_btc_fees(network: BtcNetwork, num_blocks: u8) -> u64 {
     let rate = network.fee_rate(num_blocks).await;
 
     match rate {
@@ -180,7 +194,7 @@ pub async fn request_btc_fees(network: BtcNetwork, num_blocks: u8) -> u64 {
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub async fn request_balance_btc(
+pub async fn account_balance_btc(
     account_id: String,
     network: BtcNetwork,
     min_confirmations: Option<u32>,
@@ -199,7 +213,7 @@ pub async fn request_balance_btc(
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub async fn request_transfer_btc(
+pub async fn account_send_btc(
     account_id: String,
     network: BtcNetwork,
     to: String,

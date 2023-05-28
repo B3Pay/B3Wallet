@@ -9,9 +9,8 @@ pub mod types;
 use crate::error::WalletError;
 use b3_helper_lib::{
     constants::{
-        CANISTER_TOP_UP_MEMO, CANISTER_TRANSFER_MEMO, IC_TRANSACTION_FEE_ICP,
-        MAINNET_CYCLES_MINTING_CANISTER_ID, MAINNET_LEDGER_CANISTER_ID,
-        MAINNET_MANAGMENT_CANISTER_ID,
+        CANISTER_TOP_UP_MEMO, CANISTER_TRANSFER_MEMO, CYCLES_MINTING_CANISTER_ID,
+        IC_TRANSACTION_FEE_ICP, LEDGER_CANISTER_ID, MANAGMENT_CANISTER_ID,
     },
     error::TrapError,
     types::{
@@ -55,6 +54,12 @@ impl From<Subaccount> for Ledger {
 }
 
 impl Ledger {
+    pub fn set_ecdsa_public_key(&mut self, public_key: Vec<u8>) -> Result<(), WalletError> {
+        let env = self.subaccount.environment();
+
+        self.keys.set_ecdsa(public_key, env)
+    }
+
     pub async fn ecdsa_public_key(&self) -> Result<Vec<u8>, WalletError> {
         let key_id = self.subaccount.key_id();
 
@@ -66,13 +71,10 @@ impl Ledger {
             key_id,
         };
 
-        let (res,): (ECDSAPublicKeyResponse,) = call(
-            MAINNET_MANAGMENT_CANISTER_ID,
-            "ecdsa_public_key",
-            (request,),
-        )
-        .await
-        .map_err(|e| WalletError::PublicKeyError(e.1))?;
+        let (res,): (ECDSAPublicKeyResponse,) =
+            call(MANAGMENT_CANISTER_ID, "ecdsa_public_key", (request,))
+                .await
+                .map_err(|e| WalletError::PublicKeyError(e.1))?;
 
         Ok(res.public_key)
     }
@@ -98,14 +100,10 @@ impl Ledger {
             key_id,
         };
 
-        let (res,): (SignWithECDSAResponse,) = call_with_payment(
-            MAINNET_MANAGMENT_CANISTER_ID,
-            "sign_with_ecdsa",
-            (request,),
-            cycles,
-        )
-        .await
-        .map_err(|e| WalletError::SignError(e.1))?;
+        let (res,): (SignWithECDSAResponse,) =
+            call_with_payment(MANAGMENT_CANISTER_ID, "sign_with_ecdsa", (request,), cycles)
+                .await
+                .map_err(|e| WalletError::SignError(e.1))?;
 
         Ok(res.signature)
     }
@@ -117,7 +115,7 @@ impl Ledger {
 
         let args = AccountBalanceArgs { account };
 
-        let (res,): (Tokens,) = call(MAINNET_LEDGER_CANISTER_ID, "account_balance", (args,))
+        let (res,): (Tokens,) = call(LEDGER_CANISTER_ID, "account_balance", (args,))
             .await
             .map_err(|e| WalletError::LedgerError(e.1))?;
 
@@ -140,7 +138,7 @@ impl Ledger {
             created_at_time: None,
         };
 
-        let (res,): (TransferResult,) = call(MAINNET_LEDGER_CANISTER_ID, "transfer", (args,))
+        let (res,): (TransferResult,) = call(LEDGER_CANISTER_ID, "transfer", (args,))
             .await
             .map_err(|e| WalletError::LedgerError(e.1))?;
 
@@ -155,7 +153,7 @@ impl Ledger {
     ) -> Result<NotifyTopUpResult, WalletError> {
         let canister_subaccount = Subaccount::from(canister_id);
 
-        let to = AccountIdentifier::new(MAINNET_CYCLES_MINTING_CANISTER_ID, canister_subaccount);
+        let to = AccountIdentifier::new(CYCLES_MINTING_CANISTER_ID, canister_subaccount);
 
         let block_index = self
             .transfer(to, amount, fee, Some(CANISTER_TOP_UP_MEMO))
@@ -168,7 +166,7 @@ impl Ledger {
         };
 
         let (res,): (NotifyTopUpResult,) =
-            call(MAINNET_CYCLES_MINTING_CANISTER_ID, "notify_top_up", (args,))
+            call(CYCLES_MINTING_CANISTER_ID, "notify_top_up", (args,))
                 .await
                 .map_err(|e| WalletError::CyclesMintingError(e.1))?;
 

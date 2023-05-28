@@ -12,7 +12,7 @@ const loadRelease = async (
 
   const release: ReleaseArgs = {
     version,
-    features: [["add new system", "wasm system"]],
+    features: [["", ""]],
     size: BigInt(wasmModule.length)
   }
 
@@ -43,6 +43,11 @@ export const load = async (actor: B3System, reload: boolean) => {
   }
 
   await loadRelease(actor, wasmModule, version)
+
+  // loading candid version
+  const wasmModuleCandid = await loadWasm(true)
+  console.log(`Loading wasm code with candid v${version}-candid in System.`)
+  await loadRelease(actor, wasmModuleCandid, version + "-candid")
 }
 
 const loader = async (reload: boolean) => {

@@ -21,6 +21,7 @@ fi
   NEW_WALLET_DIR=$ROOT_DIR/target/$TARGET/release/b3_wallet.wasm
 
   OLD_WALLET_DIR=$ROOT_DIR/wasm/b3_wallet/b3_wallet.wasm
+  OLD_WALLET_CANDID_DIR=$ROOT_DIR/wasm/b3_wallet/b3_wallet_candid.wasm
 
   DID_FILE=$ROOT_DIR/backend/b3_wallet/b3_wallet.did
 
@@ -37,10 +38,10 @@ fi
   printf "After optimization: "
   du -h $OLD_WALLET_DIR | cut -f1
 
-  # #  add candid interface
-  # ic-wasm $NEW_WALLET_DIR -o $OLD_WALLET_DIR metadata candid:service -f $DID_FILE -v public
+  #  add candid interface
+  ic-wasm $NEW_WALLET_DIR -o $OLD_WALLET_CANDID_DIR metadata candid:service -f $DID_FILE -v public
 
-  # printf "After adding candid interface: "
-  # du -h $OLD_WALLET_DIR | cut -f1
+  printf "After adding candid interface: "
+  du -h $OLD_WALLET_CANDID_DIR | cut -f1
 
 popd

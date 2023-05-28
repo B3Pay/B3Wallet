@@ -1,29 +1,42 @@
-/* eslint-disable @next/next/no-img-element */
+import {
+  Accordion,
+  AccordionItem,
+  Button,
+  Container,
+  Heading,
+  Input,
+  Stack,
+  Text
+} from "@chakra-ui/react"
 import { Principal } from "@dfinity/principal"
 import Account from "components/Account"
 import CreateAccount from "components/CreateAccount"
 import { Footer } from "components/Footer"
-import { Response } from "components/Response"
-import {
-  WalletAccount,
-  WalletCanisterStatus
-} from "declarations/b3_wallet/b3_wallet.did"
+import Loading from "components/Loading"
+import RestoreAccount from "components/RestoreAccount"
+import Status from "components/Status"
+import { WalletAccountView } from "declarations/b3_wallet/b3_wallet.did"
 import useAuthClient from "hooks/useAuthClient"
 import Head from "next/head"
 import { useCallback, useEffect, useState } from "react"
 import { B3User, makeB3UserActor } from "service/actor"
-import styles from "styles/Home.module.css"
+
+interface Loadings {
+  global: boolean
+  [key: string]: boolean
+}
 
 function HomePage() {
   const { isAuthenticated, authClient, login, logout, systemActor } =
     useAuthClient()
 
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState<Loadings>({
+    global: false
+  })
   const [error, setError] = useState<string>()
   const [version, setVersion] = useState<string>("")
 
-  const [status, setStatus] = useState<WalletCanisterStatus>()
-  const [accounts, setAccounts] = useState<WalletAccount[]>([])
+  const [accounts, setAccounts] = useState<WalletAccountView[]>([])
   const [actor, setActor] = useState<B3User>()
   const [canisterId, setCanisterId] = useState<string>("")
 
@@ -38,19 +51,16 @@ function HomePage() {
       userActor
         .version()
         .then(async version => {
-          setLoading(true)
-
-          const status = await userActor.status()
-
-          setStatus(status)
+          setLoading(prev => ({ ...prev, global: true }))
 
           setVersion(version)
           setActor(userActor)
-          setLoading(false)
+
+          setLoading(prev => ({ ...prev, global: false }))
         })
         .catch(e => {
           console.log(e)
-          setLoading(false)
+          setLoading(prev => ({ ...prev, global: false }))
         })
     },
     [authClient]
@@ -60,7 +70,7 @@ function HomePage() {
     if (!systemActor || !authClient) {
       return
     }
-    setLoading(true)
+    setLoading(prev => ({ ...prev, global: true }))
 
     systemActor
       .get_canister()
@@ -69,11 +79,11 @@ function HomePage() {
 
         setCanisterId(canisterId)
         fetchUserActor(canisterId)
-        setLoading(false)
+        setLoading(prev => ({ ...prev, global: false }))
       })
       .catch(e => {
         console.log(e)
-        setLoading(false)
+        setLoading(prev => ({ ...prev, global: false }))
       })
   }, [authClient, systemActor, fetchUserActor])
 
@@ -82,12 +92,12 @@ function HomePage() {
       console.log("no actor")
       return
     }
-    setLoading(true)
+    setLoading(prev => ({ ...prev, global: true }))
 
-    const accounts = await actor.get_accounts()
+    const accounts = await actor.get_account_views()
 
     setAccounts(accounts)
-    setLoading(false)
+    setLoading(prev => ({ ...prev, global: false }))
   }, [actor])
 
   useEffect(() => {
@@ -103,16 +113,17 @@ function HomePage() {
     if (!systemActor || !authClient) {
       return
     }
-    setLoading(true)
-    const userControl = await systemActor.create_wallet_canister()
+    setLoading(prev => ({ ...prev, global: true }))
+    systemActor.create_wallet_canister().then(async userControl => {
+      if ("Err" in userControl) {
+        setLoading(prev => ({ ...prev, global: false }))
 
-    if ("Err" in userControl) {
-      setLoading(false)
-      return console.log(userControl.Err)
-    }
+        return console.log(userControl.Err)
+      }
 
-    fetchUserActor(userControl.Ok.canister_id.toString())
-    setLoading(false)
+      fetchUserActor(userControl.Ok.canister_id.toString())
+      setLoading(prev => ({ ...prev, global: false }))
+    })
   }
 
   const installCanister = async () => {
@@ -120,7 +131,7 @@ function HomePage() {
     if (!systemActor || !authClient) {
       return
     }
-    setLoading(true)
+    setLoading(prev => ({ ...prev, global: true }))
 
     const canisterPrincipal = Principal.fromText(canisterId)
 
@@ -129,22 +140,50 @@ function HomePage() {
     ])
 
     if ("Err" in userControl) {
-      setLoading(false)
+      setLoading(prev => ({ ...prev, global: false }))
+
       return setError(userControl.Err)
     }
 
     fetchUserActor(userControl.Ok.canister_id.toString())
-    setLoading(false)
+    setLoading(prev => ({ ...prev, global: false }))
   }
 
-  const reset_account = async () => {
+  const refresh = useCallback(
+    async (account_id: string) => {
+      if (!actor) {
+        console.log("no actor")
+        return
+      }
+      setLoading(prev => ({ ...prev, [account_id]: true }))
+
+      const account = await actor.get_account_view(account_id)
+
+      setAccounts(prev => {
+        const index = prev.findIndex(a => a.id === account_id)
+
+        if (index === -1) {
+          return prev
+        }
+
+        prev[index] = account
+
+        return [...prev]
+      })
+
+      setLoading(prev => ({ ...prev, [account_id]: false }))
+    },
+    [actor]
+  )
+
+  const resetAccount = async () => {
     setError(undefined)
     if (!actor || !authClient) {
       console.log("no actor")
       return
     }
 
-    setLoading(true)
+    setLoading(prev => ({ ...prev, global: true }))
 
     const result = await actor.reset_wallet()
 
@@ -152,104 +191,91 @@ function HomePage() {
 
     fetchAccounts()
 
-    setLoading(false)
+    setLoading(prev => ({ ...prev, global: false }))
   }
 
   return (
-    <div className={styles.container}>
+    <Container maxW="2xl">
       <Head>
         <title>B3Wallet</title>
       </Head>
-      {loading && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "rgba(0,0,0,0.5)",
-            zIndex: 1000
-          }}
-        >
-          Loading...
-        </div>
-      )}
-
-      <main className={styles.main}>
+      <Heading textAlign="center" p={4}>
+        B3Wallet Demo
+      </Heading>
+      <Stack as="main" position="relative" padding="2">
+        {loading.global && <Loading dark />}
         {error && (
-          <p
-            style={{
-              color: "red"
-            }}
-          >
+          <Text variant="error" textAlign="center" p={4}>
             {error}
-          </p>
+          </Text>
         )}
-        <div>
-          <label>Canister Id: &nbsp;</label>
-          <span>{canisterId.toString()}</span>
-        </div>
+        <Text variant="title" textAlign="center" p={4}>
+          {canisterId.toString()}
+        </Text>
         {!isAuthenticated ? (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center"
-            }}
-          >
-            <button onClick={login}>Login</button>
-          </div>
+          <Button onClick={login} colorScheme="green">
+            Login
+          </Button>
         ) : actor ? (
-          <div>
+          <Stack overflow="hidden">
             <CreateAccount actor={actor} fetchAccounts={fetchAccounts} />
-            {accounts.map((account, index) => (
-              <Account key={index} {...account} actor={actor} />
-            ))}
-            <button onClick={reset_account}>Reset Account</button>
-          </div>
+            <Accordion allowMultiple>
+              {accounts.map((account, index) => (
+                <AccordionItem padding="15px 0" position="relative" key={index}>
+                  {({ isExpanded }) => (
+                    <Account
+                      key={index}
+                      actor={actor}
+                      isExpanded={isExpanded}
+                      loading={loading[account.id]}
+                      refresh={() => refresh(account.id)}
+                      {...account}
+                    />
+                  )}
+                </AccordionItem>
+              ))}
+            </Accordion>
+            <RestoreAccount actor={actor} fetchAccounts={fetchAccounts} />
+            <Button variant="solid" colorScheme="red" onClick={resetAccount}>
+              Reset Account
+            </Button>
+            <Status actor={actor} />
+          </Stack>
         ) : (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center"
-            }}
-          >
-            <input
+          <Stack>
+            <Input
               type="text"
               placeholder="Enter Canister id"
               value={canisterId}
               onChange={e => setCanisterId(e.target.value)}
             />
-            <button onClick={installCanister}>Install Canister</button>
-            <button onClick={createUser}>Create User</button>
-          </div>
+            <Button onClick={installCanister}>Install Canister</Button>
+            <Button onClick={createUser}>Create User</Button>
+          </Stack>
         )}
         {isAuthenticated && (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center"
+          <Button
+            colorScheme="red"
+            onClick={() => {
+              logout()
+              window.location.reload()
             }}
           >
-            <button onClick={logout}>Logout</button>
-          </div>
+            Logout
+          </Button>
         )}
-      </main>
-      <Response response={status} />
+      </Stack>
       <Footer
         actor={actor}
         authClient={authClient}
         version={version}
         setError={setError}
-        setLoading={setLoading}
+        setLoading={(global: boolean) =>
+          setLoading(prev => ({ ...prev, global }))
+        }
         setVersion={setVersion}
       />
-    </div>
+    </Container>
   )
 }
 

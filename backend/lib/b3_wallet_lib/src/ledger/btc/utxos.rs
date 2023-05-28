@@ -154,7 +154,7 @@ mod test {
     };
 
     use super::*;
-    use b3_helper_lib::types::{AccountIdentifier, CanisterId, Subaccount};
+    use b3_helper_lib::types::{AccountIdentifier, CanisterId, Environment, Subaccount};
     use ic_cdk::api::management_canister::bitcoin::{Outpoint, Utxo};
 
     #[test]
@@ -177,7 +177,9 @@ mod test {
             153, 192, 65, 30, 59, 177, 153, 39, 80, 76, 185, 200, 51, 255, 218,
         ];
 
-        public_keys.set_ecdsa(ecdsa).unwrap();
+        public_keys
+            .set_ecdsa(ecdsa, Environment::Production)
+            .unwrap();
 
         public_keys
             .generate_btc_address(BtcNetwork::Mainnet)

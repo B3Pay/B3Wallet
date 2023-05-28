@@ -1,13 +1,32 @@
 export const idlFactory = ({ IDL }) => {
-  const Environment = IDL.Variant({
-    'Production' : IDL.Null,
-    'Development' : IDL.Null,
-    'Staging' : IDL.Null,
-  });
   const BtcNetwork = IDL.Variant({
     'Mainnet' : IDL.Null,
     'Regtest' : IDL.Null,
     'Testnet' : IDL.Null,
+  });
+  const UtxoFilter = IDL.Variant({
+    'page' : IDL.Vec(IDL.Nat8),
+    'min_confirmations' : IDL.Nat32,
+  });
+  const Outpoint = IDL.Record({
+    'txid' : IDL.Vec(IDL.Nat8),
+    'vout' : IDL.Nat32,
+  });
+  const Utxo = IDL.Record({
+    'height' : IDL.Nat32,
+    'value' : IDL.Nat64,
+    'outpoint' : Outpoint,
+  });
+  const GetUtxosResponse = IDL.Record({
+    'next_page' : IDL.Opt(IDL.Vec(IDL.Nat8)),
+    'tip_height' : IDL.Nat32,
+    'tip_block_hash' : IDL.Vec(IDL.Nat8),
+    'utxos' : IDL.Vec(Utxo),
+  });
+  const Environment = IDL.Variant({
+    'Production' : IDL.Null,
+    'Development' : IDL.Null,
+    'Staging' : IDL.Null,
   });
   const Chains = IDL.Variant({
     'BTC' : BtcNetwork,
@@ -241,25 +260,6 @@ export const idlFactory = ({ IDL }) => {
     'role' : Roles,
     'expires_at' : IDL.Opt(IDL.Nat64),
   });
-  const UtxoFilter = IDL.Variant({
-    'page' : IDL.Vec(IDL.Nat8),
-    'min_confirmations' : IDL.Nat32,
-  });
-  const Outpoint = IDL.Record({
-    'txid' : IDL.Vec(IDL.Nat8),
-    'vout' : IDL.Nat32,
-  });
-  const Utxo = IDL.Record({
-    'height' : IDL.Nat32,
-    'value' : IDL.Nat64,
-    'outpoint' : Outpoint,
-  });
-  const GetUtxosResponse = IDL.Record({
-    'next_page' : IDL.Opt(IDL.Vec(IDL.Nat8)),
-    'tip_height' : IDL.Nat32,
-    'tip_block_hash' : IDL.Vec(IDL.Nat8),
-    'utxos' : IDL.Vec(Utxo),
-  });
   const CanisterStatusType = IDL.Variant({
     'stopped' : IDL.Null,
     'stopping' : IDL.Null,
@@ -287,6 +287,17 @@ export const idlFactory = ({ IDL }) => {
     'account_status' : AccountsCounter,
   });
   return IDL.Service({
+    'account_balance_btc' : IDL.Func(
+        [IDL.Text, BtcNetwork, IDL.Opt(IDL.Nat32)],
+        [IDL.Nat64],
+        [],
+      ),
+    'account_btc_fees' : IDL.Func([BtcNetwork, IDL.Nat8], [IDL.Nat64], []),
+    'account_btc_utxos' : IDL.Func(
+        [IDL.Text, BtcNetwork, IDL.Opt(UtxoFilter)],
+        [GetUtxosResponse],
+        [],
+      ),
     'account_create' : IDL.Func(
         [IDL.Opt(Environment), IDL.Opt(IDL.Text)],
         [],
@@ -300,9 +311,15 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'account_remove' : IDL.Func([IDL.Text], [], []),
+    'account_remove_address' : IDL.Func([IDL.Text, Chains], [], []),
     'account_rename' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'account_request_public_key' : IDL.Func([IDL.Text], [], []),
     'account_restore' : IDL.Func([Environment, IDL.Nat64], [], []),
+    'account_send_btc' : IDL.Func(
+        [IDL.Text, BtcNetwork, IDL.Text, IDL.Nat64],
+        [IDL.Text],
+        [],
+      ),
     'account_send_icp' : IDL.Func(
         [IDL.Text, IDL.Text, Tokens, IDL.Opt(Tokens), IDL.Opt(IDL.Nat64)],
         [IDL.Nat64],
@@ -317,6 +334,7 @@ export const idlFactory = ({ IDL }) => {
     'get_account' : IDL.Func([IDL.Text], [WalletAccount], ['query']),
     'get_account_count' : IDL.Func([], [IDL.Nat64], ['query']),
     'get_account_counters' : IDL.Func([], [AccountsCounter], ['query']),
+    'get_account_view' : IDL.Func([IDL.Text], [WalletAccountView], ['query']),
     'get_account_views' : IDL.Func([], [IDL.Vec(WalletAccountView)], ['query']),
     'get_accounts' : IDL.Func([], [IDL.Vec(WalletAccount)], ['query']),
     'get_addresses' : IDL.Func(
@@ -342,17 +360,6 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Nat64],
         [],
       ),
-    'request_balance_btc' : IDL.Func(
-        [IDL.Text, BtcNetwork, IDL.Opt(IDL.Nat32)],
-        [IDL.Nat64],
-        [],
-      ),
-    'request_btc_fees' : IDL.Func([BtcNetwork, IDL.Nat8], [IDL.Nat64], []),
-    'request_btc_utxos' : IDL.Func(
-        [IDL.Text, BtcNetwork, IDL.Opt(UtxoFilter)],
-        [GetUtxosResponse],
-        [],
-      ),
     'request_maker' : IDL.Func([Request, IDL.Opt(IDL.Nat64)], [IDL.Nat64], []),
     'request_sign_message' : IDL.Func(
         [IDL.Text, IDL.Vec(IDL.Nat8)],
@@ -362,11 +369,6 @@ export const idlFactory = ({ IDL }) => {
     'request_sign_transaction' : IDL.Func(
         [IDL.Text, IDL.Vec(IDL.Nat8), IDL.Nat64],
         [IDL.Vec(IDL.Nat8)],
-        [],
-      ),
-    'request_transfer_btc' : IDL.Func(
-        [IDL.Text, BtcNetwork, IDL.Text, IDL.Nat64],
-        [IDL.Text],
         [],
       ),
     'request_update_settings' : IDL.Func(

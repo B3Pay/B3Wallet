@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use bitcoin::{AddressType, OutPoint, Transaction, TxIn, TxOut, Txid};
 use ic_cdk::export::{
@@ -12,7 +12,7 @@ use super::chains::Chains;
 
 pub type ChainId = u64;
 
-pub type AddressMap = HashMap<Chains, String>;
+pub type AddressMap = BTreeMap<Chains, String>;
 
 pub type EcdsaPublicKey = Vec<u8>;
 

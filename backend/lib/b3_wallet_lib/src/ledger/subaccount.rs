@@ -1,3 +1,5 @@
+use std::ops::Add;
+
 use super::{config::EcdsaConfig, types::EcdsaKeyId};
 use b3_helper_lib::types::{AccountIdentifier, CanisterId, Environment, Subaccount};
 
@@ -31,7 +33,7 @@ impl SubaccountTrait for Subaccount {
     }
 
     fn name(&self) -> String {
-        self.environment().to_name(self.nonce().to_string())
+        self.environment().to_name(self.nonce().add(1).to_string())
     }
 
     fn id(&self) -> String {
@@ -84,6 +86,7 @@ mod tests {
         let subaccount = Subaccount::default();
         assert_eq!(subaccount.environment(), Environment::Production);
         assert_eq!(subaccount.nonce(), 0);
+        assert_eq!(subaccount.name(), "Account 1");
         assert_eq!(subaccount.id(), "default");
         let identifier = subaccount
             .account_identifier(CanisterId::from_text("rdmx6-jaaaa-aaaaa-aaadq-cai").unwrap());
@@ -96,16 +99,19 @@ mod tests {
         let subaccount = Subaccount::new(Environment::Production, 1);
         assert_eq!(subaccount.environment(), Environment::Production);
         assert_eq!(subaccount.nonce(), 1);
+        assert_eq!(subaccount.name(), "Account 2");
         assert_eq!(subaccount.id(), "account_1");
 
         let subaccount = Subaccount::new(Environment::Staging, 1);
         assert_eq!(subaccount.environment(), Environment::Staging);
         assert_eq!(subaccount.nonce(), 1);
+        assert_eq!(subaccount.name(), "Staging Account 2");
         assert_eq!(subaccount.id(), "staging_account_1");
 
         let subaccount = Subaccount::new(Environment::Development, 1);
         assert_eq!(subaccount.environment(), Environment::Development);
         assert_eq!(subaccount.nonce(), 1);
+        assert_eq!(subaccount.name(), "Development Account 2");
         assert_eq!(subaccount.id(), "development_account_1");
     }
 
@@ -115,6 +121,7 @@ mod tests {
         let subaccount = Subaccount::from(principal);
         assert_eq!(subaccount.environment(), Environment::Production);
         assert_eq!(subaccount.nonce(), 7);
+        assert_eq!(subaccount.name(), "Account 8");
         assert_eq!(subaccount.id(), "account_7");
     }
 

@@ -229,14 +229,19 @@ type WalletCanisterStatus = record {
   account_status : AccountsCounter;
 };
 service : () -> {
+  account_balance_btc : (text, BtcNetwork, opt nat32) -> (nat64);
+  account_btc_fees : (BtcNetwork, nat8) -> (nat64);
+  account_btc_utxos : (text, BtcNetwork, opt UtxoFilter) -> (GetUtxosResponse);
   account_create : (opt Environment, opt text) -> ();
   account_generate_address : (text, Chains) -> ();
   account_hide : (text) -> ();
   account_icp_balance : (text, opt principal) -> (Tokens);
   account_remove : (text) -> ();
+  account_remove_address : (text, Chains) -> ();
   account_rename : (text, text) -> ();
   account_request_public_key : (text) -> ();
   account_restore : (Environment, nat64) -> ();
+  account_send_btc : (text, BtcNetwork, text, nat64) -> (text);
   account_send_icp : (text, text, Tokens, opt Tokens, opt nat64) -> (nat64);
   account_top_up_and_notify : (text, Tokens, opt principal, opt Tokens) -> (
       nat,
@@ -245,6 +250,7 @@ service : () -> {
   get_account : (text) -> (WalletAccount) query;
   get_account_count : () -> (nat64) query;
   get_account_counters : () -> (AccountsCounter) query;
+  get_account_view : (text) -> (WalletAccountView) query;
   get_account_views : () -> (vec WalletAccountView) query;
   get_accounts : () -> (vec WalletAccount) query;
   get_addresses : (text) -> (vec record { Chains; text }) query;
@@ -254,13 +260,9 @@ service : () -> {
   get_signers : () -> (vec record { principal; Signer }) query;
   load_wasm : (vec nat8) -> (nat64);
   request_account_rename : (RenameAccountRequest, opt nat64) -> (nat64);
-  request_balance_btc : (text, BtcNetwork, opt nat32) -> (nat64);
-  request_btc_fees : (BtcNetwork, nat8) -> (nat64);
-  request_btc_utxos : (text, BtcNetwork, opt UtxoFilter) -> (GetUtxosResponse);
   request_maker : (Request, opt nat64) -> (nat64);
   request_sign_message : (text, vec nat8) -> (vec nat8);
   request_sign_transaction : (text, vec nat8, nat64) -> (vec nat8);
-  request_transfer_btc : (text, BtcNetwork, text, nat64) -> (text);
   request_update_settings : (UpdateCanisterSettingsRequest, opt nat64) -> (
       nat64,
     );

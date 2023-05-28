@@ -255,6 +255,15 @@ export interface WalletCanisterStatus {
   'account_status' : AccountsCounter,
 }
 export interface _SERVICE {
+  'account_balance_btc' : ActorMethod<
+    [string, BtcNetwork, [] | [number]],
+    bigint
+  >,
+  'account_btc_fees' : ActorMethod<[BtcNetwork, number], bigint>,
+  'account_btc_utxos' : ActorMethod<
+    [string, BtcNetwork, [] | [UtxoFilter]],
+    GetUtxosResponse
+  >,
   'account_create' : ActorMethod<
     [[] | [Environment], [] | [string]],
     undefined
@@ -263,9 +272,14 @@ export interface _SERVICE {
   'account_hide' : ActorMethod<[string], undefined>,
   'account_icp_balance' : ActorMethod<[string, [] | [Principal]], Tokens>,
   'account_remove' : ActorMethod<[string], undefined>,
+  'account_remove_address' : ActorMethod<[string, Chains], undefined>,
   'account_rename' : ActorMethod<[string, string], undefined>,
   'account_request_public_key' : ActorMethod<[string], undefined>,
   'account_restore' : ActorMethod<[Environment, bigint], undefined>,
+  'account_send_btc' : ActorMethod<
+    [string, BtcNetwork, string, bigint],
+    string
+  >,
   'account_send_icp' : ActorMethod<
     [string, string, Tokens, [] | [Tokens], [] | [bigint]],
     bigint
@@ -278,6 +292,7 @@ export interface _SERVICE {
   'get_account' : ActorMethod<[string], WalletAccount>,
   'get_account_count' : ActorMethod<[], bigint>,
   'get_account_counters' : ActorMethod<[], AccountsCounter>,
+  'get_account_view' : ActorMethod<[string], WalletAccountView>,
   'get_account_views' : ActorMethod<[], Array<WalletAccountView>>,
   'get_accounts' : ActorMethod<[], Array<WalletAccount>>,
   'get_addresses' : ActorMethod<[string], Array<[Chains, string]>>,
@@ -290,15 +305,6 @@ export interface _SERVICE {
     [RenameAccountRequest, [] | [bigint]],
     bigint
   >,
-  'request_balance_btc' : ActorMethod<
-    [string, BtcNetwork, [] | [number]],
-    bigint
-  >,
-  'request_btc_fees' : ActorMethod<[BtcNetwork, number], bigint>,
-  'request_btc_utxos' : ActorMethod<
-    [string, BtcNetwork, [] | [UtxoFilter]],
-    GetUtxosResponse
-  >,
   'request_maker' : ActorMethod<[Request, [] | [bigint]], bigint>,
   'request_sign_message' : ActorMethod<
     [string, Uint8Array | number[]],
@@ -307,10 +313,6 @@ export interface _SERVICE {
   'request_sign_transaction' : ActorMethod<
     [string, Uint8Array | number[], bigint],
     Uint8Array | number[]
-  >,
-  'request_transfer_btc' : ActorMethod<
-    [string, BtcNetwork, string, bigint],
-    string
   >,
   'request_update_settings' : ActorMethod<
     [UpdateCanisterSettingsRequest, [] | [bigint]],

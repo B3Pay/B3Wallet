@@ -4,16 +4,17 @@ import { IS_LOCAL } from "helpers/config"
 import { useState } from "react"
 import { B3User } from "service/actor"
 
-interface CreateAccountProps {
+interface RestoreAccountProps {
   actor: B3User
   fetchAccounts: () => void
 }
 
-const CreateAccount: React.FC<CreateAccountProps> = ({
+const RestoreAccount: React.FC<RestoreAccountProps> = ({
   actor,
   fetchAccounts
 }) => {
-  const [name, setName] = useState<string>()
+  const [loading, setLoading] = useState(false)
+  const [nonce, setNonce] = useState<bigint>(0n)
   const [environment, setEnvironment] = useState<Environment>(
     IS_LOCAL
       ? {
@@ -25,36 +26,29 @@ const CreateAccount: React.FC<CreateAccountProps> = ({
   )
 
   function onChangeName(e: React.ChangeEvent<HTMLInputElement>) {
-    const newName = e.target.value
-    setName(newName)
+    const newName = BigInt(e.target.value)
+    setNonce(newName)
   }
 
   async function createAccount() {
     if (!actor) {
       return
     }
-
-    await actor.account_create([environment], name ? [name] : [])
-
-    fetchAccounts()
+    setLoading(true)
+    actor
+      .account_restore(environment, nonce)
+      .then(() => {
+        setLoading(false)
+        fetchAccounts()
+      })
+      .catch(e => {
+        console.log(e)
+        setLoading(false)
+      })
   }
 
   return (
-    <Stack
-      spacing="2"
-      p={1}
-      direction="row"
-      justify="space-between"
-      align="center"
-    >
-      <Input
-        id="name"
-        alt="Name"
-        type="text"
-        placeholder="Name"
-        value={name}
-        onChange={onChangeName}
-      />
+    <Stack spacing="2" direction="row" justify="space-between" align="center">
       <Select
         value={Object.keys(environment)[0]}
         onChange={e => {
@@ -67,11 +61,21 @@ const CreateAccount: React.FC<CreateAccountProps> = ({
         <option value="Production">Production</option>
         <option value="Staging">Staging</option>
       </Select>
+      <Input
+        id="nonce"
+        alt="Name"
+        type="number"
+        placeholder="Nonce"
+        value={nonce.toString()}
+        onChange={onChangeName}
+      />
       <Flex flex="1">
-        <Button onClick={createAccount}>Create</Button>
+        <Button onClick={createAccount} isLoading={loading}>
+          Restore
+        </Button>
       </Flex>
     </Stack>
   )
 }
 
-export default CreateAccount
+export default RestoreAccount

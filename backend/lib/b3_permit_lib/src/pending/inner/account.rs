@@ -144,7 +144,7 @@ impl EcdsaPublicKeyRequest {
         let ecdsa = ledger.ecdsa_public_key().await?;
 
         with_ledger_mut(&self.account_id, |ledger| {
-            ledger.keys.set_ecdsa(ecdsa.clone())
+            ledger.set_ecdsa_public_key(ecdsa)
         })??;
 
         Ok(ConsentMessageResponse::default())

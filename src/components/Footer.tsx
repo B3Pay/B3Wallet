@@ -1,3 +1,4 @@
+import { Button, Flex, Text } from "@chakra-ui/react"
 import React from "react"
 import { B3User } from "service/actor"
 
@@ -31,8 +32,8 @@ interface FooterProps {
   actor?: B3User
   authClient?: any
   version: string
+  setLoading: (loading: boolean) => void
   setVersion: React.Dispatch<React.SetStateAction<string>>
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>
   setError: React.Dispatch<React.SetStateAction<string | undefined>>
 }
 
@@ -53,12 +54,12 @@ export const Footer: React.FC<FooterProps> = ({
 
     setLoading(true)
 
-    const wasm = await fetch("wasm/b3_wallet.wasm")
+    const wasm = await fetch("wasm/b3_wallet_candid.wasm")
 
     const wasm_buffer = await wasm.arrayBuffer()
     const wasm_module = Array.from(new Uint8Array(wasm_buffer))
 
-    await loadRelease(actor, wasm_module, "0.0.0-alpha.1")
+    await loadRelease(actor, wasm_module, "0.0.0-alpha.2")
 
     console.log("Wasm loaded")
 
@@ -98,16 +99,41 @@ export const Footer: React.FC<FooterProps> = ({
 
     setLoading(false)
   }
-  return (
-    <footer
-      style={{
-        display: "flex",
-        justifyContent: "space-between"
-      }}
-    >
-      <p>Version: {version}</p>
-      <button onClick={updateCanisterWasm}>Load Wasm</button>
-      <button onClick={upgradeCanister}>Upgrade</button>
-    </footer>
+
+  const resetWasm = async () => {
+    setError(undefined)
+    if (!actor || !authClient) {
+      console.log("no actor")
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      await actor.unload_wasm()
+    } catch (e) {
+      console.log(e)
+    }
+
+    console.log("Canister reset")
+
+    const current_version = await actor.version()
+
+    setVersion(current_version)
+
+    setLoading(false)
+  }
+
+  return actor ? (
+    <Flex justify="space-between" align="center" w="100%" h="100px" padding={2}>
+      <Text>{version}</Text>
+      <Button onClick={resetWasm}>Reset</Button>
+      <Button onClick={updateCanisterWasm}>Load Wasm</Button>
+      <Button onClick={upgradeCanister}>Upgrade</Button>
+    </Flex>
+  ) : (
+    <Flex justify="space-between" align="center" w="100%" h="100px" padding={2}>
+      <Text>{version}</Text>
+    </Flex>
   )
 }

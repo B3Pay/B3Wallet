@@ -1,10 +1,9 @@
 use crate::error::WalletError;
 use b3_helper_lib::raw_keccak256;
-use b3_helper_lib::types::{AccountIdentifier, Subaccount};
+use b3_helper_lib::types::{AccountIdentifier, Environment, Subaccount};
 
 use bitcoin::{secp256k1, Address, PublicKey};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
-use std::collections::HashMap;
 
 use super::btc::network::BtcNetwork;
 use super::types::AddressMap;
@@ -21,7 +20,7 @@ impl Default for Keys {
     fn default() -> Self {
         Keys {
             ecdsa: None,
-            addresses: HashMap::new(),
+            addresses: AddressMap::default(),
             identifier: AccountIdentifier::default(),
         }
     }
@@ -77,9 +76,9 @@ impl Keys {
         Ok(public_key)
     }
 
-    pub fn get_address(&self, network: Chains) -> Result<String, WalletError> {
+    pub fn get_address(&self, chains: Chains) -> Result<String, WalletError> {
         self.addresses
-            .get(&network)
+            .get(&chains)
             .cloned()
             .ok_or_else(|| WalletError::MissingAddress)
     }
@@ -115,7 +114,7 @@ impl Keys {
         Ok(address)
     }
 
-    pub fn set_ecdsa(&mut self, ecdsa: Vec<u8>) -> Result<(), WalletError> {
+    pub fn set_ecdsa(&mut self, ecdsa: Vec<u8>, env: Environment) -> Result<(), WalletError> {
         if ecdsa.len() != 33 {
             return Err(WalletError::InvalidEcdsaPublicKey);
         }
@@ -130,15 +129,26 @@ impl Keys {
 
         self.ecdsa = Some(ecdsa);
 
-        self.generate_eth_address(0)?;
-
-        self.generate_btc_address(BtcNetwork::Mainnet)?;
+        match env {
+            Environment::Production => {
+                self.generate_address(Chains::EVM(1))?;
+                self.generate_address(Chains::BTC(BtcNetwork::Mainnet))?;
+            }
+            Environment::Staging => {
+                self.generate_address(Chains::EVM(137))?;
+                self.generate_address(Chains::BTC(BtcNetwork::Testnet))?;
+            }
+            Environment::Development => {
+                self.generate_address(Chains::EVM(5))?;
+                self.generate_address(Chains::BTC(BtcNetwork::Regtest))?;
+            }
+        }
 
         Ok(())
     }
 
-    pub fn generate_address(&mut self, network: Chains) -> Result<(), WalletError> {
-        match network {
+    pub fn generate_address(&mut self, chains: Chains) -> Result<(), WalletError> {
+        match chains {
             Chains::EVM(chain) => self.generate_eth_address(chain),
             Chains::SNS(token) => self.generate_sns_address(token),
             Chains::BTC(btc_network) => self.generate_btc_address(btc_network),
@@ -185,6 +195,14 @@ impl Keys {
 
         Ok(())
     }
+
+    pub fn remove_address(&mut self, chains: Chains) -> Result<(), WalletError> {
+        if self.addresses.remove(&chains).is_none() {
+            return Err(WalletError::MissingAddress);
+        }
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -213,7 +231,9 @@ mod tests {
             153, 192, 65, 30, 59, 177, 153, 39, 80, 76, 185, 200, 51, 255, 218,
         ];
 
-        public_keys.set_ecdsa(ecdsa).unwrap();
+        public_keys
+            .set_ecdsa(ecdsa, Environment::Production)
+            .unwrap();
 
         let icp_address = public_keys.identifier().to_string();
 
@@ -300,7 +320,9 @@ mod tests {
 
         assert_eq!(identifier.to_string(), expected_identifier.to_string());
 
-        public_keys.set_ecdsa(ecdsa).unwrap();
+        public_keys
+            .set_ecdsa(ecdsa, Environment::Production)
+            .unwrap();
 
         let icp_address = public_keys.identifier().to_string();
 
@@ -367,7 +389,9 @@ mod tests {
             26, 182, 33, 68, 123, 186, 216, 216, 41, 136, 9, 40, 38,
         ];
 
-        public_keys.set_ecdsa(ecdsa).unwrap();
+        public_keys
+            .set_ecdsa(ecdsa, Environment::Production)
+            .unwrap();
 
         let icp_address = public_keys.identifier().to_string();
 

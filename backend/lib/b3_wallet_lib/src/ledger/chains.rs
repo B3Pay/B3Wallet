@@ -3,7 +3,7 @@ use crate::error::WalletError;
 use candid::{CandidType, Deserialize};
 use std::fmt;
 
-#[derive(CandidType, Clone, Deserialize, PartialEq, Eq, Hash, Debug)]
+#[derive(CandidType, Clone, Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash, Debug)]
 pub enum Chains {
     SNS(String),
     BTC(BtcNetwork),

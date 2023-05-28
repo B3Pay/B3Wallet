@@ -1,17 +1,8 @@
 /* eslint-disable no-unused-vars */
+import { Button, Flex, Input, Select, Stack } from "@chakra-ui/react"
 import { Chains } from "declarations/b3_wallet/b3_wallet.did"
 import { useState } from "react"
 import { B3User } from "service/actor"
-
-const inputStyle = {
-  flex: 4,
-  height: 40,
-  fontSize: 16,
-  border: "1px solid black",
-  borderRadius: 2,
-  padding: "0 10px",
-  marginRight: 10
-}
 
 const chains = ["BTC", "EVM", "SNS"]
 const btcNetworks = ["Mainnet", "Testnet", "Regtest"]
@@ -19,9 +10,14 @@ const btcNetworks = ["Mainnet", "Testnet", "Regtest"]
 interface ChainSelectProps {
   actor: B3User
   account_id: string
+  refresh: () => void
 }
 
-const ChainSelect: React.FC<ChainSelectProps> = ({ account_id, actor }) => {
+const ChainSelect: React.FC<ChainSelectProps> = ({
+  account_id,
+  actor,
+  refresh
+}) => {
   const [chain, setChain] = useState("")
   const [network, setNetwork] = useState("")
   const [evmChainId, setEvmChainId] = useState("")
@@ -66,6 +62,7 @@ const ChainSelect: React.FC<ChainSelectProps> = ({ account_id, actor }) => {
       } as Chains)
       .then(() => {
         setLoading(false)
+        refresh()
       })
       .catch(err => {
         console.log(err)
@@ -74,69 +71,47 @@ const ChainSelect: React.FC<ChainSelectProps> = ({ account_id, actor }) => {
   }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        width: "100%"
-      }}
-    >
-      <select style={inputStyle} value={chain} onChange={handleChainChange}>
+    <Stack spacing="2" direction="row" justify="space-between" align="center">
+      <Select value={chain} onChange={handleChainChange}>
         <option value="">Select a chain</option>
         {chains.map((chain, index) => (
           <option key={index} value={chain}>
             {chain}
           </option>
         ))}
-      </select>
-
+      </Select>
       {chain === "BTC" && (
-        <select
-          style={inputStyle}
-          value={network}
-          onChange={handleNetworkChange}
-        >
+        <Select value={network} onChange={handleNetworkChange}>
           <option value="">Select a network</option>
           {btcNetworks.map((network, index) => (
             <option key={index} value={network}>
               {network}
             </option>
           ))}
-        </select>
+        </Select>
       )}
-
       {chain === "EVM" && (
-        <input
-          style={inputStyle}
+        <Input
           type="text"
           value={evmChainId}
           onChange={handleEvmChainIdChange}
           placeholder="EVM Chain ID"
         />
       )}
-
       {chain === "SNS" && (
-        <input
-          style={inputStyle}
+        <Input
           type="text"
           value={snsName}
           onChange={handleSnsNameChange}
           placeholder="SNS Name"
         />
       )}
-
-      <button
-        style={{
-          flex: 4
-        }}
-        onClick={generateAddress}
-      >
-        {loading
-          ? `Generating ${chain} address...`
-          : `Generate ${chain} address`}
-      </button>
-    </div>
+      <Flex>
+        <Button onClick={generateAddress} isLoading={loading}>
+          Generate {chain} address
+        </Button>
+      </Flex>
+    </Stack>
   )
 }
 
