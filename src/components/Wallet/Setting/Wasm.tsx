@@ -32,13 +32,14 @@ export const loadRelease = async (
 interface WasmProps {
   actor: B3Wallet
   version: string
+  fetchAccounts: () => void
   setLoading: (loading: boolean) => void
 }
 
 const Wasm: React.FC<WasmProps> = ({
   actor,
   setLoading,
-
+  fetchAccounts,
   version
 }) => {
   const [error, setError] = useState<string>()
@@ -80,7 +81,7 @@ const Wasm: React.FC<WasmProps> = ({
     }
 
     console.log("Canister upgraded")
-
+    fetchAccounts()
     setLoading(false)
   }
 

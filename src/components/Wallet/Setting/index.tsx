@@ -26,7 +26,12 @@ const Settings: React.FC<SettingsProps> = ({
       <Signer actor={actor} />
       <RestoreAccount actor={actor} fetchAccounts={fetchAccounts} />
       <Status actor={actor} />
-      <Wasm actor={actor} version={version} setLoading={setLoading} />
+      <Wasm
+        actor={actor}
+        version={version}
+        setLoading={setLoading}
+        fetchAccounts={fetchAccounts}
+      />
     </Stack>
   )
 }

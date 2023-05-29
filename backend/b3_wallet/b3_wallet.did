@@ -13,8 +13,9 @@ type AddSignerRequest = record {
 type BtcNetwork = variant { Mainnet; Regtest; Testnet };
 type BtcRequest = variant { BtcTransferRequest : BtcTransferRequest };
 type BtcTransferRequest = record {
-  deadline : nat64;
-  address : text;
+  to : text;
+  account_id : text;
+  network : BtcNetwork;
   amount : nat64;
 };
 type CanisterSettings = record {
@@ -319,18 +320,21 @@ service : () -> {
   get_account_counters : () -> (AccountsCounter) query;
   get_account_view : (text) -> (WalletAccountView) query;
   get_account_views : () -> (vec WalletAccountView) query;
-  get_accounts : () -> (vec WalletAccount) query;
   get_addresses : (text) -> (vec record { Chains; text }) query;
+  get_pending_list : () -> (vec PendingRequest) query;
   get_processed : (nat64) -> (ProcessedRequest) query;
-  get_processed_requests : () -> (vec record { nat64; ProcessedRequest }) query;
-  get_requests : () -> (vec PendingRequest) query;
+  get_processed_list : () -> (vec ProcessedRequest) query;
   get_signers : () -> (vec record { principal; Signer }) query;
   load_wasm : (vec nat8) -> (nat64);
   request_account_rename : (RenameAccountRequest, opt nat64) -> (nat64);
+  request_create_account : (CreateAccountRequest, opt nat64) -> (nat64);
+  request_delete_account : (HideAccountRequest, opt nat64) -> (nat64);
   request_maker : (Request, opt nat64) -> (nat64);
   request_response : (nat64, RequestResponse) -> (ProcessedRequest);
   request_sign_message : (text, vec nat8) -> (vec nat8);
   request_sign_transaction : (text, vec nat8, nat64) -> (vec nat8);
+  request_transfer_btc : (BtcTransferRequest, opt nat64) -> (nat64);
+  request_transfer_icp : (IcpTransferRequest, opt nat64) -> (nat64);
   request_update_settings : (UpdateCanisterSettingsRequest, opt nat64) -> (
       nat64,
     );

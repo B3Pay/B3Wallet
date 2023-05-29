@@ -36,12 +36,16 @@ const CreateAccount: React.FC<CreateAccountProps> = ({
     setName(newName)
   }
 
-  async function handleSubmit() {
-    if (!actor) {
-      return
-    }
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
 
-    await actor.account_create([environment], name ? [name] : [])
+    await actor.request_create_account(
+      {
+        name: name ? [name] : [],
+        env: [environment]
+      },
+      []
+    )
 
     fetchAccounts()
   }

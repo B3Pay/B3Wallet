@@ -1,8 +1,9 @@
-use b3_wallet_lib::error::WalletError;
+use b3_helper_lib::error::TrapError;
+use b3_wallet_lib::{error::WalletError, ledger::btc::network::BtcNetwork, store::with_ledger};
 use enum_dispatch::enum_dispatch;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
-use crate::types::ConsentMessageResponse;
+use crate::types::{ConsendInfo, ConsentMessageResponse};
 
 use super::Request;
 
@@ -22,9 +23,10 @@ impl BtcRequest {
 
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
 pub struct BtcTransferRequest {
+    pub account_id: String,
     pub amount: u64,
-    pub address: String,
-    pub deadline: u64,
+    pub to: String,
+    pub network: BtcNetwork,
 }
 
 impl From<BtcTransferRequest> for Request {
@@ -35,6 +37,24 @@ impl From<BtcTransferRequest> for Request {
 
 impl BtcTransferRequest {
     pub async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
-        Ok(ConsentMessageResponse::default())
+        let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
+
+        let result = ledger
+            .bitcoin_transfer(self.network, &self.to, self.amount)
+            .await;
+
+        match result {
+            Err(err) => return Err(WalletError::BitcoinSendTransactionError(err.to_string())),
+            Ok(tx_id) => Ok(ConsentMessageResponse::Valid(ConsendInfo {
+                consent_message: format!(
+                    "Transfer {} BTC to {} on {}, tx_id: {}",
+                    self.amount,
+                    self.to,
+                    self.network.to_string(),
+                    tx_id
+                ),
+                ..Default::default()
+            })),
+        }
     }
 }

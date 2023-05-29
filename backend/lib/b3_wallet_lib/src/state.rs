@@ -90,11 +90,6 @@ impl WalletState {
             .collect()
     }
 
-    // TODO: Remove this function and use account_views() instead
-    pub fn accounts(&self) -> Vec<WalletAccount> {
-        self.accounts.values().cloned().collect()
-    }
-
     pub fn accounts_len(&self) -> usize {
         self.accounts.len()
     }

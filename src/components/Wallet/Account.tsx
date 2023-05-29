@@ -179,7 +179,15 @@ const Account: React.FC<AccountProps> = ({
       setLoadings(prev => ({ ...prev, BTC: true }))
 
       await actor
-        .account_send_btc(id, { Regtest: null }, to, amount)
+        .request_transfer_btc(
+          {
+            account_id: id,
+            to,
+            network: { Regtest: null },
+            amount
+          },
+          []
+        )
         .then(res => {
           console.log(res)
 

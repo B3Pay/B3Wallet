@@ -43,12 +43,6 @@ pub fn get_account_counters() -> AccountsCounter {
 
 #[query]
 #[candid_method(query)]
-pub fn get_accounts() -> Vec<WalletAccount> {
-    with_wallet(|s| s.accounts())
-}
-
-#[query]
-#[candid_method(query)]
 pub fn get_account_views() -> Vec<WalletAccountView> {
     with_wallet(|s| s.account_views())
 }

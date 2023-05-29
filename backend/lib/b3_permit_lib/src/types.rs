@@ -17,6 +17,8 @@ pub type ProcessedRequestMap = BTreeMap<RequestId, ProcessedRequest>;
 
 pub type PendingRequestList = Vec<PendingRequest>;
 
+pub type ProcessedRequestList = Vec<ProcessedRequest>;
+
 pub type Response = BTreeMap<SignerId, RequestResponse>;
 
 pub type ResponseMap = BTreeMap<RequestId, RequestResponse>;

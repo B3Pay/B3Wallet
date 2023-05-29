@@ -4,7 +4,7 @@ import { Chains } from "declarations/b3_wallet/b3_wallet.did"
 import { useState } from "react"
 import { B3Wallet } from "service/actor"
 
-const chains = ["BTC", "EVM", "SNS"]
+const chains = ["BTC", "EVM", "SNS", "ICP"]
 const btcNetworks = ["Mainnet", "Testnet", "Regtest"]
 
 interface ChainSelectProps {

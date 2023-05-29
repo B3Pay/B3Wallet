@@ -6,7 +6,7 @@ use b3_permit_lib::{
         with_pending_mut, with_permit, with_permit_mut, with_processed_request,
         with_signer_ids_by_role,
     },
-    types::{ProcessedRequestMap, RequestResponse},
+    types::{ProcessedRequestList, RequestResponse},
 };
 use ic_cdk::{export::candid::candid_method, query, update};
 
@@ -20,8 +20,8 @@ pub fn get_processed(request_id: RequestId) -> ProcessedRequest {
 
 #[query]
 #[candid_method(query)]
-pub fn get_processed_requests() -> ProcessedRequestMap {
-    with_permit(|s| s.processed.clone())
+pub fn get_processed_list() -> ProcessedRequestList {
+    with_permit(|s| s.processed_list())
 }
 
 // UPDATE

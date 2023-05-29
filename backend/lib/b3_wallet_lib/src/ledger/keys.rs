@@ -152,8 +152,16 @@ impl Keys {
             Chains::EVM(chain) => self.generate_eth_address(chain),
             Chains::SNS(token) => self.generate_sns_address(token),
             Chains::BTC(btc_network) => self.generate_btc_address(btc_network),
-            Chains::ICP => Ok(()),
+            Chains::ICP => self.generate_icp_address(),
         }
+    }
+
+    pub fn generate_icp_address(&mut self) -> Result<(), WalletError> {
+        let identifier = self.identifier.to_string();
+
+        self.addresses.insert(Chains::ICP, identifier);
+
+        Ok(())
     }
 
     pub fn generate_sns_address(&mut self, token: String) -> Result<(), WalletError> {

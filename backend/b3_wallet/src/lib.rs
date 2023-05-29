@@ -73,8 +73,10 @@ pub fn post_upgrade() {
 #[cfg(test)]
 mod tests {
     use b3_helper_lib::types::*;
-    use b3_permit_lib::pending::inner::account::RenameAccountRequest;
-    use b3_permit_lib::pending::inner::setting::UpdateCanisterSettingsRequest;
+    use b3_permit_lib::pending::btc::*;
+    use b3_permit_lib::pending::icp::*;
+    use b3_permit_lib::pending::inner::account::*;
+    use b3_permit_lib::pending::inner::setting::*;
     use b3_permit_lib::pending::Request;
     use b3_permit_lib::processed::ProcessedRequest;
     use b3_permit_lib::signer::Roles;
@@ -84,6 +86,7 @@ mod tests {
     use b3_wallet_lib::ledger::chains::Chains;
     use b3_wallet_lib::ledger::types::AddressMap;
     use b3_wallet_lib::types::*;
+
     use ic_cdk::api::management_canister::bitcoin::{GetUtxosResponse, Satoshi, UtxoFilter};
     use ic_cdk::export::candid::export_service;
 

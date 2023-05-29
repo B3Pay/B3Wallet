@@ -28,7 +28,7 @@ impl PrmitState {
         self.pending.remove(request_id);
     }
 
-    pub fn requests(&self) -> PendingRequestList {
+    pub fn pending_list(&self) -> PendingRequestList {
         self.pending
             .iter()
             .map(|(_, request)| request.clone())

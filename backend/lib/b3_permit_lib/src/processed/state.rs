@@ -1,9 +1,16 @@
 use b3_helper_lib::types::RequestId;
 
 use super::ProcessedRequest;
-use crate::{error::RequestError, state::PrmitState};
+use crate::{error::RequestError, state::PrmitState, types::ProcessedRequestList};
 
 impl PrmitState {
+    pub fn processed_list(&self) -> ProcessedRequestList {
+        self.processed
+            .iter()
+            .map(|(_, request)| request.clone())
+            .collect()
+    }
+
     pub fn insert_processed(
         &mut self,
         request_id: RequestId,

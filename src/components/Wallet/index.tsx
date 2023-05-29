@@ -6,6 +6,7 @@ import Loading from "../Loading"
 import Account from "./Account"
 import CreateAccount from "./CreateAccount"
 import WalletHeader from "./Header"
+import ProcessedList from "./ProcessedList"
 import Settings from "./Setting"
 
 interface Loadings {
@@ -18,12 +19,18 @@ interface WalletProps {
   walletCanisterId: string
 }
 
+export enum Mode {
+  Processed,
+  Settings,
+  Accounts
+}
+
 const Wallet: React.FC<WalletProps> = ({
   actor,
   version,
   walletCanisterId
 }) => {
-  const [settings, setSettings] = useState<boolean>(false)
+  const [mode, setMode] = useState<Mode>(Mode.Accounts)
 
   const [accounts, setAccounts] = useState<WalletAccountView[]>([])
   const [loading, setLoading] = useState<Loadings>({
@@ -93,14 +100,24 @@ const Wallet: React.FC<WalletProps> = ({
     <Stack position="relative" spacing={6} width="100%">
       {loading.global && <Loading title="Wallet Loading" />}
       <WalletHeader
+        mode={mode}
         actor={actor}
         walletCanisterId={walletCanisterId}
-        toggleSetting={() => setSettings(prev => !prev)}
+        fetchAccounts={fetchAccounts}
+        toggleMode={Mode => setMode(Mode)}
       />
-      {settings ? (
+      {mode === Mode.Settings ? (
         <Settings
           actor={actor}
           version={version}
+          fetchAccounts={fetchAccounts}
+          setLoading={(global: boolean) =>
+            setLoading(prev => ({ ...prev, global }))
+          }
+        />
+      ) : mode === Mode.Processed ? (
+        <ProcessedList
+          actor={actor}
           fetchAccounts={fetchAccounts}
           setLoading={(global: boolean) =>
             setLoading(prev => ({ ...prev, global }))

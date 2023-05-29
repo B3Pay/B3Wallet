@@ -64,14 +64,10 @@ export const idlFactory = ({ IDL }) => {
     'addresses' : IDL.Vec(IDL.Tuple(Chains, IDL.Text)),
     'environment' : Environment,
   });
-  const RequestStatus = IDL.Variant({
-    'Fail' : IDL.Null,
-    'Success' : IDL.Null,
-    'Pending' : IDL.Null,
-  });
   const BtcTransferRequest = IDL.Record({
-    'deadline' : IDL.Nat64,
-    'address' : IDL.Text,
+    'to' : IDL.Text,
+    'account_id' : IDL.Text,
+    'network' : BtcNetwork,
     'amount' : IDL.Nat64,
   });
   const BtcRequest = IDL.Variant({ 'BtcTransferRequest' : BtcTransferRequest });
@@ -235,6 +231,11 @@ export const idlFactory = ({ IDL }) => {
     'role' : Roles,
     'deadline' : IDL.Nat64,
     'response' : IDL.Vec(IDL.Tuple(IDL.Principal, RequestResponse)),
+  });
+  const RequestStatus = IDL.Variant({
+    'Fail' : IDL.Null,
+    'Success' : IDL.Null,
+    'Pending' : IDL.Null,
   });
   const RequestError = IDL.Variant({
     'InvalidMessage' : IDL.Text,
@@ -406,19 +407,14 @@ export const idlFactory = ({ IDL }) => {
     'get_account_counters' : IDL.Func([], [AccountsCounter], ['query']),
     'get_account_view' : IDL.Func([IDL.Text], [WalletAccountView], ['query']),
     'get_account_views' : IDL.Func([], [IDL.Vec(WalletAccountView)], ['query']),
-    'get_accounts' : IDL.Func([], [IDL.Vec(WalletAccount)], ['query']),
     'get_addresses' : IDL.Func(
         [IDL.Text],
         [IDL.Vec(IDL.Tuple(Chains, IDL.Text))],
         ['query'],
       ),
+    'get_pending_list' : IDL.Func([], [IDL.Vec(PendingRequest)], ['query']),
     'get_processed' : IDL.Func([IDL.Nat64], [ProcessedRequest], ['query']),
-    'get_processed_requests' : IDL.Func(
-        [],
-        [IDL.Vec(IDL.Tuple(IDL.Nat64, ProcessedRequest))],
-        ['query'],
-      ),
-    'get_requests' : IDL.Func([], [IDL.Vec(PendingRequest)], ['query']),
+    'get_processed_list' : IDL.Func([], [IDL.Vec(ProcessedRequest)], ['query']),
     'get_signers' : IDL.Func(
         [],
         [IDL.Vec(IDL.Tuple(IDL.Principal, Signer))],
@@ -427,6 +423,16 @@ export const idlFactory = ({ IDL }) => {
     'load_wasm' : IDL.Func([IDL.Vec(IDL.Nat8)], [IDL.Nat64], []),
     'request_account_rename' : IDL.Func(
         [RenameAccountRequest, IDL.Opt(IDL.Nat64)],
+        [IDL.Nat64],
+        [],
+      ),
+    'request_create_account' : IDL.Func(
+        [CreateAccountRequest, IDL.Opt(IDL.Nat64)],
+        [IDL.Nat64],
+        [],
+      ),
+    'request_delete_account' : IDL.Func(
+        [HideAccountRequest, IDL.Opt(IDL.Nat64)],
         [IDL.Nat64],
         [],
       ),
@@ -444,6 +450,16 @@ export const idlFactory = ({ IDL }) => {
     'request_sign_transaction' : IDL.Func(
         [IDL.Text, IDL.Vec(IDL.Nat8), IDL.Nat64],
         [IDL.Vec(IDL.Nat8)],
+        [],
+      ),
+    'request_transfer_btc' : IDL.Func(
+        [BtcTransferRequest, IDL.Opt(IDL.Nat64)],
+        [IDL.Nat64],
+        [],
+      ),
+    'request_transfer_icp' : IDL.Func(
+        [IcpTransferRequest, IDL.Opt(IDL.Nat64)],
+        [IDL.Nat64],
         [],
       ),
     'request_update_settings' : IDL.Func(

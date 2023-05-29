@@ -18,8 +18,9 @@ export type BtcNetwork = { 'Mainnet' : null } |
   { 'Testnet' : null };
 export type BtcRequest = { 'BtcTransferRequest' : BtcTransferRequest };
 export interface BtcTransferRequest {
-  'deadline' : bigint,
-  'address' : string,
+  'to' : string,
+  'account_id' : string,
+  'network' : BtcNetwork,
   'amount' : bigint,
 }
 export interface CanisterSettings {
@@ -360,15 +361,22 @@ export interface _SERVICE {
   'get_account_counters' : ActorMethod<[], AccountsCounter>,
   'get_account_view' : ActorMethod<[string], WalletAccountView>,
   'get_account_views' : ActorMethod<[], Array<WalletAccountView>>,
-  'get_accounts' : ActorMethod<[], Array<WalletAccount>>,
   'get_addresses' : ActorMethod<[string], Array<[Chains, string]>>,
+  'get_pending_list' : ActorMethod<[], Array<PendingRequest>>,
   'get_processed' : ActorMethod<[bigint], ProcessedRequest>,
-  'get_processed_requests' : ActorMethod<[], Array<[bigint, ProcessedRequest]>>,
-  'get_requests' : ActorMethod<[], Array<PendingRequest>>,
+  'get_processed_list' : ActorMethod<[], Array<ProcessedRequest>>,
   'get_signers' : ActorMethod<[], Array<[Principal, Signer]>>,
   'load_wasm' : ActorMethod<[Uint8Array | number[]], bigint>,
   'request_account_rename' : ActorMethod<
     [RenameAccountRequest, [] | [bigint]],
+    bigint
+  >,
+  'request_create_account' : ActorMethod<
+    [CreateAccountRequest, [] | [bigint]],
+    bigint
+  >,
+  'request_delete_account' : ActorMethod<
+    [HideAccountRequest, [] | [bigint]],
     bigint
   >,
   'request_maker' : ActorMethod<[Request, [] | [bigint]], bigint>,
@@ -380,6 +388,14 @@ export interface _SERVICE {
   'request_sign_transaction' : ActorMethod<
     [string, Uint8Array | number[], bigint],
     Uint8Array | number[]
+  >,
+  'request_transfer_btc' : ActorMethod<
+    [BtcTransferRequest, [] | [bigint]],
+    bigint
+  >,
+  'request_transfer_icp' : ActorMethod<
+    [IcpTransferRequest, [] | [bigint]],
+    bigint
   >,
   'request_update_settings' : ActorMethod<
     [UpdateCanisterSettingsRequest, [] | [bigint]],

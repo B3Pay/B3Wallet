@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::error::WalletError;
 use b3_helper_lib::constants::{
     GET_BALANCE_COST_CYCLES, GET_CURRENT_FEE_PERCENTILES_CYCLES, GET_UTXOS_COST_CYCLES,
@@ -168,6 +170,16 @@ impl From<BtcNetwork> for BitcoinNetwork {
             BtcNetwork::Mainnet => BitcoinNetwork::Mainnet,
             BtcNetwork::Testnet => BitcoinNetwork::Testnet,
             BtcNetwork::Regtest => BitcoinNetwork::Regtest,
+        }
+    }
+}
+
+impl fmt::Display for BtcNetwork {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            BtcNetwork::Mainnet => write!(f, "mainnet"),
+            BtcNetwork::Testnet => write!(f, "testnet"),
+            BtcNetwork::Regtest => write!(f, "regtest"),
         }
     }
 }

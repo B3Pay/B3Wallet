@@ -1,5 +1,5 @@
 use super::{InnerRequest, Request};
-use crate::types::ConsentMessageResponse;
+use crate::types::{ConsendInfo, ConsentMessageResponse};
 use b3_helper_lib::types::Environment;
 use b3_wallet_lib::{
     account::WalletAccount,
@@ -28,9 +28,14 @@ impl CreateAccountRequest {
 
         let new_account: WalletAccount = subaccount.into();
 
+        let name = new_account.id().to_string();
+
         with_wallet_mut(|s| s.insert_account(new_account, self.name.clone()));
 
-        Ok(ConsentMessageResponse::default())
+        Ok(ConsentMessageResponse::Valid(ConsendInfo {
+            consent_message: format!("Account {} created", name),
+            ..Default::default()
+        }))
     }
 }
 
@@ -50,7 +55,10 @@ impl RemoveAccountRequest {
     pub fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
         with_wallet_mut(|s| s.remove_account(&self.account_id))?;
 
-        Ok(ConsentMessageResponse::default())
+        Ok(ConsentMessageResponse::Valid(ConsendInfo {
+            consent_message: format!("Account {} removed", self.account_id),
+            ..Default::default()
+        }))
     }
 }
 
@@ -73,7 +81,10 @@ impl RenameAccountRequest {
             account.rename(self.new_name.clone())
         })?;
 
-        Ok(ConsentMessageResponse::default())
+        Ok(ConsentMessageResponse::Valid(ConsendInfo {
+            consent_message: format!("Account {} renamed to {}", self.account_id, self.new_name),
+            ..Default::default()
+        }))
     }
 }
 
@@ -95,7 +106,10 @@ impl HideAccountRequest {
             account.hide();
         })?;
 
-        Ok(ConsentMessageResponse::default())
+        Ok(ConsentMessageResponse::Valid(ConsendInfo {
+            consent_message: format!("Account {} hidden", self.account_id),
+            ..Default::default()
+        }))
     }
 }
 
@@ -117,7 +131,10 @@ impl UnhideAccountRequest {
             account.unhide();
         })?;
 
-        Ok(ConsentMessageResponse::default())
+        Ok(ConsentMessageResponse::Valid(ConsendInfo {
+            consent_message: format!("Account {} unhidden", self.account_id),
+            ..Default::default()
+        }))
     }
 }
 
@@ -147,6 +164,9 @@ impl EcdsaPublicKeyRequest {
             ledger.set_ecdsa_public_key(ecdsa)
         })??;
 
-        Ok(ConsentMessageResponse::default())
+        Ok(ConsentMessageResponse::Valid(ConsendInfo {
+            consent_message: format!("Ecdsa public key set for account {}", self.account_id),
+            ..Default::default()
+        }))
     }
 }

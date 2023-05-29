@@ -5,7 +5,12 @@ use b3_helper_lib::{
 };
 use b3_permit_lib::{
     pending::{
-        inner::{account::RenameAccountRequest, setting::UpdateCanisterSettingsRequest},
+        btc::BtcTransferRequest,
+        icp::IcpTransferRequest,
+        inner::{
+            account::{CreateAccountRequest, RemoveAccountRequest, RenameAccountRequest},
+            setting::UpdateCanisterSettingsRequest,
+        },
         Request, RequestArgs,
     },
     signer::Roles,
@@ -19,8 +24,8 @@ use ic_cdk::{export::candid::candid_method, query, update};
 
 #[query]
 #[candid_method(query)]
-pub fn get_requests() -> PendingRequestList {
-    with_permit(|s| s.requests())
+pub fn get_pending_list() -> PendingRequestList {
+    with_permit(|s| s.pending_list())
 }
 
 // UPDATE ---------------------------------------------------------------------
@@ -57,6 +62,56 @@ pub fn request_account_rename(
     request: RenameAccountRequest,
     deadline: Option<Deadline>,
 ) -> RequestId {
+    let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
+
+    with_permit_mut(|s| {
+        let new_request = s.new_request(request_args);
+        s.insert_new_request(new_request)
+    })
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_admin")]
+pub fn request_create_account(
+    request: CreateAccountRequest,
+    deadline: Option<Deadline>,
+) -> RequestId {
+    let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
+
+    with_permit_mut(|s| {
+        let new_request = s.new_request(request_args);
+        s.insert_new_request(new_request)
+    })
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_admin")]
+pub fn request_delete_account(
+    request: RemoveAccountRequest,
+    deadline: Option<Deadline>,
+) -> RequestId {
+    let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
+
+    with_permit_mut(|s| {
+        let new_request = s.new_request(request_args);
+        s.insert_new_request(new_request)
+    })
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_admin")]
+pub fn request_transfer_icp(request: IcpTransferRequest, deadline: Option<Deadline>) -> RequestId {
+    let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
+
+    with_permit_mut(|s| {
+        let new_request = s.new_request(request_args);
+        s.insert_new_request(new_request)
+    })
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_admin")]
+pub fn request_transfer_btc(request: BtcTransferRequest, deadline: Option<Deadline>) -> RequestId {
     let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
 
     with_permit_mut(|s| {

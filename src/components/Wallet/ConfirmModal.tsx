@@ -10,72 +10,27 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Stat,
-  StatHelpText,
-  StatLabel,
   useDisclosure
 } from "@chakra-ui/react"
 import { PendingRequest } from "declarations/b3_wallet/b3_wallet.did"
 import { useState } from "react"
 import { B3Wallet } from "service/actor"
-
-const parent = (key: string, value: any) =>
-  value && typeof value === "object" ? (
-    <Stat key={key}>
-      <StatLabel>{key}: &nbsp;</StatLabel>
-      {child(value)}
-    </Stat>
-  ) : (
-    <Stat key={key}>
-      <StatLabel>{key}: &nbsp;</StatLabel>
-      <StatHelpText>{value?.toString()}</StatHelpText>
-    </Stat>
-  )
-
-const child = (value: any) =>
-  value &&
-  (value._isPrincipal ? (
-    value.toText()
-  ) : typeof value === "object" ? (
-    Array.isArray(value) || typeof value[0] === "number" ? (
-      value.toString()
-    ) : (
-      <Box ml={2}>
-        {Object.entries(value).map(([key, value]) => parent(key, value))}
-      </Box>
-    )
-  ) : (
-    value.toString()
-  ))
-
-interface Request {
-  type: string
-  details: string
-}
+import Parent from "../Parent"
 
 interface ConfirmationModalProps {
   actor: B3Wallet
-  request: Request
+  fetchAccounts: () => void
 }
 
-const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ actor }) => {
+const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
+  actor,
+  fetchAccounts
+}) => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [requests, setRequests] = useState<PendingRequest[]>([])
 
-  // useInterval(() => {
-  //   // Call your function to check for new requests here.
-  //   // If a new request is found, update the state.
-  //   actor.get_requests().then(newRequests => {
-  //     console.log(newRequests)
-  //     if (newRequests.length > 0) {
-  //       setRequests(newRequests)
-  //       // Open modal here to confirm or reject new request
-  //     }
-  //   })
-  // }, 10000) // Run every 5 seconds when isChecking is true
-
   const fetchRequests = async () => {
-    actor.get_requests().then(newRequests => {
+    actor.get_pending_list().then(newRequests => {
       console.log(newRequests)
       if (newRequests.length > 0) {
         setRequests(newRequests)
@@ -88,6 +43,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ actor }) => {
   const confirmHandler = async (request_id: bigint) => {
     actor.request_response(request_id, { Confirm: null }).then(() => {
       onClose()
+      fetchAccounts()
     })
   }
 
@@ -112,9 +68,9 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ actor }) => {
             <ModalHeader>Request ID: {requests[0].id.toString()}</ModalHeader>
             <ModalCloseButton />
             <ModalBody>
-              {Object.entries(requests[0].request).map(([key, value]) =>
-                parent(key, value)
-              )}
+              {Object.entries(requests[0].request).map(([key, value]) => (
+                <Parent key={key} parent={key} child={value} />
+              ))}
             </ModalBody>
             <ModalFooter>
               <Button
