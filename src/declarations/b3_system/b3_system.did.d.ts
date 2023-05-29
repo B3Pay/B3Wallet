@@ -36,13 +36,8 @@ export interface ReleaseArgs {
   'size' : bigint,
   'version' : string,
 }
-export type Result = { 'Ok' : SignerCanister } |
+export type Result = { 'Ok' : WalletCanister } |
   { 'Err' : string };
-export interface SignerCanister {
-  'updated_at' : bigint,
-  'canister_id' : [] | [Principal],
-  'created_at' : bigint,
-}
 export interface SystemCanisterStatus {
   'canister_id' : Principal,
   'user_status' : bigint,
@@ -50,21 +45,30 @@ export interface SystemCanisterStatus {
   'version' : string,
   'canister_status' : CanisterStatusResponse,
 }
+export interface WalletCanister {
+  'updated_at' : bigint,
+  'canister_id' : [] | [Principal],
+  'created_at' : bigint,
+}
 export interface _SERVICE {
   'add_controller' : ActorMethod<[Principal], undefined>,
+  'add_wallet_canister' : ActorMethod<[Principal], undefined>,
   'change_wallet_canister' : ActorMethod<[Principal], undefined>,
-  'create_wallet_canister' : ActorMethod<[], Result>,
+  'create_wallet_canister' : ActorMethod<[[] | [string]], Result>,
   'deprecate_release' : ActorMethod<[string], undefined>,
-  'get_canister' : ActorMethod<[], SignerCanister>,
+  'get_canister' : ActorMethod<[], WalletCanister>,
   'get_canister_version' : ActorMethod<[Principal], string>,
   'get_canister_version_by_user' : ActorMethod<[Principal], string>,
   'get_controllers' : ActorMethod<[], Array<Principal>>,
   'get_release' : ActorMethod<[string], Release>,
   'get_release_by_index' : ActorMethod<[bigint], Release>,
-  'get_signer_canisters' : ActorMethod<[], Array<SignerCanister>>,
   'get_user_ids' : ActorMethod<[], Array<Principal>>,
+  'get_wallet_canisters' : ActorMethod<[], Array<WalletCanister>>,
   'get_wallet_release' : ActorMethod<[Principal], Release>,
-  'install_wallet_canister' : ActorMethod<[[] | [Principal]], Result>,
+  'install_wallet_canister' : ActorMethod<
+    [[] | [Principal], [] | [string]],
+    Result
+  >,
   'latest_release' : ActorMethod<[], Release>,
   'load_release' : ActorMethod<
     [Uint8Array | number[], ReleaseArgs],

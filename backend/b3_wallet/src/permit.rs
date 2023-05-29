@@ -33,6 +33,12 @@ pub fn caller_is_signer() -> Result<(), String> {
 
 #[query]
 #[candid_method(query)]
+pub fn validate_signer(signer_id: SignerId) -> bool {
+    with_permit(|u| u.signers.contains_key(&signer_id))
+}
+
+#[query(guard = "caller_is_admin")]
+#[candid_method(query)]
 pub fn get_signers() -> SignerMap {
     with_permit(|u| u.signers.clone())
 }

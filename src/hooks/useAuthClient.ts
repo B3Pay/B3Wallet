@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react"
 import { B3System, makeB3SystemActor } from "service/actor"
 
 const useAuth = () => {
+  const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false)
   const [authClient, setAuthClient] = useState<AuthClient>()
   const [systemActor, setSystemActor] = useState<B3System>()
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
@@ -21,10 +22,13 @@ const useAuth = () => {
 
       const maxTimeToLive = 24n * 60n * 60n * 1000n * 1000n * 1000n
 
+      setIsAuthenticating(true)
+
       authClient?.login({
         identityProvider,
         maxTimeToLive,
         onSuccess: () => {
+          setIsAuthenticating(false)
           setIsAuthenticated(true)
         }
       })
@@ -46,7 +50,10 @@ const useAuth = () => {
 
   useEffect(() => {
     if (authClient == null) {
+      setIsAuthenticating(true)
       AuthClient.create().then(async client => {
+        await client?.isAuthenticated()
+        setIsAuthenticating(false)
         setAuthClient(client)
       })
     }
@@ -69,9 +76,8 @@ const useAuth = () => {
 
   return {
     authClient,
-    setAuthClient,
     isAuthenticated,
-    setIsAuthenticated,
+    isAuthenticating,
     login,
     logout,
     systemActor

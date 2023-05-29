@@ -2,13 +2,13 @@
 import { Button, Flex, Input, Select, Stack } from "@chakra-ui/react"
 import { Chains } from "declarations/b3_wallet/b3_wallet.did"
 import { useState } from "react"
-import { B3User } from "service/actor"
+import { B3Wallet } from "service/actor"
 
 const chains = ["BTC", "EVM", "SNS"]
 const btcNetworks = ["Mainnet", "Testnet", "Regtest"]
 
 interface ChainSelectProps {
-  actor: B3User
+  actor: B3Wallet
   account_id: string
   refresh: () => void
 }

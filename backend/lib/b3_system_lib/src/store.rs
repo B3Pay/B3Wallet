@@ -2,7 +2,7 @@ use b3_helper_lib::types::{SignerId, Version, Wasm, WasmHash};
 
 use crate::{
     error::SystemError,
-    types::{Release, Releases, SignerCanister, State, UserMap, WasmMap},
+    types::{Release, Releases, State, UserMap, WalletCanister, WasmMap},
 };
 use std::cell::RefCell;
 
@@ -131,7 +131,7 @@ where
 
 pub fn with_wallet_canister<F, T>(user_id: &SignerId, f: F) -> Result<T, SystemError>
 where
-    F: FnOnce(&SignerCanister) -> T,
+    F: FnOnce(&WalletCanister) -> T,
 {
     with_users(|signers| {
         signers
@@ -143,7 +143,7 @@ where
 
 pub fn with_wallet_canister_mut<F, T>(user_id: &SignerId, f: F) -> Result<T, SystemError>
 where
-    F: FnOnce(&mut SignerCanister) -> T,
+    F: FnOnce(&mut WalletCanister) -> T,
 {
     with_users_mut(|signers| {
         signers

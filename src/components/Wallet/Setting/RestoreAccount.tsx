@@ -1,11 +1,11 @@
-import { Button, Flex, Input, Select, Stack } from "@chakra-ui/react"
+import { Button, Input, Select, Stack } from "@chakra-ui/react"
 import { Environment } from "declarations/b3_wallet/b3_wallet.did"
 import { IS_LOCAL } from "helpers/config"
 import { useState } from "react"
-import { B3User } from "service/actor"
+import { B3Wallet } from "service/actor"
 
 interface RestoreAccountProps {
-  actor: B3User
+  actor: B3Wallet
   fetchAccounts: () => void
 }
 
@@ -30,7 +30,7 @@ const RestoreAccount: React.FC<RestoreAccountProps> = ({
     setNonce(newName)
   }
 
-  async function createAccount() {
+  const createAccount = async () => {
     if (!actor) {
       return
     }
@@ -47,9 +47,26 @@ const RestoreAccount: React.FC<RestoreAccountProps> = ({
       })
   }
 
+  const resetAccount = async () => {
+    if (!actor) {
+      return
+    }
+
+    setLoading(true)
+
+    const result = await actor.reset_wallet()
+
+    console.log(result)
+
+    fetchAccounts()
+
+    setLoading(false)
+  }
+
   return (
     <Stack spacing="2" direction="row" justify="space-between" align="center">
       <Select
+        flex={4}
         value={Object.keys(environment)[0]}
         onChange={e => {
           const env = e.target.value
@@ -64,16 +81,20 @@ const RestoreAccount: React.FC<RestoreAccountProps> = ({
       <Input
         id="nonce"
         alt="Name"
+        flex={2}
         type="number"
         placeholder="Nonce"
         value={nonce.toString()}
         onChange={onChangeName}
       />
-      <Flex flex="1">
+      <Stack spacing="2" flex={6} direction="row" justify="space-between">
         <Button onClick={createAccount} isLoading={loading}>
           Restore
         </Button>
-      </Flex>
+        <Button colorScheme="red" onClick={resetAccount}>
+          Reset Account
+        </Button>
+      </Stack>
     </Stack>
   )
 }

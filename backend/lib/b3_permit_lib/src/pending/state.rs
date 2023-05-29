@@ -51,8 +51,8 @@ impl PrmitState {
     }
 
     pub fn check_request(&self, request_id: &RequestId) -> Result<(), RequestError> {
-        if self.confirmed.get(request_id).is_some() {
-            return Err(RequestError::RequestAlreadyConfirmed(*request_id));
+        if self.processed.get(request_id).is_some() {
+            return Err(RequestError::RequestAlreadyProcessed(*request_id));
         }
 
         if !self.pending.contains_key(&request_id) {

@@ -25,17 +25,17 @@ import { Chains, WalletAccountView } from "declarations/b3_wallet/b3_wallet.did"
 import { ethers, providers } from "ethers"
 import { isAddress } from "ethers/lib/utils"
 import { useCallback, useEffect, useState } from "react"
-import { B3User } from "service/actor"
+import { B3Wallet } from "service/actor"
+import Loading from "../Loading"
 import { Chain } from "./Chain"
 import ChainsSelect from "./ChainSelect"
-import Loading from "./Loading"
 
 const provider = new providers.JsonRpcProvider(
   "https://data-seed-prebsc-2-s1.binance.org:8545"
 )
 
 interface AccountProps extends WalletAccountView {
-  actor: B3User
+  actor: B3Wallet
   loading: boolean
   isExpanded: boolean
   refresh: () => void
@@ -306,7 +306,7 @@ const Account: React.FC<AccountProps> = ({
   const noPublickey = addresses.length === 1
 
   return (
-    <>
+    <Box position="relative">
       {(loadings.global || loading) && <Loading />}
       <Stack alignItems="center" justify="space-between" direction="row">
         <Flex
@@ -315,7 +315,7 @@ const Account: React.FC<AccountProps> = ({
           alignItems="center"
           zIndex={1}
         >
-          <Avatar name={name} size="sm" />
+          <Avatar name={name} />
           {editMode ? (
             <Input
               type="text"
@@ -329,14 +329,18 @@ const Account: React.FC<AccountProps> = ({
             </Box>
           )}
           <IconButton
-            size="sm"
             variant="ghost"
             colorScheme="blue"
             aria-label="Edit account name"
             icon={editMode ? <CheckIcon /> : <EditIcon />}
             onClick={async () => {
               if (editMode) {
-                await actor.account_rename(id, newName)
+                const renameArgs = {
+                  account_id: id,
+                  new_name: newName
+                }
+
+                await actor.request_account_rename(renameArgs, [])
                 setNewName(newName)
                 setEditMode(false)
               } else setEditMode(true)
@@ -344,7 +348,6 @@ const Account: React.FC<AccountProps> = ({
           />
           {editMode ? (
             <IconButton
-              size="sm"
               variant="ghost"
               colorScheme="red"
               aria-label="Edit account name"
@@ -358,25 +361,19 @@ const Account: React.FC<AccountProps> = ({
         </Flex>
         {noPublickey && (
           <Flex flex="3" justify="end">
-            <Button
-              size="sm"
-              onClick={requestPublicKey}
-              isLoading={loadings.global}
-            >
+            <Button onClick={requestPublicKey} isLoading={loadings.global}>
               Request PublicKey
             </Button>
           </Flex>
         )}
         <Stack direction="row" flex="2" justify="end">
           <IconButton
-            size="sm"
             colorScheme="blue"
             aria-label="Refresh account"
             icon={<RepeatIcon />}
             onClick={refresh}
           />
           <IconButton
-            size="sm"
             aria-label="Remove account"
             colorScheme="red"
             icon={<DeleteIcon />}
@@ -387,7 +384,7 @@ const Account: React.FC<AccountProps> = ({
           <AccordionIcon />
         </AccordionButton>
       </Stack>
-      <AccordionPanel pb={4} fontSize="14">
+      <AccordionPanel py={4} px={1} fontSize="14">
         <Stack spacing="2">
           {!noPublickey && (
             <ChainsSelect account_id={id} actor={actor} refresh={refresh} />
@@ -420,7 +417,7 @@ const Account: React.FC<AccountProps> = ({
           })}
         </Stack>
       </AccordionPanel>
-    </>
+    </Box>
   )
 }
 

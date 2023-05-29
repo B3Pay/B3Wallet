@@ -4,6 +4,7 @@ use ic_cdk::export::candid::{CandidType, Deserialize};
 #[rustfmt::skip]
 #[derive(CandidType, Deserialize)]
 pub enum SystemError {
+    InvalidWalletCanister,
     InvalidAccountIdentifier,
     ReleaseNotFound,
     ReleaseAlreadyExists,
@@ -31,6 +32,7 @@ pub enum SystemError {
 impl TrapError for SystemError {
     fn to_string(self) -> String {
         match self {
+            SystemError::InvalidWalletCanister => "Invalid wallet canister!".to_string(),
             SystemError::OwnerMismatch { owner, user } => ["Owner mismatch:", &owner, "!=", &user].join(" "),
             SystemError::InstallArgError(e) => ["Install arg error: ", &e].concat(),
             SystemError::UpdateControllersError(e) => ["Update controllers error: ", &e].concat(),

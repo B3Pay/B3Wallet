@@ -4,10 +4,10 @@ pub mod icp;
 pub mod inner;
 pub mod state;
 
-use crate::confirmed::ConfirmedRequest;
 use crate::error::RequestError;
+use crate::processed::ProcessedRequest;
 use crate::signer::Roles;
-use crate::types::ConsentMessageResponse;
+use crate::types::{ConsentMessageResponse, RequestResponse, RequestResponseTrait, Response};
 use b3_helper_lib::types::{RequestId, SignerId};
 use b3_helper_lib::{error::TrapError, types::Deadline};
 use b3_wallet_lib::error::WalletError;
@@ -69,7 +69,7 @@ pub struct PendingRequest {
     role: Roles,
     request: Request,
     deadline: Deadline,
-    signers: Vec<SignerId>,
+    response: Response,
 }
 
 impl PendingRequest {
@@ -83,20 +83,20 @@ impl PendingRequest {
         PendingRequest {
             id,
             deadline,
-            signers: vec![],
+            response: Response::new(),
             role: args.role,
             request: args.request,
         }
     }
 
-    pub async fn execute(&self) -> ConfirmedRequest {
-        let mut confirmed = ConfirmedRequest::new(&self);
+    pub async fn execute(&self) -> ProcessedRequest {
+        let mut confirmed = ProcessedRequest::new(&self);
 
         let match_result = self.request.execute().await;
 
         match match_result {
-            Ok(message) => confirmed.confirm(message),
-            Err(err) => confirmed.reject(RequestError::ExecutionError(err.to_string())),
+            Ok(message) => confirmed.succeed(message),
+            Err(err) => confirmed.fail(RequestError::ExecutionError(err.to_string())),
         }
     }
 
@@ -112,8 +112,8 @@ impl PendingRequest {
         self.deadline
     }
 
-    pub fn signers(&self) -> &Vec<SignerId> {
-        &self.signers
+    pub fn signers(&self) -> &Response {
+        &self.response
     }
 
     pub fn is_expired(&self) -> bool {
@@ -121,27 +121,45 @@ impl PendingRequest {
     }
 
     pub fn is_signed(&self, signer_id: &SignerId) -> bool {
-        self.signers.contains(signer_id)
+        self.response.keys().any(|id| id == signer_id)
     }
 
-    pub fn request_mut(&mut self) -> &mut Request {
-        &mut self.request
+    pub fn is_rejected(&self) -> bool {
+        self.response.values().any(|response| response.is_reject())
     }
 
-    pub fn sign(&mut self, signer: SignerId) -> Result<usize, RequestError> {
-        if self.signers.contains(&signer) {
-            return Err(RequestError::AlreadySigned(signer.to_string()));
+    pub fn get_error(&self) -> Option<RequestError> {
+        if self.is_rejected() {
+            return Some(RequestError::RequestRejected);
         }
 
-        self.signers.push(signer);
+        if self.is_expired() {
+            return Some(RequestError::RequestExpired);
+        }
 
-        Ok(self.signers.len())
+        None
+    }
+
+    pub fn response(
+        &mut self,
+        signer: SignerId,
+        response: RequestResponse,
+    ) -> Result<(), RequestError> {
+        if self.is_signed(&signer) {
+            return Err(RequestError::RequestAlreadySigned(signer.to_string()));
+        }
+
+        self.response.insert(signer, response);
+
+        Ok(())
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::pending::inner::account::RenameAccountRequest;
+    use candid::Principal;
+
+    use crate::{pending::inner::account::RenameAccountRequest, types::Confirm};
 
     use super::*;
 
@@ -177,5 +195,42 @@ mod tests {
         assert_eq!(pending.role(), Roles::Admin);
         assert_eq!(pending.deadline(), 1_000_000_000);
         assert_eq!(pending.is_expired(), true);
+    }
+
+    #[test]
+    fn test_confirm_request() {
+        let request = RenameAccountRequest {
+            account_id: "test".to_string(),
+            new_name: "test".to_string(),
+        };
+
+        let signer = Principal::anonymous();
+
+        let args = RequestArgs::new(Roles::Admin, request.into(), None);
+
+        let mut pending = PendingRequest::new(1, args);
+
+        pending
+            .response(signer, RequestResponse::Confirm(Confirm))
+            .unwrap();
+
+        assert_eq!(pending.id(), 1);
+        assert_eq!(pending.role(), Roles::Admin);
+        assert_eq!(pending.deadline(), ic_timestamp() + 15 * 60 * 1_000_000_000);
+        assert_eq!(pending.is_expired(), false);
+        assert_eq!(pending.is_signed(&signer), true);
+    }
+
+    #[test]
+    fn test_response() {
+        let response: RequestResponse = RequestResponse::Confirm(Confirm);
+
+        if response.is_reject() {
+            println!("Response is Reject");
+        } else if response.is_confirm() {
+            println!("Response is Confirm");
+        } else {
+            println!("Unknown response");
+        }
     }
 }

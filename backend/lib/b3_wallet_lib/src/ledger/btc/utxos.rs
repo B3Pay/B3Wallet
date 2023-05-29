@@ -6,10 +6,7 @@ use crate::{
 use bitcoin::{
     absolute::LockTime, hashes::Hash, Address, PublicKey, Script, Transaction, TxIn, Txid,
 };
-use ic_cdk::{
-    api::management_canister::bitcoin::{GetUtxosResponse, Utxo},
-    println,
-};
+use ic_cdk::api::management_canister::bitcoin::{GetUtxosResponse, Utxo};
 
 pub struct BtcUtxos(Vec<Utxo>);
 
@@ -129,10 +126,6 @@ impl BtcUtxos {
         let remaining_amount = total_spent - amount - fee;
 
         if remaining_amount >= DUST_THRESHOLD {
-            println!(
-                "remaining_amount: {}, total_spent: {}",
-                remaining_amount, total_spent
-            );
             transaction.output.push(BtcTxOut {
                 script_pubkey: own_address.script_pubkey(),
                 value: remaining_amount,

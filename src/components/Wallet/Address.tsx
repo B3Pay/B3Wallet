@@ -1,6 +1,7 @@
 import { CheckIcon, CopyIcon } from "@chakra-ui/icons"
 import {
   Flex,
+  FlexProps,
   IconButton,
   Tooltip,
   useClipboard,
@@ -8,13 +9,13 @@ import {
 } from "@chakra-ui/react"
 import { useMemo } from "react"
 
-interface AddressWithCopyProps {
+interface AddressWithCopyProps extends FlexProps {
   address: string
 }
 
-const Address: React.FC<AddressWithCopyProps> = ({ address }) => {
+const Address: React.FC<AddressWithCopyProps> = ({ address, ...rest }) => {
   const { hasCopied, onCopy } = useClipboard(address)
-  const [isLargerThan500] = useMediaQuery(["(min-width: 500px)"])
+  const [isLargerThan500] = useMediaQuery(["(min-width: 568px)"])
 
   const truncatedAddress = useMemo(() => {
     if (isLargerThan500 && address.length <= 42) {
@@ -29,14 +30,13 @@ const Address: React.FC<AddressWithCopyProps> = ({ address }) => {
 
   return (
     <Tooltip label={address} aria-label="Full address">
-      <Flex alignItems="center">
+      <Flex alignItems="center" {...rest}>
         {truncatedAddress}
         <IconButton
           colorScheme="blue"
           onClick={onCopy}
           aria-label="Copy to clipboard"
           variant="ghost"
-          size="sm"
           icon={hasCopied ? <CheckIcon /> : <CopyIcon />}
         />
       </Flex>

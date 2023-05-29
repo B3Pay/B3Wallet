@@ -1,10 +1,10 @@
 use crate::{
-    confirmed::ConfirmedRequest,
     error::RequestError,
     pending::PendingRequest,
+    processed::ProcessedRequest,
     signer::{Roles, Signer},
     state::PrmitState,
-    types::ConfirmedRequestMap,
+    types::ProcessedRequestMap,
 };
 use b3_helper_lib::{
     error::TrapError,
@@ -64,26 +64,26 @@ where
 // CONFIRMED ------------------------------------------------------------------------
 
 /// Get Confirmed.
-pub fn with_confirmed_requests<T, F>(callback: F) -> T
+pub fn with_processed_requests<T, F>(callback: F) -> T
 where
-    F: FnOnce(&ConfirmedRequestMap) -> T,
+    F: FnOnce(&ProcessedRequestMap) -> T,
 {
-    with_permit(|state| callback(&state.confirmed))
+    with_permit(|state| callback(&state.processed))
 }
 
 /// Get Confirmed mutably.
-pub fn with_confirmed_mut<T, F>(callback: F) -> T
+pub fn with_processed_mut<T, F>(callback: F) -> T
 where
-    F: FnOnce(&mut ConfirmedRequestMap) -> T,
+    F: FnOnce(&mut ProcessedRequestMap) -> T,
 {
-    with_permit_mut(|state| callback(&mut state.confirmed))
+    with_permit_mut(|state| callback(&mut state.processed))
 }
 
-pub fn with_confirmed_request<T, F>(request_id: &RequestId, callback: F) -> Result<T, RequestError>
+pub fn with_processed_request<T, F>(request_id: &RequestId, callback: F) -> Result<T, RequestError>
 where
-    F: FnOnce(&ConfirmedRequest) -> T,
+    F: FnOnce(&ProcessedRequest) -> T,
 {
-    with_permit(|state| state.confirmed(request_id).map(callback))
+    with_permit(|state| state.processed(request_id).map(callback))
 }
 
 // SIGNERS ----------------------------------------------------------------------

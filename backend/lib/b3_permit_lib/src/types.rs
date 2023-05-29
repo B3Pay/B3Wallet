@@ -1,5 +1,11 @@
-use crate::{confirmed::ConfirmedRequest, pending::PendingRequest, signer::Signer};
-use b3_helper_lib::types::{RequestId, SignerId};
+use crate::{
+    error::RequestError, pending::PendingRequest, processed::ProcessedRequest, signer::Signer,
+};
+use b3_helper_lib::{
+    error::TrapError,
+    types::{RequestId, SignerId},
+};
+use enum_dispatch::enum_dispatch;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use std::collections::{BTreeMap, HashMap};
 
@@ -7,9 +13,50 @@ pub type SignerMap = HashMap<SignerId, Signer>;
 
 pub type PendingRequestMap = BTreeMap<RequestId, PendingRequest>;
 
-pub type ConfirmedRequestMap = HashMap<RequestId, ConfirmedRequest>;
+pub type ProcessedRequestMap = BTreeMap<RequestId, ProcessedRequest>;
 
 pub type PendingRequestList = Vec<PendingRequest>;
+
+pub type Response = BTreeMap<SignerId, RequestResponse>;
+
+pub type ResponseMap = BTreeMap<RequestId, RequestResponse>;
+
+#[enum_dispatch]
+pub trait RequestResponseTrait {
+    fn is_confirm(&self) -> bool;
+    fn is_reject(&self) -> bool;
+}
+
+#[derive(CandidType, Clone, Deserialize, Debug)]
+pub struct Confirm;
+
+#[derive(CandidType, Clone, Deserialize, Debug)]
+pub struct Reject;
+
+impl RequestResponseTrait for Confirm {
+    fn is_confirm(&self) -> bool {
+        true
+    }
+    fn is_reject(&self) -> bool {
+        false
+    }
+}
+
+impl RequestResponseTrait for Reject {
+    fn is_reject(&self) -> bool {
+        true
+    }
+    fn is_confirm(&self) -> bool {
+        false
+    }
+}
+
+#[enum_dispatch(RequestResponseTrait)]
+#[derive(CandidType, Clone, Deserialize, Debug)]
+pub enum RequestResponse {
+    Confirm,
+    Reject,
+}
 
 // ICRC-21: Canister Call Consent Messages --------------------------------------
 #[derive(CandidType, Clone, Debug)]
@@ -34,7 +81,7 @@ impl Default for ConsendInfo {
     fn default() -> Self {
         ConsendInfo {
             consent_message: "".to_string(),
-            language: "".to_string(),
+            language: "en-US".to_string(),
         }
     }
 }
@@ -57,6 +104,24 @@ pub enum ConsentMessageResponse {
     Forbidden(ErrorInfo),
     MalformedCall(ErrorInfo),
     Other(String),
+}
+
+impl From<&RequestError> for ConsentMessageResponse {
+    fn from(error: &RequestError) -> Self {
+        match error {
+            RequestError::InvalidRequest => ConsentMessageResponse::MalformedCall(ErrorInfo {
+                error_code: 400,
+                description: error.to_owned().to_string(),
+            }),
+            RequestError::SignerRoleNotAuthorized(e) => {
+                ConsentMessageResponse::Forbidden(ErrorInfo {
+                    error_code: 403,
+                    description: e.to_string(),
+                })
+            }
+            _ => ConsentMessageResponse::Other(error.to_owned().to_string()),
+        }
+    }
 }
 
 impl Default for ConsentMessageResponse {

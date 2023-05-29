@@ -1,4 +1,4 @@
-use crate::types::SignerCanister;
+use crate::types::WalletCanister;
 use b3_helper_lib::{
     constants::RATE_LIMIT,
     error::HelperError,
@@ -18,7 +18,7 @@ use ic_cdk::api::{
     time,
 };
 
-impl From<CanisterId> for SignerCanister {
+impl From<CanisterId> for WalletCanister {
     fn from(canister_id: CanisterId) -> Self {
         Self {
             canister_id: Some(canister_id),
@@ -28,7 +28,7 @@ impl From<CanisterId> for SignerCanister {
     }
 }
 
-impl SignerCanister {
+impl WalletCanister {
     /// Create a new canister.
     pub fn new() -> Self {
         let now = time();
@@ -41,7 +41,7 @@ impl SignerCanister {
     }
 
     /// get with updated_at.
-    pub fn get_with_update_rate(&mut self) -> Result<SignerCanister, HelperError> {
+    pub fn get_with_update_rate(&mut self) -> Result<WalletCanister, HelperError> {
         self.check_rate()?;
         self.updated_at = time();
 
@@ -82,14 +82,14 @@ impl SignerCanister {
     }
 
     /// Get the owner of the canister.
-    pub async fn get_owner(&self) -> Result<SignerId, HelperError> {
+    pub async fn validate_signer(&self, signer_id: SignerId) -> Result<bool, HelperError> {
         let canister_id = self.canister_id()?;
 
-        let (owner,): (SignerId,) = ic_cdk::call(canister_id, "get_owner", ())
+        let (validate,): (bool,) = ic_cdk::call(canister_id, "validate_signer", (signer_id,))
             .await
-            .map_err(|err| HelperError::GetOwnerError(err.1))?;
+            .map_err(|err| HelperError::ValidateSignerError(err.1))?;
 
-        Ok(owner)
+        Ok(validate)
     }
 
     /// Get the wasm hash of the canister.

@@ -1,6 +1,6 @@
 mod account;
-mod confirm;
 mod permit;
+mod processed;
 mod request;
 mod status;
 mod wasm;
@@ -73,10 +73,10 @@ pub fn post_upgrade() {
 #[cfg(test)]
 mod tests {
     use b3_helper_lib::types::*;
-    use b3_permit_lib::confirmed::ConfirmedRequest;
     use b3_permit_lib::pending::inner::account::RenameAccountRequest;
     use b3_permit_lib::pending::inner::setting::UpdateCanisterSettingsRequest;
     use b3_permit_lib::pending::Request;
+    use b3_permit_lib::processed::ProcessedRequest;
     use b3_permit_lib::signer::Roles;
     use b3_permit_lib::types::*;
     use b3_wallet_lib::account::WalletAccount;

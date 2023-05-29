@@ -1,13 +1,16 @@
-import { CircularProgress, Flex } from "@chakra-ui/react"
+import { Box, CircularProgress, Progress, Stack, Text } from "@chakra-ui/react"
 import React from "react"
+import LoadingDots from "./LoadingDots"
 
 interface LoadingProps {
   dark?: boolean
+  circle?: boolean
+  title?: string
 }
 
-const Loading: React.FC<LoadingProps> = ({ dark }) => {
+const Loading: React.FC<LoadingProps> = ({ dark, circle, title }) => {
   return (
-    <Flex
+    <Stack
       position="absolute"
       top="0"
       bottom="0"
@@ -16,11 +19,20 @@ const Loading: React.FC<LoadingProps> = ({ dark }) => {
       align="center"
       justify="center"
       zIndex={1000}
-      backdropBrightness={dark ? "dark" : "light"}
-      backdropFilter="blur(10px) hue-rotate(90deg)"
+      bg={dark ? "blackAlpha.800" : "whiteAlpha.800"}
+      backdropFilter="blur(2px)"
     >
-      <CircularProgress isIndeterminate color="green.300" />
-    </Flex>
+      <Text fontWeight="bold" color={dark ? "white" : "gray.600"}>
+        <LoadingDots title={title} />
+      </Text>
+      <Box w="20vw">
+        {circle ? (
+          <CircularProgress isIndeterminate color="green.300" />
+        ) : (
+          <Progress size="xs" isIndeterminate />
+        )}
+      </Box>
+    </Stack>
   )
 }
 

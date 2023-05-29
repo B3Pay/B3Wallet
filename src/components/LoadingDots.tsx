@@ -1,7 +1,10 @@
-import { Box } from "@chakra-ui/react"
 import { useEffect, useState } from "react"
 
-const LoadingDots = () => {
+interface LoadingDotsProps {
+  title?: string
+}
+
+const LoadingDots: React.FC<LoadingDotsProps> = ({ title }) => {
   const [dots, setDots] = useState(".")
 
   useEffect(() => {
@@ -12,7 +15,7 @@ const LoadingDots = () => {
     return () => clearInterval(timer)
   }, [])
 
-  return <Box>{`Loading${dots}`}</Box>
+  return <>{(title ? title : "Loading") + dots}</>
 }
 
 export default LoadingDots

@@ -2,7 +2,7 @@ use b3_helper_lib::{error::TrapError, types::RequestId};
 use ic_cdk::export::candid::{CandidType, Deserialize};
 
 #[rustfmt::skip]
-#[derive(CandidType, Deserialize, Debug, PartialEq)]
+#[derive(CandidType, Deserialize,Clone, Debug, PartialEq)]
 pub enum RequestError {
     UnknownError,
     InvalidRequest,
@@ -15,8 +15,8 @@ pub enum RequestError {
     GenerateError(String),
     PublicKeyError(String),
     RequestNotFound(RequestId),
-    RequestNotConfirmed(RequestId),
-    RequestAlreadyConfirmed(RequestId),
+    RequestNotProcessed(RequestId),
+    RequestAlreadyProcessed(RequestId),
     MissingWitnessScript,
     MissingSighashType,
     BitcoinGetAddressError,
@@ -41,7 +41,7 @@ pub enum RequestError {
     SignerAlreadyExists(String),
     SignerDoesNotExist(String),
     TransactionTooOld(u64),
-    AlreadySigned(String),
+    RequestAlreadySigned(String),
     ExecutionError(String),
     NotifyTopUpError(String),
     RecoverableSignatureError(String),
@@ -56,6 +56,8 @@ pub enum RequestError {
     InvalidAccountIdentifier,
     WalletAccountNotExists,
     RequestNotExists,
+    RequestExpired,
+    RequestRejected,
     InvalidAddress,
     InvalidNetworkAddress,
     InvalidEvmTransactionType,
@@ -88,6 +90,8 @@ impl TrapError for RequestError {
             RequestError::SignerAlreadyExists(signer) => ["Signer ", &signer, " already exists!"].concat(),
             RequestError::SignerDoesNotExist(signer) => ["Signer ", &signer, " does not exist!"].concat(),
             RequestError::LedgerError(msg) => ["Ledger error: ", &msg].concat(),
+            RequestError::RequestExpired => "Request expired!".to_string(),
+            RequestError::RequestRejected => "Request rejected!".to_string(),
             RequestError::RequestNotFound(msg) => ["Request not found: ", &msg.to_string()].concat(),
             RequestError::GenerateError(msg) => ["Generation error: ", &msg].concat(),
             RequestError::PublicKeyError(msg) => ["Public key error: ", &msg].concat(),
@@ -96,7 +100,7 @@ impl TrapError for RequestError {
             RequestError::UpdateSettingsError(msg) => ["Update settings error: ", &msg].concat(),
             RequestError::InvalidTransaction(msg) => ["Invalid transaction: ", &msg].concat(),
             RequestError::TransactionTooOld(nanos) => ["Transaction too old: ", &nanos.to_string(), " nanoseconds"].concat(),
-            RequestError::AlreadySigned(signer) => ["Signer ", &signer, " already signed"].concat(),
+            RequestError::RequestAlreadySigned(signer) => ["Signer ", &signer, " already signed"].concat(),
             RequestError::MissingWitnessScript => "Missing witness script".to_string(),
             RequestError::MissingSighashType => "Missing sighash type".to_string(),
             RequestError::NoUtxos => "No UTXOs".to_string(),
@@ -121,8 +125,8 @@ impl TrapError for RequestError {
             RequestError::InvalidAccountIdentifier => "Invalid account identifier!".to_string(),
             RequestError::WalletAccountNotExists => "Wallet account does not exist!".to_string(),
             RequestError::RequestNotExists => "Request does not exist!".to_string(),
-            RequestError::RequestNotConfirmed(request_id) => ["Request ", &request_id.to_string(), " not confirmed!"].concat(),
-            RequestError::RequestAlreadyConfirmed(request_id) => ["Request ", &request_id.to_string(), " already confirmed!"].concat(),
+            RequestError::RequestNotProcessed(request_id) => ["Request ", &request_id.to_string(), " not processed!"].concat(),
+            RequestError::RequestAlreadyProcessed(request_id) => ["Request ", &request_id.to_string(), " already processed!"].concat(),
             RequestError::NotifyTopUpError(msg) => ["Notify top up error: ", &msg].concat(),
             RequestError::RecoverableSignatureError(msg) => ["Recoverable signature error: ", &msg].concat(),
             RequestError::InvalidController => "Invalid controller!".to_string(),

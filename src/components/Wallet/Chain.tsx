@@ -93,12 +93,13 @@ export const Chain: React.FC<AddressProps> = ({
       <CardBody>
         <Stack>
           <Stack direction="row" justify="space-between" align="center">
-            <Flex flex={10}>
-              <Address address={address} />
-            </Flex>
-            <Flex flex={2}>
-              <Balance amount={balance} chain={chain} loading={loading} />
-            </Flex>
+            <Address address={address} flex={9} />
+            <Balance
+              amount={balance}
+              chain={chain}
+              loading={loading}
+              flex={3}
+            />
           </Stack>
           <Stack direction="row" justify="space-between" align="center">
             <Input
@@ -117,7 +118,7 @@ export const Chain: React.FC<AddressProps> = ({
               alt="Amount"
               placeholder="Amount"
               style={{
-                flex: 5
+                flex: 4
               }}
               type="text"
               value={amount}
@@ -125,7 +126,7 @@ export const Chain: React.FC<AddressProps> = ({
             />
             <Button
               style={{
-                flex: 2
+                flex: 3
               }}
               onClick={transferHandler}
               isLoading={loading}

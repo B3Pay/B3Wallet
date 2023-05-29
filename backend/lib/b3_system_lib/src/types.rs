@@ -2,17 +2,17 @@ use b3_helper_lib::types::{CanisterId, ControllerId, SignerId, Version, Wasm, Wa
 use ic_cdk::export::candid::{CandidType, Deserialize};
 use std::collections::HashMap;
 
-pub type SignerCanisters = Vec<SignerCanister>;
+pub type WalletCanisters = Vec<WalletCanister>;
 pub type Controllers = Vec<ControllerId>;
 pub type Releases = Vec<Release>;
 pub type Features = Vec<String>;
 pub type Users = Vec<SignerId>;
 
-pub type UserMap = HashMap<SignerId, SignerCanister>;
+pub type UserMap = HashMap<SignerId, WalletCanister>;
 pub type WasmMap = HashMap<Version, Wasm>;
 
 #[derive(CandidType, Deserialize, Clone)]
-pub struct SignerCanister {
+pub struct WalletCanister {
     pub canister_id: Option<CanisterId>,
     pub created_at: u64,
     pub updated_at: u64,

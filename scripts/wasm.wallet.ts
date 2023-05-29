@@ -1,11 +1,11 @@
-import { B3User } from "../src/service/actor"
+import { B3Wallet } from "../src/service/actor"
 import { userLocalActor } from "./actor"
 import { chunkGenerator, loadWasm, readVersion } from "./utils"
 
-const resetRelease = (actor: B3User) => actor.unload_wasm()
+const resetRelease = (actor: B3Wallet) => actor.unload_wasm()
 
 const loadRelease = async (
-  actor: B3User,
+  actor: B3Wallet,
   wasmModule: number[],
   version: string
 ) => {
@@ -21,7 +21,7 @@ const loadRelease = async (
   console.log(`Loading done.`)
 }
 
-const load = async (actor: B3User) => {
+const load = async (actor: B3Wallet) => {
   const wasmModule = await loadWasm()
   const version = await readVersion()
 

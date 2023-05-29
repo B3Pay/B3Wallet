@@ -1,9 +1,9 @@
 import { Actor, HttpAgent } from "@dfinity/agent"
 import { Principal } from "@dfinity/principal"
 import { readFileSync } from "fs"
-import { B3System, B3User } from "service/actor"
-import { idlFactory as userFactory } from "../src/declarations/b3_wallet"
+import { B3System, B3Wallet } from "service/actor"
 import { idlFactory as systemFactory } from "../src/declarations/b3_system"
+import { idlFactory as userFactory } from "../src/declarations/b3_wallet"
 import { initIdentity } from "./utils"
 
 const systemPrincipalIC = () => {
@@ -77,5 +77,5 @@ export const userLocalActor = async (canister_address?: string) => {
   return Actor.createActor(userFactory, {
     agent,
     canisterId
-  }) as Promise<B3User>
+  }) as Promise<B3Wallet>
 }

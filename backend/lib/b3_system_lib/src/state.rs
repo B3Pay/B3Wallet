@@ -1,24 +1,27 @@
 use crate::{
     error::SystemError,
-    types::{Controllers, SignerCanister, SignerCanisters, State},
+    types::{Controllers, State, WalletCanister, WalletCanisters},
     types::{Release, Users},
 };
 use b3_helper_lib::{
     error::TrapError,
-    types::{CanisterId, ControllerId, SignerId, WalletCanisterInitArgs, WalletCanisterInstallArg},
+    types::{
+        CanisterId, ControllerId, SignerId, Version, WalletCanisterInitArgs,
+        WalletCanisterInstallArg,
+    },
 };
 use ic_cdk::api::management_canister::main::CanisterInstallMode;
 
 impl State {
     // user
-    pub fn init_user(&mut self, user: SignerId) -> Result<SignerCanister, SystemError> {
+    pub fn init_user(&mut self, user: SignerId) -> Result<WalletCanister, SystemError> {
         let canister = self.users.get(&user);
 
         if canister.is_some() {
             return Err(SystemError::UserAlreadyExists);
         }
 
-        let wallet_canister = SignerCanister::new();
+        let wallet_canister = WalletCanister::new();
 
         self.users.insert(user, wallet_canister.clone());
 
@@ -29,7 +32,7 @@ impl State {
         &mut self,
         user: SignerId,
         opt_canister_id: Option<CanisterId>,
-    ) -> Result<SignerCanister, SystemError> {
+    ) -> Result<WalletCanister, SystemError> {
         if let Some(canister) = self.users.get_mut(&user) {
             return canister
                 .get_with_update_rate()
@@ -37,9 +40,9 @@ impl State {
         }
 
         let wallet_canister = if let Some(canister_id) = opt_canister_id {
-            SignerCanister::from(canister_id)
+            WalletCanister::from(canister_id)
         } else {
-            SignerCanister::new()
+            WalletCanister::new()
         };
 
         self.users.insert(user, wallet_canister.clone());
@@ -47,7 +50,7 @@ impl State {
         Ok(wallet_canister)
     }
 
-    pub fn add_user(&mut self, user: SignerId, wallet_canister: SignerCanister) {
+    pub fn add_user(&mut self, user: SignerId, wallet_canister: WalletCanister) {
         self.users.insert(user, wallet_canister);
     }
 
@@ -59,7 +62,7 @@ impl State {
         self.users.keys().cloned().collect()
     }
 
-    pub fn signer_canisters(&self) -> SignerCanisters {
+    pub fn wallet_canisters(&self) -> WalletCanisters {
         self.users.values().cloned().collect()
     }
 
@@ -81,6 +84,38 @@ impl State {
     }
 
     // release
+    pub fn get_release(&self, version: &str) -> Result<&Release, SystemError> {
+        self.releases
+            .iter()
+            .find(|r| r.version == version)
+            .ok_or(SystemError::ReleaseNotFound)
+    }
+
+    pub fn get_release_install_args(
+        &self,
+        version: &Version,
+        owner: SignerId,
+        system: Option<CanisterId>,
+        mode: CanisterInstallMode,
+    ) -> Result<WalletCanisterInstallArg, SystemError> {
+        let wasm_module = self.get_release(version)?.wasm()?;
+
+        let canister_args = WalletCanisterInitArgs {
+            owner_id: owner,
+            system_id: system,
+        };
+
+        let arg = canister_args
+            .encode()
+            .map_err(|e| SystemError::InstallArgError(e.to_string()))?;
+
+        Ok(WalletCanisterInstallArg {
+            wasm_module,
+            arg,
+            mode,
+        })
+    }
+
     pub fn latest_release(&self) -> Result<&Release, SystemError> {
         self.releases.last().ok_or(SystemError::ReleaseNotFound)
     }

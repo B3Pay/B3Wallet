@@ -19,8 +19,41 @@ const fonts = {
   heading: "var(--font-rubik)",
   body: "var(--font-rubik)"
 }
+const components = {
+  Button: {
+    defaultProps: {
+      size: "sm"
+    }
+  },
+  Select: {
+    defaultProps: {
+      size: "sm"
+    }
+  },
+  Input: {
+    defaultProps: {
+      size: "sm"
+    }
+  },
+  Avatar: {
+    defaultProps: {
+      size: "sm"
+    }
+  }
+}
 
-export const theme = extendTheme({ colors, fonts })
+const styles = {
+  global: {
+    html: {
+      backgroundColor: "#dadada"
+    },
+    body: {
+      backgroundColor: "#dadada"
+    }
+  }
+}
+
+export const theme = extendTheme({ styles, colors, fonts, components })
 
 interface AppProps {
   Component: React.FC

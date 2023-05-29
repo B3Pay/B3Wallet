@@ -43,13 +43,6 @@ export type Chains = { 'BTC' : BtcNetwork } |
   { 'EVM' : bigint } |
   { 'ICP' : null } |
   { 'SNS' : string };
-export interface ConfirmedRequest {
-  'status' : RequestStatus,
-  'request' : PendingRequest,
-  'error' : string,
-  'message' : ConsentMessageResponse,
-  'timestamp' : bigint,
-}
 export interface ConsendInfo { 'consent_message' : string, 'language' : string }
 export type ConsentMessageResponse = { 'MalformedCall' : ErrorInfo } |
   { 'Valid' : ConsendInfo } |
@@ -179,10 +172,17 @@ export interface Ledger { 'keys' : Keys, 'subaccount' : Uint8Array | number[] }
 export interface Outpoint { 'txid' : Uint8Array | number[], 'vout' : number }
 export interface PendingRequest {
   'id' : bigint,
-  'signers' : Array<Principal>,
   'request' : Request,
   'role' : Roles,
   'deadline' : bigint,
+  'response' : Array<[Principal, RequestResponse]>,
+}
+export interface ProcessedRequest {
+  'status' : RequestStatus,
+  'request' : PendingRequest,
+  'error' : [] | [RequestError],
+  'message' : ConsentMessageResponse,
+  'timestamp' : bigint,
 }
 export interface RemoveSignerRequest { 'signer_id' : Principal }
 export interface RenameAccountRequest {
@@ -193,6 +193,73 @@ export type Request = { 'BtcRequest' : BtcRequest } |
   { 'EvmRequest' : EvmRequest } |
   { 'IcpRequest' : IcpRequest } |
   { 'InnerRequest' : InnerRequest };
+export type RequestError = { 'InvalidMessage' : string } |
+  { 'InvalidMessageLength' : null } |
+  { 'RequestAlreadySigned' : string } |
+  { 'InvalidAddress' : null } |
+  { 'CannotRemoveDefaultAccount' : null } |
+  { 'RequestNotProcessed' : bigint } |
+  { 'DeadlineExceeded' : null } |
+  { 'InvalidController' : null } |
+  { 'WalletAccountNotExists' : null } |
+  { 'InvalidEvmTransactionType' : null } |
+  { 'CyclesMintingError' : string } |
+  { 'InvalidTx' : string } |
+  { 'SignerRoleNotAuthorized' : string } |
+  { 'RequestNotExists' : null } |
+  { 'BitcoinGetBalanceError' : string } |
+  { 'BitcoinInsufficientBalanceError' : [bigint, bigint] } |
+  { 'PublicKeyError' : string } |
+  { 'RequestExpired' : null } |
+  { 'NoUtxos' : null } |
+  { 'UnknownError' : null } |
+  { 'InvalidEcdsaPublicKey' : null } |
+  { 'GenerateError' : string } |
+  { 'InvalidTransaction' : string } |
+  { 'InvalidSignature' : string } |
+  { 'SignerRoleNotFound' : [string, string] } |
+  { 'NotifyTopUpError' : string } |
+  { 'MissingEcdsaPublicKey' : null } |
+  { 'InvalidMsg' : string } |
+  { 'SignerAlreadyExists' : string } |
+  { 'BitcoinGetFeeRateError' : string } |
+  { 'MissingSighashType' : null } |
+  { 'WalletAccountAlreadyExists' : null } |
+  { 'BitcoinGetUtxosError' : string } |
+  { 'MissingAddress' : null } |
+  { 'SignerDoesNotExist' : string } |
+  { 'LedgerError' : string } |
+  { 'RecoverableSignatureError' : string } |
+  { 'InvalidAccountIdentifier' : null } |
+  { 'RequestAlreadyProcessed' : bigint } |
+  { 'InvalidPublicKey' : string } |
+  { 'UpdateSettingsError' : string } |
+  { 'SignError' : string } |
+  { 'RequestNotFound' : bigint } |
+  { 'BitcoinFeeTooHighError' : [bigint, bigint] } |
+  { 'WalletAccountCounterMismatch' : null } |
+  { 'BitcoinGetAddressError' : null } |
+  { 'InvalidRequest' : null } |
+  { 'CallerIsNotOwner' : null } |
+  { 'RequestRejected' : null } |
+  { 'InvalidRecoveryId' : string } |
+  { 'BitcoinInvalidFeePercentile' : null } |
+  { 'InvalidNetwork' : null } |
+  { 'BitcoinSignatureError' : string } |
+  { 'InvalidNetworkAddress' : null } |
+  { 'MissingWitnessScript' : null } |
+  { 'SignerNotFound' : string } |
+  { 'BitcoinGetCurrentFeePercentilesError' : string } |
+  { 'Processing' : null } |
+  { 'BitcoinSendTransactionError' : string } |
+  { 'NotSignedTransaction' : null } |
+  { 'ExecutionError' : string } |
+  { 'TransactionTooOld' : bigint } |
+  { 'CanisterStatusError' : string } |
+  { 'EcdsaPublicKeyAlreadySet' : null } |
+  { 'BitcoinSendRawTransactionError' : string };
+export type RequestResponse = { 'Reject' : null } |
+  { 'Confirm' : null };
 export type RequestStatus = { 'Fail' : null } |
   { 'Success' : null } |
   { 'Pending' : null };
@@ -288,7 +355,6 @@ export interface _SERVICE {
     [string, Tokens, [] | [Principal], [] | [Tokens]],
     bigint
   >,
-  'confirm_request' : ActorMethod<[bigint], ConfirmedRequest>,
   'get_account' : ActorMethod<[string], WalletAccount>,
   'get_account_count' : ActorMethod<[], bigint>,
   'get_account_counters' : ActorMethod<[], AccountsCounter>,
@@ -296,8 +362,8 @@ export interface _SERVICE {
   'get_account_views' : ActorMethod<[], Array<WalletAccountView>>,
   'get_accounts' : ActorMethod<[], Array<WalletAccount>>,
   'get_addresses' : ActorMethod<[string], Array<[Chains, string]>>,
-  'get_confirmed' : ActorMethod<[bigint], ConfirmedRequest>,
-  'get_confirmed_requests' : ActorMethod<[], Array<[bigint, ConfirmedRequest]>>,
+  'get_processed' : ActorMethod<[bigint], ProcessedRequest>,
+  'get_processed_requests' : ActorMethod<[], Array<[bigint, ProcessedRequest]>>,
   'get_requests' : ActorMethod<[], Array<PendingRequest>>,
   'get_signers' : ActorMethod<[], Array<[Principal, Signer]>>,
   'load_wasm' : ActorMethod<[Uint8Array | number[]], bigint>,
@@ -306,6 +372,7 @@ export interface _SERVICE {
     bigint
   >,
   'request_maker' : ActorMethod<[Request, [] | [bigint]], bigint>,
+  'request_response' : ActorMethod<[bigint, RequestResponse], ProcessedRequest>,
   'request_sign_message' : ActorMethod<
     [string, Uint8Array | number[]],
     Uint8Array | number[]
@@ -324,6 +391,7 @@ export interface _SERVICE {
   'status' : ActorMethod<[], WalletCanisterStatus>,
   'unload_wasm' : ActorMethod<[], bigint>,
   'upgrage_wallet' : ActorMethod<[], undefined>,
+  'validate_signer' : ActorMethod<[Principal], boolean>,
   'version' : ActorMethod<[], string>,
   'wasm_hash' : ActorMethod<[], Uint8Array | number[]>,
   'wasm_hash_string' : ActorMethod<[], string>,

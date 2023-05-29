@@ -7,7 +7,7 @@ use crate::types::{BlockIndex, Tokens};
 pub enum HelperError {
     CanisterStatusError(String),
     CreateCanisterError(String),
-    GetOwnerError(String),
+    ValidateSignerError(String),
     VersionError(String),
     InstallCodeError(String),
     WasmHashError(String),
@@ -40,7 +40,7 @@ impl TrapError for HelperError {
     fn to_string(self) -> String {
         match self {
             HelperError::Processing => "Processing!".to_string(),
-            HelperError::GetOwnerError(e) => ["Get owner error: ", &e].concat(),
+            HelperError::ValidateSignerError(e) => ["Get owner error: ", &e].concat(),
             HelperError::WasmHashError(e) => ["Wasm hash error: ", &e].concat(),
             HelperError::InvalidTransaction(e) => ["Invalid transaction: ", &e].concat(),
             HelperError::TransactionTooOld(e) => ["Transaction too old:", & e.to_string()].concat(),
