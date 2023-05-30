@@ -270,7 +270,6 @@ type RequestError = variant {
 };
 type RequestResponse = variant { Reject; Confirm };
 type RequestStatus = variant { Fail; Success; Pending };
-type Result = variant { Ok; Err : text };
 type Roles = variant { User; Canister; Admin };
 type Signer = record {
   threshold : opt nat8;
@@ -340,8 +339,6 @@ service : () -> {
   account_top_up_and_notify : (text, Tokens, opt principal, opt Tokens) -> (
       nat,
     );
-  binding : (text, text) -> (opt text) query;
-  did_to_js : (text) -> (opt text) query;
   get_account : (text) -> (WalletAccount) query;
   get_account_count : () -> (nat64) query;
   get_account_counters : () -> (AccountsCounter) query;
@@ -371,7 +368,6 @@ service : () -> {
   signer_add : (principal, Roles) -> (vec record { principal; Signer });
   signer_remove : (principal) -> (vec record { principal; Signer });
   status : () -> (WalletCanisterStatus);
-  subtype : (text, text) -> (Result) query;
   unload_wasm : () -> (nat64);
   upgrage_wallet : () -> ();
   validate_signer : (principal) -> (bool) query;

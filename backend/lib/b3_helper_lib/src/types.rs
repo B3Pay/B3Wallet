@@ -8,10 +8,7 @@ use ic_cdk::{
     },
 };
 use serde_bytes::ByteBuf;
-use std::{
-    collections::HashMap,
-    fmt::{self, Display},
-};
+use std::{collections::HashMap, fmt};
 
 pub type Metadata = HashMap<String, String>;
 
@@ -105,7 +102,7 @@ pub struct Tokens {
     pub e8s: u64,
 }
 
-impl Display for Tokens {
+impl fmt::Display for Tokens {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.e8s)
     }
