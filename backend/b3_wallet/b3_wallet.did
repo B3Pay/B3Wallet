@@ -35,12 +35,18 @@ type CanisterStatusResponse = record {
 type CanisterStatusType = variant { stopped; stopping; running };
 type Chains = variant { BTC : BtcNetwork; EVM : nat64; ICP; SNS : text };
 type ConsendInfo = record { consent_message : text; language : text };
+type ConsentMessageRequest = record {
+  arg : RequestArgs;
+  method : text;
+  consent_preferences : ConsentPreferences;
+};
 type ConsentMessageResponse = variant {
   MalformedCall : ErrorInfo;
   Valid : ConsendInfo;
   Other : text;
   Forbidden : ErrorInfo;
 };
+type ConsentPreferences = record { language : text };
 type CreateAccountRequest = record { env : opt Environment; name : opt text };
 type DefiniteCanisterSettings = record {
   freezing_threshold : nat;
@@ -124,6 +130,17 @@ type GetUtxosResponse = record {
   utxos : vec Utxo;
 };
 type HideAccountRequest = record { account_id : text };
+type HttpRequest = record {
+  url : text;
+  method : text;
+  body : vec nat8;
+  headers : vec record { text; text };
+};
+type HttpResponse = record {
+  body : vec nat8;
+  headers : vec record { text; text };
+  status_code : nat16;
+};
 type IcpRequest = variant {
   IcpTransferRequest : IcpTransferRequest;
   TopUpCanisterRequest : TopUpCanisterRequest;
@@ -160,10 +177,12 @@ type PendingRequest = record {
   request : Request;
   role : Roles;
   deadline : nat64;
+  consent_message : ConsentMessageRequest;
   response : vec record { principal; RequestResponse };
 };
 type ProcessedRequest = record {
   status : RequestStatus;
+  method : text;
   request : PendingRequest;
   error : opt RequestError;
   message : ConsentMessageResponse;
@@ -176,6 +195,11 @@ type Request = variant {
   EvmRequest : EvmRequest;
   IcpRequest : IcpRequest;
   InnerRequest : InnerRequest;
+};
+type RequestArgs = record {
+  request : Request;
+  role : Roles;
+  deadline : opt nat64;
 };
 type RequestError = variant {
   InvalidMessage : text;
@@ -246,6 +270,7 @@ type RequestError = variant {
 };
 type RequestResponse = variant { Reject; Confirm };
 type RequestStatus = variant { Fail; Success; Pending };
+type Result = variant { Ok; Err : text };
 type Roles = variant { User; Canister; Admin };
 type Signer = record {
   threshold : opt nat8;
@@ -270,8 +295,8 @@ type UpdateSignerThresholdRequest = record {
   signer_id : principal;
 };
 type UpgradeCanisterRequest = record {
+  wasm_hash_string : text;
   wasm_version : text;
-  wasm_hash : vec nat8;
 };
 type Utxo = record { height : nat32; value : nat64; outpoint : Outpoint };
 type UtxoFilter = variant { page : vec nat8; min_confirmations : nat32 };
@@ -315,6 +340,8 @@ service : () -> {
   account_top_up_and_notify : (text, Tokens, opt principal, opt Tokens) -> (
       nat,
     );
+  binding : (text, text) -> (opt text) query;
+  did_to_js : (text) -> (opt text) query;
   get_account : (text) -> (WalletAccount) query;
   get_account_count : () -> (nat64) query;
   get_account_counters : () -> (AccountsCounter) query;
@@ -325,8 +352,10 @@ service : () -> {
   get_processed : (nat64) -> (ProcessedRequest) query;
   get_processed_list : () -> (vec ProcessedRequest) query;
   get_signers : () -> (vec record { principal; Signer }) query;
+  http_request : (HttpRequest) -> (HttpResponse) query;
   load_wasm : (vec nat8) -> (nat64);
   request_account_rename : (RenameAccountRequest, opt nat64) -> (nat64);
+  request_add_signer : (AddSignerRequest, opt nat64) -> (nat64);
   request_create_account : (CreateAccountRequest, opt nat64) -> (nat64);
   request_delete_account : (HideAccountRequest, opt nat64) -> (nat64);
   request_maker : (Request, opt nat64) -> (nat64);
@@ -342,6 +371,7 @@ service : () -> {
   signer_add : (principal, Roles) -> (vec record { principal; Signer });
   signer_remove : (principal) -> (vec record { principal; Signer });
   status : () -> (WalletCanisterStatus);
+  subtype : (text, text) -> (Result) query;
   unload_wasm : () -> (nat64);
   upgrage_wallet : () -> ();
   validate_signer : (principal) -> (bool) query;

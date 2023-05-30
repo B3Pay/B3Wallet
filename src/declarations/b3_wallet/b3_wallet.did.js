@@ -163,8 +163,8 @@ export const idlFactory = ({ IDL }) => {
     'TopUpCanisterRequest' : TopUpCanisterRequest,
   });
   const UpgradeCanisterRequest = IDL.Record({
+    'wasm_hash_string' : IDL.Text,
     'wasm_version' : IDL.Text,
-    'wasm_hash' : IDL.Vec(IDL.Nat8),
   });
   const RenameAccountRequest = IDL.Record({
     'account_id' : IDL.Text,
@@ -221,6 +221,17 @@ export const idlFactory = ({ IDL }) => {
     'IcpRequest' : IcpRequest,
     'InnerRequest' : InnerRequest,
   });
+  const RequestArgs = IDL.Record({
+    'request' : Request,
+    'role' : Roles,
+    'deadline' : IDL.Opt(IDL.Nat64),
+  });
+  const ConsentPreferences = IDL.Record({ 'language' : IDL.Text });
+  const ConsentMessageRequest = IDL.Record({
+    'arg' : RequestArgs,
+    'method' : IDL.Text,
+    'consent_preferences' : ConsentPreferences,
+  });
   const RequestResponse = IDL.Variant({
     'Reject' : IDL.Null,
     'Confirm' : IDL.Null,
@@ -230,6 +241,7 @@ export const idlFactory = ({ IDL }) => {
     'request' : Request,
     'role' : Roles,
     'deadline' : IDL.Nat64,
+    'consent_message' : ConsentMessageRequest,
     'response' : IDL.Vec(IDL.Tuple(IDL.Principal, RequestResponse)),
   });
   const RequestStatus = IDL.Variant({
@@ -320,6 +332,7 @@ export const idlFactory = ({ IDL }) => {
   });
   const ProcessedRequest = IDL.Record({
     'status' : RequestStatus,
+    'method' : IDL.Text,
     'request' : PendingRequest,
     'error' : IDL.Opt(RequestError),
     'message' : ConsentMessageResponse,
@@ -423,6 +436,11 @@ export const idlFactory = ({ IDL }) => {
     'load_wasm' : IDL.Func([IDL.Vec(IDL.Nat8)], [IDL.Nat64], []),
     'request_account_rename' : IDL.Func(
         [RenameAccountRequest, IDL.Opt(IDL.Nat64)],
+        [IDL.Nat64],
+        [],
+      ),
+    'request_add_signer' : IDL.Func(
+        [AddSignerRequest, IDL.Opt(IDL.Nat64)],
         [IDL.Nat64],
         [],
       ),

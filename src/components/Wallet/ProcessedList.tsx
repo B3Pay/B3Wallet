@@ -28,6 +28,7 @@ const ProcessedList: React.FC<ProcessedProps> = ({ setLoading, actor }) => {
         console.log(e)
         setLoading(false)
       })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (

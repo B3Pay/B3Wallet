@@ -1,4 +1,5 @@
 mod account;
+mod didjs;
 mod permit;
 mod processed;
 mod request;
@@ -77,6 +78,7 @@ mod tests {
     use b3_permit_lib::pending::icp::*;
     use b3_permit_lib::pending::inner::account::*;
     use b3_permit_lib::pending::inner::setting::*;
+    use b3_permit_lib::pending::inner::signer::*;
     use b3_permit_lib::pending::Request;
     use b3_permit_lib::processed::ProcessedRequest;
     use b3_permit_lib::signer::Roles;

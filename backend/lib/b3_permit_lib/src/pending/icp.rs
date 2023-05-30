@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::types::ConsentMessageResponse;
 use b3_helper_lib::error::TrapError;
 use b3_helper_lib::types::{
@@ -22,6 +24,15 @@ impl IcpRequest {
         match self {
             IcpRequest::IcpTransferRequest(args) => args.execute().await,
             IcpRequest::TopUpCanisterRequest(args) => args.execute().await,
+        }
+    }
+}
+
+impl fmt::Display for IcpRequest {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            IcpRequest::IcpTransferRequest(_) => write!(f, "IcpTransferRequest"),
+            IcpRequest::TopUpCanisterRequest(_) => write!(f, "TopUpCanisterRequest"),
         }
     }
 }

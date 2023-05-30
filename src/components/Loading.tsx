@@ -19,7 +19,6 @@ const Loading: React.FC<LoadingProps> = ({ dark, circle, title }) => {
       align="center"
       justify="center"
       zIndex={1000}
-      bg={dark ? "blackAlpha.800" : "whiteAlpha.800"}
       backdropFilter="blur(2px)"
     >
       <Text fontWeight="bold" color={dark ? "white" : "gray.600"}>

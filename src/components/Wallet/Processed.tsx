@@ -4,8 +4,10 @@ import {
   AccordionItem,
   AccordionPanel,
   Box,
+  Stack,
   Text
 } from "@chakra-ui/react"
+import Parent from "components/Parent"
 import { ProcessedRequest } from "declarations/b3_wallet/b3_wallet.did"
 import { useMemo } from "react"
 
@@ -38,25 +40,36 @@ const Processed: React.FC<ProcessedRequestProps> = ({
     >
       <h2>
         <AccordionButton>
-          <Box flex="1" textAlign="left">
-            Request ID: {request.id.toString()}
-          </Box>
-          <Box flex="1" textAlign="left">
-            {date.toLocaleDateString()} {date.toLocaleTimeString()}
-          </Box>
+          <Stack
+            flex="12"
+            textAlign="left"
+            direction="row"
+            justify="space-between"
+          >
+            <Box flex="8" textAlign="left">
+              {request.consent_message.method}
+            </Box>
+            <Box flex="4" textAlign="left">
+              {date.toLocaleDateString()} {date.toLocaleTimeString()}
+            </Box>
+          </Stack>
           <AccordionIcon />
         </AccordionButton>
       </h2>
       <AccordionPanel pb={4}>
+        <Text>
+          <strong>Status:</strong> {stt}
+        </Text>
         <Text>
           <strong>Message:</strong> {consentMessage}
         </Text>
         <Text>
           <strong>Role:</strong> {Object.keys(request.role)[0]}
         </Text>
-        <Text>
-          <strong>Status:</strong> {stt}
-        </Text>
+        <strong>Args:</strong>
+        {Object.entries(request.consent_message.arg).map(([key, value]) => (
+          <Parent key={key} parent={key} child={value} />
+        ))}
       </AccordionPanel>
     </AccordionItem>
   )

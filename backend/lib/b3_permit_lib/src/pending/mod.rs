@@ -4,10 +4,14 @@ pub mod icp;
 pub mod inner;
 pub mod state;
 
+use std::fmt;
+
 use crate::error::RequestError;
 use crate::processed::ProcessedRequest;
 use crate::signer::Roles;
-use crate::types::{ConsentMessageResponse, RequestResponse, RequestResponseTrait, Response};
+use crate::types::{
+    ConsentMessageRequest, ConsentMessageResponse, RequestResponse, RequestResponseTrait, Response,
+};
 use b3_helper_lib::types::{RequestId, SignerId};
 use b3_helper_lib::{error::TrapError, types::Deadline};
 use b3_wallet_lib::error::WalletError;
@@ -36,6 +40,17 @@ pub enum Request {
     InnerRequest,
 }
 
+impl fmt::Display for Request {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Request::EvmRequest(method) => write!(f, "{}", method),
+            Request::BtcRequest(method) => write!(f, "{}", method),
+            Request::IcpRequest(method) => write!(f, "{}", method),
+            Request::InnerRequest(method) => write!(f, "{}", method),
+        }
+    }
+}
+
 impl Request {
     pub async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
         match self {
@@ -47,10 +62,11 @@ impl Request {
     }
 }
 
+#[derive(CandidType, Clone, Deserialize, Debug)]
 pub struct RequestArgs {
-    role: Roles,
-    request: Request,
-    deadline: Option<Deadline>,
+    pub role: Roles,
+    pub request: Request,
+    pub deadline: Option<Deadline>,
 }
 
 impl RequestArgs {
@@ -70,6 +86,7 @@ pub struct PendingRequest {
     request: Request,
     deadline: Deadline,
     response: Response,
+    consent_message: ConsentMessageRequest,
 }
 
 impl PendingRequest {
@@ -81,11 +98,12 @@ impl PendingRequest {
         };
 
         PendingRequest {
-            id,
-            deadline,
+            consent_message: ConsentMessageRequest::from(&args),
             response: Response::new(),
-            role: args.role,
             request: args.request,
+            role: args.role,
+            deadline,
+            id,
         }
     }
 
@@ -110,6 +128,18 @@ impl PendingRequest {
 
     pub fn deadline(&self) -> Deadline {
         self.deadline
+    }
+
+    pub fn method(&self) -> String {
+        self.request.to_string()
+    }
+
+    pub fn args(&self) -> RequestArgs {
+        RequestArgs {
+            role: self.role.clone(),
+            request: self.request.clone(),
+            deadline: Some(self.deadline),
+        }
     }
 
     pub fn signers(&self) -> &Response {

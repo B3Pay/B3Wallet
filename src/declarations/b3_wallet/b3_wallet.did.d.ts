@@ -45,10 +45,16 @@ export type Chains = { 'BTC' : BtcNetwork } |
   { 'ICP' : null } |
   { 'SNS' : string };
 export interface ConsendInfo { 'consent_message' : string, 'language' : string }
+export interface ConsentMessageRequest {
+  'arg' : RequestArgs,
+  'method' : string,
+  'consent_preferences' : ConsentPreferences,
+}
 export type ConsentMessageResponse = { 'MalformedCall' : ErrorInfo } |
   { 'Valid' : ConsendInfo } |
   { 'Other' : string } |
   { 'Forbidden' : ErrorInfo };
+export interface ConsentPreferences { 'language' : string }
 export interface CreateAccountRequest {
   'env' : [] | [Environment],
   'name' : [] | [string],
@@ -176,10 +182,12 @@ export interface PendingRequest {
   'request' : Request,
   'role' : Roles,
   'deadline' : bigint,
+  'consent_message' : ConsentMessageRequest,
   'response' : Array<[Principal, RequestResponse]>,
 }
 export interface ProcessedRequest {
   'status' : RequestStatus,
+  'method' : string,
   'request' : PendingRequest,
   'error' : [] | [RequestError],
   'message' : ConsentMessageResponse,
@@ -194,6 +202,11 @@ export type Request = { 'BtcRequest' : BtcRequest } |
   { 'EvmRequest' : EvmRequest } |
   { 'IcpRequest' : IcpRequest } |
   { 'InnerRequest' : InnerRequest };
+export interface RequestArgs {
+  'request' : Request,
+  'role' : Roles,
+  'deadline' : [] | [bigint],
+}
 export type RequestError = { 'InvalidMessage' : string } |
   { 'InvalidMessageLength' : null } |
   { 'RequestAlreadySigned' : string } |
@@ -290,8 +303,8 @@ export interface UpdateSignerThresholdRequest {
   'signer_id' : Principal,
 }
 export interface UpgradeCanisterRequest {
+  'wasm_hash_string' : string,
   'wasm_version' : string,
-  'wasm_hash' : Uint8Array | number[],
 }
 export interface Utxo {
   'height' : number,
@@ -371,6 +384,7 @@ export interface _SERVICE {
     [RenameAccountRequest, [] | [bigint]],
     bigint
   >,
+  'request_add_signer' : ActorMethod<[AddSignerRequest, [] | [bigint]], bigint>,
   'request_create_account' : ActorMethod<
     [CreateAccountRequest, [] | [bigint]],
     bigint

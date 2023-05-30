@@ -1,11 +1,11 @@
 import { AtSignIcon, RepeatClockIcon, SettingsIcon } from "@chakra-ui/icons"
-import { IconButton, Stack } from "@chakra-ui/react"
+import { Divider, IconButton, Stack, StackProps } from "@chakra-ui/react"
 import ConfirmationModal from "components/Wallet/ConfirmModal"
 import { B3Wallet } from "service/actor"
 import { Mode } from "."
 import Address from "./Address"
 
-interface WalletHeaderProps {
+interface WalletHeaderProps extends StackProps {
   walletCanisterId: string
   actor: B3Wallet
   mode: Mode
@@ -18,12 +18,14 @@ const WalletHeader: React.FC<WalletHeaderProps> = ({
   actor,
   mode,
   toggleMode,
-  fetchAccounts
+  fetchAccounts,
+  ...rest
 }) => {
   return (
-    <Stack direction="row" justify="space-between" align="center">
+    <Stack direction="row" justify="space-between" align="center" {...rest}>
       <Address flex={1} address={walletCanisterId} />
       <ConfirmationModal actor={actor} fetchAccounts={fetchAccounts} />
+      <Divider orientation="vertical" />
       <IconButton
         variant={mode === Mode.Processed ? "solid" : "outline"}
         colorScheme="blue"

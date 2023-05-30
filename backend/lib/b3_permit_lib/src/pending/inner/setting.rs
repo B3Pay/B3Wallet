@@ -1,5 +1,5 @@
 use b3_helper_lib::{
-    types::{CanisterId, WasmHash, WasmVersion},
+    types::{CanisterId, WasmHashString, WasmVersion},
     wasm::with_wasm,
 };
 use b3_wallet_lib::error::WalletError;
@@ -14,7 +14,10 @@ use ic_cdk::{
     export::{candid::CandidType, serde::Deserialize},
 };
 
-use crate::{pending::Request, types::ConsentMessageResponse};
+use crate::{
+    pending::Request,
+    types::{ConsendInfo, ConsentMessageResponse},
+};
 
 use super::InnerRequest;
 
@@ -46,7 +49,10 @@ impl UpdateCanisterSettingsRequest {
             .await
             .map_err(|err| WalletError::UpdateSettingsError(err.1))?;
 
-        Ok(ConsentMessageResponse::default())
+        Ok(ConsentMessageResponse::Valid(ConsendInfo {
+            consent_message: format!("Canister {} settings updated", self.canister_id),
+            ..Default::default()
+        }))
     }
 
     pub fn validate_request(&self) -> Result<(), WalletError> {
@@ -68,16 +74,15 @@ impl UpdateCanisterSettingsRequest {
 // UPGRADE CANISTER - START
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
 pub struct UpgradeCanisterRequest {
-    pub wasm_hash: WasmHash,
     pub wasm_version: WasmVersion,
-    // pub wasm_hash_string: WasmHashString,
+    pub wasm_hash_string: WasmHashString,
 }
 
 impl UpgradeCanisterRequest {
-    pub fn new(wasm_hash: WasmHash, wasm_version: WasmVersion) -> Self {
+    pub fn new(wasm_hash_string: WasmHashString, wasm_version: WasmVersion) -> Self {
         UpgradeCanisterRequest {
+            wasm_hash_string,
             wasm_version,
-            wasm_hash, // wasm_hash_string: wasm.generate_hash_string(),
         }
     }
 }
@@ -102,6 +107,12 @@ impl UpgradeCanisterRequest {
 
         install_code(args).await.unwrap();
 
-        Ok(ConsentMessageResponse::default())
+        Ok(ConsentMessageResponse::Valid(ConsendInfo {
+            consent_message: format!(
+                "Canister {} upgraded to version {}, hash {}",
+                canister_id, self.wasm_version, self.wasm_hash_string
+            ),
+            ..Default::default()
+        }))
     }
 }

@@ -9,11 +9,16 @@ const EnvPlugin = new webpack.EnvironmentPlugin(envList)
 
 module.exports = {
   // eslint-disable-next-line no-unused-vars
-  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
-    // Plugin
+  webpack: (config, { isServer }) => {
     config.plugins.push(EnvPlugin)
+    if (!isServer) {
+      config.optimization.splitChunks.cacheGroups = {
+        default: false
+      }
 
-    // Important: return the modified config
+      config.optimization.runtimeChunk = false
+    }
+
     return config
   },
   output: "export"

@@ -20,7 +20,7 @@ function HomePage() {
     systemActor
   } = useAuthClient()
 
-  const [loading, setLoading] = useState<boolean>(false)
+  const [loading, setLoading] = useState(false)
   const [walletCanisterId, setWalletCanisterId] = useState<string>("")
   const [walletActor, setWalletActor] = useState<B3Wallet>()
   const [version, setVersion] = useState<string>("")
@@ -69,7 +69,7 @@ function HomePage() {
         boxShadow="md"
         borderRadius="md"
         position="relative"
-        justify="center"
+        justify="space-between"
       >
         {isAuthenticating && <Loading title="Authenticating" />}
         {loading && <Loading title="Loading Wallet" />}

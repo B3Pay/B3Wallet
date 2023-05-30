@@ -1,5 +1,8 @@
 use crate::{
-    error::RequestError, pending::PendingRequest, processed::ProcessedRequest, signer::Signer,
+    error::RequestError,
+    pending::{PendingRequest, RequestArgs},
+    processed::ProcessedRequest,
+    signer::Signer,
 };
 use b3_helper_lib::{
     error::TrapError,
@@ -11,10 +14,6 @@ use std::collections::{BTreeMap, HashMap};
 
 pub type SignerMap = HashMap<SignerId, Signer>;
 
-pub type PendingRequestMap = BTreeMap<RequestId, PendingRequest>;
-
-pub type ProcessedRequestMap = BTreeMap<RequestId, ProcessedRequest>;
-
 pub type PendingRequestList = Vec<PendingRequest>;
 
 pub type ProcessedRequestList = Vec<ProcessedRequest>;
@@ -22,6 +21,10 @@ pub type ProcessedRequestList = Vec<ProcessedRequest>;
 pub type Response = BTreeMap<SignerId, RequestResponse>;
 
 pub type ResponseMap = BTreeMap<RequestId, RequestResponse>;
+
+pub type PendingRequestMap = BTreeMap<RequestId, PendingRequest>;
+
+pub type ProcessedRequestMap = BTreeMap<RequestId, ProcessedRequest>;
 
 #[enum_dispatch]
 pub trait RequestResponseTrait {
@@ -61,19 +64,31 @@ pub enum RequestResponse {
 }
 
 // ICRC-21: Canister Call Consent Messages --------------------------------------
-#[derive(CandidType, Clone, Debug)]
+#[derive(CandidType, Clone, Deserialize, Debug)]
 pub struct ConsentPreferences {
     pub language: String,
 }
 
-#[derive(CandidType, Clone, Debug)]
+#[derive(CandidType, Clone, Deserialize, Debug)]
 pub struct ConsentMessageRequest {
     pub method: String,
-    pub arg: PendingRequest,
+    pub arg: RequestArgs,
     pub consent_preferences: ConsentPreferences,
 }
 
-#[derive(CandidType, Clone, Deserialize)]
+impl From<&RequestArgs> for ConsentMessageRequest {
+    fn from(request: &RequestArgs) -> Self {
+        ConsentMessageRequest {
+            method: request.request.to_string(),
+            arg: request.clone(),
+            consent_preferences: ConsentPreferences {
+                language: "en-US".to_string(),
+            },
+        }
+    }
+}
+
+#[derive(CandidType, Clone, Debug, Deserialize)]
 pub struct ConsendInfo {
     pub consent_message: String,
     pub language: String,
@@ -94,13 +109,13 @@ impl From<ConsendInfo> for ConsentMessageResponse {
     }
 }
 
-#[derive(CandidType, Clone, Deserialize)]
+#[derive(CandidType, Clone, Debug, Deserialize)]
 pub struct ErrorInfo {
     pub error_code: u64,
     pub description: String,
 }
 
-#[derive(CandidType, Clone, Deserialize)]
+#[derive(CandidType, Clone, Debug, Deserialize)]
 pub enum ConsentMessageResponse {
     Valid(ConsendInfo),
     Forbidden(ErrorInfo),

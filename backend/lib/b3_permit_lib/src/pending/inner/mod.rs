@@ -2,6 +2,8 @@ pub mod account;
 pub mod setting;
 pub mod signer;
 
+use std::fmt;
+
 use crate::types::ConsentMessageResponse;
 
 use super::Request;
@@ -45,6 +47,28 @@ impl InnerRequest {
             InnerRequest::EcdsaPublicKeyRequest(args) => args.execute().await,
             InnerRequest::UpdateCanisterSettingsRequest(args) => args.execute().await,
             InnerRequest::UpgradeCanisterRequest(args) => args.execute().await,
+        }
+    }
+}
+
+impl fmt::Display for InnerRequest {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            InnerRequest::AddSignerRequest(_) => write!(f, "AddSignerRequest"),
+            InnerRequest::RemoveSignerRequest(_) => write!(f, "RemoveSignerRequest"),
+            InnerRequest::CreateAccountRequest(_) => write!(f, "CreateAccountRequest"),
+            InnerRequest::RemoveAccountRequest(_) => write!(f, "RemoveAccountRequest"),
+            InnerRequest::HideAccountRequest(_) => write!(f, "HideAccountRequest"),
+            InnerRequest::UnhideAccountRequest(_) => write!(f, "UnhideAccountRequest"),
+            InnerRequest::RenameAccountRequest(_) => write!(f, "RenameAccountRequest"),
+            InnerRequest::UpdateSignerThresholdRequest(_) => {
+                write!(f, "UpdateSignerThresholdRequest")
+            }
+            InnerRequest::EcdsaPublicKeyRequest(_) => write!(f, "EcdsaPublicKeyRequest"),
+            InnerRequest::UpdateCanisterSettingsRequest(_) => {
+                write!(f, "UpdateCanisterSettingsRequest")
+            }
+            InnerRequest::UpgradeCanisterRequest(_) => write!(f, "UpgradeCanisterRequest"),
         }
     }
 }

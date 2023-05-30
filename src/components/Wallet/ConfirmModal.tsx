@@ -1,4 +1,4 @@
-import { InfoOutlineIcon } from "@chakra-ui/icons"
+import { InfoOutlineIcon, RepeatIcon } from "@chakra-ui/icons"
 import {
   Box,
   Button,
@@ -10,7 +10,8 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  useDisclosure
+  useDisclosure,
+  useInterval
 } from "@chakra-ui/react"
 import { PendingRequest } from "declarations/b3_wallet/b3_wallet.did"
 import { useState } from "react"
@@ -29,20 +30,23 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [requests, setRequests] = useState<PendingRequest[]>([])
 
-  const fetchRequests = async () => {
+  const fetchRequests = async () =>
     actor.get_pending_list().then(newRequests => {
-      console.log(newRequests)
-      if (newRequests.length > 0) {
-        setRequests(newRequests)
-        // Open modal here to confirm or reject new request
-        onOpen()
-      }
+      setRequests(newRequests)
     })
+
+  const modalOpenHeader = () => {
+    if (requests.length > 0) {
+      onOpen()
+    } else {
+      fetchRequests()
+    }
   }
 
   const confirmHandler = async (request_id: bigint) => {
-    actor.request_response(request_id, { Confirm: null }).then(() => {
+    actor.request_response(request_id, { Confirm: null }).then(async () => {
       onClose()
+      await fetchRequests()
       fetchAccounts()
     })
   }
@@ -50,27 +54,42 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   const rejectHandler = async (request_id: bigint) => {
     actor.request_response(request_id, { Reject: null }).then(() => {
       onClose()
+      fetchRequests()
     })
   }
+
+  useInterval(async () => {
+    fetchRequests()
+  }, 10000)
 
   return (
     <Box>
       <IconButton
-        colorScheme="orange"
+        colorScheme="green"
+        variant={"ghost"}
+        aria-label="Refresh"
+        icon={<RepeatIcon />}
+        onClick={fetchAccounts}
+      />
+      <IconButton
+        colorScheme="red"
+        variant={requests.length > 0 ? "solid" : "ghost"}
         aria-label="Confirm"
         icon={<InfoOutlineIcon />}
-        onClick={fetchRequests}
+        onClick={modalOpenHeader}
       />
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         {requests.length > 0 && (
           <ModalContent>
-            <ModalHeader>Request ID: {requests[0].id.toString()}</ModalHeader>
+            <ModalHeader> {requests[0].consent_message.method}</ModalHeader>
             <ModalCloseButton />
             <ModalBody>
-              {Object.entries(requests[0].request).map(([key, value]) => (
-                <Parent key={key} parent={key} child={value} />
-              ))}
+              {Object.entries(requests[0].consent_message).map(
+                ([key, value]) => (
+                  <Parent key={key} parent={key} child={value} />
+                )
+              )}
             </ModalBody>
             <ModalFooter>
               <Button

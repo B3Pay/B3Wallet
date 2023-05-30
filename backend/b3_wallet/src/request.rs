@@ -10,6 +10,7 @@ use b3_permit_lib::{
         inner::{
             account::{CreateAccountRequest, RemoveAccountRequest, RenameAccountRequest},
             setting::UpdateCanisterSettingsRequest,
+            signer::AddSignerRequest,
         },
         Request, RequestArgs,
     },
@@ -32,6 +33,17 @@ pub fn get_pending_list() -> PendingRequestList {
 #[candid_method(update)]
 #[update(guard = "caller_is_admin")]
 pub fn request_maker(request: Request, deadline: Option<Deadline>) -> RequestId {
+    let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
+
+    with_permit_mut(|s| {
+        let new_request = s.new_request(request_args);
+        s.insert_new_request(new_request)
+    })
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_admin")]
+pub fn request_add_signer(request: AddSignerRequest, deadline: Option<Deadline>) -> RequestId {
     let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
 
     with_permit_mut(|s| {

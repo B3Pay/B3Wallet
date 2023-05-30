@@ -205,3 +205,40 @@ impl Environment {
         }
     }
 }
+
+#[derive(CandidType, Deserialize)]
+pub struct HeaderField(pub String, pub String);
+
+#[derive(CandidType, Deserialize)]
+pub struct HttpRequest {
+    pub method: String,
+    pub url: String,
+    pub headers: Vec<HeaderField>,
+    #[serde(with = "serde_bytes")]
+    pub body: Vec<u8>,
+}
+
+#[derive(CandidType, Deserialize)]
+pub struct HttpResponse {
+    pub status_code: u16,
+    pub headers: Vec<HeaderField>,
+    #[serde(with = "serde_bytes")]
+    pub body: Vec<u8>,
+}
+
+#[derive(CandidType, Deserialize)]
+pub struct B3Path(pub String);
+
+impl B3Path {
+    pub fn new(url: &str) -> Self {
+        Self(url.split('?').next().unwrap_or("/").to_string())
+    }
+
+    pub fn to_vec(&self) -> Vec<u8> {
+        self.0.as_bytes().to_vec()
+    }
+
+    pub fn to_string(&self) -> String {
+        self.0.clone()
+    }
+}

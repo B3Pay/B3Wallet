@@ -19,6 +19,7 @@ pub enum RequestStatus {
 pub struct ProcessedRequest {
     message: ConsentMessageResponse,
     error: Option<RequestError>,
+    method: String,
     request: PendingRequest,
     status: RequestStatus,
     timestamp: u64,
@@ -49,6 +50,7 @@ impl From<PendingRequest> for ProcessedRequest {
         ProcessedRequest {
             error,
             timestamp: ic_timestamp(),
+            method: request.method(),
             message,
             status,
             request,
@@ -61,6 +63,7 @@ impl ProcessedRequest {
         ProcessedRequest {
             error: None,
             timestamp: ic_timestamp(),
+            method: request.method(),
             request: request.clone(),
             status: RequestStatus::Pending,
             message: ConsentMessageResponse::default(),

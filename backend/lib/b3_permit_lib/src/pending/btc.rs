@@ -1,3 +1,5 @@
+use std::fmt;
+
 use b3_helper_lib::error::TrapError;
 use b3_wallet_lib::{error::WalletError, ledger::btc::network::BtcNetwork, store::with_ledger};
 use enum_dispatch::enum_dispatch;
@@ -17,6 +19,14 @@ impl BtcRequest {
     pub async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
         match self {
             BtcRequest::BtcTransferRequest(args) => args.execute().await,
+        }
+    }
+}
+
+impl fmt::Display for BtcRequest {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            BtcRequest::BtcTransferRequest(_) => write!(f, "BtcTransferRequest"),
         }
     }
 }
