@@ -54,7 +54,7 @@ export interface _SERVICE {
   'add_controller' : ActorMethod<[Principal], undefined>,
   'add_wallet_canister' : ActorMethod<[Principal], undefined>,
   'change_wallet_canister' : ActorMethod<[Principal], undefined>,
-  'create_wallet_canister' : ActorMethod<[[] | [string]], Result>,
+  'create_wallet_canister' : ActorMethod<[], Result>,
   'deprecate_release' : ActorMethod<[string], undefined>,
   'get_canister' : ActorMethod<[], WalletCanister>,
   'get_canister_version' : ActorMethod<[Principal], string>,
@@ -65,10 +65,7 @@ export interface _SERVICE {
   'get_user_ids' : ActorMethod<[], Array<Principal>>,
   'get_wallet_canisters' : ActorMethod<[], Array<WalletCanister>>,
   'get_wallet_release' : ActorMethod<[Principal], Release>,
-  'install_wallet_canister' : ActorMethod<
-    [[] | [Principal], [] | [string]],
-    Result
-  >,
+  'install_wallet_canister' : ActorMethod<[[] | [Principal]], Result>,
   'latest_release' : ActorMethod<[], Release>,
   'load_release' : ActorMethod<
     [Uint8Array | number[], ReleaseArgs],

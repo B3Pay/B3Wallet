@@ -71,7 +71,7 @@ pub async fn get_wallet_release(canister_id: CanisterId) -> Release {
 
 #[update]
 #[candid_method(update)]
-pub async fn create_wallet_canister(version: Option<Version>) -> Result<WalletCanister, String> {
+pub async fn create_wallet_canister() -> Result<WalletCanister, String> {
     let user_id = ic_cdk::caller();
     let system_id = ic_cdk::id();
 
@@ -85,16 +85,7 @@ pub async fn create_wallet_canister(version: Option<Version>) -> Result<WalletCa
     with_state_mut(|s| s.add_user(user_id, wallet_canister.clone()));
 
     let install_arg_result = with_state_mut(|s| {
-        if let Some(version) = version {
-            s.get_release_install_args(
-                &version,
-                user_id,
-                Some(system_id),
-                CanisterInstallMode::Install,
-            )
-        } else {
-            s.get_latest_install_args(user_id, Some(system_id), CanisterInstallMode::Install)
-        }
+        s.get_latest_install_args(user_id, Some(system_id), CanisterInstallMode::Install)
     });
 
     match install_arg_result {
@@ -120,7 +111,6 @@ pub async fn create_wallet_canister(version: Option<Version>) -> Result<WalletCa
 #[candid_method(update)]
 pub async fn install_wallet_canister(
     canister_id: Option<CanisterId>,
-    version: Option<Version>,
 ) -> Result<WalletCanister, String> {
     let system_id = ic_cdk::id();
     let user_id = ic_cdk::caller();
@@ -129,16 +119,7 @@ pub async fn install_wallet_canister(
         with_state_mut(|s| s.get_or_init_user(user_id, canister_id)).unwrap_or_else(revert);
 
     let install_arg_result = with_state_mut(|s| {
-        if let Some(version) = version {
-            s.get_release_install_args(
-                &version,
-                user_id,
-                Some(system_id),
-                CanisterInstallMode::Install,
-            )
-        } else {
-            s.get_latest_install_args(user_id, Some(system_id), CanisterInstallMode::Install)
-        }
+        s.get_latest_install_args(user_id, Some(system_id), CanisterInstallMode::Install)
     });
 
     match install_arg_result {
@@ -190,7 +171,7 @@ async fn add_wallet_canister(canister_id: CanisterId) {
 fn change_wallet_canister(canister_id: CanisterId) {
     let user_id = ic_cdk::caller();
 
-    with_wallet_canister_mut(&user_id, |c| c.set_canister_id(canister_id)).unwrap_or_else(revert);
+    with_wallet_canister_mut(&user_id, |c| c.add_canister_id(canister_id)).unwrap_or_else(revert);
 }
 
 #[candid_method(update)]

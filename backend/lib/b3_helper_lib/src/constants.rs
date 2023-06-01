@@ -14,10 +14,12 @@ pub const CANISTER_TRANSFER_MEMO: Memo = Memo(0x544153);
 
 pub const MANAGMENT_CANISTER_ID: CanisterId = CanisterId::management_canister();
 
+// ryjl3-tyaaa-aaaaa-aaaba-cai
 pub const LEDGER_ID: [u8; 10] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x01, 0x01];
 
 pub const LEDGER_CANISTER_ID: CanisterId = CanisterId::from_slice(&LEDGER_ID);
 
+// rkp4c-7iaaa-aaaaa-aaaca-cai
 pub const CMC_ID: [u8; 10] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x01, 0x01];
 
 pub const CYCLES_MINTING_CANISTER_ID: CanisterId = CanisterId::from_slice(&CMC_ID);

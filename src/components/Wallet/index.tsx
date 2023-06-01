@@ -1,10 +1,10 @@
-import { Stack } from "@chakra-ui/react"
+import { Card } from "@chakra-ui/react"
 import { WalletAccountView } from "declarations/b3_wallet/b3_wallet.did"
 import { useCallback, useEffect, useState } from "react"
 import { B3Wallet } from "service/actor"
 import Loading from "../Loading"
-import WalletBody from "./Body"
-import WalletHeader from "./Header"
+import WalletBody from "./WalletBody"
+import WalletHeader from "./WalletHeader"
 
 interface WalletProps {
   actor: B3Wallet
@@ -49,9 +49,9 @@ const Wallet: React.FC<WalletProps> = ({
   }, [fetchAccounts])
 
   return (
-    <Stack
+    <Card
       position="relative"
-      spacing={6}
+      padding={2}
       width="100%"
       height="100%"
       justify="space-between"
@@ -74,7 +74,7 @@ const Wallet: React.FC<WalletProps> = ({
         setAccounts={setAccounts}
         fetchAccounts={fetchAccounts}
       />
-    </Stack>
+    </Card>
   )
 }
 

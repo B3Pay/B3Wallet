@@ -1,7 +1,6 @@
 import {
   Accordion,
   AccordionItem,
-  Box,
   Stack,
   StackProps,
   Text
@@ -82,7 +81,6 @@ const WalletBody: React.FC<WalletBodyProps> = ({
       ) : mode === Mode.Processed ? (
         <ProcessedList
           actor={actor}
-          fetchAccounts={fetchAccounts}
           setLoading={(global: boolean) =>
             setLoading(prev => ({ ...prev, global }))
           }
@@ -94,22 +92,20 @@ const WalletBody: React.FC<WalletBodyProps> = ({
               Accounts
             </Text>
             <CreateAccount actor={actor} fetchAccounts={fetchAccounts} />
-            <Box>
-              {accounts.map((account, index) => (
-                <AccordionItem paddingY={4} key={index}>
-                  {({ isExpanded }) => (
-                    <Account
-                      key={index}
-                      actor={actor}
-                      isExpanded={isExpanded}
-                      loading={loading[account.id]}
-                      refresh={() => refetchAccount(account.id)}
-                      {...account}
-                    />
-                  )}
-                </AccordionItem>
-              ))}
-            </Box>
+            {accounts.map((account, index) => (
+              <AccordionItem key={index} py={1} border="none">
+                {({ isExpanded }) => (
+                  <Account
+                    key={index}
+                    actor={actor}
+                    isExpanded={isExpanded}
+                    loading={loading[account.id]}
+                    refresh={() => refetchAccount(account.id)}
+                    {...account}
+                  />
+                )}
+              </AccordionItem>
+            ))}
           </Stack>
         </Accordion>
       )}

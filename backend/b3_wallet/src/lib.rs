@@ -5,10 +5,7 @@ mod request;
 mod status;
 mod wasm;
 
-use b3_helper_lib::{
-    types::{B3Path, HeaderField, HttpRequest, HttpResponse, WalletCanisterInitArgs},
-    wasm::with_wasm_mut,
-};
+use b3_helper_lib::{types::WalletCanisterInitArgs, wasm::with_wasm_mut};
 use b3_permit_lib::{
     signer::{Roles, Signer},
     state::PrmitState,
@@ -17,11 +14,8 @@ use b3_permit_lib::{
 use b3_wallet_lib::{
     state::WalletState,
     store::{with_wallet, with_wallet_mut},
-    types::PathTrait,
 };
-use ic_cdk::{
-    api::call::arg_data, export::candid::candid_method, init, post_upgrade, pre_upgrade, query,
-};
+use ic_cdk::{api::call::arg_data, export::candid::candid_method, init, post_upgrade, pre_upgrade};
 
 #[init]
 #[candid_method(init)]
@@ -53,31 +47,6 @@ pub fn init() {
     };
 
     with_wallet_mut(|state| state.init_wallet());
-}
-
-#[query]
-#[candid_method(query)]
-fn http_request(request: HttpRequest) -> HttpResponse {
-    //TODO add /canister_id/ as endpoint when ICQC is available.
-    let path = B3Path::new(request.url.as_str());
-
-    if let Some(bytes) = path.retrieve() {
-        HttpResponse {
-            status_code: 200,
-            headers: vec![
-                //HeaderField("Content-Encoding".to_string(), "gzip".to_string()),
-                HeaderField("Content-Length".to_string(), format!("{}", bytes.len())),
-                HeaderField("Cache-Control".to_string(), format!("max-age={}", 600)),
-            ],
-            body: bytes.to_vec(),
-        }
-    } else {
-        HttpResponse {
-            status_code: 404,
-            headers: Vec::new(),
-            body: path.to_vec(),
-        }
-    }
 }
 
 #[pre_upgrade]

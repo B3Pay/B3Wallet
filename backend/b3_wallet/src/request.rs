@@ -23,8 +23,8 @@ use ic_cdk::{export::candid::candid_method, query, update};
 
 // QUERY ---------------------------------------------------------------------
 
-#[query]
 #[candid_method(query)]
+#[query(guard = "caller_is_signer")]
 pub fn get_pending_list() -> PendingRequestList {
     with_permit(|s| s.pending_list())
 }

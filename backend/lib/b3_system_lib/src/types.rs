@@ -4,6 +4,7 @@ use std::collections::HashMap;
 
 pub type WalletCanisters = Vec<WalletCanister>;
 pub type Controllers = Vec<ControllerId>;
+pub type Canisters = Vec<CanisterId>;
 pub type Releases = Vec<Release>;
 pub type Features = Vec<String>;
 pub type Users = Vec<SignerId>;
@@ -13,7 +14,7 @@ pub type WasmMap = HashMap<Version, Wasm>;
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct WalletCanister {
-    pub canister_id: Option<CanisterId>,
+    pub canisters: Vec<CanisterId>,
     pub created_at: u64,
     pub updated_at: u64,
 }

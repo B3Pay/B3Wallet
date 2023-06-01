@@ -12,14 +12,14 @@ use ic_cdk::{export::candid::candid_method, query, update};
 
 // QUERY
 
-#[query]
 #[candid_method(query)]
+#[query(guard = "caller_is_signer")]
 pub fn get_processed(request_id: RequestId) -> ProcessedRequest {
     with_processed_request(&request_id, |processed| processed.clone()).unwrap_or_else(revert)
 }
 
-#[query]
 #[candid_method(query)]
+#[query(guard = "caller_is_signer")]
 pub fn get_processed_list() -> ProcessedRequestList {
     with_permit(|s| s.processed_list())
 }

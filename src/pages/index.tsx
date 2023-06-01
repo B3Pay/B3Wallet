@@ -1,9 +1,9 @@
-import { Button, Container, Stack, Text } from "@chakra-ui/react"
+import { Button, Card, Container, Stack, Text } from "@chakra-ui/react"
 import Disclaimer from "components/Disclaimer"
 import { Footer } from "components/Footer"
 import Header from "components/Header"
 import Loading from "components/Loading"
-import SystemCanister from "components/SystemCanister"
+import System from "components/System"
 import Wallet from "components/Wallet"
 import useAuthClient from "hooks/useAuthClient"
 import Head from "next/head"
@@ -54,23 +54,12 @@ function HomePage() {
   )
 
   return (
-    <Container maxW="2xl" p={0}>
+    <Container maxW="2xl" p={1}>
       <Head>
         <title>B3Wallet</title>
       </Head>
       <Header />
-      <Stack
-        as="main"
-        p={4}
-        my={2}
-        bg="white"
-        bgColor="gray.50"
-        minH="20vh"
-        boxShadow="md"
-        borderRadius="md"
-        position="relative"
-        justify="space-between"
-      >
+      <Stack as="main" minH="100px" position="relative" justify="space-between">
         {isAuthenticating && <Loading title="Authenticating" />}
         {loading && <Loading title="Loading Wallet" />}
         {isAuthenticated ? (
@@ -81,24 +70,29 @@ function HomePage() {
               version={version}
             />
           ) : systemActor ? (
-            <SystemCanister
-              systemActor={systemActor}
-              fetchUserActor={fetchUserActor}
-            />
+            <System systemActor={systemActor} fetchUserActor={fetchUserActor} />
           ) : (
             <Loading dark title="Fetching" />
           )
         ) : (
-          <Stack spacing="4">
-            <Disclaimer noTitle />
-            <Text>Connect your wallet to get started</Text>
-            <Button onClick={login} colorScheme="green">
-              Login
-            </Button>
+          <Stack spacing="2">
+            <Card p={2}>
+              <Disclaimer noTitle />
+            </Card>
+            <Card p={2}>
+              <Stack>
+                <Text fontSize="sm">Connect your wallet to get started</Text>
+                <Button onClick={login} colorScheme="green">
+                  Login
+                </Button>
+              </Stack>
+            </Card>
           </Stack>
         )}
-        {isAuthenticated && (
-          <Stack borderTop="1px solid #eee" pt={4}>
+      </Stack>
+      {isAuthenticated && (
+        <Card p={2} mt={2}>
+          <Stack spacing="4">
             <Button
               variant="solid"
               colorScheme="red"
@@ -110,8 +104,8 @@ function HomePage() {
               Logout
             </Button>
           </Stack>
-        )}
-      </Stack>
+        </Card>
+      )}
       <Footer />
     </Container>
   )

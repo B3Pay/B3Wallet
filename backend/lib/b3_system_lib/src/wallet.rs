@@ -1,7 +1,6 @@
-use crate::types::WalletCanister;
+use crate::{error::SystemError, types::WalletCanister};
 use b3_helper_lib::{
     constants::RATE_LIMIT,
-    error::HelperError,
     types::{
         CanisterId, ControllerId, SignerId, Version, WalletCanisterInstallArg,
         WalletCanisterStatus, WasmHash,
@@ -21,7 +20,7 @@ use ic_cdk::api::{
 impl From<CanisterId> for WalletCanister {
     fn from(canister_id: CanisterId) -> Self {
         Self {
-            canister_id: Some(canister_id),
+            canisters: vec![canister_id],
             updated_at: time(),
             created_at: time(),
         }
@@ -34,14 +33,14 @@ impl WalletCanister {
         let now = time();
 
         Self {
-            canister_id: None,
+            canisters: vec![],
             updated_at: now,
             created_at: now,
         }
     }
 
     /// get with updated_at.
-    pub fn get_with_update_rate(&mut self) -> Result<WalletCanister, HelperError> {
+    pub fn get_with_update_rate(&mut self) -> Result<WalletCanister, SystemError> {
         self.check_rate()?;
         self.updated_at = time();
 
@@ -49,79 +48,72 @@ impl WalletCanister {
     }
 
     /// Set the canister id.
-    pub fn set_canister_id(&mut self, canister_id: CanisterId) {
-        self.canister_id = Some(canister_id);
+    pub fn add_canister_id(&mut self, canister_id: CanisterId) {
+        self.canisters.push(canister_id);
         self.updated_at = time();
     }
 
-    /// Reset the canister id.
-    /// This is used when the installation of the canister fails.
-    pub fn reset_canister_id(&mut self) {
-        self.canister_id = None;
-        self.updated_at = time();
-    }
-
-    /// Returns the canister id, throws an error if it is not available.
-    pub fn canister_id(&self) -> Result<CanisterId, HelperError> {
-        match self.canister_id {
-            Some(canister_id) => Ok(canister_id),
-            None => Err(HelperError::SignerNotAvailable),
-        }
+    /// Returns the canister ids, throws an error if it is not available.
+    pub fn canister_id(&self) -> Result<CanisterId, SystemError> {
+        self.canisters
+            .first()
+            .cloned()
+            .ok_or(SystemError::NoCanisterAvailable)
     }
 
     /// Make an function that use updated_at and check the rate of the user.
-    pub fn check_rate(&self) -> Result<(), HelperError> {
+    pub fn check_rate(&self) -> Result<(), SystemError> {
         let now = time();
         let updated_at = self.updated_at;
 
         if now - updated_at < RATE_LIMIT {
-            Err(HelperError::RateLimitExceeded)
+            Err(SystemError::RateLimitExceeded)
         } else {
             Ok(())
         }
     }
 
     /// Get the owner of the canister.
-    pub async fn validate_signer(&self, signer_id: SignerId) -> Result<bool, HelperError> {
+    pub async fn validate_signer(&self, signer_id: SignerId) -> Result<bool, SystemError> {
         let canister_id = self.canister_id()?;
 
         let (validate,): (bool,) = ic_cdk::call(canister_id, "validate_signer", (signer_id,))
             .await
-            .map_err(|err| HelperError::ValidateSignerError(err.1))?;
+            .map_err(|err| SystemError::ValidateSignerError(err.1))?;
 
         Ok(validate)
     }
 
     /// Get the wasm hash of the canister.
-    pub async fn wasm_hash(&self) -> Result<WasmHash, HelperError> {
+    pub async fn wasm_hash(&self) -> Result<WasmHash, SystemError> {
         let canister_id = self.canister_id()?;
 
         let (wasm_hash,): (WasmHash,) = ic_cdk::call(canister_id, "wasm_hash", ())
             .await
-            .map_err(|err| HelperError::WasmHashError(err.1))?;
+            .map_err(|err| SystemError::WasmHashError(err.1))?;
 
         Ok(wasm_hash)
     }
 
     /// Get the version of the canister.
-    pub async fn version(&self) -> Result<Version, HelperError> {
+    pub async fn version(&self) -> Result<Version, SystemError> {
         let canister_id = self.canister_id()?;
 
         let (version,): (Version,) = ic_cdk::call(canister_id, "version", ())
             .await
-            .map_err(|err| HelperError::VersionError(err.1))?;
+            .map_err(|err| SystemError::VersionError(err.1))?;
 
         Ok(version)
     }
 
     /// Get the status of the canister.
     /// The caller must be a controller of the canister.
-    pub async fn status(&self) -> Result<WalletCanisterStatus, HelperError> {
+    pub async fn status(&self) -> Result<WalletCanisterStatus, SystemError> {
         let canister_id = self.canister_id()?;
 
         let (canister_status,): (WalletCanisterStatus,) = ic_cdk::call(canister_id, "status", ())
             .await
-            .map_err(|err| HelperError::CanisterStatusError(err.1))?;
+            .map_err(|err| SystemError::CanisterStatusError(err.1))?;
 
         Ok(canister_status)
     }
@@ -131,7 +123,7 @@ impl WalletCanister {
         &mut self,
         controllers: Vec<ControllerId>,
         cycles: u128,
-    ) -> Result<CanisterId, HelperError> {
+    ) -> Result<CanisterId, SystemError> {
         let settings = Some(CanisterSettings {
             controllers: Some(controllers.clone()),
             compute_allocation: None,
@@ -146,11 +138,11 @@ impl WalletCanister {
             Ok(result) => {
                 let canister_id = result.0.canister_id;
 
-                self.canister_id = Some(canister_id);
+                self.add_canister_id(canister_id.clone());
 
                 Ok(canister_id)
             }
-            Err(err) => Err(HelperError::CreateCanisterError(err.1)),
+            Err(err) => Err(SystemError::CreateCanisterError(err.1)),
         }
     }
 
@@ -162,7 +154,7 @@ impl WalletCanister {
             mode,
             wasm_module,
         }: WalletCanisterInstallArg,
-    ) -> Result<(), HelperError> {
+    ) -> Result<(), SystemError> {
         let canister_id = self.canister_id()?;
 
         let install_args = InstallCodeArgument {
@@ -174,7 +166,7 @@ impl WalletCanister {
 
         install_code(install_args)
             .await
-            .map_err(|err| HelperError::InstallCodeError(err.1))
+            .map_err(|err| SystemError::InstallCodeError(err.1))
     }
 
     /// Update the controllers of the canister.
@@ -183,7 +175,7 @@ impl WalletCanister {
     pub async fn update_controllers(
         &self,
         mut controllers: Vec<ControllerId>,
-    ) -> Result<(), HelperError> {
+    ) -> Result<(), SystemError> {
         let canister_id = self.canister_id()?;
 
         if !controllers.contains(&canister_id) {
@@ -202,6 +194,6 @@ impl WalletCanister {
 
         update_settings(arg)
             .await
-            .map_err(|err| HelperError::UpdateCanisterControllersError(err.1))
+            .map_err(|err| SystemError::UpdateCanisterControllersError(err.1))
     }
 }

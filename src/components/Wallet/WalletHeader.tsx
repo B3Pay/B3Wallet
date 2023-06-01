@@ -1,5 +1,5 @@
 import { AtSignIcon, RepeatClockIcon, SettingsIcon } from "@chakra-ui/icons"
-import { Divider, IconButton, Stack, StackProps } from "@chakra-ui/react"
+import { Box, IconButton, Stack, StackProps } from "@chakra-ui/react"
 import ConfirmationModal from "components/Wallet/ConfirmModal"
 import { B3Wallet } from "service/actor"
 import { Mode } from "."
@@ -22,10 +22,46 @@ const WalletHeader: React.FC<WalletHeaderProps> = ({
   ...rest
 }) => {
   return (
-    <Stack direction="row" justify="space-between" align="center" {...rest}>
-      <Address flex={1} address={walletCanisterId} />
+    <Stack
+      direction="row"
+      paddingBottom={1}
+      marginBottom={2}
+      borderBottom="1px solid"
+      borderColor="gray.200"
+      justify="space-between"
+      align="center"
+      position="relative"
+      {...rest}
+    >
+      <Box
+        animation="spin 2s linear infinite"
+        transition="all 0.25s ease-in-out"
+        pos="absolute"
+        border="1px solid"
+        borderRadius="full"
+        width="30px"
+        bottom={-0.5}
+        borderColor={
+          mode === Mode.Processed
+            ? "blue.500"
+            : mode === Mode.Settings
+            ? "purple.500"
+            : mode === Mode.Accounts
+            ? "pink.500"
+            : "gray.500"
+        }
+        right={
+          mode === Mode.Processed
+            ? "calc(60px + 20px)"
+            : mode === Mode.Settings
+            ? "calc(30px + 10px)"
+            : mode === Mode.Accounts
+            ? "0px"
+            : "0px"
+        }
+      />
+      <Address flex={1} address={walletCanisterId} overflow="hidden" />
       <ConfirmationModal actor={actor} fetchAccounts={fetchAccounts} />
-      <Divider orientation="vertical" />
       <IconButton
         variant={mode === Mode.Processed ? "solid" : "outline"}
         colorScheme="blue"

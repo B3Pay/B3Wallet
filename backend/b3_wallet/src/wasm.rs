@@ -1,4 +1,4 @@
-use crate::permit::{caller_is_admin, caller_is_canister_or_admin};
+use crate::permit::{caller_is_admin, caller_is_canister_or_admin, caller_is_signer};
 use b3_helper_lib::{
     revert,
     types::{WasmHash, WasmSize},
@@ -12,13 +12,13 @@ use ic_cdk::{
 };
 
 #[candid_method(query)]
-#[query]
+#[query(guard = "caller_is_signer")]
 fn wasm_hash_string() -> String {
     with_wasm(|w| w.generate_hash_string())
 }
 
 #[candid_method(query)]
-#[query]
+#[query(guard = "caller_is_signer")]
 fn wasm_hash() -> WasmHash {
     with_wasm(|w| w.generate_hash())
 }

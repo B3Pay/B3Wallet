@@ -53,7 +53,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({
   return (
     <Box as="form" onSubmit={handleSubmit}>
       <Stack alignItems="center" justify="space-between" direction="row">
-        <FormControl flex={6}>
+        <FormControl flex={5}>
           <Input
             id="name"
             alt="Name"
@@ -63,7 +63,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({
             onChange={onChangeName}
           />
         </FormControl>
-        <FormControl isRequired flex={4}>
+        <FormControl isRequired flex={5}>
           <Select
             value={Object.keys(environment)[0]}
             onChange={e => {

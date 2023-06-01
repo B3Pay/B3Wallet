@@ -39,37 +39,37 @@ pub trait TrapError {
 impl TrapError for HelperError {
     fn to_string(self) -> String {
         match self {
-            HelperError::Processing => "Processing!".to_string(),
-            HelperError::ValidateSignerError(e) => ["Get owner error: ", &e].concat(),
-            HelperError::WasmHashError(e) => ["Wasm hash error: ", &e].concat(),
-            HelperError::InvalidTransaction(e) => ["Invalid transaction: ", &e].concat(),
-            HelperError::TransactionTooOld(e) => ["Transaction too old:", & e.to_string()].concat(),
-            HelperError::CreateCanisterError(e) => ["Create canister error: ", &e].concat(),
-            HelperError::EncodeError(e) => ["Encode error: ", &e].concat(),
-            HelperError::InstallCodeError(e) => ["Install code error: ", &e].concat(),
-            HelperError::VersionError(e) => ["Version error: ", &e].concat(),
-            HelperError::CanisterStatusError(e) => ["Canister status error: ", &e].concat(),
-            HelperError::SignerNotAvailable => "Signer not available!".to_string(),
-            HelperError::RateLimitExceeded => "Rate limit exceeded, please try again later!".to_string(),
-            HelperError::UpdateCanisterControllersError(e) => ["Update canister controllers error: " , &e].concat(),
-            HelperError::InvalidAccountIdentifier => "Invalid account identifier!".to_string(),
-            HelperError::BadFee { expected_fee } => ["Invalid fee: Expected", &expected_fee.to_string(), "tokens"].join(" "),
-            HelperError::InsufficientFunds { balance } => ["Insufficient funds: Balance is", &balance.to_string(), "tokens"].join(" "),
-            HelperError::TxTooOld { allowed_window_nanos } => ["Transaction too old: Allowed window is", &allowed_window_nanos.to_string(), "nanoseconds"].join(" "),
-            HelperError::TxCreatedInFuture => "Transaction created in the future".to_string(),
-            HelperError::TxDuplicate { duplicate_of } => ["Duplicate transaction: Duplicate of block index ", &duplicate_of.to_string()].concat(),
-            HelperError::Other { error_message, error_code } => ["Other error", &error_code.to_string(), &error_message].join(" "),
+            HelperError::Processing => "::Processing!".to_string(),
+            HelperError::ValidateSignerError(e) => ["::Get owner error: ", &e].concat(),
+            HelperError::WasmHashError(e) => ["::Wasm hash error: ", &e].concat(),
+            HelperError::InvalidTransaction(e) => ["::Invalid transaction: ", &e].concat(),
+            HelperError::TransactionTooOld(e) => ["::Transaction too old:", & e.to_string()].concat(),
+            HelperError::CreateCanisterError(e) => ["::Create canister error: ", &e].concat(),
+            HelperError::EncodeError(e) => ["::Encode error: ", &e].concat(),
+            HelperError::InstallCodeError(e) => ["::Install code error: ", &e].concat(),
+            HelperError::VersionError(e) => ["::Version error: ", &e].concat(),
+            HelperError::CanisterStatusError(e) => ["::Canister status error: ", &e].concat(),
+            HelperError::SignerNotAvailable => "::Signer not available!".to_string(),
+            HelperError::RateLimitExceeded => "::Rate limit exceeded, please try again later!".to_string(),
+            HelperError::UpdateCanisterControllersError(e) => ["::Update canister controllers error: " , &e].concat(),
+            HelperError::InvalidAccountIdentifier => "::Invalid account identifier!".to_string(),
+            HelperError::BadFee { expected_fee } => ["::Invalid fee: Expected", &expected_fee.to_string(), "tokens"].join(" "),
+            HelperError::InsufficientFunds { balance } => ["::Insufficient funds: Balance is", &balance.to_string(), "tokens"].join(" "),
+            HelperError::TxTooOld { allowed_window_nanos } => ["::Transaction too old: Allowed window is", &allowed_window_nanos.to_string(), "nanoseconds"].join(" "),
+            HelperError::TxCreatedInFuture => "::Transaction created in the future".to_string(),
+            HelperError::TxDuplicate { duplicate_of } => ["::Duplicate transaction: Duplicate of block index ", &duplicate_of.to_string()].concat(),
+            HelperError::Other { error_message, error_code } => ["::Other error", &error_code.to_string(), &error_message].join(" "),
             HelperError::Refunded { block_index, reason } => {
                 if let Some(index) = block_index {
                     [
-                        "Transaction refunded: Refunded at block index",
+                        "::Transaction refunded: Refunded at block index",
                         &index.to_string(),
                         "due to",
                         &reason,
                     ]
                     .join(" ")
                 } else {
-                    ["Transaction refunded: Refunded due to ", &reason].concat()
+                    ["::Transaction refunded: Refunded due to ", &reason].concat()
                 }
             }
         }

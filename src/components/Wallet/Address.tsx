@@ -3,6 +3,7 @@ import {
   Flex,
   FlexProps,
   IconButton,
+  Text,
   Tooltip,
   useClipboard,
   useMediaQuery
@@ -13,12 +14,16 @@ interface AddressWithCopyProps extends FlexProps {
   address: string
 }
 
-const Address: React.FC<AddressWithCopyProps> = ({ address, ...rest }) => {
+const Address: React.FC<AddressWithCopyProps> = ({
+  address,
+  overflow,
+  ...rest
+}) => {
   const { hasCopied, onCopy } = useClipboard(address)
   const [isLargerThan500] = useMediaQuery(["(min-width: 568px)"])
 
   const truncatedAddress = useMemo(() => {
-    if (isLargerThan500 && address.length <= 42) {
+    if (overflow || (isLargerThan500 && address.length <= 42)) {
       return address
     }
 
@@ -26,12 +31,14 @@ const Address: React.FC<AddressWithCopyProps> = ({ address, ...rest }) => {
     const End = address.slice(isLargerThan500 ? -20 : -8)
 
     return `${Start}...${End}`
-  }, [address, isLargerThan500])
+  }, [address, overflow, isLargerThan500])
 
   return (
     <Tooltip label={address} aria-label="Full address">
-      <Flex alignItems="center" {...rest}>
-        {truncatedAddress}
+      <Flex alignItems="center" overflow={overflow} {...rest}>
+        <Text overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+          {truncatedAddress}
+        </Text>
         <IconButton
           colorScheme="blue"
           onClick={onCopy}

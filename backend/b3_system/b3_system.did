@@ -44,7 +44,7 @@ service : () -> {
   add_controller : (principal) -> ();
   add_wallet_canister : (principal) -> ();
   change_wallet_canister : (principal) -> ();
-  create_wallet_canister : (opt text) -> (Result);
+  create_wallet_canister : () -> (Result);
   deprecate_release : (text) -> ();
   get_canister : () -> (WalletCanister) query;
   get_canister_version : (principal) -> (text) query;
@@ -55,7 +55,7 @@ service : () -> {
   get_user_ids : () -> (vec principal) query;
   get_wallet_canisters : () -> (vec WalletCanister) query;
   get_wallet_release : (principal) -> (Release) query;
-  install_wallet_canister : (opt principal, opt text) -> (Result);
+  install_wallet_canister : (opt principal) -> (Result);
   latest_release : () -> (Release) query;
   load_release : (vec nat8, ReleaseArgs) -> (LoadRelease);
   releases : () -> (vec Release) query;

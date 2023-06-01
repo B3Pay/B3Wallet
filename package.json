@@ -11,12 +11,12 @@
     "dfinity"
   ],
   "scripts": {
-    "dfx:start": "export DFX_WARNING=-version_check && dfx start --enable-bitcoin --background --clean && dfx canister create internet_identity && dfx canister create ledger && dfx deploy internet_identity",
+    "dfx:start": "export DFX_WARNING=-version_check && dfx start --enable-bitcoin --background --clean && dfx canister create internet_identity && dfx canister create ledger && dfx deploy internet_identity && dfx deploy cmc",
     "dfx:stop": "dfx stop",
     "dfx:install": "scripts/ledger.sh && scripts/cmc.sh",
     "dfx:create": "dfx canister create b3_wallet && dfx canister create b3_system",
     "dfx:deploy": "dfx deploy b3_wallet && dfx deploy b3_system",
-    "dev": "yarn env && next dev",
+    "dev": "next dev",
     "ic:dev": "DFX_NETWORK=ic next dev",
     "build:wallet": "./scripts/build-wallet.sh",
     "build": "next build",

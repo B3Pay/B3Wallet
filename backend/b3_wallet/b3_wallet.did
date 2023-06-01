@@ -130,17 +130,6 @@ type GetUtxosResponse = record {
   utxos : vec Utxo;
 };
 type HideAccountRequest = record { account_id : text };
-type HttpRequest = record {
-  url : text;
-  method : text;
-  body : vec nat8;
-  headers : vec record { text; text };
-};
-type HttpResponse = record {
-  body : vec nat8;
-  headers : vec record { text; text };
-  status_code : nat16;
-};
 type IcpRequest = variant {
   IcpTransferRequest : IcpTransferRequest;
   TopUpCanisterRequest : TopUpCanisterRequest;
@@ -349,7 +338,6 @@ service : () -> {
   get_processed : (nat64) -> (ProcessedRequest) query;
   get_processed_list : () -> (vec ProcessedRequest) query;
   get_signers : () -> (vec record { principal; Signer }) query;
-  http_request : (HttpRequest) -> (HttpResponse) query;
   load_wasm : (vec nat8) -> (nat64);
   request_account_rename : (RenameAccountRequest, opt nat64) -> (nat64);
   request_add_signer : (AddSignerRequest, opt nat64) -> (nat64);

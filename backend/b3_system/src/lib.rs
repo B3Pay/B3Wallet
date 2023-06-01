@@ -7,18 +7,15 @@ use b3_system_lib::{
     store::{with_state, with_state_mut, with_wasm_map, with_wasm_map_mut},
     types::{State, WasmMap},
 };
-use ic_cdk::export::{candid::candid_method, Principal};
+use ic_cdk::export::candid::candid_method;
 use ic_cdk::{caller, init, post_upgrade, pre_upgrade};
 
 #[init]
 #[candid_method(init)]
 pub fn init() {
-    // TODO: Remove this function and get owner from argument.
-    let owner = Principal::anonymous();
     let manager = caller();
 
     with_state_mut(|s| {
-        s.add_controller(owner);
         s.add_controller(manager);
     });
 }

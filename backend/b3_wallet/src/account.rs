@@ -23,38 +23,38 @@ use ic_cdk::{
 
 // QUERY
 
-#[query]
 #[candid_method(query)]
+#[query(guard = "caller_is_signer")]
 pub fn get_account(account_id: String) -> WalletAccount {
     with_account(&account_id, |account| account.clone()).unwrap_or_else(revert)
 }
 
-#[query]
 #[candid_method(query)]
+#[query(guard = "caller_is_signer")]
 pub fn get_account_count() -> usize {
     with_wallet(|s| s.accounts_len())
 }
 
-#[query]
 #[candid_method(query)]
+#[query(guard = "caller_is_signer")]
 pub fn get_account_counters() -> AccountsCounter {
     with_wallet(|s| s.counters().clone())
 }
 
-#[query]
 #[candid_method(query)]
+#[query(guard = "caller_is_signer")]
 pub fn get_account_views() -> Vec<WalletAccountView> {
     with_wallet(|s| s.account_views())
 }
 
-#[query]
 #[candid_method(query)]
+#[query(guard = "caller_is_signer")]
 pub fn get_account_view(account_id: String) -> WalletAccountView {
     with_account(&account_id, |account| account.view()).unwrap_or_else(revert)
 }
 
-#[query]
 #[candid_method(query)]
+#[query(guard = "caller_is_signer")]
 pub fn get_addresses(account_id: String) -> AddressMap {
     with_ledger(&account_id, |ledger| ledger.keys.addresses().clone()).unwrap_or_else(revert)
 }

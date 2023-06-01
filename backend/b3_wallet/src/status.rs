@@ -26,8 +26,8 @@ pub async fn status() -> WalletCanisterStatus {
     }
 }
 
-#[candid_method(query)]
 #[query]
+#[candid_method(query)]
 pub fn version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }

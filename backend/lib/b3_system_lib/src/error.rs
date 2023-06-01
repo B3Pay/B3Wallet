@@ -4,6 +4,10 @@ use ic_cdk::export::candid::{CandidType, Deserialize};
 #[rustfmt::skip]
 #[derive(CandidType, Deserialize)]
 pub enum SystemError {
+    ValidateSignerError(String),
+    UpdateCanisterControllersError(String),
+    VersionError(String),
+    RateLimitExceeded,
     InvalidWalletCanister,
     InvalidAccountIdentifier,
     ReleaseNotFound,
@@ -11,12 +15,14 @@ pub enum SystemError {
     WasmNotFound,
     WasmAlreadyLoaded,
     UserAlreadyExists,
+    NoCanisterAvailable,
     UserNotFound,
     OwnerMismatch { owner: String, user: String },
     UpdateControllersError(String),
     InstallArgError(String),
     EncodeError(String),
     WasmGetError(String),
+    WasmHashError(String),
     InstallCodeError(String),
     WasmInstallError(String),
     WalletCanisterNotFound,
@@ -32,6 +38,10 @@ pub enum SystemError {
 impl TrapError for SystemError {
     fn to_string(self) -> String {
         match self {
+            SystemError::ValidateSignerError(e) => ["Validate signer error: ", &e].concat(),
+            SystemError::UpdateCanisterControllersError(e) => ["Update canister controllers error: ", &e].concat(),
+            SystemError::VersionError(e) => ["Version error: ", &e].concat(),
+            SystemError::RateLimitExceeded => "Rate limit exceeded!".to_string(),
             SystemError::InvalidWalletCanister => "Invalid wallet canister!".to_string(),
             SystemError::OwnerMismatch { owner, user } => ["Owner mismatch:", &owner, "!=", &user].join(" "),
             SystemError::InstallArgError(e) => ["Install arg error: ", &e].concat(),
@@ -41,10 +51,12 @@ impl TrapError for SystemError {
             SystemError::ReleaseNotFound => "Release not found!".to_string(),
             SystemError::UserAlreadyExists => "User already exists!".to_string(),
             SystemError::UserNotFound => "User not found!".to_string(),
+            SystemError::NoCanisterAvailable => "No canister available!".to_string(),
             SystemError::ReleaseAlreadyExists => "Release already exists!".to_string(),
             SystemError::WasmNotFound => "Wasm not found!".to_string(),
             SystemError::WasmAlreadyLoaded => "Wasm already loaded!".to_string(),
             SystemError::WasmGetError(e) => ["Wasm get error: ", &e].concat(),
+            SystemError::WasmHashError(e) => ["Wasm hash error: ", &e].concat(),
             SystemError::EncodeError(e) => ["Encode error: ", &e].concat(),
             SystemError::CreateCanisterError(e) => ["Create canister error: ", &e].concat(),
             SystemError::InstallCodeError(e) => ["Install code error: ", &e].concat(),

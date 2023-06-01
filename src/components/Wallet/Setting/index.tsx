@@ -1,7 +1,7 @@
-import { Stack, Text } from "@chakra-ui/react"
+import { Button, Stack, Text } from "@chakra-ui/react"
 import { B3Wallet } from "service/actor"
+import AddSigner from "./AddSigner"
 import RestoreAccount from "./RestoreAccount"
-import Signer from "./Signer"
 import Status from "./Status"
 import Wasm from "./Wasm"
 
@@ -18,13 +18,32 @@ const Settings: React.FC<SettingsProps> = ({
   actor,
   fetchAccounts
 }) => {
+  const resetAccount = async () => {
+    if (!actor) {
+      return
+    }
+
+    setLoading(true)
+
+    const result = await actor.reset_wallet()
+
+    console.log(result)
+
+    fetchAccounts()
+
+    setLoading(false)
+  }
+
   return (
     <Stack spacing={4}>
       <Text fontSize="xl" fontWeight="bold">
         Settings
       </Text>
-      <Signer actor={actor} />
+      <AddSigner actor={actor} />
       <RestoreAccount actor={actor} fetchAccounts={fetchAccounts} />
+      <Button colorScheme="red" onClick={resetAccount}>
+        Reset Account
+      </Button>
       <Status actor={actor} />
       <Wasm
         actor={actor}

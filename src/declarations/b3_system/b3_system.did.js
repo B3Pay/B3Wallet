@@ -53,7 +53,7 @@ export const idlFactory = ({ IDL }) => {
     'add_controller' : IDL.Func([IDL.Principal], [], []),
     'add_wallet_canister' : IDL.Func([IDL.Principal], [], []),
     'change_wallet_canister' : IDL.Func([IDL.Principal], [], []),
-    'create_wallet_canister' : IDL.Func([IDL.Opt(IDL.Text)], [Result], []),
+    'create_wallet_canister' : IDL.Func([], [Result], []),
     'deprecate_release' : IDL.Func([IDL.Text], [], []),
     'get_canister' : IDL.Func([], [WalletCanister], ['query']),
     'get_canister_version' : IDL.Func([IDL.Principal], [IDL.Text], ['query']),
@@ -69,7 +69,7 @@ export const idlFactory = ({ IDL }) => {
     'get_wallet_canisters' : IDL.Func([], [IDL.Vec(WalletCanister)], ['query']),
     'get_wallet_release' : IDL.Func([IDL.Principal], [Release], ['query']),
     'install_wallet_canister' : IDL.Func(
-        [IDL.Opt(IDL.Principal), IDL.Opt(IDL.Text)],
+        [IDL.Opt(IDL.Principal)],
         [Result],
         [],
       ),

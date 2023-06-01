@@ -5,7 +5,6 @@ import { useEffect, useState } from "react"
 import { B3Wallet } from "service/actor"
 
 interface ProcessedProps {
-  fetchAccounts: () => void
   setLoading: (loading: boolean) => void
   actor: B3Wallet
 }

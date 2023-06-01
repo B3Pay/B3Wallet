@@ -2,7 +2,6 @@
 import { DeleteIcon, RepeatIcon } from "@chakra-ui/icons"
 import {
   Button,
-  Card,
   CardBody,
   CardHeader,
   Flex,
@@ -35,7 +34,8 @@ export const Chain: React.FC<AddressProps> = ({
   handlerAddressRemove,
   handleTransfer,
   handleBalance,
-  loading
+  loading,
+  ...rest
 }) => {
   const [to, setTo] = useState<string>("")
   const [amount, setAmount] = useState<string>("")
@@ -60,7 +60,13 @@ export const Chain: React.FC<AddressProps> = ({
   }, [handlerAddressRemove, network, chain])
 
   return (
-    <Card size="md">
+    <Stack
+      direction="column"
+      borderWidth="1px"
+      borderRadius="lg"
+      overflow="hidden"
+      {...rest}
+    >
       <CardHeader pb={0}>
         <Stack direction="row" justify="space-between" align="center">
           <Flex flex={5}>
@@ -69,12 +75,7 @@ export const Chain: React.FC<AddressProps> = ({
           <Flex flex={5}>
             <Text>{network}</Text>
           </Flex>
-          <Stack
-            direction="row"
-            justify="space-between"
-            align="center"
-            flex={2}
-          >
+          <Stack direction="row" justify="end" align="center" flex={2}>
             <IconButton
               aria-label="Refresh"
               icon={<RepeatIcon />}
@@ -90,7 +91,7 @@ export const Chain: React.FC<AddressProps> = ({
           </Stack>
         </Stack>
       </CardHeader>
-      <CardBody>
+      <CardBody marginTop={0}>
         <Stack>
           <Stack direction="row" justify="space-between" align="center">
             <Address address={address} flex={9} />
@@ -136,6 +137,6 @@ export const Chain: React.FC<AddressProps> = ({
           </Stack>
         </Stack>
       </CardBody>
-    </Card>
+    </Stack>
   )
 }

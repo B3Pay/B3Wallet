@@ -318,12 +318,13 @@ const Account: React.FC<AccountProps> = ({
       {(loadings.global || loading) && <Loading />}
       <Stack alignItems="center" justify="space-between" direction="row">
         <Flex
-          flex={noPublickey ? "5" : "10"}
+          flex="10"
           gap="2"
           alignItems="center"
           zIndex={1}
+          overflow="hidden"
         >
-          <Avatar name={name} />
+          <Avatar size="sm" name={name} />
           {editMode ? (
             <Input
               type="text"
@@ -367,13 +368,6 @@ const Account: React.FC<AccountProps> = ({
             />
           ) : null}
         </Flex>
-        {noPublickey && (
-          <Flex flex="3" justify="end">
-            <Button onClick={requestPublicKey} isLoading={loadings.global}>
-              Request PublicKey
-            </Button>
-          </Flex>
-        )}
         <Stack direction="row" flex="2" justify="end">
           <IconButton
             colorScheme="blue"
@@ -388,11 +382,11 @@ const Account: React.FC<AccountProps> = ({
             onClick={removeAccount}
           />
         </Stack>
-        <AccordionButton width={50} borderRadius="md">
+        <AccordionButton borderRadius="md" width={50}>
           <AccordionIcon />
         </AccordionButton>
       </Stack>
-      <AccordionPanel py={4} px={1} fontSize="14">
+      <AccordionPanel px={0} fontSize="14">
         <Stack spacing="2">
           {!noPublickey && (
             <ChainsSelect account_id={id} actor={actor} refresh={refresh} />
@@ -423,6 +417,11 @@ const Account: React.FC<AccountProps> = ({
               />
             )
           })}
+          {noPublickey && (
+            <Button onClick={requestPublicKey} isLoading={loadings.global}>
+              Request PublicKey
+            </Button>
+          )}
         </Stack>
       </AccordionPanel>
     </Box>

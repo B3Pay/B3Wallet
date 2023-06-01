@@ -12,13 +12,13 @@ import { Roles } from "declarations/b3_wallet/b3_wallet.did"
 import { useState } from "react"
 import { B3Wallet } from "service/actor"
 
-interface SignerProps {
+interface AddSignerProps {
   actor: B3Wallet
 }
 
 type Role = "User" | "Canister" | "Admin"
 
-const Signer: React.FC<SignerProps> = ({ actor }) => {
+const AddSigner: React.FC<AddSignerProps> = ({ actor }) => {
   const [principal, setPrincipal] = useState("")
   const [role, setRole] = useState<Role>()
   const toast = useToast()
@@ -73,14 +73,14 @@ const Signer: React.FC<SignerProps> = ({ actor }) => {
   return (
     <Box as="form" onSubmit={handleSubmit}>
       <Stack alignItems="center" justify="space-between" direction="row">
-        <FormControl isRequired flex={6}>
+        <FormControl isRequired flex={4}>
           <Input
             value={principal}
             onChange={e => setPrincipal(e.target.value)}
             placeholder="Principal"
           />
         </FormControl>
-        <FormControl isRequired flex={4}>
+        <FormControl isRequired flex={5}>
           <Select
             placeholder="Select role"
             value={role}
@@ -95,7 +95,7 @@ const Signer: React.FC<SignerProps> = ({ actor }) => {
             <option value="Admin">Admin</option>
           </Select>
         </FormControl>
-        <Button colorScheme="orange" type="submit" flex={2}>
+        <Button colorScheme="orange" type="submit" flex={3}>
           Add Signer
         </Button>
       </Stack>
@@ -103,4 +103,4 @@ const Signer: React.FC<SignerProps> = ({ actor }) => {
   )
 }
 
-export default Signer
+export default AddSigner

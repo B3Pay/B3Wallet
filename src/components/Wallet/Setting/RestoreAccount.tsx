@@ -47,26 +47,10 @@ const RestoreAccount: React.FC<RestoreAccountProps> = ({
       })
   }
 
-  const resetAccount = async () => {
-    if (!actor) {
-      return
-    }
-
-    setLoading(true)
-
-    const result = await actor.reset_wallet()
-
-    console.log(result)
-
-    fetchAccounts()
-
-    setLoading(false)
-  }
-
   return (
-    <Stack spacing="2" direction="row" justify="space-between" align="center">
+    <Stack direction="row" justify="space-between" align="center">
       <Select
-        flex={4}
+        flex={6}
         value={Object.keys(environment)[0]}
         onChange={e => {
           const env = e.target.value
@@ -87,14 +71,14 @@ const RestoreAccount: React.FC<RestoreAccountProps> = ({
         value={nonce.toString()}
         onChange={onChangeName}
       />
-      <Stack spacing="2" flex={6} direction="row" justify="space-between">
-        <Button onClick={createAccount} isLoading={loading}>
-          Restore
-        </Button>
-        <Button colorScheme="red" onClick={resetAccount}>
-          Reset Account
-        </Button>
-      </Stack>
+      <Button
+        onClick={createAccount}
+        isLoading={loading}
+        flex={4}
+        colorScheme="green"
+      >
+        Restore
+      </Button>
     </Stack>
   )
 }
