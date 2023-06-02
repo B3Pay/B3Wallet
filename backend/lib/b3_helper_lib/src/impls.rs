@@ -4,7 +4,7 @@ use crate::{
 };
 use easy_hasher::easy_hasher;
 use ic_cdk::export::Principal;
-use std::{fmt, mem::size_of};
+use std::{cmp, fmt, hash, mem::size_of};
 
 impl Default for AccountIdentifier {
     fn default() -> Self {
@@ -38,6 +38,35 @@ impl Subaccount {
 
         Subaccount(subaccount)
     }
+
+    pub fn to_hex(&self) -> String {
+        let mut result = String::new();
+        for byte in self.0.iter() {
+            result.push_str(&format!("{:02x}", byte));
+        }
+
+        result
+    }
+}
+
+impl Eq for Subaccount {}
+
+impl cmp::PartialOrd for Subaccount {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl cmp::Ord for Subaccount {
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        self.0.cmp(&other.0)
+    }
+}
+
+impl hash::Hash for Subaccount {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) {
+        self.0.hash(state);
+    }
 }
 
 impl From<Principal> for Subaccount {
@@ -53,7 +82,7 @@ impl From<Principal> for Subaccount {
 }
 
 impl fmt::Display for Subaccount {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut result = String::new();
         for byte in self.0.iter() {
             result.push_str(&format!("{:02x}", byte));
@@ -86,6 +115,7 @@ impl From<Vec<u8>> for AccountIdentifier {
     fn from(bytes: Vec<u8>) -> Self {
         let mut result = [0u8; 32];
         result.copy_from_slice(&bytes[..]);
+
         Self(result)
     }
 }
@@ -112,7 +142,7 @@ impl TryFrom<String> for AccountIdentifier {
 }
 
 impl fmt::Display for AccountIdentifier {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut result = String::new();
         for byte in self.0.iter() {
             result.push_str(&format!("{:02x}", byte));
@@ -124,6 +154,29 @@ impl fmt::Display for AccountIdentifier {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_default_account_identifier() {
+        let account_id = AccountIdentifier::default();
+        assert_eq!(
+            account_id.to_string(),
+            "0000000000000000000000000000000000000000000000000000000000000000",
+        );
+
+        let subaccount = Subaccount::default();
+
+        assert_eq!(
+            subaccount.to_string(),
+            "0000000000000000000000000000000000000000000000000000000000000000"
+        );
+
+        let account_id = AccountIdentifier::new(Principal::from_slice(&[0, 32]), subaccount);
+
+        assert_eq!(
+            account_id.to_string(),
+            "ee918f38cb6becc036378e1cb83ad44938ddb5de6e61d243d3351889b5a9536f".to_string()
+        );
+    }
 
     #[test]
     fn test_subaccount() {

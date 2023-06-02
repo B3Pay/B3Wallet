@@ -1,11 +1,12 @@
 use super::{btc::network::BtcNetwork, types::ChainId};
 use crate::error::WalletError;
+use b3_helper_lib::types::CanisterId;
 use candid::{CandidType, Deserialize};
 use std::fmt;
 
 #[derive(CandidType, Clone, Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash, Debug)]
 pub enum Chains {
-    SNS(String),
+    ICRC(CanisterId),
     BTC(BtcNetwork),
     EVM(ChainId),
     ICP,
@@ -20,7 +21,7 @@ impl fmt::Display for Chains {
                 BtcNetwork::Regtest => write!(f, "btc_regtest"),
             },
             Self::EVM(chain_id) => write!(f, "evm_{}", chain_id),
-            Self::SNS(token) => write!(f, "sns_{}", token),
+            Self::ICRC(token) => write!(f, "sns_{}", token),
             Self::ICP => write!(f, "icp"),
         }
     }
@@ -48,7 +49,10 @@ impl Chains {
                         .strip_prefix("sns_")
                         .ok_or(WalletError::InvalidNetwork)?;
 
-                    return Ok(Self::SNS(token.to_string()));
+                    let canister_id =
+                        CanisterId::from_text(token).map_err(|_| WalletError::InvalidToken)?;
+
+                    return Ok(Self::ICRC(canister_id));
                 } else {
                     return Err(WalletError::InvalidNetwork);
                 }

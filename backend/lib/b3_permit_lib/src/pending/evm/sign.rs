@@ -2,7 +2,7 @@ use super::EvmRequest;
 use crate::{pending::Request, types::ConsentMessageResponse};
 use b3_wallet_lib::{
     error::WalletError,
-    ledger::evm::{get_evm_transaction, EvmTransaction},
+    ledger::evm::sign::{get_evm_transaction, EvmTransaction},
     store::with_ledger,
 };
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};

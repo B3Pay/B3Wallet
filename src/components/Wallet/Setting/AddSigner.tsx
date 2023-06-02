@@ -4,11 +4,11 @@ import {
   FormControl,
   Input,
   Select,
-  Stack,
-  useToast
+  Stack
 } from "@chakra-ui/react"
 import { Principal } from "@dfinity/principal"
 import { Roles } from "declarations/b3_wallet/b3_wallet.did"
+import useToastMessage from "hooks/useToastMessage"
 import { useState } from "react"
 import { B3Wallet } from "service/actor"
 
@@ -16,12 +16,18 @@ interface AddSignerProps {
   actor: B3Wallet
 }
 
-type Role = "User" | "Canister" | "Admin"
+enum RoleEnum {
+  User = "User",
+  Canister = "Canister",
+  Admin = "Admin"
+}
+
+type Role = keyof typeof RoleEnum
 
 const AddSigner: React.FC<AddSignerProps> = ({ actor }) => {
   const [principal, setPrincipal] = useState("")
   const [role, setRole] = useState<Role>()
-  const toast = useToast()
+  const toast = useToastMessage()
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -90,9 +96,11 @@ const AddSigner: React.FC<AddSignerProps> = ({ actor }) => {
               setRole(role)
             }}
           >
-            <option value="User">User</option>
-            <option value="Canister">Canister</option>
-            <option value="Admin">Admin</option>
+            {Object.keys(RoleEnum).map((role, i) => (
+              <option key={i} value={role}>
+                {role}
+              </option>
+            ))}
           </Select>
         </FormControl>
         <Button colorScheme="orange" type="submit" flex={3}>

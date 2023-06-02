@@ -14,6 +14,7 @@ import {
 } from "@chakra-ui/react"
 import Parent from "components/Parent"
 import { WalletCanisterStatus } from "declarations/b3_wallet/b3_wallet.did"
+import useToastMessage from "hooks/useToastMessage"
 import { useState } from "react"
 import { B3Wallet } from "service/actor"
 
@@ -24,6 +25,7 @@ interface ResponseProps {
 const Status: React.FC<ResponseProps> = ({ actor }) => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState<WalletCanisterStatus>()
+  const toast = useToastMessage()
 
   const fetchStatus = async () => {
     setStatus(undefined)
@@ -32,7 +34,16 @@ const Status: React.FC<ResponseProps> = ({ actor }) => {
     actor
       .status()
       .then(setStatus)
-      .catch(console.error)
+      .catch(e => {
+        toast({
+          title: "Error",
+          description: e.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+        setLoading(false)
+      })
       .finally(() => setLoading(false))
   }
 

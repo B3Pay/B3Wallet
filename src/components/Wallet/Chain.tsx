@@ -1,19 +1,18 @@
 /* eslint-disable no-unused-vars */
 import { DeleteIcon, RepeatIcon } from "@chakra-ui/icons"
 import {
-  Button,
   CardBody,
   CardHeader,
   Flex,
   Heading,
   IconButton,
-  Input,
   Stack,
   Text
 } from "@chakra-ui/react"
-import React, { useCallback, useState } from "react"
+import React from "react"
 import Address from "./Address"
 import Balance from "./Balance"
+import TransferForm from "./TransferForm"
 
 interface AddressProps {
   balance: bigint
@@ -22,6 +21,7 @@ interface AddressProps {
   network: string
   handlerAddressRemove: (network: string, chain: string) => void
   handleTransfer: (from: string, to: string, amount: bigint) => Promise<void>
+  handleTopup?: (from: string, to: string, amount: bigint) => Promise<void>
   handleBalance: () => Promise<void>
   loading: boolean
 }
@@ -34,31 +34,10 @@ export const Chain: React.FC<AddressProps> = ({
   handlerAddressRemove,
   handleTransfer,
   handleBalance,
+  handleTopup,
   loading,
   ...rest
 }) => {
-  const [to, setTo] = useState<string>("")
-  const [amount, setAmount] = useState<string>("")
-
-  const transferHandler = useCallback(async () => {
-    const decimals = 8
-
-    const bigintAmount = BigInt(Number(amount) * 10 ** decimals)
-
-    handleTransfer(address, to, bigintAmount)
-      .then(() => {
-        setTo("")
-        setAmount("")
-      })
-      .catch(e => {
-        console.log(e)
-      })
-  }, [address, amount, handleTransfer, to])
-
-  const removeHandler = useCallback(async () => {
-    handlerAddressRemove(chain, network)
-  }, [handlerAddressRemove, network, chain])
-
   return (
     <Stack
       direction="column"
@@ -84,7 +63,7 @@ export const Chain: React.FC<AddressProps> = ({
             />
             <IconButton
               aria-label="Remove"
-              onClick={removeHandler}
+              onClick={() => handlerAddressRemove(chain, network)}
               icon={<DeleteIcon />}
               color="red"
             />
@@ -102,39 +81,20 @@ export const Chain: React.FC<AddressProps> = ({
               flex={3}
             />
           </Stack>
-          <Stack direction="row" justify="space-between" align="center">
-            <Input
-              id="to"
-              alt="To"
-              type="text"
-              placeholder="To"
-              style={{
-                flex: 5
-              }}
-              value={to}
-              onChange={e => setTo(e.target.value)}
+          <TransferForm
+            address={address}
+            loading={loading}
+            title={`Send ${chain}`}
+            handleTransfer={handleTransfer}
+          />
+          {handleTopup && (
+            <TransferForm
+              address={address}
+              loading={loading}
+              title="Topup"
+              handleTransfer={handleTopup}
             />
-            <Input
-              id="amount"
-              alt="Amount"
-              placeholder="Amount"
-              style={{
-                flex: 4
-              }}
-              type="text"
-              value={amount}
-              onChange={e => setAmount(e.target.value)}
-            />
-            <Button
-              style={{
-                flex: 3
-              }}
-              onClick={transferHandler}
-              isLoading={loading}
-            >
-              Send {chain}
-            </Button>
-          </Stack>
+          )}
         </Stack>
       </CardBody>
     </Stack>

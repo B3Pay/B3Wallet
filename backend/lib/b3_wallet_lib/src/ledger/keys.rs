@@ -1,6 +1,6 @@
 use crate::error::WalletError;
 use b3_helper_lib::raw_keccak256;
-use b3_helper_lib::types::{AccountIdentifier, Environment, Subaccount};
+use b3_helper_lib::types::{AccountIdentifier, CanisterId, Environment, Subaccount};
 
 use bitcoin::{secp256k1, Address, PublicKey};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
@@ -83,8 +83,8 @@ impl Keys {
             .ok_or_else(|| WalletError::MissingAddress)
     }
 
-    pub fn get_sns_address(&self, token: String) -> Result<String, WalletError> {
-        self.get_address(Chains::SNS(token))
+    pub fn get_sns_address(&self, token: CanisterId) -> Result<String, WalletError> {
+        self.get_address(Chains::ICRC(token))
     }
 
     pub fn get_eth_address(&self) -> Result<String, WalletError> {
@@ -150,7 +150,7 @@ impl Keys {
     pub fn generate_address(&mut self, chains: Chains) -> Result<(), WalletError> {
         match chains {
             Chains::EVM(chain) => self.generate_eth_address(chain),
-            Chains::SNS(token) => self.generate_sns_address(token),
+            Chains::ICRC(token) => self.generate_sns_address(token),
             Chains::BTC(btc_network) => self.generate_btc_address(btc_network),
             Chains::ICP => self.generate_icp_address(),
         }
@@ -164,10 +164,10 @@ impl Keys {
         Ok(())
     }
 
-    pub fn generate_sns_address(&mut self, token: String) -> Result<(), WalletError> {
+    pub fn generate_sns_address(&mut self, token: CanisterId) -> Result<(), WalletError> {
         let address = self.identifier.to_string();
 
-        self.addresses.insert(Chains::SNS(token), address.clone());
+        self.addresses.insert(Chains::ICRC(token), address.clone());
 
         Ok(())
     }

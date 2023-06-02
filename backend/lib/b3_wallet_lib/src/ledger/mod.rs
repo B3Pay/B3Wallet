@@ -2,6 +2,7 @@ pub mod btc;
 pub mod chains;
 pub mod config;
 pub mod evm;
+pub mod icrc;
 pub mod keys;
 pub mod subaccount;
 pub mod types;

@@ -3,7 +3,7 @@ use ic_cdk::export::candid::{CandidType, Deserialize};
 use crate::types::{BlockIndex, Tokens};
 
 #[rustfmt::skip]
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Debug)]
 pub enum HelperError {
     CanisterStatusError(String),
     CreateCanisterError(String),

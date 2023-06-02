@@ -6,6 +6,7 @@ import {
   Text
 } from "@chakra-ui/react"
 import { WalletAccountView } from "declarations/b3_wallet/b3_wallet.did"
+import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useState } from "react"
 import { B3Wallet } from "service/actor"
 import { Mode } from "."
@@ -37,6 +38,7 @@ const WalletBody: React.FC<WalletBodyProps> = ({
   ...rest
 }) => {
   const [loading, setLoading] = useState<Loadings>({})
+  const toast = useToastMessage()
 
   const refetchAccount = useCallback(
     async (account_id: string) => {
@@ -60,11 +62,17 @@ const WalletBody: React.FC<WalletBodyProps> = ({
           setLoading(prev => ({ ...prev, [account_id]: false }))
         })
         .catch(e => {
-          console.log(e)
+          toast({
+            title: "Error refreshing account.",
+            description: e.message,
+            status: "error",
+            duration: 9000,
+            isClosable: true
+          })
           setLoading(prev => ({ ...prev, [account_id]: false }))
         })
     },
-    [actor, setAccounts]
+    [actor, toast, setAccounts]
   )
 
   return (
@@ -100,7 +108,7 @@ const WalletBody: React.FC<WalletBodyProps> = ({
                     actor={actor}
                     isExpanded={isExpanded}
                     loading={loading[account.id]}
-                    refresh={() => refetchAccount(account.id)}
+                    refetchAccount={() => refetchAccount(account.id)}
                     {...account}
                   />
                 )}

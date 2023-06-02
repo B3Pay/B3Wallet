@@ -36,6 +36,6 @@
     "**/*.wasm",
     ".next/types/**/*.ts",
     "scripts/*.ts"
-  ],
+, "scripts/icrc1.js"  ],
   "exclude": ["node_modules", "out"]
 }

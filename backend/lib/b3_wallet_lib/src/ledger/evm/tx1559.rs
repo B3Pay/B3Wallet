@@ -1,11 +1,11 @@
 use b3_helper_lib::raw_keccak256;
 
-use super::utils::{
-    remove_leading, string_to_vec_u8, u64_to_vec_u8, vec_u8_to_string, vec_u8_to_u64,
-};
-use super::{
+use super::sign::{
     decode_access_list, encode_access_list, get_recovery_id, EvmSign, EvmTransaction,
     EvmTransactionType,
+};
+use super::utils::{
+    remove_leading, string_to_vec_u8, u64_to_vec_u8, vec_u8_to_string, vec_u8_to_u64,
 };
 use crate::error::WalletError;
 

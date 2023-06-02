@@ -53,6 +53,7 @@ pub enum WalletError {
     InvalidAccountIdentifier,
     WalletAccountNotExists,
     RequestNotExists,
+    InvalidToken,
     InvalidAddress,
     InvalidNetworkAddress,
     InvalidEvmTransactionType,
@@ -72,6 +73,7 @@ impl TrapError for WalletError {
     fn to_string(self) -> String {
         match self {
             WalletError::UnknownError => "::Unknown error".to_string(),
+            WalletError::InvalidToken => "::Invalid token".to_string(),
             WalletError::InvalidRequest => "::Invalid request".to_string(),
             WalletError::InvalidNetwork => "::Invalid network".to_string(),
             WalletError::InvalidNetworkAddress => "::Invalid network address".to_string(),

@@ -1,4 +1,5 @@
 import { Button, Flex, Stack, Text } from "@chakra-ui/react"
+import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useState } from "react"
 import { B3Wallet } from "service/actor"
 import Error from "../../Error"
@@ -43,6 +44,7 @@ const Wasm: React.FC<WasmProps> = ({
   version
 }) => {
   const [error, setError] = useState<string>()
+  const toast = useToastMessage()
 
   const updateCanisterWasm = useCallback(async () => {
     setError(undefined)
@@ -76,13 +78,23 @@ const Wasm: React.FC<WasmProps> = ({
 
     try {
       await actor.upgrage_wallet()
-    } catch (e) {
+    } catch (e: any) {
       console.log(e)
     }
 
-    console.log("Canister upgraded")
-    fetchAccounts()
-    setLoading(false)
+    actor.version().then(version => {
+      console.log("Canister upgraded")
+      toast({
+        title: "Success",
+        description: `Canister upgraded to version ${version}`,
+        status: "success",
+        duration: 5000,
+        isClosable: true
+      })
+
+      fetchAccounts()
+      setLoading(false)
+    })
   }
 
   const resetWasm = async () => {
@@ -92,8 +104,14 @@ const Wasm: React.FC<WasmProps> = ({
 
     try {
       await actor.unload_wasm()
-    } catch (e) {
-      console.log(e)
+    } catch (e: any) {
+      toast({
+        title: "Error",
+        description: e.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true
+      })
     }
 
     console.log("Canister reset")

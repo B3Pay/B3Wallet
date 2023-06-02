@@ -1,6 +1,7 @@
 import { Button, Input, Select, Stack } from "@chakra-ui/react"
 import { Environment } from "declarations/b3_wallet/b3_wallet.did"
 import { IS_LOCAL } from "helpers/config"
+import useToastMessage from "hooks/useToastMessage"
 import { useState } from "react"
 import { B3Wallet } from "service/actor"
 
@@ -15,6 +16,8 @@ const RestoreAccount: React.FC<RestoreAccountProps> = ({
 }) => {
   const [loading, setLoading] = useState(false)
   const [nonce, setNonce] = useState<bigint>(0n)
+  const toast = useToastMessage()
+
   const [environment, setEnvironment] = useState<Environment>(
     IS_LOCAL
       ? {
@@ -42,7 +45,14 @@ const RestoreAccount: React.FC<RestoreAccountProps> = ({
         fetchAccounts()
       })
       .catch(e => {
-        console.log(e)
+        toast({
+          title: "Error",
+          description: e.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+
         setLoading(false)
       })
   }

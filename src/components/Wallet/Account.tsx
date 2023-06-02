@@ -21,9 +21,11 @@ import {
   Text
 } from "@chakra-ui/react"
 
+import { Principal } from "@dfinity/principal"
 import { Chains, WalletAccountView } from "declarations/b3_wallet/b3_wallet.did"
 import { ethers, providers } from "ethers"
 import { isAddress } from "ethers/lib/utils"
+import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useEffect, useState } from "react"
 import { B3Wallet } from "service/actor"
 import Loading from "../Loading"
@@ -38,7 +40,7 @@ interface AccountProps extends WalletAccountView {
   actor: B3Wallet
   loading: boolean
   isExpanded: boolean
-  refresh: () => void
+  refetchAccount: () => void
 }
 
 interface Balances {
@@ -52,10 +54,10 @@ const Account: React.FC<AccountProps> = ({
   id,
   name,
   loading,
-  refresh,
   addresses,
+  isExpanded,
   environment,
-  isExpanded
+  refetchAccount
 }) => {
   const [loadings, setLoadings] = useState({
     global: false,
@@ -70,6 +72,7 @@ const Account: React.FC<AccountProps> = ({
   })
   const [newName, setNewName] = useState<string>(name)
   const [editMode, setEditMode] = useState<boolean>(false)
+  const toast = useToastMessage()
 
   const getEthBalance = useCallback(async () => {
     const address = ""
@@ -85,10 +88,17 @@ const Account: React.FC<AccountProps> = ({
         setLoadings(prev => ({ ...prev, EVM: false }))
       })
       .catch(err => {
-        console.log(err)
+        toast({
+          title: "Error",
+          description: err.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+
         setLoadings(prev => ({ ...prev, EVM: false }))
       })
-  }, [])
+  }, [toast])
 
   const getBtcBalance = useCallback(async () => {
     setLoadings(prev => ({ ...prev, BTC: true }))
@@ -103,10 +113,17 @@ const Account: React.FC<AccountProps> = ({
         setLoadings(prev => ({ ...prev, BTC: false }))
       })
       .catch(err => {
-        console.log(err)
+        toast({
+          title: "Error",
+          description: err.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+
         setLoadings(prev => ({ ...prev, BTC: false }))
       })
-  }, [actor, id, addresses])
+  }, [actor, toast, id, addresses])
 
   const getIcpBalance = useCallback(async () => {
     setLoadings(prev => ({ ...prev, ICP: true }))
@@ -117,10 +134,17 @@ const Account: React.FC<AccountProps> = ({
         setLoadings(prev => ({ ...prev, ICP: false }))
       })
       .catch(err => {
-        console.log(err)
+        toast({
+          title: "Error",
+          description: err.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+
         setLoadings(prev => ({ ...prev, ICP: false }))
       })
-  }, [actor, id])
+  }, [actor, toast, id])
 
   const handleEthTransfer = useCallback(
     async (from: string, to: string, amount: bigint) => {
@@ -160,8 +184,14 @@ const Account: React.FC<AccountProps> = ({
         )
 
         console.log(res)
-      } catch (error) {
-        console.log(error)
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: error.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
 
         setLoadings(prev => ({ ...prev, EVM: false }))
       }
@@ -170,7 +200,7 @@ const Account: React.FC<AccountProps> = ({
         getEthBalance()
       }, 2000)
     },
-    [actor, getEthBalance, id]
+    [actor, toast, getEthBalance, id]
   )
 
   const handleBtcTransfer = useCallback(
@@ -198,16 +228,31 @@ const Account: React.FC<AccountProps> = ({
           }, 2000)
         })
         .catch(err => {
-          console.log(err)
+          toast({
+            title: "Error",
+            description: err.message,
+            status: "error",
+            duration: 5000,
+            isClosable: true
+          })
+
           setLoadings(prev => ({ ...prev, BTC: false }))
         })
     },
-    [actor, getBtcBalance, id]
+    [actor, toast, getBtcBalance, id]
   )
 
   const handleIcpTransfer = useCallback(
     async (from: string, to: string, amount: bigint) => {
       console.log(`Transfering ${amount} ICP from ${from} to ${to}`)
+      toast({
+        title: "Sending ICP",
+        description: `Transfering ${amount} ICP from ${from} to ${to}`,
+        status: "info",
+        duration: 5000,
+        isClosable: true
+      })
+
       const tokenAmount = {
         e8s: BigInt(amount)
       }
@@ -221,6 +266,66 @@ const Account: React.FC<AccountProps> = ({
 
           setLoadings(prev => ({ ...prev, ICP: false }))
 
+          toast({
+            title: "Success",
+            description: `Transfered ${amount} ICP from ${from} to ${to}`,
+            status: "success",
+            duration: 5000,
+            isClosable: true
+          })
+
+          setTimeout(() => {
+            getIcpBalance()
+          }, 2000)
+        })
+        .catch(err => {
+          toast({
+            title: "Error",
+            description: err.message,
+            status: "error",
+            duration: 5000,
+            isClosable: true
+          })
+
+          setLoadings(prev => ({ ...prev, ICP: false }))
+        })
+    },
+    [actor, toast, getIcpBalance, id]
+  )
+
+  const handleTopup = useCallback(
+    async (from: string, to: string, amount: bigint) => {
+      console.log(`Toping up ${amount} ICP from ${from} to ${to}`)
+      toast({
+        title: "Toping up ICP",
+        description: `Toping up ${amount} ICP from ${from} to ${to}`,
+        status: "info",
+        duration: 5000,
+        isClosable: true
+      })
+
+      setLoadings(prev => ({ ...prev, ICP: true }))
+
+      const tokens = {
+        e8s: BigInt(amount)
+      }
+
+      const canister = Principal.fromText(to)
+
+      await actor
+        .account_top_up_and_notify(id, tokens, [canister], [])
+        .then(res => {
+          console.log(res)
+
+          toast({
+            title: "Success",
+            description: `Toped up ${amount} ICP from ${from} to ${to}`,
+            status: "success",
+            duration: 5000,
+            isClosable: true
+          })
+
+          setLoadings(prev => ({ ...prev, ICP: false }))
           setTimeout(() => {
             getIcpBalance()
           }, 2000)
@@ -230,7 +335,7 @@ const Account: React.FC<AccountProps> = ({
           setLoadings(prev => ({ ...prev, ICP: false }))
         })
     },
-    [actor, getIcpBalance, id]
+    [actor, getIcpBalance, id, toast]
   )
 
   const handleTransfer = {
@@ -260,11 +365,18 @@ const Account: React.FC<AccountProps> = ({
       .account_request_public_key(id)
       .then(() => {
         setLoadings(prev => ({ ...prev, global: false }))
-        refresh()
+        refetchAccount()
       })
       .catch(e => {
-        console.log(e)
-        refresh()
+        toast({
+          title: "Error",
+          description: e.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+
+        refetchAccount()
         setLoadings(prev => ({ ...prev, global: false }))
       })
   }
@@ -276,10 +388,17 @@ const Account: React.FC<AccountProps> = ({
       .account_remove(id)
       .then(() => {
         setLoadings(prev => ({ ...prev, global: false }))
-        refresh()
+        refetchAccount()
       })
       .catch(e => {
-        console.log(e)
+        toast({
+          title: "Error",
+          description: e.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+
         setLoadings(prev => ({ ...prev, global: false }))
       })
   }
@@ -303,11 +422,18 @@ const Account: React.FC<AccountProps> = ({
       } as Chains)
       .then(() => {
         setLoadings(prev => ({ ...prev, global: false }))
-        refresh()
+        refetchAccount()
       })
       .catch(e => {
+        toast({
+          title: "Error",
+          description: e.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+
         setLoadings(prev => ({ ...prev, global: false }))
-        console.log(e)
       })
   }
 
@@ -371,9 +497,9 @@ const Account: React.FC<AccountProps> = ({
         <Stack direction="row" flex="2" justify="end">
           <IconButton
             colorScheme="blue"
-            aria-label="Refresh account"
+            aria-label="refetchAccount account"
             icon={<RepeatIcon />}
-            onClick={refresh}
+            onClick={refetchAccount}
           />
           <IconButton
             aria-label="Remove account"
@@ -389,7 +515,11 @@ const Account: React.FC<AccountProps> = ({
       <AccordionPanel px={0} fontSize="14">
         <Stack spacing="2">
           {!noPublickey && (
-            <ChainsSelect account_id={id} actor={actor} refresh={refresh} />
+            <ChainsSelect
+              account_id={id}
+              actor={actor}
+              refetchAccount={refetchAccount}
+            />
           )}
           {addresses.map((item, index) => {
             const symbol = Object.keys(item[0])[0] as keyof Balances
@@ -411,9 +541,10 @@ const Account: React.FC<AccountProps> = ({
                 balance={balances[symbol]}
                 network={network}
                 loading={loadings[symbol]}
-                handleTransfer={handleTransfer[symbol]}
                 handleBalance={handleBalance[symbol]}
+                handleTransfer={handleTransfer[symbol]}
                 handlerAddressRemove={handleAddressRemove}
+                handleTopup={symbol === "ICP" ? handleTopup : undefined}
               />
             )
           })}

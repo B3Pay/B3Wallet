@@ -1,5 +1,6 @@
 import { Card } from "@chakra-ui/react"
 import { WalletAccountView } from "declarations/b3_wallet/b3_wallet.did"
+import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useEffect, useState } from "react"
 import { B3Wallet } from "service/actor"
 import Loading from "../Loading"
@@ -27,6 +28,7 @@ const Wallet: React.FC<WalletProps> = ({
 
   const [loading, setLoading] = useState(false)
   const [accounts, setAccounts] = useState<WalletAccountView[]>([])
+  const toast = useToastMessage()
 
   const fetchAccounts = useCallback(async () => {
     console.log("fetching accounts")
@@ -40,9 +42,17 @@ const Wallet: React.FC<WalletProps> = ({
       })
       .catch(e => {
         console.log(e)
+        toast({
+          title: "Error",
+          description: e.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+
         setLoading(false)
       })
-  }, [actor])
+  }, [actor, toast])
 
   useEffect(() => {
     fetchAccounts()

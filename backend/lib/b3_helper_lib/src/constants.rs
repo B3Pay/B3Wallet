@@ -1,4 +1,6 @@
-use crate::types::{CanisterId, Memo, Tokens};
+use crate::types::{CanisterId, Memo, Subaccount, Tokens};
+
+pub const DEFAULT_SUBACCOUNT: Subaccount = Subaccount([0u8; 32]);
 
 pub const RATE_LIMIT: u64 = 60000000000;
 

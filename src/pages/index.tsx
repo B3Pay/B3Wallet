@@ -6,6 +6,7 @@ import Loading from "components/Loading"
 import System from "components/System"
 import Wallet from "components/Wallet"
 import useAuthClient from "hooks/useAuthClient"
+import useToastMessage from "hooks/useToastMessage"
 import Head from "next/head"
 import { useCallback, useState } from "react"
 import { B3Wallet, makeB3WalletActor } from "service/actor"
@@ -25,6 +26,8 @@ function HomePage() {
   const [walletActor, setWalletActor] = useState<B3Wallet>()
   const [version, setVersion] = useState<string>("")
 
+  const toast = useToastMessage()
+
   const fetchUserActor = useCallback(
     async (canisterId: string) => {
       if (!authClient || !canisterId) return
@@ -41,16 +44,22 @@ function HomePage() {
           console.log("user actor version", version)
           setVersion(version)
           setWalletActor(userActor)
-
           setLoading(false)
         })
         .catch(e => {
-          console.log(e)
+          toast({
+            title: "Error",
+            description: e.message,
+            status: "error",
+            duration: 5000,
+            isClosable: true
+          })
+
           setWalletCanisterId("")
           setLoading(false)
         })
     },
-    [authClient]
+    [authClient, toast]
   )
 
   return (

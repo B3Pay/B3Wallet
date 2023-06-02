@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { Button, Flex, Input, Select, Stack } from "@chakra-ui/react"
 import { Chains } from "declarations/b3_wallet/b3_wallet.did"
+import useToastMessage from "hooks/useToastMessage"
 import { useState } from "react"
 import { B3Wallet } from "service/actor"
 
@@ -10,19 +11,20 @@ const btcNetworks = ["Mainnet", "Testnet", "Regtest"]
 interface ChainSelectProps {
   actor: B3Wallet
   account_id: string
-  refresh: () => void
+  refetchAccount: () => void
 }
 
 const ChainSelect: React.FC<ChainSelectProps> = ({
-  account_id,
   actor,
-  refresh
+  account_id,
+  refetchAccount
 }) => {
   const [chain, setChain] = useState("")
   const [network, setNetwork] = useState("")
   const [evmChainId, setEvmChainId] = useState("")
   const [snsName, setSnsName] = useState("")
   const [loading, setLoading] = useState(false)
+  const toast = useToastMessage()
 
   const handleChainChange = (e: any) => {
     setChain(e.target.value)
@@ -62,10 +64,17 @@ const ChainSelect: React.FC<ChainSelectProps> = ({
       } as Chains)
       .then(() => {
         setLoading(false)
-        refresh()
+        refetchAccount()
       })
       .catch(err => {
-        console.log(err)
+        toast({
+          title: "Error",
+          description: err.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+
         setLoading(false)
       })
   }
