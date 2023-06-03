@@ -7,9 +7,11 @@ license = "Apache-2.0"
 readme = "./README.md"
 
 [dependencies]
-bitcoin = { version = "0.30.0", default-features = false,  features = [ "no-std", "secp-recovery", "secp-lowmemory"] }
-serde = "1"
 b3_helper_lib = { path = "../b3_helper_lib" }
 candid = { workspace = true }
 ic-cdk = { workspace = true }
+serde = "1"
+async-trait = "0.1.68"
+enum_dispatch = "0.3.11"
 ethereum-rlp = "0.2.3"
+bitcoin = { version = "0.30.0", default-features = false,  features = [ "no-std", "secp-recovery", "secp-lowmemory"] }

@@ -1,7 +1,7 @@
 use crate::counter::CounterTrait;
 use crate::error::WalletError;
-use crate::ledger::keys::Keys;
 use crate::ledger::subaccount::SubaccountTrait;
+use crate::ledger::types::Keys;
 use crate::types::{WalletAccountMap, WalletAccountView};
 use crate::{account::WalletAccount, types::AccountId};
 use b3_helper_lib::types::{AccountsCounter, Environment, Subaccount};

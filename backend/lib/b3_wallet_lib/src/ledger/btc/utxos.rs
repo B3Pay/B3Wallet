@@ -142,8 +142,8 @@ mod test {
 
     use crate::ledger::{
         btc::{network::BtcNetwork, utxos::BtcUtxos},
-        keys::Keys,
-        types::AddressMap,
+        types::Keys,
+        types::{AddressMap, Chains},
     };
 
     use super::*;
@@ -159,10 +159,16 @@ mod test {
 
         let owner = CanisterId::from_text("bkyz2-fmaaa-aaaaa-qaaaq-cai").unwrap();
 
+        let account_identifier = AccountIdentifier::new(owner, subaccount.clone());
+
+        let mut addresses = AddressMap::new();
+
+        addresses.insert(Chains::ICP, account_identifier.to_string());
+
         let mut public_keys = Keys {
-            identifier: AccountIdentifier::new(owner, subaccount.clone()),
+            subaccount,
+            addresses,
             ecdsa: None,
-            addresses: AddressMap::new(),
         };
 
         let ecdsa = vec![
@@ -264,11 +270,11 @@ mod test {
             .assume_checked();
 
         let own_address = public_keys
-            .get_btc_address(BtcNetwork::Mainnet)
+            .btc_address(BtcNetwork::Mainnet)
             .unwrap()
             .clone();
 
-        let public_key = public_keys.get_public_key().unwrap();
+        let public_key = public_keys.public_key().unwrap();
 
         let tx = utxos
             .build_transaction(&public_key, &own_address, &recipient, 100_000_000, 2000)

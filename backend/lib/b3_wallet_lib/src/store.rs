@@ -1,5 +1,5 @@
 use crate::{
-    account::WalletAccount, error::WalletError, ledger::Ledger, state::WalletState,
+    account::WalletAccount, error::WalletError, ledger::types::Ledger, state::WalletState,
     types::AccountId,
 };
 use std::cell::RefCell;

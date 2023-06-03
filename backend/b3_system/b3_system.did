@@ -37,8 +37,8 @@ type SystemCanisterStatus = record {
 };
 type WalletCanister = record {
   updated_at : nat64;
-  canister_id : opt principal;
   created_at : nat64;
+  canisters : vec principal;
 };
 service : () -> {
   add_controller : (principal) -> ();

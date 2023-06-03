@@ -1,6 +1,6 @@
 use b3_helper_lib::{constants::DEFAULT_SUBACCOUNT, types::Subaccount};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize, Principal};
-use std::fmt;
+use std::{cmp, fmt, hash};
 
 #[derive(CandidType, Deserialize, Debug, Clone)]
 pub struct IcrcAccount {
@@ -23,14 +23,14 @@ impl PartialEq for IcrcAccount {
 
 impl Eq for IcrcAccount {}
 
-impl std::cmp::PartialOrd for IcrcAccount {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+impl cmp::PartialOrd for IcrcAccount {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl std::cmp::Ord for IcrcAccount {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+impl cmp::Ord for IcrcAccount {
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
         self.owner.cmp(&other.owner).then_with(|| {
             self.effective_subaccount()
                 .cmp(other.effective_subaccount())
@@ -38,8 +38,8 @@ impl std::cmp::Ord for IcrcAccount {
     }
 }
 
-impl std::hash::Hash for IcrcAccount {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+impl hash::Hash for IcrcAccount {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) {
         self.owner.hash(state);
         self.effective_subaccount().hash(state);
     }

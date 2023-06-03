@@ -1,27 +1,21 @@
+use super::{
+    btc::network::BtcNetwork,
+    subaccount::SubaccountTrait,
+    types::{AddressMap, Chains, Keys},
+};
 use crate::error::WalletError;
-use b3_helper_lib::raw_keccak256;
-use b3_helper_lib::types::{AccountIdentifier, CanisterId, Environment, Subaccount};
-
+use b3_helper_lib::{
+    raw_keccak256,
+    types::{AccountIdentifier, CanisterId, Environment, Subaccount},
+};
 use bitcoin::{secp256k1, Address, PublicKey};
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
-
-use super::btc::network::BtcNetwork;
-use super::types::AddressMap;
-use super::{chains::Chains, subaccount::SubaccountTrait, types::EcdsaPublicKey};
-
-#[derive(CandidType, Deserialize, Clone)]
-pub struct Keys {
-    pub ecdsa: Option<EcdsaPublicKey>,
-    pub addresses: AddressMap,
-    pub identifier: AccountIdentifier,
-}
 
 impl Default for Keys {
     fn default() -> Self {
         Keys {
             ecdsa: None,
+            subaccount: Subaccount::default(),
             addresses: AddressMap::default(),
-            identifier: AccountIdentifier::default(),
         }
     }
 }
@@ -38,7 +32,7 @@ impl From<Subaccount> for Keys {
 
         Keys {
             ecdsa: None,
-            identifier,
+            subaccount,
             addresses,
         }
     }
@@ -52,10 +46,6 @@ impl Keys {
             .unwrap_or(false)
     }
 
-    pub fn identifier(&self) -> &AccountIdentifier {
-        &self.identifier
-    }
-
     pub fn addresses(&self) -> &AddressMap {
         &self.addresses
     }
@@ -67,7 +57,7 @@ impl Keys {
         }
     }
 
-    pub fn get_public_key(&self) -> Result<PublicKey, WalletError> {
+    pub fn public_key(&self) -> Result<PublicKey, WalletError> {
         let ecdsa = self.ecdsa()?;
 
         let public_key =
@@ -76,34 +66,26 @@ impl Keys {
         Ok(public_key)
     }
 
-    pub fn get_address(&self, chains: Chains) -> Result<String, WalletError> {
+    pub fn address(&self, chains: Chains) -> Result<String, WalletError> {
         self.addresses
             .get(&chains)
             .cloned()
             .ok_or_else(|| WalletError::MissingAddress)
     }
 
-    pub fn get_sns_address(&self, token: CanisterId) -> Result<String, WalletError> {
-        self.get_address(Chains::ICRC(token))
+    pub fn icp_address(&self) -> Result<String, WalletError> {
+        self.address(Chains::ICP)
     }
 
-    pub fn get_eth_address(&self) -> Result<String, WalletError> {
-        let ecdsa = self.ecdsa()?;
-
-        let pub_key = secp256k1::PublicKey::from_slice(&ecdsa)
-            .map_err(|e| WalletError::GenerateError(e.to_string()))?
-            .serialize_uncompressed();
-
-        let keccak256 = raw_keccak256(&pub_key[1..]);
-
-        let keccak256_hex = keccak256.to_hex_string();
-
-        let address: String = "0x".to_owned() + &keccak256_hex[24..];
-
-        Ok(address)
+    pub fn icrc_address(&self, token: CanisterId) -> Result<String, WalletError> {
+        self.address(Chains::ICRC(token))
     }
 
-    pub fn get_btc_address(&self, btc_network: BtcNetwork) -> Result<Address, WalletError> {
+    pub fn eth_address(&self) -> Result<String, WalletError> {
+        self.derive_eth_address()
+    }
+
+    pub fn btc_address(&self, btc_network: BtcNetwork) -> Result<Address, WalletError> {
         let ecdsa = self.ecdsa()?;
 
         let public_key =
@@ -150,40 +132,34 @@ impl Keys {
     pub fn generate_address(&mut self, chains: Chains) -> Result<(), WalletError> {
         match chains {
             Chains::EVM(chain) => self.generate_eth_address(chain),
-            Chains::ICRC(token) => self.generate_sns_address(token),
+            Chains::ICRC(token) => self.generate_icrc_address(token),
             Chains::BTC(btc_network) => self.generate_btc_address(btc_network),
-            Chains::ICP => self.generate_icp_address(),
+            Chains::ICP => Ok(()),
         }
     }
 
-    pub fn generate_icp_address(&mut self) -> Result<(), WalletError> {
-        let identifier = self.identifier.to_string();
+    pub fn generate_icp_address(
+        &mut self,
+        identifier: AccountIdentifier,
+    ) -> Result<(), WalletError> {
+        let address = identifier.to_string();
 
-        self.addresses.insert(Chains::ICP, identifier);
+        self.addresses.insert(Chains::ICP, address);
 
         Ok(())
     }
 
-    pub fn generate_sns_address(&mut self, token: CanisterId) -> Result<(), WalletError> {
-        let address = self.identifier.to_string();
+    pub fn generate_icrc_address(&mut self, token: CanisterId) -> Result<(), WalletError> {
+        // TODO - generate icrc address
+        let address = token.to_string();
 
-        self.addresses.insert(Chains::ICRC(token), address.clone());
+        self.addresses.insert(Chains::ICRC(token), address);
 
         Ok(())
     }
 
     pub fn generate_eth_address(&mut self, chain: u64) -> Result<(), WalletError> {
-        let ecdsa = self.ecdsa()?;
-
-        let pub_key = secp256k1::PublicKey::from_slice(&ecdsa)
-            .map_err(|e| WalletError::GenerateError(e.to_string()))?
-            .serialize_uncompressed();
-
-        let keccak256 = raw_keccak256(&pub_key[1..]);
-
-        let keccak256_hex = keccak256.to_hex_string();
-
-        let address: String = "0x".to_owned() + &keccak256_hex[24..];
+        let address = self.derive_eth_address()?;
 
         self.addresses.insert(Chains::EVM(chain), address.clone());
 
@@ -211,11 +187,29 @@ impl Keys {
 
         Ok(())
     }
+
+    fn derive_eth_address(&self) -> Result<String, WalletError> {
+        let ecdsa = self.ecdsa()?;
+
+        let pub_key = secp256k1::PublicKey::from_slice(&ecdsa)
+            .map_err(|e| WalletError::GenerateError(e.to_string()))?
+            .serialize_uncompressed();
+
+        let keccak256 = raw_keccak256(&pub_key[1..]);
+
+        let keccak256_hex = keccak256.to_hex_string();
+
+        let address: String = "0x".to_owned() + &keccak256_hex[24..];
+
+        Ok(address)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use b3_helper_lib::types::CanisterId;
+
+    use crate::ledger::types::EcdsaPublicKey;
 
     use super::*;
 
@@ -228,9 +222,15 @@ mod tests {
 
         let owner = CanisterId::from_text("bkyz2-fmaaa-aaaaa-qaaaq-cai").unwrap();
 
+        let identifier = AccountIdentifier::new(owner, subaccount.clone());
+
+        let mut addresses = AddressMap::new();
+
+        addresses.insert(Chains::ICP, identifier.to_string());
+
         let mut public_keys = Keys {
-            identifier: subaccount.account_identifier(owner),
             ecdsa: None,
+            subaccount,
             addresses: AddressMap::new(),
         };
 
@@ -243,18 +243,16 @@ mod tests {
             .set_ecdsa(ecdsa, Environment::Production)
             .unwrap();
 
-        let icp_address = public_keys.identifier().to_string();
-
         assert_eq!(
-            icp_address,
+            identifier.to_string(),
             "368aef23bd675b853b05526e0d6fc91fb6cf20d111c51105a041eedc12b91111"
         );
 
-        println!("icp_address: {}", icp_address);
+        println!("identifier: {}", identifier);
 
         public_keys.generate_eth_address(1).unwrap();
 
-        let eth_address = public_keys.get_eth_address().unwrap();
+        let eth_address = public_keys.eth_address().unwrap();
 
         assert_eq!(eth_address, "0x7e87f653ec3e9c6cde261e0e2e3e9c14bbe86802");
 
@@ -267,7 +265,7 @@ mod tests {
             .unwrap();
 
         let btc_address = public_keys
-            .get_address(Chains::BTC(BtcNetwork::Regtest))
+            .address(Chains::BTC(BtcNetwork::Regtest))
             .unwrap();
 
         assert_eq!(btc_address, "n2JigTXi8Nhqe1qmeAaUCAj3rWsgxRzMe3");
@@ -279,7 +277,7 @@ mod tests {
             .unwrap();
 
         let btc_address = public_keys
-            .get_address(Chains::BTC(BtcNetwork::Mainnet))
+            .address(Chains::BTC(BtcNetwork::Mainnet))
             .unwrap();
 
         assert_eq!(btc_address, "1MnmPQSjKMGaruN9vbc6NFWizXGz6SgpdC");
@@ -289,7 +287,7 @@ mod tests {
             .unwrap();
 
         let btc_address = public_keys
-            .get_address(Chains::BTC(BtcNetwork::Testnet))
+            .address(Chains::BTC(BtcNetwork::Testnet))
             .unwrap();
 
         assert_eq!(btc_address, "n2JigTXi8Nhqe1qmeAaUCAj3rWsgxRzMe3");
@@ -306,18 +304,7 @@ mod tests {
 
         let owner = CanisterId::from_text("7uoyg-piaaa-aaaap-abbzq-cai").unwrap();
 
-        let mut public_keys = Keys {
-            identifier: subaccount.account_identifier(owner),
-            ecdsa: None,
-            addresses: AddressMap::new(),
-        };
-
-        let ecdsa: EcdsaPublicKey = vec![
-            2, 50, 207, 109, 252, 71, 63, 226, 215, 137, 36, 108, 105, 51, 80, 125, 193, 121, 151,
-            101, 197, 65, 64, 240, 22, 142, 247, 130, 65, 210, 0, 176, 231,
-        ];
-
-        let identifier = public_keys.identifier();
+        let identifier = AccountIdentifier::new(owner, subaccount.clone());
 
         let expected_identifier = AccountIdentifier::from(vec![
             58, 236, 90, 93, 136, 79, 92, 97, 73, 20, 45, 129, 49, 134, 70, 254, 51, 92, 198, 124,
@@ -326,16 +313,31 @@ mod tests {
 
         println!("identifier: {:?}", identifier);
 
+        let mut addresses = AddressMap::new();
+
+        addresses.insert(Chains::ICP, identifier.to_string());
+
+        let mut public_keys = Keys {
+            ecdsa: None,
+            subaccount,
+            addresses: AddressMap::new(),
+        };
+
+        let ecdsa: EcdsaPublicKey = vec![
+            2, 50, 207, 109, 252, 71, 63, 226, 215, 137, 36, 108, 105, 51, 80, 125, 193, 121, 151,
+            101, 197, 65, 64, 240, 22, 142, 247, 130, 65, 210, 0, 176, 231,
+        ];
+
         assert_eq!(identifier.to_string(), expected_identifier.to_string());
 
         public_keys
             .set_ecdsa(ecdsa, Environment::Production)
             .unwrap();
 
-        let icp_address = public_keys.identifier().to_string();
+        let icp_address = public_keys.icp_address().unwrap();
 
         assert_eq!(
-            icp_address,
+            icp_address.to_string(),
             "3aec5a5d884f5c6149142d81318646fe335cc67cc7036454ccf9da32ed785471"
         );
 
@@ -343,7 +345,7 @@ mod tests {
 
         public_keys.generate_eth_address(1).unwrap();
 
-        let eth_address = public_keys.get_address(Chains::EVM(1)).unwrap();
+        let eth_address = public_keys.address(Chains::EVM(1)).unwrap();
 
         assert_eq!(eth_address, "0xd0406029f0703f6c04176c16451ce3a324f723c0");
 
@@ -356,7 +358,7 @@ mod tests {
             .unwrap();
 
         let btc_address = public_keys
-            .get_address(Chains::BTC(BtcNetwork::Mainnet))
+            .address(Chains::BTC(BtcNetwork::Mainnet))
             .unwrap();
 
         assert_eq!(btc_address, "1L2NEvApixneBNULQzcC5qysuWXrCNDhhr");
@@ -387,8 +389,8 @@ mod tests {
         assert_eq!(identifier, expected_identifier);
 
         let mut public_keys = Keys {
-            identifier,
             ecdsa: None,
+            subaccount,
             addresses: AddressMap::new(),
         };
 
@@ -401,7 +403,7 @@ mod tests {
             .set_ecdsa(ecdsa, Environment::Production)
             .unwrap();
 
-        let icp_address = public_keys.identifier().to_string();
+        let icp_address = public_keys.icp_address().unwrap();
 
         assert_eq!(
             icp_address,
@@ -412,7 +414,7 @@ mod tests {
 
         public_keys.generate_eth_address(1).unwrap();
 
-        let eth_address = public_keys.get_address(Chains::EVM(1)).unwrap();
+        let eth_address = public_keys.address(Chains::EVM(1)).unwrap();
 
         assert_eq!(eth_address, "0x82f3031c7bd2cd7e5c6d4d83584656b873304502");
 
@@ -425,7 +427,7 @@ mod tests {
             .unwrap();
 
         let btc_address = public_keys
-            .get_address(Chains::BTC(BtcNetwork::Mainnet))
+            .address(Chains::BTC(BtcNetwork::Mainnet))
             .unwrap();
 
         assert_eq!(btc_address, "18P7514xYnwxHcWuc96Ae7dPqhX2syiS2m");

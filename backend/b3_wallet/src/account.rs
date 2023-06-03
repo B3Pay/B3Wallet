@@ -9,7 +9,7 @@ use b3_helper_lib::{
 use b3_wallet_lib::{
     account::WalletAccount,
     error::WalletError,
-    ledger::{btc::network::BtcNetwork, chains::Chains, types::AddressMap},
+    ledger::{btc::network::BtcNetwork, types::AddressMap, types::Chains},
     store::{
         with_account, with_account_mut, with_ledger, with_ledger_mut, with_wallet, with_wallet_mut,
     },

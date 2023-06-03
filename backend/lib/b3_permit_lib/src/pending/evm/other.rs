@@ -4,7 +4,7 @@ use super::EvmRequest;
 
 use b3_wallet_lib::{
     error::WalletError,
-    ledger::evm::{sign::EvmSign, tx1559::EvmTransaction1559, utils::vec_u8_to_string},
+    ledger::evm::{api::EvmSign, tx1559::EvmTransaction1559, utils::vec_u8_to_string},
     store::with_ledger,
 };
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};

@@ -1,6 +1,8 @@
 use crate::{
     error::WalletError,
-    ledger::{evm::sign::get_evm_transaction, keys::Keys, subaccount::SubaccountTrait, Ledger},
+    ledger::{
+        evm::api::get_evm_transaction, subaccount::SubaccountTrait, types::Keys, types::Ledger,
+    },
     types::WalletAccountView,
 };
 use b3_helper_lib::types::{Environment, Metadata, Subaccount};
@@ -26,6 +28,7 @@ pub struct WalletAccount {
     hidden: bool,
     ledger: Ledger,
     metadata: Metadata,
+    subaccount: Subaccount,
 }
 
 impl Default for WalletAccount {
@@ -35,6 +38,7 @@ impl Default for WalletAccount {
             name: String::new(),
             hidden: false,
             metadata: Metadata::default(),
+            subaccount: Subaccount::default(),
             ledger: Ledger::default(),
         }
     }
@@ -43,11 +47,12 @@ impl Default for WalletAccount {
 impl From<Subaccount> for WalletAccount {
     fn from(subaccount: Subaccount) -> Self {
         let id = subaccount.id();
-        let ledger = Ledger::from(subaccount);
+        let ledger = Ledger::from(subaccount.clone());
 
         WalletAccount {
             id,
             ledger,
+            subaccount,
             hidden: false,
             name: String::new(),
             metadata: Metadata::default(),

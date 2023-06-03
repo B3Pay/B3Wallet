@@ -33,7 +33,7 @@ type CanisterStatusResponse = record {
   module_hash : opt vec nat8;
 };
 type CanisterStatusType = variant { stopped; stopping; running };
-type Chains = variant { BTC : BtcNetwork; EVM : nat64; ICP; SNS : text };
+type Chains = variant { BTC : BtcNetwork; EVM : nat64; ICP; ICRC : principal };
 type ConsendInfo = record { consent_message : text; language : text };
 type ConsentMessageRequest = record {
   arg : RequestArgs;

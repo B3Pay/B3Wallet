@@ -1,14 +1,12 @@
 use std::collections::BTreeMap;
 
+use super::btc::network::BtcNetwork;
+use b3_helper_lib::types::{CanisterId, Subaccount};
 use bitcoin::{AddressType, OutPoint, Transaction, TxIn, TxOut, Txid};
 use ic_cdk::export::{
     candid::CandidType,
     serde::{Deserialize, Serialize},
 };
-
-use b3_helper_lib::types::CanisterId;
-
-use super::chains::Chains;
 
 pub type ChainId = u64;
 
@@ -27,6 +25,27 @@ pub type BtcTxOut = TxOut;
 pub type BtcTxId = Txid;
 
 pub type BtcOutPoint = OutPoint;
+
+#[derive(CandidType, Clone, Deserialize)]
+pub struct Ledger {
+    pub keys: Keys,
+    pub subaccount: Subaccount,
+}
+
+#[derive(CandidType, Deserialize, Clone)]
+pub struct Keys {
+    pub ecdsa: Option<EcdsaPublicKey>,
+    pub subaccount: Subaccount,
+    pub addresses: AddressMap,
+}
+
+#[derive(CandidType, Clone, Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash, Debug)]
+pub enum Chains {
+    ICRC(CanisterId),
+    BTC(BtcNetwork),
+    EVM(ChainId),
+    ICP,
+}
 
 #[derive(CandidType, Serialize)]
 pub struct PublicKeyReply {

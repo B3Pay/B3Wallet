@@ -1,62 +1,75 @@
-use super::{btc::network::BtcNetwork, types::ChainId};
-use crate::error::WalletError;
+use async_trait::async_trait;
 use b3_helper_lib::types::CanisterId;
-use candid::{CandidType, Deserialize};
-use std::fmt;
+use enum_dispatch::enum_dispatch;
+use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
+use super::{btc::network::BtcNetwork, types::ChainId};
+
+#[async_trait]
+#[enum_dispatch]
+pub trait ChainTrait {
+    // async function
+    async fn balance(&self) -> u64;
+    async fn transfer(&self, to: String, amount: u64) -> u64;
+}
+
+#[enum_dispatch(ChainTrait)]
 #[derive(CandidType, Clone, Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash, Debug)]
 pub enum Chains {
-    ICRC(CanisterId),
-    BTC(BtcNetwork),
-    EVM(ChainId),
+    ICRC,
+    BTC,
+    EVM,
     ICP,
 }
 
-impl fmt::Display for Chains {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::BTC(network) => match network {
-                BtcNetwork::Mainnet => write!(f, "btc"),
-                BtcNetwork::Testnet => write!(f, "btc_testnet"),
-                BtcNetwork::Regtest => write!(f, "btc_regtest"),
-            },
-            Self::EVM(chain_id) => write!(f, "evm_{}", chain_id),
-            Self::ICRC(token) => write!(f, "sns_{}", token),
-            Self::ICP => write!(f, "icp"),
-        }
+#[derive(CandidType, Clone, Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash, Debug)]
+pub struct ICRC(pub CanisterId);
+#[async_trait]
+impl ChainTrait for ICRC {
+    async fn balance(&self) -> u64 {
+        todo!("implement the async method for ICRC...")
+    }
+
+    async fn transfer(&self, to: String, amount: u64) -> u64 {
+        todo!("implement the async method for ICRC...")
     }
 }
 
-impl Chains {
-    pub fn from_str(network: &str) -> Result<Self, WalletError> {
-        match network {
-            "btc" => Ok(Self::BTC(BtcNetwork::Mainnet)),
-            "btc_testnet" => Ok(Self::BTC(BtcNetwork::Testnet)),
-            "btc_regtest" => Ok(Self::BTC(BtcNetwork::Regtest)),
-            "icp" => Ok(Self::ICP),
-            _ => {
-                if network.starts_with("evm_") {
-                    let chain_id = network
-                        .strip_prefix("evm_")
-                        .ok_or(WalletError::InvalidNetwork)?;
-                    let chain_id = chain_id
-                        .parse::<ChainId>()
-                        .map_err(|_| WalletError::InvalidNetwork)?;
+#[derive(CandidType, Clone, Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash, Debug)]
+pub struct BTC(pub BtcNetwork);
+#[async_trait]
+impl ChainTrait for BTC {
+    async fn balance(&self) -> u64 {
+        todo!("implement the async method for BTC...")
+    }
 
-                    return Ok(Self::EVM(chain_id));
-                } else if network.starts_with("sns_") {
-                    let token = network
-                        .strip_prefix("sns_")
-                        .ok_or(WalletError::InvalidNetwork)?;
+    async fn transfer(&self, to: String, amount: u64) -> u64 {
+        todo!("implement the async method for BTC...")
+    }
+}
 
-                    let canister_id =
-                        CanisterId::from_text(token).map_err(|_| WalletError::InvalidToken)?;
+#[derive(CandidType, Clone, Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash, Debug)]
+pub struct EVM(pub ChainId);
+#[async_trait]
+impl ChainTrait for EVM {
+    async fn balance(&self) -> u64 {
+        todo!("implement the async method for EVM...")
+    }
 
-                    return Ok(Self::ICRC(canister_id));
-                } else {
-                    return Err(WalletError::InvalidNetwork);
-                }
-            }
-        }
+    async fn transfer(&self, to: String, amount: u64) -> u64 {
+        todo!("implement the async method for EVM...")
+    }
+}
+
+#[derive(CandidType, Clone, Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash, Debug)]
+pub struct ICP;
+#[async_trait]
+impl ChainTrait for ICP {
+    async fn balance(&self) -> u64 {
+        todo!("implement the async method for ICP...")
+    }
+
+    async fn transfer(&self, to: String, amount: u64) -> u64 {
+        todo!("implement the async method for ICP...")
     }
 }
