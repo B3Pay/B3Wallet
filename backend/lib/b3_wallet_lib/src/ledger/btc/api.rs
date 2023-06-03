@@ -1,5 +1,6 @@
 use crate::error::WalletError;
-use crate::ledger::{types::BtcTxId, types::Chains, types::Ledger};
+use crate::ledger::types::ChainType;
+use crate::ledger::{types::BtcTxId, types::Ledger};
 use bitcoin::consensus::serialize;
 use bitcoin::sighash::{EcdsaSighashType, SighashCache};
 use bitcoin::{ecdsa::Signature, hashes::Hash, Address, Script, Transaction};
@@ -18,9 +19,11 @@ impl Ledger {
         btc_network: BtcNetwork,
         min_confirmations: Option<u32>,
     ) -> Result<Satoshi, WalletError> {
-        let address = self.keys.address(Chains::BTC(btc_network))?;
+        let chain = self.chain(ChainType::BTC(btc_network))?;
 
-        btc_network.get_balance(address, min_confirmations).await
+        btc_network
+            .get_balance(chain.address(), min_confirmations)
+            .await
     }
 
     /// Get the UTXOs of the canister's bitcoin wallet.
@@ -30,9 +33,9 @@ impl Ledger {
         btc_network: BtcNetwork,
         filter: Option<UtxoFilter>,
     ) -> Result<GetUtxosResponse, WalletError> {
-        let address = self.keys.address(Chains::BTC(btc_network))?;
+        let chain = self.chain(ChainType::BTC(btc_network))?;
 
-        btc_network.get_utxos(address, filter).await
+        btc_network.get_utxos(chain.address(), filter).await
     }
 
     /// Sends a transaction to the btc_network that transfers the given amount to the
@@ -44,14 +47,14 @@ impl Ledger {
         dst_address: &str,
         amount: Satoshi,
     ) -> Result<BtcTxId, WalletError> {
-        let public_key = self.keys.public_key()?;
+        let public_key = self.public_key()?;
 
         let dst_address = Address::from_str(dst_address)
             .map_err(|_| WalletError::InvalidAddress)?
             .require_network(btc_network.into())
             .map_err(|_| WalletError::InvalidNetworkAddress)?;
 
-        let own_address = self.keys.btc_address(btc_network)?;
+        let own_address = self.btc_address(btc_network)?;
 
         let utxo_res = btc_network.get_utxos(own_address.to_string(), None).await?;
 
@@ -79,7 +82,7 @@ impl Ledger {
         btc_network: BtcNetwork,
         transaction: &mut Transaction,
     ) -> Result<Transaction, WalletError> {
-        let public_key = self.keys.public_key()?;
+        let public_key = self.public_key()?;
 
         let address = Address::p2pkh(&public_key, btc_network.into());
 

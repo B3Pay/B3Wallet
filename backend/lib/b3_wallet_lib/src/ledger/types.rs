@@ -1,16 +1,28 @@
-use std::collections::BTreeMap;
-
-use super::btc::network::BtcNetwork;
-use b3_helper_lib::types::{CanisterId, Subaccount};
+use super::{btc::network::BtcNetwork, icrc::account::ICRCAccount};
+use crate::error::WalletError;
+use async_trait::async_trait;
+use b3_helper_lib::{
+    constants::{CANISTER_TRANSFER_MEMO, IC_TRANSACTION_FEE_ICP},
+    types::{AccountIdentifier, CanisterId, Memo, Subaccount, Timestamp, Tokens},
+};
 use bitcoin::{AddressType, OutPoint, Transaction, TxIn, TxOut, Txid};
+use candid::Nat;
+use enum_dispatch::enum_dispatch;
 use ic_cdk::export::{
     candid::CandidType,
     serde::{Deserialize, Serialize},
 };
+use std::collections::BTreeMap;
 
 pub type ChainId = u64;
 
-pub type AddressMap = BTreeMap<Chains, String>;
+pub type Balance = Nat;
+
+pub type ICRCFee = Nat;
+
+pub type ICRCMemo = Vec<u8>;
+
+pub type ICRCTimestamp = u64;
 
 pub type EcdsaPublicKey = Vec<u8>;
 
@@ -26,25 +38,98 @@ pub type BtcTxId = Txid;
 
 pub type BtcOutPoint = OutPoint;
 
-#[derive(CandidType, Clone, Deserialize)]
-pub struct Ledger {
-    pub keys: Keys,
-    pub subaccount: Subaccount,
-}
+pub type ChainMap = BTreeMap<ChainType, Chain>;
 
-#[derive(CandidType, Deserialize, Clone)]
-pub struct Keys {
-    pub ecdsa: Option<EcdsaPublicKey>,
-    pub subaccount: Subaccount,
-    pub addresses: AddressMap,
-}
-
-#[derive(CandidType, Clone, Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash, Debug)]
-pub enum Chains {
+#[derive(CandidType, PartialEq, Eq, PartialOrd, Ord, Deserialize, Clone)]
+pub enum ChainType {
     ICRC(CanisterId),
     BTC(BtcNetwork),
     EVM(ChainId),
     ICP,
+}
+
+#[derive(CandidType, Deserialize, Clone)]
+pub struct Ledger {
+    pub ecdsa: Option<EcdsaPublicKey>,
+    pub subaccount: Subaccount,
+    pub chains: ChainMap,
+}
+
+#[async_trait]
+#[enum_dispatch]
+pub trait ChainTrait {
+    async fn balance(&self) -> Result<Balance, WalletError>;
+}
+
+#[enum_dispatch(ChainTrait)]
+#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
+pub enum Chain {
+    #[serde(rename = "icrc")]
+    ICRC,
+    #[serde(rename = "btc")]
+    BTC,
+    #[serde(rename = "evm")]
+    EVM,
+    #[serde(rename = "icp")]
+    ICP,
+}
+
+impl Default for Chain {
+    fn default() -> Self {
+        Chain::ICP(ICP::new(AccountIdentifier::default()))
+    }
+}
+
+#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
+pub struct ICP {
+    pub identifier: AccountIdentifier,
+    pub memo: Memo,
+    pub fee: Tokens,
+    pub created_at_time: Option<Timestamp>,
+}
+
+impl ICP {
+    pub fn new(identifier: AccountIdentifier) -> Self {
+        ICP {
+            identifier,
+            memo: CANISTER_TRANSFER_MEMO,
+            fee: IC_TRANSACTION_FEE_ICP,
+            created_at_time: None,
+        }
+    }
+}
+
+#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
+pub struct ICRC {
+    pub canister_id: CanisterId,
+    pub account: ICRCAccount,
+    pub fee: ICRCFee,
+    pub memo: Option<ICRCMemo>,
+    pub created_at_time: Option<ICRCTimestamp>,
+}
+
+impl ICRC {
+    pub fn new(canister_id: CanisterId, subaccount: Subaccount, fee: ICRCFee) -> Self {
+        ICRC {
+            canister_id,
+            account: subaccount.into(),
+            fee,
+            memo: None,
+            created_at_time: None,
+        }
+    }
+}
+
+#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
+pub struct BTC {
+    pub btc_network: BtcNetwork,
+    pub address: String, // Added address field
+}
+
+#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
+pub struct EVM {
+    pub chain_id: ChainId,
+    pub address: String,
 }
 
 #[derive(CandidType, Serialize)]

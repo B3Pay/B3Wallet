@@ -11,9 +11,10 @@
     "dfinity"
   ],
   "scripts": {
-    "dfx:start": "export DFX_WARNING=-version_check && dfx start --enable-bitcoin --background --clean && dfx canister create internet_identity && dfx canister create ledger && dfx deploy internet_identity && dfx deploy cmc",
+    "dfx:start": "export DFX_WARNING=-version_check && dfx start --background --clean && dfx canister create internet_identity && dfx canister create ledger && dfx canister create internet_identity && dfx canister create cmc",
+    "dfx:start-bitcoin": "export DFX_WARNING=-version_check && dfx start --enable-bitcoin --background --clean && dfx canister create internet_identity && dfx canister create ledger && dfx canister create internet_identity && dfx canister create cmc",
     "dfx:stop": "dfx stop",
-    "dfx:install": "scripts/ledger.sh && scripts/cmc.sh",
+    "dfx:install": "dfx deploy internet_identity && scripts/ledger.sh && scripts/cmc.sh",
     "dfx:create": "dfx canister create b3_wallet && dfx canister create b3_system",
     "dfx:deploy": "dfx deploy b3_wallet && dfx deploy b3_system",
     "dev": "next dev",

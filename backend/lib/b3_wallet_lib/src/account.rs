@@ -1,8 +1,6 @@
 use crate::{
     error::WalletError,
-    ledger::{
-        evm::api::get_evm_transaction, subaccount::SubaccountTrait, types::Keys, types::Ledger,
-    },
+    ledger::{evm::api::get_evm_transaction, subaccount::SubaccountTrait, types::Ledger},
     types::WalletAccountView,
 };
 use b3_helper_lib::types::{Environment, Metadata, Subaccount};
@@ -16,7 +14,7 @@ impl From<&WalletAccount> for WalletAccountView {
             hidden: account.hidden,
             metadata: account.metadata.clone(),
             environment: account.environment().clone(),
-            addresses: account.ledger.keys.addresses().clone(),
+            addresses: account.ledger.addresses().clone(),
         }
     }
 }
@@ -28,7 +26,6 @@ pub struct WalletAccount {
     hidden: bool,
     ledger: Ledger,
     metadata: Metadata,
-    subaccount: Subaccount,
 }
 
 impl Default for WalletAccount {
@@ -38,7 +35,6 @@ impl Default for WalletAccount {
             name: String::new(),
             hidden: false,
             metadata: Metadata::default(),
-            subaccount: Subaccount::default(),
             ledger: Ledger::default(),
         }
     }
@@ -52,7 +48,6 @@ impl From<Subaccount> for WalletAccount {
         WalletAccount {
             id,
             ledger,
-            subaccount,
             hidden: false,
             name: String::new(),
             metadata: Metadata::default(),
@@ -66,7 +61,7 @@ impl WalletAccount {
         hex_raw_tx: Vec<u8>,
         chain_id: u64,
     ) -> Result<Vec<u8>, WalletError> {
-        let ecdsa = self.ledger.keys.ecdsa()?;
+        let ecdsa = self.ledger.ecdsa()?;
 
         let mut evm_tx = get_evm_transaction(&hex_raw_tx, chain_id)?;
 
@@ -89,13 +84,9 @@ impl WalletAccount {
             name: self.name.clone(),
             hidden: self.hidden,
             metadata: self.metadata.clone(),
-            addresses: self.ledger.keys.addresses().clone(),
+            addresses: self.ledger.addresses().clone(),
             environment: self.ledger.subaccount.environment(),
         }
-    }
-
-    pub fn public_keys(&self) -> &Keys {
-        &self.ledger.keys
     }
 
     pub fn environment(&self) -> Environment {

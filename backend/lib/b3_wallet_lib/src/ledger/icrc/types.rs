@@ -1,4 +1,4 @@
-use super::account::IcrcAccount;
+use super::account::ICRCAccount;
 use b3_helper_lib::types::{Memo, Subaccount, Timestamp};
 use ic_cdk::export::{
     candid::{CandidType, Nat},
@@ -9,7 +9,7 @@ pub type TxIndex = Nat;
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct ICRC1TransferArgs {
-    pub to: IcrcAccount,
+    pub to: ICRCAccount,
     pub amount: u64,
     pub fee: Option<u64>,
     pub memo: Option<Memo>,

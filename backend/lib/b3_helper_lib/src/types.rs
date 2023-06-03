@@ -143,7 +143,7 @@ pub struct AccountBalanceArgs {
     pub account: AccountIdentifier,
 }
 
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub struct Timestamp {
     /// Number of nanoseconds from the UNIX epoch in UTC timezone.
     pub timestamp_nanos: u64,

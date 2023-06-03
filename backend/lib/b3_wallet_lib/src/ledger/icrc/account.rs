@@ -3,33 +3,33 @@ use ic_cdk::export::{candid::CandidType, serde::Deserialize, Principal};
 use std::{cmp, fmt, hash};
 
 #[derive(CandidType, Deserialize, Debug, Clone)]
-pub struct IcrcAccount {
+pub struct ICRCAccount {
     owner: Principal,
     subaccount: Option<Subaccount>,
 }
 
-impl IcrcAccount {
+impl ICRCAccount {
     #[inline]
     pub fn effective_subaccount(&self) -> &Subaccount {
         self.subaccount.as_ref().unwrap_or(&DEFAULT_SUBACCOUNT)
     }
 }
 
-impl PartialEq for IcrcAccount {
+impl PartialEq for ICRCAccount {
     fn eq(&self, other: &Self) -> bool {
         self.owner == other.owner && self.effective_subaccount() == other.effective_subaccount()
     }
 }
 
-impl Eq for IcrcAccount {}
+impl Eq for ICRCAccount {}
 
-impl cmp::PartialOrd for IcrcAccount {
+impl cmp::PartialOrd for ICRCAccount {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl cmp::Ord for IcrcAccount {
+impl cmp::Ord for ICRCAccount {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
         self.owner.cmp(&other.owner).then_with(|| {
             self.effective_subaccount()
@@ -38,14 +38,14 @@ impl cmp::Ord for IcrcAccount {
     }
 }
 
-impl hash::Hash for IcrcAccount {
+impl hash::Hash for ICRCAccount {
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
         self.owner.hash(state);
         self.effective_subaccount().hash(state);
     }
 }
 
-impl fmt::Display for IcrcAccount {
+impl fmt::Display for ICRCAccount {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.subaccount {
             None => write!(f, "{}", self.owner),
@@ -54,11 +54,34 @@ impl fmt::Display for IcrcAccount {
     }
 }
 
-impl From<Principal> for IcrcAccount {
+impl ICRCAccount {
+    pub fn new(owner: Principal, subaccount: Option<Subaccount>) -> Self {
+        Self { owner, subaccount }
+    }
+
+    pub fn owner(&self) -> &Principal {
+        &self.owner
+    }
+
+    pub fn subaccount(&self) -> &Option<Subaccount> {
+        &self.subaccount
+    }
+}
+
+impl From<Principal> for ICRCAccount {
     fn from(owner: Principal) -> Self {
         Self {
             owner,
             subaccount: None,
+        }
+    }
+}
+
+impl From<Subaccount> for ICRCAccount {
+    fn from(subaccount: Subaccount) -> Self {
+        Self {
+            owner: ic_cdk::id(),
+            subaccount: Some(subaccount),
         }
     }
 }
@@ -76,12 +99,12 @@ mod tests {
     fn test_effective_subaccount() {
         let mock_subaccount = Some(Subaccount::default());
 
-        let account1 = IcrcAccount {
+        let account1 = ICRCAccount {
             owner: MOCK_OWNER.clone(),
             subaccount: None,
         };
 
-        let account2 = IcrcAccount {
+        let account2 = ICRCAccount {
             owner: MOCK_OWNER.clone(),
             subaccount: mock_subaccount.clone(),
         };
@@ -94,12 +117,12 @@ mod tests {
     fn test_account_equality() {
         let mock_subaccount = Some(Subaccount::default());
 
-        let account1 = IcrcAccount {
+        let account1 = ICRCAccount {
             owner: MOCK_OWNER.clone(),
             subaccount: mock_subaccount.clone(),
         };
 
-        let account2 = IcrcAccount {
+        let account2 = ICRCAccount {
             owner: MOCK_OWNER.clone(),
             subaccount: mock_subaccount.clone(),
         };
@@ -109,14 +132,14 @@ mod tests {
 
     #[test]
     fn test_account_ordering() {
-        let account1 = IcrcAccount {
+        let account1 = ICRCAccount {
             owner: MOCK_OWNER.clone(),
             subaccount: None,
         };
 
         let mock_subaccount = Some(Subaccount([1; 32]));
 
-        let account2 = IcrcAccount {
+        let account2 = ICRCAccount {
             owner: MOCK_OWNER.clone(),
             subaccount: mock_subaccount.clone(),
         };
@@ -128,17 +151,17 @@ mod tests {
     fn test_account_display() {
         let mock_subaccount = Some(Subaccount::default());
 
-        let account1 = IcrcAccount {
-            owner: MOCK_OWNER.clone(),
-            subaccount: None,
-        };
+        let account1 = ICRCAccount::new(MOCK_OWNER.clone(), None);
 
         assert_eq!(format!("{}", account1), format!("{}", MOCK_OWNER));
 
-        let account2 = IcrcAccount {
+        let account2 = ICRCAccount {
             owner: MOCK_OWNER.clone(),
             subaccount: mock_subaccount.clone(),
         };
+
+        println!("{}", account1);
+        println!("{}", account2);
 
         assert_eq!(
             format!("{}", account2),

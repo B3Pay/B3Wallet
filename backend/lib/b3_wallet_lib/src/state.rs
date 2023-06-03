@@ -1,7 +1,7 @@
 use crate::counter::CounterTrait;
 use crate::error::WalletError;
 use crate::ledger::subaccount::SubaccountTrait;
-use crate::ledger::types::Keys;
+use crate::ledger::types::Ledger;
 use crate::types::{WalletAccountMap, WalletAccountView};
 use crate::{account::WalletAccount, types::AccountId};
 use b3_helper_lib::types::{AccountsCounter, Environment, Subaccount};
@@ -76,10 +76,10 @@ impl WalletState {
             .ok_or(WalletError::WalletAccountNotExists)
     }
 
-    pub fn accounts_public_keys(&self) -> Vec<&Keys> {
+    pub fn accounts_public_keys(&self) -> Vec<&Ledger> {
         self.accounts
             .iter()
-            .map(|(_, account)| account.public_keys())
+            .map(|(_, account)| account.ledger())
             .collect()
     }
 

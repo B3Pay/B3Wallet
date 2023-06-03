@@ -84,7 +84,7 @@ mod tests {
     use b3_permit_lib::types::*;
     use b3_wallet_lib::account::WalletAccount;
     use b3_wallet_lib::ledger::btc::network::BtcNetwork;
-    use b3_wallet_lib::ledger::types::{AddressMap, Chains};
+    use b3_wallet_lib::ledger::types::*;
     use b3_wallet_lib::types::*;
 
     use ic_cdk::api::management_canister::bitcoin::{GetUtxosResponse, Satoshi, UtxoFilter};
