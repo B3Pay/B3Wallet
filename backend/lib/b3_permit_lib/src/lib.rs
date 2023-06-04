@@ -1,6 +1,5 @@
 pub mod counter;
 pub mod error;
-pub mod mocks;
 pub mod pending;
 pub mod processed;
 pub mod signer;

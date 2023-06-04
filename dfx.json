@@ -27,6 +27,21 @@
       "source": ["out"],
       "type": "assets"
     },
+    "ckbtc": {
+      "type": "custom",
+      "candid": "wasm/ckbtc/ledger.did",
+      "wasm": "wasm/ckbtc/ledger.wasm.gz"
+    },
+    "kyt": {
+      "type": "custom",
+      "candid": "wasm/kyt/kyt.did",
+      "wasm": "wasm/kyt/kyt.wasm.gz"
+    },
+    "minter": {
+      "type": "custom",
+      "candid": "wasm/minter/minter.did",
+      "wasm": "wasm/minter/minter.wasm.gz"
+    },
     "internet_identity": {
       "type": "custom",
       "candid": "wasm/identity/internet_identity.did",

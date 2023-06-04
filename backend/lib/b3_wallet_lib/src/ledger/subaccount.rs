@@ -1,13 +1,7 @@
-use std::ops::Add;
-
 use super::{config::EcdsaConfig, types::EcdsaKeyId};
-use b3_helper_lib::types::{AccountIdentifier, CanisterId, Environment, Subaccount};
+use b3_helper_lib::types::Subaccount;
 
 pub trait SubaccountTrait {
-    fn account_identifier(&self, owner: CanisterId) -> AccountIdentifier;
-    fn environment(&self) -> Environment;
-    fn nonce(&self) -> u64;
-    fn name(&self) -> String;
     fn id(&self) -> String;
     fn derivation_path(&self) -> Vec<Vec<u8>>;
     fn config(&self) -> EcdsaConfig;
@@ -16,26 +10,6 @@ pub trait SubaccountTrait {
 }
 
 impl SubaccountTrait for Subaccount {
-    fn account_identifier(&self, owner: CanisterId) -> AccountIdentifier {
-        AccountIdentifier::new(owner, self.clone())
-    }
-
-    fn environment(&self) -> Environment {
-        match self.0[0] {
-            16 => Environment::Staging,
-            8 => Environment::Development,
-            _ => Environment::Production,
-        }
-    }
-
-    fn nonce(&self) -> u64 {
-        self.0[1..].iter().fold(0, |acc, x| acc + *x as u64)
-    }
-
-    fn name(&self) -> String {
-        self.environment().to_name(self.nonce().add(1).to_string())
-    }
-
     fn id(&self) -> String {
         let index = self.nonce();
 
@@ -79,6 +53,8 @@ impl SubaccountTrait for Subaccount {
 
 #[cfg(test)]
 mod tests {
+    use b3_helper_lib::types::{CanisterId, Environment};
+
     use super::*;
 
     #[test]

@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use async_trait::async_trait;
 use b3_helper_lib::{
     constants::{
@@ -12,15 +14,26 @@ use b3_helper_lib::{
 };
 use ic_cdk::api::call::call;
 
+#[cfg(test)]
+use b3_helper_lib::mocks::ic_cdk_id;
+#[cfg(not(test))]
+use ic_cdk::api::id as ic_cdk_id;
+
 use crate::{
     error::WalletError,
-    ledger::types::{Balance, ChainTrait, Ledger, ICP},
+    ledger::types::{Balance, ChainTrait, Ledger, SendResult, ICP},
 };
 
 #[async_trait]
 impl ChainTrait for ICP {
+    fn address(&self) -> String {
+        self.subaccount.account_identifier(ic_cdk_id()).to_string()
+    }
+
     async fn balance(&self) -> Result<Balance, WalletError> {
-        let account = self.identifier.clone();
+        let canister_id = ic_cdk_id();
+
+        let account = self.subaccount.account_identifier(canister_id);
 
         let args = AccountBalanceArgs { account };
 
@@ -29,6 +42,26 @@ impl ChainTrait for ICP {
             .map_err(|e| WalletError::LedgerError(e.1))?;
 
         Ok(res.e8s().into())
+    }
+
+    async fn send(&self, to: String, amount: u64) -> Result<SendResult, WalletError> {
+        let to = AccountIdentifier::from_str(&to)
+            .map_err(|e| WalletError::LedgerError(e.to_string()))?;
+
+        let args = TransferArgs {
+            memo: CANISTER_TRANSFER_MEMO,
+            fee: IC_TRANSACTION_FEE_ICP,
+            amount: Tokens::from_e8s(amount),
+            to,
+            from_subaccount: Some(self.subaccount.clone()),
+            created_at_time: None,
+        };
+
+        let (res,): (TransferResult,) = call(LEDGER_CANISTER_ID, "transfer", (args,))
+            .await
+            .map_err(|e| WalletError::LedgerError(e.1))?;
+
+        Ok(SendResult::ICP(res))
     }
 }
 

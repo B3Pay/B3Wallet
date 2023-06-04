@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::permit::{caller_is_admin, caller_is_signer};
 use b3_helper_lib::{
     revert,
@@ -147,7 +149,7 @@ pub async fn account_send_icp(
     fee: Option<Tokens>,
     memo: Option<Memo>,
 ) -> BlockIndex {
-    let to = AccountIdentifier::try_from(to).unwrap_or_else(revert);
+    let to = AccountIdentifier::from_str(&to).unwrap_or_else(revert);
 
     let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 

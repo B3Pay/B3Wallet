@@ -2,8 +2,7 @@
 mod tests {
     use crate::ledger::{
         btc::network::BtcNetwork,
-        subaccount::SubaccountTrait,
-        types::{Chain, ChainMap, ChainType, Ledger},
+        types::{Chain, ChainMap, ChainTrait, ChainType, Ledger},
     };
     use b3_helper_lib::types::{AccountIdentifier, CanisterId, Subaccount};
 
@@ -22,7 +21,7 @@ mod tests {
 
         let mut chains = ChainMap::new();
 
-        let icp_chain = Chain::new_icp_chain(identifier.clone());
+        let icp_chain = Chain::new_icp_chain(subaccount.clone());
 
         chains.insert(ChainType::ICP, icp_chain);
 
@@ -86,20 +85,20 @@ mod tests {
             0, 0, 0,
         ]);
 
-        let owner = CanisterId::from_text("7uoyg-piaaa-aaaap-abbzq-cai").unwrap();
+        let owner = CanisterId::from_text("bkyz2-fmaaa-aaaaa-qaaaq-cai").unwrap();
 
         let identifier = AccountIdentifier::new(owner, subaccount.clone());
 
         let expected_identifier = AccountIdentifier::from(vec![
-            58, 236, 90, 93, 136, 79, 92, 97, 73, 20, 45, 129, 49, 134, 70, 254, 51, 92, 198, 124,
-            199, 3, 100, 84, 204, 249, 218, 50, 237, 120, 84, 113,
+            146, 231, 37, 157, 114, 49, 157, 239, 199, 132, 229, 111, 180, 128, 68, 147, 19, 27,
+            21, 176, 125, 49, 244, 123, 149, 241, 38, 235, 86, 180, 38, 113,
         ]);
 
         println!("identifier: {:?}", identifier);
 
         let mut chains = ChainMap::new();
 
-        let icp_chain = Chain::new_icp_chain(identifier.clone());
+        let icp_chain = Chain::new_icp_chain(subaccount.clone());
 
         chains.insert(ChainType::ICP, icp_chain);
 
@@ -122,7 +121,7 @@ mod tests {
 
         assert_eq!(
             icp_address.address(),
-            "3aec5a5d884f5c6149142d81318646fe335cc67cc7036454ccf9da32ed785471"
+            "92e7259d72319defc784e56fb4804493131b15b07d31f47b95f126eb56b42671"
         );
 
         println!("icp_address: {}", icp_address.address());
@@ -158,22 +157,22 @@ mod tests {
             0, 0, 0,
         ]);
 
-        let owner = CanisterId::from_text("us6ps-xaaaa-aaaap-aa5za-cai").unwrap();
+        let owner = CanisterId::from_text("bkyz2-fmaaa-aaaaa-qaaaq-cai").unwrap();
 
         let identifier = subaccount.account_identifier(owner);
 
         println!("identifier: {}", identifier.to_string());
 
         let expected_identifier = AccountIdentifier::from(vec![
-            222, 100, 102, 206, 2, 155, 237, 69, 41, 46, 16, 39, 70, 114, 4, 61, 28, 30, 202, 20,
-            83, 162, 177, 143, 70, 7, 126, 129, 179, 65, 189, 8,
+            146, 231, 37, 157, 114, 49, 157, 239, 199, 132, 229, 111, 180, 128, 68, 147, 19, 27,
+            21, 176, 125, 49, 244, 123, 149, 241, 38, 235, 86, 180, 38, 113,
         ]);
 
         assert_eq!(identifier, expected_identifier);
 
         let mut chains = ChainMap::new();
 
-        let icp_chain = Chain::new_icp_chain(identifier);
+        let icp_chain = Chain::new_icp_chain(subaccount.clone());
 
         chains.insert(ChainType::ICP, icp_chain);
 
@@ -194,7 +193,7 @@ mod tests {
 
         assert_eq!(
             icp_address.address(),
-            "de6466ce029bed45292e10274672043d1c1eca1453a2b18f46077e81b341bd08"
+            "92e7259d72319defc784e56fb4804493131b15b07d31f47b95f126eb56b42671"
         );
 
         println!("icp_address: {}", icp_address.address());

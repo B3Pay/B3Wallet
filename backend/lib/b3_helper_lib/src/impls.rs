@@ -1,16 +1,13 @@
 use crate::{
-    error::HelperError,
-    types::{AccountIdentifier, Environment, Subaccount},
+    account::ICRCAccount,
+    base32::base32_decode,
+    error::{HelperError, TrapError},
+    types::{AccountIdentifier, CanisterId, Environment, Subaccount},
 };
+
 use easy_hasher::easy_hasher;
 use ic_cdk::export::Principal;
-use std::{cmp, fmt, hash, mem::size_of};
-
-impl Default for AccountIdentifier {
-    fn default() -> Self {
-        Self([0u8; 32])
-    }
-}
+use std::{cmp, fmt, hash, mem::size_of, ops::Add, str::FromStr};
 
 impl Default for Subaccount {
     fn default() -> Self {
@@ -39,13 +36,78 @@ impl Subaccount {
         Subaccount(subaccount)
     }
 
-    pub fn to_hex(&self) -> String {
-        let mut result = String::new();
-        for byte in self.0.iter() {
-            result.push_str(&format!("{:02x}", byte));
+    pub fn is_default(&self) -> bool {
+        self.0 == [0u8; 32]
+    }
+
+    pub fn as_slice(&self) -> &[u8] {
+        &self.0
+    }
+
+    pub fn from_slice(slice: &[u8]) -> Result<Self, HelperError> {
+        if slice.len() != 32 {
+            return Err(HelperError::SubaccountSliceError);
         }
 
-        result
+        let mut subaccount = [0; 32];
+        subaccount.copy_from_slice(slice);
+
+        Ok(Subaccount(subaccount))
+    }
+
+    pub fn to_vec(&self) -> Vec<u8> {
+        self.0.to_vec()
+    }
+
+    pub fn to_hex(&self) -> String {
+        hex::encode(&self.0)
+    }
+
+    pub fn from_hex(hex: &str) -> Result<Self, HelperError> {
+        // add leading zeros if necessary
+        let hex = if hex.len() < 64 {
+            let mut hex = hex.to_string();
+            hex.insert_str(0, &"0".repeat(64 - hex.len()));
+            hex
+        } else {
+            hex.to_string()
+        };
+
+        let bytes = hex::decode(hex).map_err(|e| HelperError::SubaccountHexError(e.to_string()))?;
+
+        Subaccount::from_slice(&bytes)
+    }
+
+    pub fn from_base32(base32: &str) -> Result<Self, HelperError> {
+        let bytes =
+            base32_decode(base32).map_err(|e| HelperError::SubaccountBase32Error(e.to_string()))?;
+        Subaccount::from_slice(&bytes)
+    }
+}
+
+impl Subaccount {
+    pub fn account_identifier(&self, owner: CanisterId) -> AccountIdentifier {
+        AccountIdentifier::new(owner, self.clone())
+    }
+
+    pub fn icrc1_account(&self, owner: CanisterId) -> ICRCAccount {
+        ICRCAccount::new(owner, Some(self.clone()))
+    }
+
+    pub fn environment(&self) -> Environment {
+        match self.0[0] {
+            16 => Environment::Staging,
+            8 => Environment::Development,
+            _ => Environment::Production,
+        }
+    }
+
+    pub fn nonce(&self) -> u64 {
+        self.0[1..].iter().fold(0, |acc, x| acc + *x as u64)
+    }
+
+    pub fn name(&self) -> String {
+        self.environment().to_name(self.nonce().add(1).to_string())
     }
 }
 
@@ -81,13 +143,50 @@ impl From<Principal> for Subaccount {
     }
 }
 
+impl From<[u8; 32]> for Subaccount {
+    fn from(bytes: [u8; 32]) -> Self {
+        Self(bytes)
+    }
+}
+
+impl TryFrom<Vec<u8>> for Subaccount {
+    type Error = HelperError;
+
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        if value.len() != 32 {
+            return Err(HelperError::InvalidSubaccount(format!(
+                "Subaccount must be 32 bytes long, but was {}",
+                value.len()
+            )));
+        }
+
+        let mut bytes = [0u8; 32];
+        bytes.copy_from_slice(&value);
+
+        Ok(Self(bytes))
+    }
+}
+
+impl TryFrom<&str> for Subaccount {
+    type Error = HelperError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let bytes =
+            hex::decode(value).map_err(|e| HelperError::InvalidSubaccount(e.to_string()))?;
+
+        Ok(Self::try_from(bytes)?)
+    }
+}
+
 impl fmt::Display for Subaccount {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut result = String::new();
-        for byte in self.0.iter() {
-            result.push_str(&format!("{:02x}", byte));
-        }
-        write!(f, "{}", result)
+        hex::encode(&self.0).fmt(f)
+    }
+}
+
+impl Default for AccountIdentifier {
+    fn default() -> Self {
+        Self([0u8; 32])
     }
 }
 
@@ -120,23 +219,41 @@ impl From<Vec<u8>> for AccountIdentifier {
     }
 }
 
-impl TryFrom<String> for AccountIdentifier {
-    type Error = HelperError;
+pub enum AccountIdentifierError {
+    InvalidLength,
+    InvalidAccountIdentifier,
+}
 
-    fn try_from(str: String) -> Result<Self, HelperError> {
+impl TrapError for AccountIdentifierError {
+    fn to_string(self) -> String {
+        match self {
+            AccountIdentifierError::InvalidLength => "Invalid length".to_string(),
+            AccountIdentifierError::InvalidAccountIdentifier => {
+                "Invalid account identifier".to_string()
+            }
+        }
+    }
+}
+
+impl FromStr for AccountIdentifier {
+    type Err = AccountIdentifierError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut result = [0u8; 32];
         let mut i = 0;
-        for byte in str.as_bytes().chunks(2) {
+        for byte in s.as_bytes().chunks(2) {
             if byte.len() != 2 {
-                return Err(HelperError::InvalidAccountIdentifier);
+                return Err(AccountIdentifierError::InvalidLength);
             }
             result[i] = u8::from_str_radix(
-                std::str::from_utf8(byte).map_err(|_| HelperError::InvalidAccountIdentifier)?,
+                std::str::from_utf8(byte)
+                    .map_err(|_| AccountIdentifierError::InvalidAccountIdentifier)?,
                 16,
             )
-            .map_err(|_| HelperError::InvalidAccountIdentifier)?;
+            .map_err(|_| AccountIdentifierError::InvalidAccountIdentifier)?;
             i += 1;
         }
+
         Ok(Self(result))
     }
 }
@@ -180,12 +297,40 @@ mod tests {
 
     #[test]
     fn test_subaccount() {
-        let env = Environment::Production;
-        let subaccount = Subaccount::new(env, 0);
+        let subaccount = Subaccount::new(Environment::Production, 0);
         assert_eq!(
             subaccount.to_owned(),
             Subaccount([
                 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            ])
+        );
+
+        let subaccount = Subaccount::new(Environment::Production, 1);
+
+        assert_eq!(
+            subaccount.to_owned(),
+            Subaccount([
+                32, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            ])
+        );
+
+        assert_eq!(
+            subaccount.to_hex(),
+            "2001000000000000000000000000000000000000000000000000000000000000"
+        );
+
+        let subaccount = Subaccount::try_from(
+            "2001000000000000000000000000000000000000000000000000000000000000",
+        );
+
+        assert_eq!(
+            subaccount.expect("REASON").to_owned(),
+            Subaccount([
+                32, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
             ])

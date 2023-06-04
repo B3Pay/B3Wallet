@@ -141,10 +141,16 @@ type HideAccountRequest = record { account_id : text };
 type ICP = record {
   fee : Tokens;
   memo : nat64;
+  subaccount : vec nat8;
   created_at_time : opt Timestamp;
-  identifier : vec nat8;
 };
-type ICRC = record { canister_id : principal; address : text };
+type ICRC = record {
+  fee : nat;
+  memo : opt vec nat8;
+  canister_id : principal;
+  subaccount : vec nat8;
+  created_at_time : opt nat64;
+};
 type IcpRequest = variant {
   IcpTransferRequest : IcpTransferRequest;
   TopUpCanisterRequest : TopUpCanisterRequest;

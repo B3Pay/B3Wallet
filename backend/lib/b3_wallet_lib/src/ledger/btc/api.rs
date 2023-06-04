@@ -1,5 +1,5 @@
 use crate::error::WalletError;
-use crate::ledger::types::ChainType;
+use crate::ledger::types::{ChainTrait, ChainType};
 use crate::ledger::{types::BtcTxId, types::Ledger};
 use bitcoin::consensus::serialize;
 use bitcoin::sighash::{EcdsaSighashType, SighashCache};

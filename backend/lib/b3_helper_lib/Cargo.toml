@@ -10,5 +10,6 @@ readme = "./README.md"
 candid = { workspace = true }
 ic-cdk = { workspace = true }
 serde = { version = "1.0.163", features = ["derive"] }
+hex = "0.4.3"
 serde_bytes = "0.11.9"
 easy-hasher = "2.2.1"

@@ -1,5 +1,8 @@
-use super::account::ICRCAccount;
-use b3_helper_lib::types::{Memo, Subaccount, Timestamp};
+use crate::ledger::types::{Balance, ICRCMemo, ICRCTimestamp};
+use b3_helper_lib::{
+    account::ICRCAccount,
+    types::{Subaccount, Timestamp},
+};
 use ic_cdk::export::{
     candid::{CandidType, Nat},
     serde::Deserialize,
@@ -10,10 +13,10 @@ pub type TxIndex = Nat;
 #[derive(CandidType, Deserialize, Clone)]
 pub struct ICRC1TransferArgs {
     pub to: ICRCAccount,
-    pub amount: u64,
-    pub fee: Option<u64>,
-    pub memo: Option<Memo>,
-    pub created_at_time: Option<Timestamp>,
+    pub amount: Balance,
+    pub fee: Option<Balance>,
+    pub memo: Option<ICRCMemo>,
+    pub created_at_time: Option<ICRCTimestamp>,
     pub from_subaccount: Option<Subaccount>,
 }
 

@@ -1,6 +1,5 @@
 use super::{
     btc::network::BtcNetwork,
-    subaccount::SubaccountTrait,
     types::{Balance, Chain, ChainId, ChainMap, ChainType, Ledger},
 };
 use crate::{error::WalletError, ledger::types::ChainTrait};
@@ -23,11 +22,7 @@ impl Default for Ledger {
 
 impl From<Subaccount> for Ledger {
     fn from(subaccount: Subaccount) -> Self {
-        let canister_id = ic_cdk::id();
-
-        let identifier = subaccount.account_identifier(canister_id);
-
-        let ic_chain = Chain::new_icp_chain(identifier);
+        let ic_chain = Chain::new_icp_chain(subaccount.clone());
 
         let mut chains = ChainMap::new();
 
@@ -151,11 +146,7 @@ impl Ledger {
     }
 
     pub fn generate_icp_address(&mut self) -> Result<(), WalletError> {
-        let canister_id = ic_cdk::id();
-
-        let identifier = self.subaccount.account_identifier(canister_id);
-
-        let icp_chain = Chain::new_icp_chain(identifier);
+        let icp_chain = Chain::new_icp_chain(self.subaccount.to_owned());
 
         self.chains.insert(ChainType::ICP, icp_chain);
 
@@ -163,7 +154,7 @@ impl Ledger {
     }
 
     pub fn generate_icrc_address(&mut self, canister_id: CanisterId) -> Result<(), WalletError> {
-        let icrc_chain = Chain::new_icrc_chain(canister_id, self.subaccount.clone());
+        let icrc_chain = Chain::new_icrc_chain(canister_id, self.subaccount.to_owned());
 
         self.chains.insert(ChainType::ICRC(canister_id), icrc_chain);
 

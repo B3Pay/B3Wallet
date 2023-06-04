@@ -8,6 +8,10 @@ pub enum HelperError {
     CanisterStatusError(String),
     CreateCanisterError(String),
     ValidateSignerError(String),
+    InvalidSubaccount(String),
+    SubaccountHexError(String),
+    SubaccountBase32Error(String),
+    SubaccountSliceError,
     VersionError(String),
     InstallCodeError(String),
     WasmHashError(String),
@@ -40,6 +44,10 @@ impl TrapError for HelperError {
     fn to_string(self) -> String {
         match self {
             HelperError::Processing => "::Processing!".to_string(),
+            HelperError::InvalidSubaccount(e) => ["::Invalid subaccount: ", &e].concat(),
+            HelperError::SubaccountSliceError => "::Subaccount slice error!".to_string(),
+            HelperError::SubaccountBase32Error(e) => ["::Subaccount base32 error: ", &e].concat(),
+            HelperError::SubaccountHexError(e) => ["::Subaccount hex error: ", &e].concat(),
             HelperError::ValidateSignerError(e) => ["::Get owner error: ", &e].concat(),
             HelperError::WasmHashError(e) => ["::Wasm hash error: ", &e].concat(),
             HelperError::InvalidTransaction(e) => ["::Invalid transaction: ", &e].concat(),

@@ -1,10 +1,10 @@
 use super::{
     btc::network::BtcNetwork,
-    types::{Balance, Chain, ChainId, ChainTrait, ICRCFee, BTC, EVM, ICP, ICRC},
+    types::{Balance, Chain, ChainId, ChainTrait, ICRCFee, SendResult, BTC, EVM, ICP, ICRC},
 };
 use crate::error::WalletError;
 use async_trait::async_trait;
-use b3_helper_lib::types::{AccountIdentifier, CanisterId, Subaccount};
+use b3_helper_lib::types::{CanisterId, Subaccount};
 
 impl Chain {
     pub fn new_icrc_chain(canister_id: CanisterId, subaccount: Subaccount) -> Self {
@@ -22,31 +22,37 @@ impl Chain {
         Chain::EVM(EVM { chain_id, address })
     }
 
-    pub fn new_icp_chain(identifier: AccountIdentifier) -> Self {
-        Chain::ICP(ICP::new(identifier))
-    }
-
-    pub fn address(&self) -> String {
-        match self {
-            // TODO: implement the address method for ICRC
-            Chain::ICRC(icrc) => icrc.canister_id.to_string(),
-            Chain::BTC(btc) => btc.address.clone(),
-            Chain::EVM(evm) => evm.address.clone(),
-            Chain::ICP(icp) => icp.identifier.to_string(),
-        }
+    pub fn new_icp_chain(subaccount: Subaccount) -> Self {
+        Chain::ICP(ICP::new(subaccount))
     }
 }
 
 #[async_trait]
 impl ChainTrait for BTC {
+    fn address(&self) -> String {
+        self.address.clone()
+    }
+
     async fn balance(&self) -> Result<Balance, WalletError> {
+        todo!("implement the async method for BTC...")
+    }
+
+    async fn send(&self, to: String, amount: u64) -> Result<SendResult, WalletError> {
         todo!("implement the async method for BTC...")
     }
 }
 
 #[async_trait]
 impl ChainTrait for EVM {
+    fn address(&self) -> String {
+        self.address.clone()
+    }
+
     async fn balance(&self) -> Result<Balance, WalletError> {
+        todo!("implement the async method for EVM...")
+    }
+
+    async fn send(&self, to: String, amount: u64) -> Result<SendResult, WalletError> {
         todo!("implement the async method for EVM...")
     }
 }

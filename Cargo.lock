@@ -55,6 +55,7 @@ version = "0.0.1"
 dependencies = [
  "candid",
  "easy-hasher",
+ "hex",
  "ic-cdk",
  "serde",
  "serde_bytes",
@@ -114,6 +115,7 @@ dependencies = [
  "candid",
  "enum_dispatch",
  "ethereum-rlp",
+ "hex",
  "ic-cdk",
  "serde",
 ]

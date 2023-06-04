@@ -1,5 +1,6 @@
 use std::fmt;
 
+use super::Request;
 use crate::types::ConsentMessageResponse;
 use b3_helper_lib::error::TrapError;
 use b3_helper_lib::types::{
@@ -10,7 +11,10 @@ use b3_wallet_lib::store::with_ledger;
 use enum_dispatch::enum_dispatch;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
-use super::Request;
+#[cfg(test)]
+use b3_helper_lib::mocks::ic_cdk_id;
+#[cfg(not(test))]
+use ic_cdk::api::id as ic_cdk_id;
 
 #[enum_dispatch]
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
@@ -92,7 +96,7 @@ impl TopUpCanisterRequest {
     pub async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
         let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
 
-        let canister_id = self.canister_id.unwrap_or(ic_cdk::id());
+        let canister_id = self.canister_id.unwrap_or(ic_cdk_id());
 
         let result = ledger
             .topup_and_notify_top_up(canister_id, self.amount.clone(), self.fee.clone())

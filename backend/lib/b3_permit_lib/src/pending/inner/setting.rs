@@ -21,6 +21,11 @@ use crate::{
 
 use super::InnerRequest;
 
+#[cfg(test)]
+use b3_helper_lib::mocks::ic_cdk_id;
+#[cfg(not(test))]
+use ic_cdk::api::id as ic_cdk_id;
+
 // UPDATE SETTINGS - START
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
 pub struct UpdateCanisterSettingsRequest {
@@ -56,7 +61,7 @@ impl UpdateCanisterSettingsRequest {
     }
 
     pub fn validate_request(&self) -> Result<(), WalletError> {
-        let canister_id = ic_cdk::id();
+        let canister_id = ic_cdk_id();
 
         // first check the controller is passed and then check if the controller is in the list of controllers
         if let Some(controller) = self.settings.controllers.as_ref() {
@@ -95,7 +100,7 @@ impl From<UpgradeCanisterRequest> for Request {
 
 impl UpgradeCanisterRequest {
     pub async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
-        let canister_id = ic_cdk::id();
+        let canister_id = ic_cdk_id();
         let wasm_module = with_wasm(|w| w.get());
 
         let args = InstallCodeArgument {

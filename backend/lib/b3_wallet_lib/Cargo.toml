@@ -11,6 +11,7 @@ b3_helper_lib = { path = "../b3_helper_lib" }
 candid = { workspace = true }
 ic-cdk = { workspace = true }
 serde = "1"
+hex = "0.4.3"
 async-trait = "0.1.68"
 enum_dispatch = "0.3.11"
 ethereum-rlp = "0.2.3"

@@ -142,8 +142,8 @@ mod test {
 
     use crate::ledger::{
         btc::{network::BtcNetwork, utxos::BtcUtxos},
-        types::Ledger,
         types::{Chain, ChainMap, ChainType},
+        types::{ChainTrait, Ledger},
     };
 
     use super::*;
@@ -161,7 +161,9 @@ mod test {
 
         let account_identifier = AccountIdentifier::new(owner, subaccount.clone());
 
-        let icp_chain = Chain::new_icp_chain(account_identifier);
+        let icp_chain = Chain::new_icp_chain(subaccount.clone());
+
+        assert_eq!(icp_chain.address(), account_identifier.to_string());
 
         let mut chains = ChainMap::new();
 

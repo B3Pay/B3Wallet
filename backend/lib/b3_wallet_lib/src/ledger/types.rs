@@ -1,9 +1,9 @@
-use super::{btc::network::BtcNetwork, icrc::account::ICRCAccount};
+use super::{btc::network::BtcNetwork, icrc::types::TxIndex};
 use crate::error::WalletError;
 use async_trait::async_trait;
 use b3_helper_lib::{
     constants::{CANISTER_TRANSFER_MEMO, IC_TRANSACTION_FEE_ICP},
-    types::{AccountIdentifier, CanisterId, Memo, Subaccount, Timestamp, Tokens},
+    types::{CanisterId, Memo, Subaccount, Timestamp, Tokens, TransferResult},
 };
 use bitcoin::{AddressType, OutPoint, Transaction, TxIn, TxOut, Txid};
 use candid::Nat;
@@ -58,7 +58,16 @@ pub struct Ledger {
 #[async_trait]
 #[enum_dispatch]
 pub trait ChainTrait {
+    fn address(&self) -> String;
     async fn balance(&self) -> Result<Balance, WalletError>;
+    async fn send(&self, to: String, amount: u64) -> Result<SendResult, WalletError>;
+}
+
+pub enum SendResult {
+    ICP(TransferResult),
+    ICRC(TxIndex),
+    BTC(BtcTxId),
+    EVM,
 }
 
 #[enum_dispatch(ChainTrait)]
@@ -76,22 +85,22 @@ pub enum Chain {
 
 impl Default for Chain {
     fn default() -> Self {
-        Chain::ICP(ICP::new(AccountIdentifier::default()))
+        Chain::ICP(ICP::new(Subaccount::default()))
     }
 }
 
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub struct ICP {
-    pub identifier: AccountIdentifier,
+    pub subaccount: Subaccount,
     pub memo: Memo,
     pub fee: Tokens,
     pub created_at_time: Option<Timestamp>,
 }
 
 impl ICP {
-    pub fn new(identifier: AccountIdentifier) -> Self {
+    pub fn new(subaccount: Subaccount) -> Self {
         ICP {
-            identifier,
+            subaccount,
             memo: CANISTER_TRANSFER_MEMO,
             fee: IC_TRANSACTION_FEE_ICP,
             created_at_time: None,
@@ -102,7 +111,7 @@ impl ICP {
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub struct ICRC {
     pub canister_id: CanisterId,
-    pub account: ICRCAccount,
+    pub subaccount: Subaccount,
     pub fee: ICRCFee,
     pub memo: Option<ICRCMemo>,
     pub created_at_time: Option<ICRCTimestamp>,
@@ -112,7 +121,7 @@ impl ICRC {
     pub fn new(canister_id: CanisterId, subaccount: Subaccount, fee: ICRCFee) -> Self {
         ICRC {
             canister_id,
-            account: subaccount.into(),
+            subaccount,
             fee,
             memo: None,
             created_at_time: None,
