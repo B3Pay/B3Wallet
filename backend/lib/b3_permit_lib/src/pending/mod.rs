@@ -13,7 +13,7 @@ use crate::types::{
     ConsentMessageRequest, ConsentMessageResponse, RequestResponse, RequestResponseTrait, Response,
 };
 use b3_helper_lib::types::{RequestId, SignerId};
-use b3_helper_lib::{error::TrapError, types::Deadline};
+use b3_helper_lib::{error::ErrorTrait, types::Deadline};
 use b3_wallet_lib::error::WalletError;
 use enum_dispatch::enum_dispatch;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};

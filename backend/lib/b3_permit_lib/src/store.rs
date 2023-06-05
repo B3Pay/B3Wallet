@@ -7,7 +7,7 @@ use crate::{
     types::ProcessedRequestMap,
 };
 use b3_helper_lib::{
-    error::TrapError,
+    error::ErrorTrait,
     types::{RequestId, SignerId},
 };
 use std::cell::RefCell;

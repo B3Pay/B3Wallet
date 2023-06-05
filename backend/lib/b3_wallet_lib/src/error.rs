@@ -1,4 +1,4 @@
-use b3_helper_lib::error::TrapError;
+use b3_helper_lib::error::ErrorTrait;
 use ic_cdk::export::candid::{CandidType, Deserialize};
 
 #[rustfmt::skip]
@@ -69,7 +69,7 @@ pub enum WalletError {
 }
 
 #[rustfmt::skip]
-impl TrapError for WalletError {
+impl ErrorTrait for WalletError {
     fn to_string(self) -> String {
         match self {
             WalletError::UnknownError => "::Unknown error".to_string(),

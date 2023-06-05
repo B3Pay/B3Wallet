@@ -1,7 +1,9 @@
 use crate::{
-    base32::base32_encode, constants::DEFAULT_SUBACCOUNT, error::TrapError, types::Subaccount,
+    base32::base32_encode,
+    constants::DEFAULT_SUBACCOUNT,
+    error::{ErrorTrait, ICRCAccountError},
+    subaccount::Subaccount,
 };
-use candid::types::principal::PrincipalError;
 use easy_hasher::easy_hasher;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize, Principal};
 use std::{cmp, fmt, hash, str::FromStr};
@@ -20,6 +22,10 @@ pub struct ICRCAccount {
 impl ICRCAccount {
     pub fn new(owner: Principal, subaccount: Option<Subaccount>) -> Self {
         ICRCAccount { owner, subaccount }
+    }
+
+    pub fn from_text(text: &str) -> Result<Self, ICRCAccountError> {
+        Self::from_str(text)
     }
 
     #[inline]
@@ -173,7 +179,7 @@ impl FromStr for ICRCAccount {
 
                     let principal_text = &s[..last_dash];
                     let owner = Principal::from_text(principal_text)
-                        .map_err(|e| ICRCAccountError::InvalidPrincipal(e))?;
+                        .map_err(|e| ICRCAccountError::InvalidPrincipal(e.to_string()))?;
 
                     let hex_str = &s[dot + 1..];
 
@@ -206,7 +212,7 @@ impl FromStr for ICRCAccount {
                 } else {
                     // There is no subaccount, so it's just a Principal
                     let owner = Principal::from_text(s)
-                        .map_err(|e| ICRCAccountError::InvalidPrincipal(e))?;
+                        .map_err(|e| ICRCAccountError::InvalidPrincipal(e.to_string()))?;
                     Ok(ICRCAccount {
                         owner,
                         subaccount: None,
@@ -217,33 +223,10 @@ impl FromStr for ICRCAccount {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum ICRCAccountError {
-    InvalidFormat,
-    BadChecksum,
-    NotCanonical,
-    HexDecode(String),
-    Malformed(String),
-    InvalidPrincipal(PrincipalError),
-    InvalidSubaccount(String),
-}
-
-impl fmt::Display for ICRCAccountError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            ICRCAccountError::HexDecode(e) => write!(f, "Hex decode error: {}", e),
-            ICRCAccountError::BadChecksum => write!(f, "Bad checksum"),
-            ICRCAccountError::NotCanonical => write!(f, "Not canonical"),
-            ICRCAccountError::Malformed(e) => write!(f, "Malformed account: {}", e),
-            ICRCAccountError::InvalidFormat => write!(f, "Invalid account format"),
-            ICRCAccountError::InvalidPrincipal(e) => write!(f, "Invalid principal: {}", e),
-            ICRCAccountError::InvalidSubaccount(e) => write!(f, "Invalid subaccount: {}", e),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
+    use crate::environment::Environment;
+
     use super::*;
 
     #[test]
@@ -401,5 +384,110 @@ mod tests {
                 .parse::<ICRCAccount>()
                 .unwrap()
         );
+    }
+
+    const TEST_PRINCIPAL: Principal = Principal::from_slice(&[
+        0, 0, 0, 0, 0, 0, 0, 7, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    ]);
+
+    #[test]
+    fn test_subaccount_derivation_path() {
+        let subaccount = Subaccount::new(Environment::Production, 0);
+        let account = ICRCAccount::new(TEST_PRINCIPAL, None);
+
+        assert_eq!(account.effective_subaccount(), &subaccount);
+        println!("{}", account.to_text());
+
+        let recover = ICRCAccount::from_text(&account.to_text()).unwrap();
+        assert_eq!(
+            recover.effective_subaccount().environment(),
+            Environment::Production
+        );
+        println!("{:?}", recover);
+        assert_eq!(recover, account);
+
+        let subaccount = Subaccount::new(Environment::Production, 0);
+        let account = ICRCAccount::new(TEST_PRINCIPAL, Some(subaccount.clone()));
+
+        assert_eq!(account.effective_subaccount(), &subaccount);
+        println!("{}", account.to_text());
+
+        let recover = ICRCAccount::from_text(&account.to_text()).unwrap();
+        assert_eq!(
+            recover.effective_subaccount().environment(),
+            Environment::Production
+        );
+        println!("{:?}", recover);
+        assert_eq!(recover, account);
+
+        let subaccount = Subaccount::new(Environment::Production, 1);
+        let account = ICRCAccount::new(TEST_PRINCIPAL, Some(subaccount.clone()));
+
+        assert_eq!(account.effective_subaccount(), &subaccount);
+        println!("{}", account.to_text());
+
+        let recover = ICRCAccount::from_text(&account.to_text()).unwrap();
+        assert_eq!(
+            recover.effective_subaccount().environment(),
+            Environment::Production
+        );
+        println!("{:?}", recover);
+        assert_eq!(recover, account);
+
+        let subaccount = Subaccount::new(Environment::Production, 256);
+        let account = ICRCAccount::new(TEST_PRINCIPAL, Some(subaccount.clone()));
+
+        assert_eq!(account.effective_subaccount(), &subaccount);
+        println!("{}", account.to_text());
+
+        let recover = ICRCAccount::from_text(&account.to_text()).unwrap();
+        assert_eq!(
+            recover.effective_subaccount().environment(),
+            Environment::Production
+        );
+        println!("{:?}", recover);
+        assert_eq!(recover, account);
+
+        let subaccount = Subaccount::new(Environment::Staging, 512);
+        let account = ICRCAccount::new(TEST_PRINCIPAL, Some(subaccount.clone()));
+
+        assert_eq!(account.effective_subaccount(), &subaccount);
+        println!("{}", account.to_text());
+
+        let recover = ICRCAccount::from_text(&account.to_text()).unwrap();
+        assert_eq!(
+            recover.effective_subaccount().environment(),
+            Environment::Staging
+        );
+        println!("{:?}", recover);
+        assert_eq!(recover, account);
+
+        let subaccount = Subaccount::new(Environment::Development, 400);
+        let account = ICRCAccount::new(TEST_PRINCIPAL, Some(subaccount.clone()));
+
+        assert_eq!(account.effective_subaccount(), &subaccount);
+        println!("{}", account.to_text());
+
+        let recover = ICRCAccount::from_text(&account.to_text()).unwrap();
+        assert_eq!(
+            recover.effective_subaccount().environment(),
+            Environment::Development
+        );
+        println!("{:?}", recover);
+        assert_eq!(recover, account);
+
+        let subaccount = Subaccount::new(Environment::Development, 1024);
+        let account = ICRCAccount::new(TEST_PRINCIPAL, Some(subaccount.clone()));
+
+        assert_eq!(account.effective_subaccount(), &subaccount);
+        println!("{}", account.to_text());
+
+        let recover = ICRCAccount::from_text(&account.to_text()).unwrap();
+        assert_eq!(
+            recover.effective_subaccount().environment(),
+            Environment::Development
+        );
+        println!("{:?}", recover);
+        assert_eq!(recover, account);
     }
 }

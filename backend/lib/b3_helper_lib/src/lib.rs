@@ -1,15 +1,18 @@
 pub mod account;
 pub mod base32;
 pub mod constants;
+pub mod environment;
 pub mod error;
-pub mod impls;
+pub mod identifier;
 pub mod mocks;
+pub mod subaccount;
+pub mod tokens;
 pub mod types;
 pub mod wasm;
 
 use ::easy_hasher::easy_hasher::Hash;
 use easy_hasher::easy_hasher;
-use error::{HelperError, TrapError};
+use error::{ErrorTrait, HelperError};
 use ic_cdk::api::management_canister::{
     main::{canister_status, CanisterStatusResponse},
     provisional::{CanisterId, CanisterIdRecord},
@@ -49,6 +52,6 @@ pub async fn b3_canister_status(
     Ok(status)
 }
 
-pub fn revert<T, E: TrapError>(err: E) -> T {
+pub fn revert<T, E: ErrorTrait>(err: E) -> T {
     ic_cdk::trap(&err.to_string());
 }

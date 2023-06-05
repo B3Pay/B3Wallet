@@ -1,5 +1,5 @@
 use crate::{account::WalletAccount, ledger::types::ChainMap};
-use b3_helper_lib::types::Environment;
+use b3_helper_lib::environment::Environment;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use std::collections::{BTreeMap, HashMap};
 

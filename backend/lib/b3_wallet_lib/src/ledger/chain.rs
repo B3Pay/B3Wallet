@@ -4,7 +4,7 @@ use super::{
 };
 use crate::error::WalletError;
 use async_trait::async_trait;
-use b3_helper_lib::types::{CanisterId, Subaccount};
+use b3_helper_lib::{subaccount::Subaccount, types::CanisterId};
 
 impl Chain {
     pub fn new_icrc_chain(canister_id: CanisterId, subaccount: Subaccount) -> Self {
@@ -37,7 +37,7 @@ impl ChainTrait for BTC {
         todo!("implement the async method for BTC...")
     }
 
-    async fn send(&self, to: String, amount: u64) -> Result<SendResult, WalletError> {
+    async fn send(&self, _to: String, _amount: u64) -> Result<SendResult, WalletError> {
         todo!("implement the async method for BTC...")
     }
 }
@@ -52,7 +52,7 @@ impl ChainTrait for EVM {
         todo!("implement the async method for EVM...")
     }
 
-    async fn send(&self, to: String, amount: u64) -> Result<SendResult, WalletError> {
+    async fn send(&self, _to: String, _amount: u64) -> Result<SendResult, WalletError> {
         todo!("implement the async method for EVM...")
     }
 }

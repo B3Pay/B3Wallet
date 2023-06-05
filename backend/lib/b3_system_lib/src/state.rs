@@ -4,7 +4,7 @@ use crate::{
     types::{Release, Users},
 };
 use b3_helper_lib::{
-    error::TrapError,
+    error::ErrorTrait,
     types::{
         CanisterId, ControllerId, SignerId, Version, WalletCanisterInitArgs,
         WalletCanisterInstallArg,

@@ -1,8 +1,5 @@
 use crate::ledger::types::{Balance, ICRCMemo, ICRCTimestamp};
-use b3_helper_lib::{
-    account::ICRCAccount,
-    types::{Subaccount, Timestamp},
-};
+use b3_helper_lib::{account::ICRCAccount, subaccount::Subaccount, types::Timestamp};
 use ic_cdk::export::{
     candid::{CandidType, Nat},
     serde::Deserialize,

@@ -1,10 +1,11 @@
 use crate::counter::CounterTrait;
 use crate::error::WalletError;
-use crate::ledger::subaccount::SubaccountTrait;
 use crate::ledger::types::Ledger;
 use crate::types::{WalletAccountMap, WalletAccountView};
 use crate::{account::WalletAccount, types::AccountId};
-use b3_helper_lib::types::{AccountsCounter, Environment, Subaccount};
+use b3_helper_lib::environment::Environment;
+use b3_helper_lib::subaccount::Subaccount;
+use b3_helper_lib::types::AccountsCounter;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 #[derive(CandidType, Deserialize, Clone)]
@@ -34,6 +35,8 @@ impl WalletState {
         account.rename("Main Account".to_owned());
 
         self.accounts.insert("default".to_owned(), account);
+
+        self.counters.increment(Environment::Production);
     }
 
     pub fn new_subaccount(&self, opt_env: Option<Environment>) -> Subaccount {
@@ -137,5 +140,164 @@ impl WalletState {
         self.counters.reset();
 
         self.init_wallet();
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use b3_helper_lib::environment::Environment;
+
+    #[test]
+    fn test_init_wallet() {
+        let mut state = WalletState::default();
+
+        state.init_wallet();
+
+        assert_eq!(state.accounts_len(), 1);
+
+        let account = state.account(&"default".to_owned()).unwrap();
+
+        assert_eq!(account.name(), "Main Account");
+
+        let subaccount = account.subaccount();
+
+        assert_eq!(subaccount.environment(), Environment::Production);
+
+        assert_eq!(subaccount.nonce(), 0);
+    }
+
+    #[test]
+    fn test_new_subaccount() {
+        let state = WalletState::default();
+
+        let subaccount = state.new_subaccount(None);
+
+        assert_eq!(subaccount.environment(), Environment::Production);
+    }
+
+    #[test]
+    fn test_insert_account() {
+        let mut state = WalletState::default();
+
+        let subaccount = state.new_subaccount(None);
+
+        let account = WalletAccount::from(subaccount);
+
+        state.insert_account(account, None);
+
+        assert_eq!(state.accounts_len(), 1);
+    }
+
+    #[test]
+    fn test_counters() {
+        let state = WalletState::default();
+
+        let counters = state.counters();
+
+        assert_eq!(counters.account(&Environment::Production), 0);
+    }
+
+    #[test]
+    fn test_account() {
+        let mut state = WalletState::default();
+
+        let subaccount = state.new_subaccount(None);
+
+        let account = WalletAccount::from(subaccount);
+
+        state.insert_account(account, None);
+
+        let account = state.account(&"default".to_owned()).unwrap();
+
+        assert_eq!(account.name(), "Account 1");
+    }
+
+    #[test]
+    fn test_account_mut() {
+        let mut state = WalletState::default();
+
+        let subaccount = state.new_subaccount(None);
+
+        let account = WalletAccount::from(subaccount);
+
+        state.insert_account(account, None);
+
+        let account = state.account_mut(&"default".to_owned()).unwrap();
+
+        account.rename("Test Account".to_owned());
+
+        assert_eq!(account.name(), "Test Account");
+    }
+
+    #[test]
+    fn test_accounts_public_keys() {
+        let mut state = WalletState::default();
+
+        let subaccount = state.new_subaccount(None);
+
+        let account = WalletAccount::from(subaccount);
+
+        state.insert_account(account, None);
+
+        let public_keys = state.accounts_public_keys();
+
+        assert_eq!(public_keys.len(), 1);
+    }
+
+    #[test]
+    fn test_account_views() {
+        let mut state = WalletState::default();
+
+        let subaccount = state.new_subaccount(Some(Environment::Development));
+
+        let account = WalletAccount::from(subaccount);
+
+        state.insert_account(account, None);
+
+        let account_views = state.account_views();
+
+        assert_eq!(account_views.len(), 1);
+
+        assert_eq!(account_views[0].name, "Development Account 1");
+
+        assert_eq!(account_views[0].environment, Environment::Development);
+    }
+
+    #[test]
+    fn test_accounts_len() {
+        let mut state = WalletState::default();
+
+        let subaccount = state.new_subaccount(None);
+
+        let account = WalletAccount::from(subaccount);
+
+        state.insert_account(account, None);
+
+        assert_eq!(state.accounts_len(), 1);
+    }
+
+    #[test]
+    fn test_account_status() {
+        let state = WalletState::default();
+
+        let counters = state.account_status();
+
+        assert_eq!(counters.account(&Environment::Production), 0);
+    }
+
+    #[test]
+    fn test_account_counter() {
+        let mut state = WalletState::default();
+
+        let counter = state.account_counter(&Environment::Production);
+
+        assert_eq!(counter, 0);
+
+        state.init_wallet();
+
+        let counter = state.account_counter(&Environment::Production);
+
+        assert_eq!(counter, 1);
     }
 }

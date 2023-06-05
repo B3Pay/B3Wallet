@@ -3,7 +3,9 @@ use crate::error::WalletError;
 use async_trait::async_trait;
 use b3_helper_lib::{
     constants::{CANISTER_TRANSFER_MEMO, IC_TRANSACTION_FEE_ICP},
-    types::{CanisterId, Memo, Subaccount, Timestamp, Tokens, TransferResult},
+    subaccount::Subaccount,
+    tokens::Tokens,
+    types::{CanisterId, Memo, Timestamp, TransferResult},
 };
 use bitcoin::{AddressType, OutPoint, Transaction, TxIn, TxOut, Txid};
 use candid::Nat;

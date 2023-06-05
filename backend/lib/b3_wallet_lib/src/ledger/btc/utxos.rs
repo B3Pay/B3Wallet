@@ -147,7 +147,7 @@ mod test {
     };
 
     use super::*;
-    use b3_helper_lib::types::{AccountIdentifier, CanisterId, Subaccount};
+    use b3_helper_lib::{identifier::AccountIdentifier, mocks::ic_cdk_id, subaccount::Subaccount};
     use ic_cdk::api::management_canister::bitcoin::{Outpoint, Utxo};
 
     #[test]
@@ -157,9 +157,7 @@ mod test {
             0, 0, 0,
         ]);
 
-        let owner = CanisterId::from_text("bkyz2-fmaaa-aaaaa-qaaaq-cai").unwrap();
-
-        let account_identifier = AccountIdentifier::new(owner, subaccount.clone());
+        let account_identifier = AccountIdentifier::new(ic_cdk_id(), subaccount.clone());
 
         let icp_chain = Chain::new_icp_chain(subaccount.clone());
 

@@ -1,6 +1,6 @@
 use super::{InnerRequest, Request};
 use crate::types::{ConsendInfo, ConsentMessageResponse};
-use b3_helper_lib::types::Environment;
+use b3_helper_lib::environment::Environment;
 use b3_wallet_lib::{
     account::WalletAccount,
     error::WalletError,

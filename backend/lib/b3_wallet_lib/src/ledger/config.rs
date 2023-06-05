@@ -1,4 +1,4 @@
-use b3_helper_lib::types::Environment;
+use b3_helper_lib::environment::Environment;
 use ic_cdk::export::candid::{CandidType, Deserialize};
 
 use super::types::{EcdsaCurve, EcdsaKeyId};

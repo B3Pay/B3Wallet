@@ -1,12 +1,11 @@
-use std::str::FromStr;
-
 use crate::permit::{caller_is_admin, caller_is_signer};
 use b3_helper_lib::{
+    environment::Environment,
+    identifier::AccountIdentifier,
     revert,
-    types::{
-        AccountIdentifier, AccountsCounter, BlockIndex, CanisterId, Environment, Memo,
-        NotifyTopUpResult, Subaccount, Tokens,
-    },
+    subaccount::Subaccount,
+    tokens::Tokens,
+    types::{AccountsCounter, BlockIndex, CanisterId, Memo, NotifyTopUpResult},
 };
 use b3_wallet_lib::{
     account::WalletAccount,
@@ -26,6 +25,7 @@ use ic_cdk::{
     export::candid::candid_method,
     query, update,
 };
+use std::str::FromStr;
 
 // QUERY
 

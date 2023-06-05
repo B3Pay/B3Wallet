@@ -1,8 +1,7 @@
 use super::{config::EcdsaConfig, types::EcdsaKeyId};
-use b3_helper_lib::types::Subaccount;
+use b3_helper_lib::subaccount::Subaccount;
 
 pub trait SubaccountTrait {
-    fn id(&self) -> String;
     fn derivation_path(&self) -> Vec<Vec<u8>>;
     fn config(&self) -> EcdsaConfig;
     fn key_id(&self) -> EcdsaKeyId;
@@ -10,24 +9,6 @@ pub trait SubaccountTrait {
 }
 
 impl SubaccountTrait for Subaccount {
-    fn id(&self) -> String {
-        let index = self.nonce();
-
-        let first_byte = self.0[0];
-
-        if first_byte == 0 {
-            return "default".to_string();
-        }
-
-        let env_str = match first_byte {
-            16 => "staging_account",
-            8 => "development_account",
-            _ => "account",
-        };
-
-        [env_str, &index.to_string()].join("_")
-    }
-
     fn derivation_path(&self) -> Vec<Vec<u8>> {
         vec![self.0.to_vec()]
     }
@@ -53,19 +34,24 @@ impl SubaccountTrait for Subaccount {
 
 #[cfg(test)]
 mod tests {
-    use b3_helper_lib::types::{CanisterId, Environment};
+    use b3_helper_lib::environment::Environment;
+    use candid::Principal;
 
     use super::*;
+
+    const TEST_PRINCIPAL: Principal = Principal::from_slice(&[
+        0, 0, 0, 0, 0, 0, 0, 7, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    ]);
 
     #[test]
     fn test_initial_subaccount() {
         let subaccount = Subaccount::default();
         assert_eq!(subaccount.environment(), Environment::Production);
         assert_eq!(subaccount.nonce(), 0);
-        assert_eq!(subaccount.name(), "Account 1");
+        assert_eq!(subaccount.name(), "Default");
         assert_eq!(subaccount.id(), "default");
-        let identifier = subaccount
-            .account_identifier(CanisterId::from_text("rdmx6-jaaaa-aaaaa-aaadq-cai").unwrap());
+
+        let identifier = subaccount.account_identifier(TEST_PRINCIPAL);
 
         println!("{:?}", identifier.to_string());
     }
@@ -73,6 +59,7 @@ mod tests {
     #[test]
     fn test_subaccount() {
         let subaccount = Subaccount::new(Environment::Production, 1);
+        println!("{:?}", subaccount);
         assert_eq!(subaccount.environment(), Environment::Production);
         assert_eq!(subaccount.nonce(), 1);
         assert_eq!(subaccount.name(), "Account 2");
@@ -93,12 +80,13 @@ mod tests {
 
     #[test]
     fn test_subaccount_from_principal() {
-        let principal = CanisterId::from_text("rno2w-sqaaa-aaaaa-aaacq-cai").unwrap();
-        let subaccount = Subaccount::from(principal);
+        let subaccount = Subaccount::from(TEST_PRINCIPAL);
+
+        println!("{:?}", subaccount);
         assert_eq!(subaccount.environment(), Environment::Production);
-        assert_eq!(subaccount.nonce(), 7);
-        assert_eq!(subaccount.name(), "Account 8");
-        assert_eq!(subaccount.id(), "account_7");
+        assert_eq!(subaccount.nonce(), 0);
+        assert_eq!(subaccount.name(), "Principal");
+        assert_eq!(subaccount.id(), "principal");
     }
 
     #[test]
@@ -107,48 +95,58 @@ mod tests {
         assert_eq!(
             subaccount.derivation_path(),
             vec![vec![
-                32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0
             ]]
         );
+        assert_eq!(subaccount.id(), "default");
+        assert_eq!(subaccount.name(), "Default");
 
         let subaccount = Subaccount::new(Environment::Production, 1);
         assert_eq!(
             subaccount.derivation_path(),
             vec![vec![
-                32, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 1
             ]]
         );
+        assert_eq!(subaccount.id(), "account_1");
+        assert_eq!(subaccount.name(), "Account 2");
 
-        let subaccount = Subaccount::new(Environment::Production, 256);
+        let subaccount = Subaccount::new(Environment::Production, 255);
         assert_eq!(subaccount.environment(), Environment::Production);
         assert_eq!(
             subaccount.derivation_path(),
             vec![vec![
-                32, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 255
             ]]
         );
+        assert_eq!(subaccount.id(), "account_255");
+        assert_eq!(subaccount.name(), "Account 256");
 
         let subaccount = Subaccount::new(Environment::Staging, 512);
         assert_eq!(subaccount.environment(), Environment::Staging);
         assert_eq!(
             subaccount.derivation_path(),
             vec![vec![
-                16, 255, 255, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 170, 0, 0, 0,
+                0, 0, 0, 2, 0
             ]]
         );
+        assert_eq!(subaccount.id(), "staging_account_512");
+        assert_eq!(subaccount.name(), "Staging Account 513");
 
         let subaccount = Subaccount::new(Environment::Development, 1024);
         assert_eq!(subaccount.environment(), Environment::Development);
         assert_eq!(
             subaccount.derivation_path(),
             vec![vec![
-                8, 255, 255, 255, 255, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 0, 0, 0,
+                0, 0, 0, 4, 0
             ]]
         );
+        assert_eq!(subaccount.id(), "development_account_1024");
+        assert_eq!(subaccount.name(), "Development Account 1025");
     }
 }

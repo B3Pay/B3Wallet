@@ -1,4 +1,6 @@
-use crate::error::HelperError;
+use crate::{
+    error::HelperError, identifier::AccountIdentifier, subaccount::Subaccount, tokens::Tokens,
+};
 use ic_cdk::{
     api::management_canister::main::{CanisterInstallMode, CanisterStatusResponse},
     export::{
@@ -8,7 +10,7 @@ use ic_cdk::{
     },
 };
 use serde_bytes::ByteBuf;
-use std::{collections::HashMap, fmt};
+use std::collections::HashMap;
 
 pub type Metadata = HashMap<String, String>;
 
@@ -23,12 +25,6 @@ pub type Deadline = u64;
 pub type Version = String;
 
 pub type Blob = Vec<u8>;
-
-#[derive(CandidType, Deserialize, Clone, Debug, PartialEq)]
-pub struct Subaccount(pub [u8; 32]);
-
-#[derive(CandidType, Deserialize, Clone, Debug, PartialEq)]
-pub struct AccountIdentifier(pub [u8; 32]);
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct Wasm(pub ByteBuf);
@@ -97,36 +93,6 @@ pub struct SystemCanisterStatus {
     pub canister_status: CanisterStatusResponse,
 }
 
-#[derive(CandidType, Deserialize, Clone, Debug, PartialEq)]
-pub struct Tokens {
-    pub e8s: u64,
-}
-
-impl fmt::Display for Tokens {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.e8s)
-    }
-}
-
-impl Tokens {
-    /// The maximum number of Tokens we can hold on a single account.
-    pub const MAX: Self = Tokens { e8s: u64::MAX };
-    /// Zero Tokens.
-    pub const ZERO: Self = Tokens { e8s: 0 };
-    /// How many times can Tokenss be divided
-    pub const SUBDIVIDABLE_BY: u64 = 100_000_000;
-
-    /// Constructs an amount of Tokens from the number of 10^-8 Tokens.
-    pub const fn from_e8s(e8s: u64) -> Self {
-        Self { e8s }
-    }
-
-    /// Returns the number of 10^-8 Tokens in this amount.
-    pub const fn e8s(&self) -> u64 {
-        self.e8s
-    }
-}
-
 #[derive(CandidType, Deserialize, Debug, PartialEq, Clone)]
 pub struct Memo(pub u64);
 
@@ -175,34 +141,6 @@ pub struct TransferFee {
 #[derive(CandidType, Deserialize)]
 pub struct TransferFeeArgs {}
 
-#[derive(CandidType, Deserialize, Clone, PartialEq, Default, Debug)]
-pub enum Environment {
-    Development,
-    Staging,
-    #[default]
-    Production,
-}
-
-impl fmt::Display for Environment {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Environment::Development => write!(f, "Development"),
-            Environment::Staging => write!(f, "Staging"),
-            Environment::Production => write!(f, "Production"),
-        }
-    }
-}
-
-impl Environment {
-    pub fn to_name(&self, counter: String) -> String {
-        match self {
-            Environment::Development => ["Development", "Account", &counter].join(" "),
-            Environment::Production => ["Account", &counter].join(" "),
-            Environment::Staging => ["Staging", "Account", &counter].join(" "),
-        }
-    }
-}
-
 #[derive(CandidType, Deserialize)]
 pub struct HeaderField(pub String, pub String);
 
@@ -221,21 +159,4 @@ pub struct HttpResponse {
     pub headers: Vec<HeaderField>,
     #[serde(with = "serde_bytes")]
     pub body: Vec<u8>,
-}
-
-#[derive(CandidType, Deserialize)]
-pub struct B3Path(pub String);
-
-impl B3Path {
-    pub fn new(url: &str) -> Self {
-        Self(url.split('?').next().unwrap_or("/").to_string())
-    }
-
-    pub fn to_vec(&self) -> Vec<u8> {
-        self.0.as_bytes().to_vec()
-    }
-
-    pub fn to_string(&self) -> String {
-        self.0.clone()
-    }
 }

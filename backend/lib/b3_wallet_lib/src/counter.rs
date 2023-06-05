@@ -1,4 +1,4 @@
-use b3_helper_lib::types::{AccountsCounter, Environment};
+use b3_helper_lib::{environment::Environment, types::AccountsCounter};
 
 pub trait CounterTrait {
     fn reset(&mut self);
@@ -46,8 +46,8 @@ impl CounterTrait for AccountsCounter {
     }
 
     fn reset(&mut self) {
-        self.development = 0;
         self.production = 0;
         self.staging = 0;
+        self.development = 0;
     }
 }

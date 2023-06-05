@@ -1,6 +1,6 @@
 use std::fmt;
 
-use b3_helper_lib::error::TrapError;
+use b3_helper_lib::error::ErrorTrait;
 use b3_wallet_lib::{error::WalletError, ledger::btc::network::BtcNetwork, store::with_ledger};
 use enum_dispatch::enum_dispatch;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};

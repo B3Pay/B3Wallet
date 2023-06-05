@@ -5,5 +5,5 @@ pub fn ic_timestamp() -> u64 {
 }
 
 pub fn ic_cdk_id() -> Principal {
-    Principal::from_text("bkyz2-fmaaa-aaaaa-qaaaq-cai").unwrap()
+    Principal::management_canister()
 }

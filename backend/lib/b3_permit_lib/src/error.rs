@@ -1,4 +1,4 @@
-use b3_helper_lib::{error::TrapError, types::RequestId};
+use b3_helper_lib::{error::ErrorTrait, types::RequestId};
 use ic_cdk::export::candid::{CandidType, Deserialize};
 
 #[rustfmt::skip]
@@ -72,7 +72,7 @@ pub enum RequestError {
 }
 
 #[rustfmt::skip]
-impl TrapError for RequestError {
+impl ErrorTrait for RequestError {
     fn to_string(self) -> String {
         match self {
             RequestError::UnknownError => "::Unknown error".to_string(),

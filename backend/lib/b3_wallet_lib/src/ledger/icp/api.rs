@@ -6,10 +6,13 @@ use b3_helper_lib::{
         CANISTER_TOP_UP_MEMO, CANISTER_TRANSFER_MEMO, CYCLES_MINTING_CANISTER_ID,
         IC_TRANSACTION_FEE_ICP, LEDGER_CANISTER_ID,
     },
-    error::TrapError,
+    error::ErrorTrait,
+    identifier::AccountIdentifier,
+    subaccount::Subaccount,
+    tokens::Tokens,
     types::{
-        AccountBalanceArgs, AccountIdentifier, CanisterId, Memo, NotifyTopUpResult,
-        NotifyTopupArgs, Subaccount, Tokens, TransferArgs, TransferResult,
+        AccountBalanceArgs, CanisterId, Memo, NotifyTopUpResult, NotifyTopupArgs, TransferArgs,
+        TransferResult,
     },
 };
 use ic_cdk::api::call::call;

@@ -4,8 +4,7 @@ use super::{
 };
 use crate::{error::WalletError, ledger::types::ChainTrait};
 use b3_helper_lib::{
-    raw_keccak256,
-    types::{CanisterId, Environment, Subaccount},
+    environment::Environment, raw_keccak256, subaccount::Subaccount, types::CanisterId,
 };
 use bitcoin::{secp256k1, Address, PublicKey};
 use std::collections::BTreeMap;

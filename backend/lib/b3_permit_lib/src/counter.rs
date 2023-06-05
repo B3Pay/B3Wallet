@@ -1,4 +1,7 @@
-use b3_helper_lib::types::{AccountsCounter, Environment, RequestId};
+use b3_helper_lib::{
+    environment::Environment,
+    types::{AccountsCounter, RequestId},
+};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 impl From<RequestCounters> for AccountsCounter {

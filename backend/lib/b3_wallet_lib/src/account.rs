@@ -1,9 +1,9 @@
 use crate::{
     error::WalletError,
-    ledger::{evm::api::get_evm_transaction, subaccount::SubaccountTrait, types::Ledger},
+    ledger::{evm::api::get_evm_transaction, types::Ledger},
     types::WalletAccountView,
 };
-use b3_helper_lib::types::{Environment, Metadata, Subaccount};
+use b3_helper_lib::{environment::Environment, subaccount::Subaccount, types::Metadata};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 impl From<&WalletAccount> for WalletAccountView {
@@ -87,6 +87,10 @@ impl WalletAccount {
             addresses: self.ledger.addresses().clone(),
             environment: self.ledger.subaccount.environment(),
         }
+    }
+
+    pub fn subaccount(&self) -> Subaccount {
+        self.ledger.subaccount.clone()
     }
 
     pub fn environment(&self) -> Environment {

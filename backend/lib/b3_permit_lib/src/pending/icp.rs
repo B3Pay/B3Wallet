@@ -2,10 +2,10 @@ use std::fmt;
 
 use super::Request;
 use crate::types::ConsentMessageResponse;
-use b3_helper_lib::error::TrapError;
-use b3_helper_lib::types::{
-    AccountIdentifier, CanisterId, Memo, NotifyTopUpResult, Tokens, TransferResult,
-};
+use b3_helper_lib::error::ErrorTrait;
+use b3_helper_lib::identifier::AccountIdentifier;
+use b3_helper_lib::tokens::Tokens;
+use b3_helper_lib::types::{CanisterId, Memo, NotifyTopUpResult, TransferResult};
 use b3_wallet_lib::error::WalletError;
 use b3_wallet_lib::store::with_ledger;
 use enum_dispatch::enum_dispatch;

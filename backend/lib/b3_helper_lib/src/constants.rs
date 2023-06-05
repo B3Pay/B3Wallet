@@ -1,4 +1,12 @@
-use crate::types::{CanisterId, Memo, Subaccount, Tokens};
+use crate::{
+    subaccount::Subaccount,
+    tokens::Tokens,
+    types::{CanisterId, Memo},
+};
+
+pub const DEVELOPMENT_PREFIX: u8 = 255;
+
+pub const STAGING_PREFIX: u8 = 170;
 
 pub const DEFAULT_SUBACCOUNT: Subaccount = Subaccount([0u8; 32]);
 

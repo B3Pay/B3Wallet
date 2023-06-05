@@ -4,7 +4,9 @@ mod tests {
         btc::network::BtcNetwork,
         types::{Chain, ChainMap, ChainTrait, ChainType, Ledger},
     };
-    use b3_helper_lib::types::{AccountIdentifier, CanisterId, Subaccount};
+    use b3_helper_lib::{
+        identifier::AccountIdentifier, mocks::ic_cdk_id, subaccount::Subaccount, types::CanisterId,
+    };
 
     use crate::ledger::types::EcdsaPublicKey;
 
@@ -85,13 +87,11 @@ mod tests {
             0, 0, 0,
         ]);
 
-        let owner = CanisterId::from_text("bkyz2-fmaaa-aaaaa-qaaaq-cai").unwrap();
-
-        let identifier = AccountIdentifier::new(owner, subaccount.clone());
+        let identifier = AccountIdentifier::new(ic_cdk_id(), subaccount.clone());
 
         let expected_identifier = AccountIdentifier::from(vec![
-            146, 231, 37, 157, 114, 49, 157, 239, 199, 132, 229, 111, 180, 128, 68, 147, 19, 27,
-            21, 176, 125, 49, 244, 123, 149, 241, 38, 235, 86, 180, 38, 113,
+            45, 14, 137, 127, 126, 134, 45, 43, 87, 217, 188, 158, 165, 198, 95, 154, 36, 172, 108,
+            7, 69, 117, 244, 120, 152, 49, 75, 141, 108, 176, 146, 157,
         ]);
 
         println!("identifier: {:?}", identifier);
@@ -121,7 +121,7 @@ mod tests {
 
         assert_eq!(
             icp_address.address(),
-            "92e7259d72319defc784e56fb4804493131b15b07d31f47b95f126eb56b42671"
+            "2d0e897f7e862d2b57d9bc9ea5c65f9a24ac6c074575f47898314b8d6cb0929d"
         );
 
         println!("icp_address: {}", icp_address.address());
@@ -193,7 +193,7 @@ mod tests {
 
         assert_eq!(
             icp_address.address(),
-            "92e7259d72319defc784e56fb4804493131b15b07d31f47b95f126eb56b42671"
+            "2d0e897f7e862d2b57d9bc9ea5c65f9a24ac6c074575f47898314b8d6cb0929d"
         );
 
         println!("icp_address: {}", icp_address.address());

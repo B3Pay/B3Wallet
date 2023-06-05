@@ -4,7 +4,7 @@ use crate::{
     ledger::types::{Balance, ChainTrait, SendResult, ICRC},
 };
 use async_trait::async_trait;
-use b3_helper_lib::account::ICRCAccount;
+use b3_helper_lib::{account::ICRCAccount, error::ErrorTrait};
 use ic_cdk::api::call::call;
 use std::str::FromStr;
 
