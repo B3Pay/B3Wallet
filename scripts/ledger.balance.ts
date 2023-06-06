@@ -2,12 +2,6 @@ import { IcrcLedgerCanister } from "@dfinity/ledger"
 import { ICPToken, TokenAmount } from "@dfinity/nns"
 import { Principal } from "@dfinity/principal"
 import { icAgent, localAgent } from "./actor"
-import {
-  CONSOLE_CANISTER_ID_LOCAL,
-  CONSOLE_CANISTER_ID_MAINNET,
-  LEDGER_CANISTER_ID_LOCAL,
-  LEDGER_CANISTER_ID_MAINNET
-} from "./env"
 import { accountIdentifier } from "./ledger.utils"
 import { initIdentity } from "./utils"
 
@@ -21,16 +15,20 @@ const getBalance = async (
   const ledger = IcrcLedgerCanister.create({
     agent,
     canisterId: Principal.fromText(
-      mainnet ? LEDGER_CANISTER_ID_MAINNET : LEDGER_CANISTER_ID_LOCAL
+      mainnet
+        ? process.env.LEDGER_CANISTER_ID_MAINNET!
+        : process.env.LEDGER_CANISTER_ID_LOCAL!
     )
   })
 
-  let owner: Principal
+  let owner: any
 
   if (account === undefined) {
     owner = system
       ? Principal.fromText(
-          mainnet ? CONSOLE_CANISTER_ID_MAINNET : CONSOLE_CANISTER_ID_LOCAL
+          mainnet
+            ? process.env.SYSTEM_CANISTER_ID_MAINNET!
+            : process.env.SYSTEM_CANISTER_ID_LOCAL!
         )
       : initIdentity(mainnet).getPrincipal()
   } else {

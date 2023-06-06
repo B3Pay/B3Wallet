@@ -1,9 +1,9 @@
 import { Actor, HttpAgent } from "@dfinity/agent"
 import { Principal } from "@dfinity/principal"
 import { readFileSync } from "fs"
-import { B3System, B3Wallet } from "service/actor"
-import { idlFactory as systemFactory } from "../src/declarations/b3_system"
-import { idlFactory as userFactory } from "../src/declarations/b3_wallet"
+import { idlFactory as systemFactory } from "../frontend/declarations/b3_system"
+import { idlFactory as userFactory } from "../frontend/declarations/b3_wallet"
+import { B3System, B3Wallet } from "../frontend/src/service/actor"
 import { initIdentity } from "./utils"
 
 const systemPrincipalIC = () => {

@@ -1,6 +1,6 @@
 use super::{
     btc::network::BtcNetwork,
-    types::{Balance, Chain, ChainId, ChainMap, ChainType, Ledger},
+    types::{AddressMap, Balance, Chain, ChainId, ChainMap, ChainType, Ledger, SendResult},
 };
 use crate::{error::WalletError, ledger::types::ChainTrait};
 use b3_helper_lib::{
@@ -43,8 +43,27 @@ impl Ledger {
             .unwrap_or(false)
     }
 
-    pub fn addresses(&self) -> &ChainMap {
-        &self.chains
+    pub async fn send(
+        &self,
+        chain_type: ChainType,
+        to: String,
+        amount: u64,
+    ) -> Result<SendResult, WalletError> {
+        let chain = self.chain(chain_type)?;
+
+        chain.send(to, amount).await
+    }
+
+    pub fn addresses(&self) -> AddressMap {
+        let mut addresses = AddressMap::new();
+
+        for (chain_type, chain) in &self.chains {
+            let address = chain.address();
+
+            addresses.insert(chain_type.clone(), address);
+        }
+
+        addresses
     }
 
     pub fn ecdsa(&self) -> Result<&Vec<u8>, WalletError> {
@@ -117,60 +136,49 @@ impl Ledger {
 
         self.ecdsa = Some(ecdsa);
 
-        match env {
-            Environment::Production => {
-                self.generate_address(ChainType::EVM(1))?;
-                self.generate_address(ChainType::BTC(BtcNetwork::Mainnet))?;
-            }
-            Environment::Staging => {
-                self.generate_address(ChainType::EVM(137))?;
-                self.generate_address(ChainType::BTC(BtcNetwork::Testnet))?;
-            }
-            Environment::Development => {
-                self.generate_address(ChainType::EVM(5))?;
-                self.generate_address(ChainType::BTC(BtcNetwork::Regtest))?;
-            }
-        }
+        let (btc_network, chain_id) = match env {
+            Environment::Production => (BtcNetwork::Mainnet, 1),
+            Environment::Staging => (BtcNetwork::Testnet, 137),
+            Environment::Development => (BtcNetwork::Regtest, 1337),
+        };
+
+        self.insert_chain(
+            ChainType::BTC(btc_network),
+            self.generate_btc_chain(btc_network)?,
+        );
+        self.insert_chain(ChainType::EVM(chain_id), self.generate_eth_chain(chain_id)?);
 
         Ok(())
     }
 
-    pub fn generate_address(&mut self, chains: ChainType) -> Result<(), WalletError> {
-        match chains {
-            ChainType::BTC(btc_network) => self.generate_btc_address(btc_network),
-            ChainType::ICRC(token) => self.generate_icrc_address(token),
-            ChainType::EVM(chain) => self.generate_eth_address(chain),
-            ChainType::ICP => Ok(()),
+    pub async fn generate_address(&self, chain_type: ChainType) -> Result<Chain, WalletError> {
+        match chain_type {
+            ChainType::ICRC(canister_id) => self.generate_icrc_chain(canister_id).await,
+            ChainType::BTC(btc_network) => self.generate_btc_chain(btc_network),
+            ChainType::EVM(chain) => self.generate_eth_chain(chain),
+            ChainType::ICP => Ok(self.generate_icp_chain()),
         }
     }
 
-    pub fn generate_icp_address(&mut self) -> Result<(), WalletError> {
-        let icp_chain = Chain::new_icp_chain(self.subaccount.to_owned());
+    pub async fn generate_icrc_chain(&self, canister_id: CanisterId) -> Result<Chain, WalletError> {
+        let chain = Chain::new_icrc_chain(canister_id, self.subaccount.to_owned()).await?;
 
-        self.chains.insert(ChainType::ICP, icp_chain);
-
-        Ok(())
+        Ok(chain)
     }
 
-    pub fn generate_icrc_address(&mut self, canister_id: CanisterId) -> Result<(), WalletError> {
-        let icrc_chain = Chain::new_icrc_chain(canister_id, self.subaccount.to_owned());
-
-        self.chains.insert(ChainType::ICRC(canister_id), icrc_chain);
-
-        Ok(())
+    pub fn generate_icp_chain(&self) -> Chain {
+        Chain::new_icp_chain(self.subaccount.to_owned())
     }
 
-    pub fn generate_eth_address(&mut self, chain_id: ChainId) -> Result<(), WalletError> {
+    pub fn generate_eth_chain(&self, chain_id: ChainId) -> Result<Chain, WalletError> {
         let address = self.derive_eth_address()?;
 
         let eth_chain = Chain::new_evm_chain(chain_id, address);
 
-        self.chains.insert(ChainType::EVM(chain_id), eth_chain);
-
-        Ok(())
+        Ok(eth_chain)
     }
 
-    pub fn generate_btc_address(&mut self, btc_network: BtcNetwork) -> Result<(), WalletError> {
+    pub fn generate_btc_chain(&self, btc_network: BtcNetwork) -> Result<Chain, WalletError> {
         let ecdsa = self.ecdsa()?;
 
         let public_key =
@@ -180,13 +188,15 @@ impl Ledger {
 
         let btc_chain = Chain::new_btc_chain(btc_network, address);
 
-        self.chains.insert(ChainType::BTC(btc_network), btc_chain);
-
-        Ok(())
+        Ok(btc_chain)
     }
 
-    pub fn remove_address(&mut self, chains: ChainType) -> Result<(), WalletError> {
-        if self.chains.remove(&chains).is_none() {
+    pub fn insert_chain(&mut self, chain_type: ChainType, chain: Chain) {
+        self.chains.insert(chain_type, chain);
+    }
+
+    pub fn remove_address(&mut self, chain_type: ChainType) -> Result<(), WalletError> {
+        if self.chains.remove(&chain_type).is_none() {
             return Err(WalletError::MissingAddress);
         }
 

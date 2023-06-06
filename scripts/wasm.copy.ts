@@ -6,14 +6,14 @@ import { copyFile } from "fs/promises"
 
 const copy = async () => {
   const src = path.join("wasm/b3_wallet/", "b3_wallet.wasm")
-  const dest = path.join("public", "wasm", "b3_wallet.wasm")
+  const dest = path.join("frontend/public/wasm", "b3_wallet.wasm")
 
   await copyFile(src, dest)
 
-  const src1 = path.join("wasm/b3_wallet/", "b3_wallet_candid.wasm")
-  const dest1 = path.join("public", "wasm", "b3_wallet_candid.wasm")
+  // const src1 = path.join("wasm/b3_wallet/", "b3_wallet_candid.wasm")
+  // const dest1 = path.join("public", "wasm", "b3_wallet_candid.wasm")
 
-  await copyFile(src1, dest1)
+  // await copyFile(src1, dest1)
 }
 
 ;(async () => {

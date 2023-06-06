@@ -12,8 +12,8 @@ use b3_wallet_lib::{
     error::WalletError,
     ledger::{
         btc::network::BtcNetwork,
-        types::ChainType,
-        types::{Balance, ChainMap},
+        types::Balance,
+        types::{AddressMap, ChainType},
     },
     store::{
         with_account, with_account_mut, with_ledger, with_ledger_mut, with_wallet, with_wallet_mut,
@@ -61,7 +61,7 @@ pub fn get_account_view(account_id: String) -> WalletAccountView {
 
 #[candid_method(query)]
 #[query(guard = "caller_is_signer")]
-pub fn get_addresses(account_id: String) -> ChainMap {
+pub fn get_addresses(account_id: String) -> AddressMap {
     with_ledger(&account_id, |ledger| ledger.addresses().clone()).unwrap_or_else(revert)
 }
 
@@ -142,6 +142,19 @@ pub async fn account_icp_balance(account_id: String) -> Balance {
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
+pub async fn account_icrc_balance(account_id: String, canister_id: CanisterId) -> Balance {
+    let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
+
+    let tokens = ledger.get_balance(ChainType::ICRC(canister_id)).await;
+
+    match tokens {
+        Ok(tokens) => tokens,
+        Err(err) => revert(err),
+    }
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_signer")]
 pub async fn account_send_icp(
     account_id: String,
     to: String,
@@ -162,6 +175,14 @@ pub async fn account_send_icp(
         Ok(result) => result,
         Err(err) => revert(err),
     }
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_signer")]
+pub async fn account_send(account_id: String, chain: ChainType, to: String, amount: u64) -> () {
+    let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
+
+    ledger.send(chain, to, amount).await.unwrap_or_else(revert);
 }
 
 #[candid_method(update)]
@@ -254,9 +275,15 @@ pub async fn account_top_up_and_notify(
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub async fn account_generate_address(account_id: String, chain: ChainType) {
-    with_ledger_mut(&account_id, |ledger| ledger.generate_address(chain))
-        .unwrap_or_else(revert)
+pub async fn account_generate_address(account_id: String, chain_type: ChainType) {
+    let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
+
+    let chain = ledger
+        .generate_address(chain_type.clone())
+        .await
+        .unwrap_or_else(revert);
+
+    with_ledger_mut(&account_id, |ledger| ledger.insert_chain(chain_type, chain))
         .unwrap_or_else(revert);
 }
 

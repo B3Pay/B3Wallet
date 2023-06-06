@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 
 # Install ckbtc locally as documented in:
+# https://github.com/demergent-labs/azle/tree/main/examples/ckbtc
 
 IC_VERSION=d6d395a480cd6986b4788f4aafffc5c03a07e46e
 
-
 curl -o wasm/ckbtc/ledger.wasm.gz "https://download.dfinity.systems/ic/$IC_VERSION/canisters/ic-icrc1-ledger.wasm.gz"
-gunzip wasm/ckbtc/ledger.wasm.gz
+gunzip -f wasm/ckbtc/ledger.wasm.gz
 curl -o wasm/ckbtc/ledger.did "https://raw.githubusercontent.com/dfinity/ic/$IC_VERSION/rs/rosetta-api/icrc1/ledger/ledger.did"
 
 # Deploy ckbtc
 dfx deploy ckbtc --specified-id=be2us-64aaa-aaaaa-qaabq-cai --argument='(variant { Init = record { minting_account = record { owner = principal "bd3sg-teaaa-aaaaa-qaaba-cai" }; transfer_fee = 0 : nat64; token_symbol = "ckBTC"; token_name = "ckBTC"; metadata = vec {}; initial_balances = vec {}; archive_options = record { num_blocks_to_archive = 0 : nat64; trigger_threshold = 0 : nat64; controller_id = principal "aaaaa-aa" } } })'
 
 curl -o wasm/kyt/kyt.wasm.gz "https://download.dfinity.systems/ic/$IC_VERSION/canisters/ic-ckbtc-kyt.wasm.gz"
-gunzip wasm/kyt/kyt.wasm.gz
+gunzip -f wasm/kyt/kyt.wasm.gz
 curl -o wasm/kyt/kyt.did "https://raw.githubusercontent.com/dfinity/ic/$IC_VERSION/rs/bitcoin/ckbtc/kyt/kyt.did"
 
 # Deploy kyt (know your token)
@@ -22,7 +22,7 @@ dfx canister call kyt set_api_key '(record { api_key = "" })'
 
 
 curl -o wasm/minter/minter.wasm.gz "https://download.dfinity.systems/ic/$IC_VERSION/canisters/ic-ckbtc-minter.wasm.gz"
-gunzip wasm/minter/minter.wasm.gz
+gunzip -f wasm/minter/minter.wasm.gz
 curl -o wasm/minter/minter.did "https://raw.githubusercontent.com/dfinity/ic/$IC_VERSION/rs/bitcoin/ckbtc/minter/ckbtc_minter.did"
 
 # Deploy minter

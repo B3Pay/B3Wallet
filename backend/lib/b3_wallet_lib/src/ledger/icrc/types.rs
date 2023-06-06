@@ -1,11 +1,24 @@
-use crate::ledger::types::{Balance, ICRCMemo, ICRCTimestamp};
-use b3_helper_lib::{account::ICRCAccount, subaccount::Subaccount, types::Timestamp};
+use crate::ledger::types::Balance;
+use b3_helper_lib::{
+    account::ICRCAccount,
+    subaccount::Subaccount,
+    types::{CanisterId, Timestamp},
+};
 use ic_cdk::export::{
-    candid::{CandidType, Nat},
+    candid::{CandidType, Int, Nat},
     serde::Deserialize,
 };
+use serde_bytes::ByteBuf;
 
 pub type TxIndex = Nat;
+
+pub type ICRCFee = Nat;
+
+pub type ICRCMetadata = Vec<(String, ICRC1MetadataValue)>;
+
+pub type ICRCMemo = Vec<u8>;
+
+pub type ICRCTimestamp = u64;
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct ICRC1TransferArgs {
@@ -28,9 +41,39 @@ pub enum ICRC1TransferError {
     GenericError { error_code: u64, message: String },
 }
 
-pub enum ICRC1Value {
-    Nat(u64),
-    Int(i64),
+/// Variant type for the `metadata` endpoint values.
+#[derive(CandidType, Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum ICRC1MetadataValue {
+    Nat(Nat),
+    Int(Int),
     Text(String),
-    Blob(Vec<u8>),
+    Blob(ByteBuf),
+}
+
+#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
+pub struct ICRC {
+    pub canister_id: CanisterId,
+    pub subaccount: Subaccount,
+    pub metadata: ICRCMetadata,
+    pub fee: Option<ICRCFee>,
+    pub memo: Option<ICRCMemo>,
+    pub created_at_time: Option<ICRCTimestamp>,
+}
+
+impl ICRC {
+    pub fn new(
+        canister_id: CanisterId,
+        subaccount: Subaccount,
+        fee: ICRCFee,
+        metadata: ICRCMetadata,
+    ) -> Self {
+        ICRC {
+            canister_id,
+            subaccount,
+            metadata,
+            memo: None,
+            fee: Some(fee),
+            created_at_time: None,
+        }
+    }
 }

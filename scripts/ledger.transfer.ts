@@ -1,7 +1,6 @@
 import { IcrcLedgerCanister } from "@dfinity/ledger"
 import { Principal } from "@dfinity/principal"
 import { localAgent } from "./actor"
-import { LEDGER_CANISTER_ID_LOCAL } from "./env"
 
 const transfer = async (account: string) => {
   console.log(
@@ -13,7 +12,7 @@ const transfer = async (account: string) => {
 
   const ledger = IcrcLedgerCanister.create({
     agent,
-    canisterId: LEDGER_CANISTER_ID_LOCAL as unknown as Principal
+    canisterId: process.env.LEDGER_CANISTER_ID_LOCAL! as unknown as Principal
   })
 
   return ledger.transfer({

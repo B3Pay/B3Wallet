@@ -1,7 +1,7 @@
-use super::types::{ICRC1TransferArgs, TxIndex};
+use super::types::{ICRC1TransferArgs, TxIndex, ICRC};
 use crate::{
     error::WalletError,
-    ledger::types::{Balance, ChainTrait, SendResult, ICRC},
+    ledger::types::{Balance, ChainTrait, SendResult},
 };
 use async_trait::async_trait;
 use b3_helper_lib::{account::ICRCAccount, error::ErrorTrait};
@@ -38,7 +38,7 @@ impl ChainTrait for ICRC {
             to,
             amount: amount.into(),
             from_subaccount: Some(self.subaccount.clone()),
-            fee: Some(self.fee.clone()),
+            fee: self.fee.clone(),
             memo: self.memo.clone(),
             created_at_time: self.created_at_time,
         };

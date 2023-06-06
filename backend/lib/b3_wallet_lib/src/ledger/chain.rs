@@ -1,14 +1,24 @@
 use super::{
     btc::network::BtcNetwork,
-    types::{Balance, Chain, ChainId, ChainTrait, ICRCFee, SendResult, BTC, EVM, ICP, ICRC},
+    icrc::{icrc1::ICRC1, types::ICRC},
+    types::{Balance, Chain, ChainId, ChainTrait, SendResult, BTC, EVM, ICP},
 };
 use crate::error::WalletError;
 use async_trait::async_trait;
 use b3_helper_lib::{subaccount::Subaccount, types::CanisterId};
 
 impl Chain {
-    pub fn new_icrc_chain(canister_id: CanisterId, subaccount: Subaccount) -> Self {
-        Chain::ICRC(ICRC::new(canister_id, subaccount, ICRCFee::from(0)))
+    pub async fn new_icrc_chain(
+        canister_id: CanisterId,
+        subaccount: Subaccount,
+    ) -> Result<Self, WalletError> {
+        let icrc1 = ICRC1(canister_id.clone());
+        let metadata = icrc1.metadata().await?;
+        let fee = icrc1.fee().await?;
+
+        let chain = Chain::ICRC(ICRC::new(canister_id, subaccount, fee, metadata));
+
+        Ok(chain)
     }
 
     pub fn new_btc_chain(btc_network: BtcNetwork, address: String) -> Self {

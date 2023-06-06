@@ -96,7 +96,7 @@ dependencies = [
 
 [[package]]
 name = "b3_wallet"
-version = "0.0.0-alpha.8"
+version = "0.0.0-alpha.9"
 dependencies = [
  "b3_helper_lib",
  "b3_permit_lib",
@@ -118,6 +118,7 @@ dependencies = [
  "hex",
  "ic-cdk",
  "serde",
+ "serde_bytes",
 ]
 
 [[package]]

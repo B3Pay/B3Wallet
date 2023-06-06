@@ -1,4 +1,4 @@
-use crate::{account::WalletAccount, ledger::types::ChainMap};
+use crate::{account::WalletAccount, ledger::types::AddressMap};
 use b3_helper_lib::environment::Environment;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use std::collections::{BTreeMap, HashMap};
@@ -16,5 +16,5 @@ pub struct WalletAccountView {
     pub hidden: bool,
     pub metadata: Metadata,
     pub environment: Environment,
-    pub addresses: ChainMap,
+    pub addresses: AddressMap,
 }

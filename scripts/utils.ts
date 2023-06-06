@@ -39,9 +39,11 @@ export const initIdentity = (mainnet: boolean) => {
   return decode(key)
 }
 
-export const loadWasm = async (candid?: boolean) => {
+export const loadWasm = async (withCandid?: boolean) => {
   const buffer = await readFile(
-    `${process.cwd()}/wasm/b3_wallet/b3_wallet${candid ? "_candid" : ""}.wasm`
+    `${process.cwd()}/wasm/b3_wallet/b3_wallet${
+      withCandid ? "_candid" : ""
+    }.wasm`
   )
   return [...new Uint8Array(buffer)]
 }

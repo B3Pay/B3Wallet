@@ -1,5 +1,5 @@
-import { ReleaseArgs } from "declarations/b3_system/b3_system.did"
-import { B3System } from "../src/service/actor"
+import { ReleaseArgs } from "../frontend/declarations/b3_system/b3_system.did"
+import { B3System } from "../frontend/src/service/actor"
 import { systemLocalActor } from "./actor"
 import { chunkGenerator, loadWasm, readVersion } from "./utils"
 
@@ -45,9 +45,9 @@ export const load = async (actor: B3System, reload: boolean) => {
   await loadRelease(actor, wasmModule, version)
 
   // loading candid version
-  const wasmModuleCandid = await loadWasm(true)
-  console.log(`Loading wasm code with candid v${version}-candid in System.`)
-  await loadRelease(actor, wasmModuleCandid, version + "-candid")
+  // const wasmModuleCandid = await loadWasm(true)
+  // console.log(`Loading wasm code with candid v${version}-candid in System.`)
+  // await loadRelease(actor, wasmModuleCandid, version + "-candid")
 }
 
 const loader = async (reload: boolean) => {

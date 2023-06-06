@@ -180,9 +180,7 @@ mod test {
 
         public_keys.set_ecdsa(ecdsa).unwrap();
 
-        public_keys
-            .generate_btc_address(BtcNetwork::Mainnet)
-            .unwrap();
+        public_keys.generate_btc_chain(BtcNetwork::Mainnet).unwrap();
 
         let utxos = BtcUtxos::try_from(vec![
             Utxo {

@@ -6,7 +6,7 @@ export const accountIdentifier = (mainnet: boolean, principal?: Principal) => {
   const identity = initIdentity(mainnet)
 
   return AccountIdentifier.fromPrincipal({
-    principal: principal ?? identity.getPrincipal(),
+    principal: principal ?? (identity.getPrincipal() as any),
     subAccount: undefined
   })
 }

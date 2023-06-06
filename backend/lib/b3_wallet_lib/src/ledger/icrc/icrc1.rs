@@ -1,13 +1,14 @@
 use b3_helper_lib::types::CanisterId;
 use ic_cdk::api::call::call;
 
-use crate::{error::WalletError, ledger::types::ICRCFee};
+use super::types::{ICRCFee, ICRCMetadata};
+use crate::error::WalletError;
 
-pub struct Icrc1(pub CanisterId);
+pub struct ICRC1(pub CanisterId);
 
-impl Icrc1 {
+impl ICRC1 {
     pub fn new(canister_id: CanisterId) -> Self {
-        Icrc1(canister_id)
+        ICRC1(canister_id)
     }
 
     pub async fn fee(&self) -> Result<ICRCFee, WalletError> {
@@ -18,8 +19,16 @@ impl Icrc1 {
         Ok(res)
     }
 
-    pub async fn metadata(&self) -> Result<Vec<u8>, WalletError> {
-        let (res,): (Vec<u8>,) = call(self.0, "icrc1_metadata", ())
+    pub async fn symbol(&self) -> Result<String, WalletError> {
+        let (res,): (String,) = call(self.0, "icrc1_symbol", ())
+            .await
+            .map_err(|e| WalletError::SignError(e.1))?;
+
+        Ok(res)
+    }
+
+    pub async fn metadata(&self) -> Result<ICRCMetadata, WalletError> {
+        let (res,): (ICRCMetadata,) = call(self.0, "icrc1_metadata", ())
             .await
             .map_err(|e| WalletError::SignError(e.1))?;
 

@@ -1,4 +1,7 @@
-use super::{btc::network::BtcNetwork, icrc::types::TxIndex};
+use super::{
+    btc::network::BtcNetwork,
+    icrc::types::{TxIndex, ICRC},
+};
 use crate::error::WalletError;
 use async_trait::async_trait;
 use b3_helper_lib::{
@@ -20,12 +23,6 @@ pub type ChainId = u64;
 
 pub type Balance = Nat;
 
-pub type ICRCFee = Nat;
-
-pub type ICRCMemo = Vec<u8>;
-
-pub type ICRCTimestamp = u64;
-
 pub type EcdsaPublicKey = Vec<u8>;
 
 pub type BtcAddressType = AddressType;
@@ -42,12 +39,32 @@ pub type BtcOutPoint = OutPoint;
 
 pub type ChainMap = BTreeMap<ChainType, Chain>;
 
+pub type AddressMap = BTreeMap<ChainType, String>;
+
 #[derive(CandidType, PartialEq, Eq, PartialOrd, Ord, Deserialize, Clone)]
 pub enum ChainType {
     ICRC(CanisterId),
     BTC(BtcNetwork),
     EVM(ChainId),
     ICP,
+}
+
+impl ChainType {
+    pub fn is_icrc(&self) -> bool {
+        matches!(self, ChainType::ICRC(_))
+    }
+
+    pub fn is_btc(&self) -> bool {
+        matches!(self, ChainType::BTC(_))
+    }
+
+    pub fn is_evm(&self) -> bool {
+        matches!(self, ChainType::EVM(_))
+    }
+
+    pub fn is_icp(&self) -> bool {
+        matches!(self, ChainType::ICP)
+    }
 }
 
 #[derive(CandidType, Deserialize, Clone)]
@@ -75,13 +92,9 @@ pub enum SendResult {
 #[enum_dispatch(ChainTrait)]
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub enum Chain {
-    #[serde(rename = "icrc")]
     ICRC,
-    #[serde(rename = "btc")]
     BTC,
-    #[serde(rename = "evm")]
     EVM,
-    #[serde(rename = "icp")]
     ICP,
 }
 
@@ -105,27 +118,6 @@ impl ICP {
             subaccount,
             memo: CANISTER_TRANSFER_MEMO,
             fee: IC_TRANSACTION_FEE_ICP,
-            created_at_time: None,
-        }
-    }
-}
-
-#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
-pub struct ICRC {
-    pub canister_id: CanisterId,
-    pub subaccount: Subaccount,
-    pub fee: ICRCFee,
-    pub memo: Option<ICRCMemo>,
-    pub created_at_time: Option<ICRCTimestamp>,
-}
-
-impl ICRC {
-    pub fn new(canister_id: CanisterId, subaccount: Subaccount, fee: ICRCFee) -> Self {
-        ICRC {
-            canister_id,
-            subaccount,
-            fee,
-            memo: None,
             created_at_time: None,
         }
     }

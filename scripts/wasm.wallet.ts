@@ -1,4 +1,4 @@
-import { B3Wallet } from "../src/service/actor"
+import { B3Wallet } from "../frontend/src/service/actor"
 import { userLocalActor } from "./actor"
 import { chunkGenerator, loadWasm, readVersion } from "./utils"
 

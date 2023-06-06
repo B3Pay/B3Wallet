@@ -26,16 +26,19 @@
       }
     ],
     "paths": {
-      "*": ["./src/*"]
+      "declarations": ["./frontend/declarations/*"]
     }
   },
   "include": [
-    "next-env.d.ts",
+    "frontend/declarations/*",
+    "frontend/src/*",
+    "frontend/next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     "**/*.wasm",
     ".next/types/**/*.ts",
-    "scripts/*.ts"
-, "scripts/icrc1.js"  ],
-  "exclude": ["node_modules", "out"]
+    "scripts/*.ts",
+    "scripts/icrc1.js"
+  ],
+  "exclude": ["node_modules", "frontend/out"]
 }

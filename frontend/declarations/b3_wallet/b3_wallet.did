@@ -1,0 +1,388 @@
+type AccountsCounter = record {
+  staging : nat64;
+  production : nat64;
+  development : nat64;
+};
+type AddSignerRequest = record {
+  threshold : opt nat8;
+  name : opt text;
+  role : Roles;
+  signer_id : principal;
+  expires_at : opt nat64;
+};
+type BTC = record { address : text; btc_network : BtcNetwork };
+type BtcNetwork = variant { Mainnet; Regtest; Testnet };
+type BtcRequest = variant { BtcTransferRequest : BtcTransferRequest };
+type BtcTransferRequest = record {
+  to : text;
+  account_id : text;
+  network : BtcNetwork;
+  amount : nat64;
+};
+type CanisterSettings = record {
+  freezing_threshold : opt nat;
+  controllers : opt vec principal;
+  memory_allocation : opt nat;
+  compute_allocation : opt nat;
+};
+type CanisterStatusResponse = record {
+  status : CanisterStatusType;
+  memory_size : nat;
+  cycles : nat;
+  settings : DefiniteCanisterSettings;
+  idle_cycles_burned_per_day : nat;
+  module_hash : opt vec nat8;
+};
+type CanisterStatusType = variant { stopped; stopping; running };
+type Chain = variant { BTC : BTC; EVM : EVM; ICP : ICP; ICRC : ICRC };
+type ChainType = variant {
+  BTC : BtcNetwork;
+  EVM : nat64;
+  ICP;
+  ICRC : principal;
+};
+type ConsendInfo = record { consent_message : text; language : text };
+type ConsentMessageRequest = record {
+  arg : RequestArgs;
+  method : text;
+  consent_preferences : ConsentPreferences;
+};
+type ConsentMessageResponse = variant {
+  MalformedCall : ErrorInfo;
+  Valid : ConsendInfo;
+  Other : text;
+  Forbidden : ErrorInfo;
+};
+type ConsentPreferences = record { language : text };
+type CreateAccountRequest = record { env : opt Environment; name : opt text };
+type DefiniteCanisterSettings = record {
+  freezing_threshold : nat;
+  controllers : vec principal;
+  memory_allocation : nat;
+  compute_allocation : nat;
+};
+type EVM = record { chain_id : nat64; address : text };
+type Environment = variant { Production; Development; Staging };
+type ErrorInfo = record { description : text; error_code : nat64 };
+type EvmDeployContractRequest = record {
+  account_id : text;
+  hex_byte_code : vec nat8;
+  max_priority_fee_per_gas : opt nat64;
+  max_fee_per_gas : opt nat64;
+  chain_id : nat64;
+  nonce : nat64;
+  gas_limit : opt nat64;
+};
+type EvmRequest = variant {
+  EvmDeployContractRequest : EvmDeployContractRequest;
+  EvmSignRawTransactionRequest : EvmSignRawTransactionRequest;
+  EvmSignMessageRequest : EvmSignMessageRequest;
+  EvmTransferErc20Request : EvmTransferErc20Request;
+  EvmSignTranscationRequest : EvmSignTranscationRequest;
+  EvmTransferEthRequest : EvmTransferEthRequest;
+};
+type EvmSignMessageRequest = record { account_id : text; message : vec nat8 };
+type EvmSignRawTransactionRequest = record {
+  account_id : text;
+  hex_raw_tx : vec nat8;
+  chain_id : nat64;
+};
+type EvmSignTranscationRequest = record {
+  account_id : text;
+  transaction : EvmTransaction;
+  chain_id : nat64;
+  message : vec nat8;
+};
+type EvmTransaction = record {
+  r : text;
+  s : text;
+  v : text;
+  to : text;
+  transaction_type : EvmTransactionType;
+  value : nat64;
+  max_priority_fee_per_gas : opt nat64;
+  data : text;
+  max_fee_per_gas : opt nat64;
+  chain_id : nat64;
+  nonce : nat64;
+  gas_limit : nat64;
+  access_list : opt vec record { text; vec text };
+  gas_price : opt nat64;
+};
+type EvmTransactionType = variant { EIP1559; EIP2930; Legacy };
+type EvmTransferErc20Request = record {
+  account_id : text;
+  value : nat64;
+  max_priority_fee_per_gas : opt nat64;
+  max_fee_per_gas : opt nat64;
+  chain_id : nat64;
+  address : text;
+  nonce : nat64;
+  gas_limit : opt nat64;
+  contract_address : text;
+};
+type EvmTransferEthRequest = record {
+  to : text;
+  account_id : text;
+  value : nat64;
+  max_priority_fee_per_gas : opt nat64;
+  max_fee_per_gas : opt nat64;
+  chain_id : nat64;
+  nonce : nat64;
+  gas_limit : opt nat64;
+};
+type GetUtxosResponse = record {
+  next_page : opt vec nat8;
+  tip_height : nat32;
+  tip_block_hash : vec nat8;
+  utxos : vec Utxo;
+};
+type HideAccountRequest = record { account_id : text };
+type ICP = record {
+  fee : Tokens;
+  memo : nat64;
+  subaccount : vec nat8;
+  created_at_time : opt Timestamp;
+};
+type ICRC = record {
+  fee : nat;
+  memo : opt vec nat8;
+  canister_id : principal;
+  subaccount : vec nat8;
+  created_at_time : opt nat64;
+};
+type IcpRequest = variant {
+  IcpTransferRequest : IcpTransferRequest;
+  TopUpCanisterRequest : TopUpCanisterRequest;
+};
+type IcpTransferRequest = record {
+  to : vec nat8;
+  fee : opt Tokens;
+  account_id : text;
+  memo : opt nat64;
+  amount : Tokens;
+};
+type InnerRequest = variant {
+  UpgradeCanisterRequest : UpgradeCanisterRequest;
+  RenameAccountRequest : RenameAccountRequest;
+  UnhideAccountRequest : HideAccountRequest;
+  CreateAccountRequest : CreateAccountRequest;
+  RemoveAccountRequest : HideAccountRequest;
+  RemoveSignerRequest : RemoveSignerRequest;
+  UpdateSignerThresholdRequest : UpdateSignerThresholdRequest;
+  EcdsaPublicKeyRequest : HideAccountRequest;
+  AddSignerRequest : AddSignerRequest;
+  HideAccountRequest : HideAccountRequest;
+  UpdateCanisterSettingsRequest : UpdateCanisterSettingsRequest;
+};
+type Ledger = record {
+  subaccount : vec nat8;
+  ecdsa : opt vec nat8;
+  chains : vec record { ChainType; Chain };
+};
+type Outpoint = record { txid : vec nat8; vout : nat32 };
+type PendingRequest = record {
+  id : nat64;
+  request : Request;
+  role : Roles;
+  deadline : nat64;
+  consent_message : ConsentMessageRequest;
+  response : vec record { principal; RequestResponse };
+};
+type ProcessedRequest = record {
+  status : RequestStatus;
+  method : text;
+  request : PendingRequest;
+  error : opt RequestError;
+  message : ConsentMessageResponse;
+  timestamp : nat64;
+};
+type RemoveSignerRequest = record { signer_id : principal };
+type RenameAccountRequest = record { account_id : text; new_name : text };
+type Request = variant {
+  BtcRequest : BtcRequest;
+  EvmRequest : EvmRequest;
+  IcpRequest : IcpRequest;
+  InnerRequest : InnerRequest;
+};
+type RequestArgs = record {
+  request : Request;
+  role : Roles;
+  deadline : opt nat64;
+};
+type RequestError = variant {
+  InvalidMessage : text;
+  InvalidMessageLength;
+  RequestAlreadySigned : text;
+  InvalidAddress;
+  CannotRemoveDefaultAccount;
+  RequestNotProcessed : nat64;
+  DeadlineExceeded;
+  InvalidController;
+  WalletAccountNotExists;
+  InvalidEvmTransactionType;
+  CyclesMintingError : text;
+  InvalidTx : text;
+  SignerRoleNotAuthorized : text;
+  RequestNotExists;
+  BitcoinGetBalanceError : text;
+  BitcoinInsufficientBalanceError : record { nat64; nat64 };
+  PublicKeyError : text;
+  RequestExpired;
+  NoUtxos;
+  UnknownError;
+  InvalidEcdsaPublicKey;
+  GenerateError : text;
+  InvalidTransaction : text;
+  InvalidSignature : text;
+  SignerRoleNotFound : record { text; text };
+  NotifyTopUpError : text;
+  MissingEcdsaPublicKey;
+  InvalidMsg : text;
+  SignerAlreadyExists : text;
+  BitcoinGetFeeRateError : text;
+  MissingSighashType;
+  WalletAccountAlreadyExists;
+  BitcoinGetUtxosError : text;
+  MissingAddress;
+  SignerDoesNotExist : text;
+  LedgerError : text;
+  RecoverableSignatureError : text;
+  InvalidAccountIdentifier;
+  RequestAlreadyProcessed : nat64;
+  InvalidPublicKey : text;
+  UpdateSettingsError : text;
+  SignError : text;
+  RequestNotFound : nat64;
+  BitcoinFeeTooHighError : record { nat64; nat64 };
+  WalletAccountCounterMismatch;
+  BitcoinGetAddressError;
+  InvalidRequest;
+  CallerIsNotOwner;
+  RequestRejected;
+  InvalidRecoveryId : text;
+  BitcoinInvalidFeePercentile;
+  InvalidNetwork;
+  BitcoinSignatureError : text;
+  InvalidNetworkAddress;
+  MissingWitnessScript;
+  SignerNotFound : text;
+  BitcoinGetCurrentFeePercentilesError : text;
+  Processing;
+  BitcoinSendTransactionError : text;
+  NotSignedTransaction;
+  ExecutionError : text;
+  TransactionTooOld : nat64;
+  CanisterStatusError : text;
+  EcdsaPublicKeyAlreadySet;
+  BitcoinSendRawTransactionError : text;
+};
+type RequestResponse = variant { Reject; Confirm };
+type RequestStatus = variant { Fail; Success; Pending };
+type Roles = variant { User; Canister; Admin };
+type Signer = record {
+  threshold : opt nat8;
+  metadata : vec record { text; text };
+  name : opt text;
+  role : Roles;
+  expires_at : opt nat64;
+};
+type Timestamp = record { timestamp_nanos : nat64 };
+type Tokens = record { e8s : nat64 };
+type TopUpCanisterRequest = record {
+  fee : opt Tokens;
+  account_id : text;
+  canister_id : opt principal;
+  amount : Tokens;
+};
+type UpdateCanisterSettingsRequest = record {
+  canister_id : principal;
+  settings : CanisterSettings;
+};
+type UpdateSignerThresholdRequest = record {
+  threshold : nat8;
+  signer_id : principal;
+};
+type UpgradeCanisterRequest = record {
+  wasm_hash_string : text;
+  wasm_version : text;
+};
+type Utxo = record { height : nat32; value : nat64; outpoint : Outpoint };
+type UtxoFilter = variant { page : vec nat8; min_confirmations : nat32 };
+type WalletAccount = record {
+  id : text;
+  metadata : vec record { text; text };
+  name : text;
+  hidden : bool;
+  ledger : Ledger;
+};
+type WalletAccountView = record {
+  id : text;
+  metadata : vec record { text; text };
+  name : text;
+  hidden : bool;
+  addresses : vec record { ChainType; text };
+  environment : Environment;
+};
+type WalletCanisterStatus = record {
+  canister_id : principal;
+  status_at : nat64;
+  version : text;
+  canister_status : CanisterStatusResponse;
+  account_status : AccountsCounter;
+};
+service : () -> {
+  account_balance_btc : (text, BtcNetwork, opt nat32) -> (nat64);
+  account_btc_fees : (BtcNetwork, nat8) -> (nat64);
+  account_btc_utxos : (text, BtcNetwork, opt UtxoFilter) -> (GetUtxosResponse);
+  account_create : (opt Environment, opt text) -> ();
+  account_generate_address : (text, ChainType) -> ();
+  account_hide : (text) -> ();
+  account_icp_balance : (text) -> (nat);
+  account_icrc_balance : (text, principal) -> (nat);
+  account_remove : (text) -> ();
+  account_remove_address : (text, ChainType) -> ();
+  account_rename : (text, text) -> ();
+  account_request_public_key : (text) -> ();
+  account_restore : (Environment, nat64) -> ();
+  account_send : (text, ChainType, text, nat64) -> ();
+  account_send_btc : (text, BtcNetwork, text, nat64) -> (text);
+  account_send_icp : (text, text, Tokens, opt Tokens, opt nat64) -> (nat64);
+  account_top_up_and_notify : (text, Tokens, opt principal, opt Tokens) -> (
+      nat,
+    );
+  get_account : (text) -> (WalletAccount) query;
+  get_account_count : () -> (nat64) query;
+  get_account_counters : () -> (AccountsCounter) query;
+  get_account_view : (text) -> (WalletAccountView) query;
+  get_account_views : () -> (vec WalletAccountView) query;
+  get_addresses : (text) -> (vec record { ChainType; text }) query;
+  get_pending_list : () -> (vec PendingRequest) query;
+  get_processed : (nat64) -> (ProcessedRequest) query;
+  get_processed_list : () -> (vec ProcessedRequest) query;
+  get_signers : () -> (vec record { principal; Signer }) query;
+  load_wasm : (vec nat8) -> (nat64);
+  request_account_rename : (RenameAccountRequest, opt nat64) -> (nat64);
+  request_add_signer : (AddSignerRequest, opt nat64) -> (nat64);
+  request_create_account : (CreateAccountRequest, opt nat64) -> (nat64);
+  request_delete_account : (HideAccountRequest, opt nat64) -> (nat64);
+  request_maker : (Request, opt nat64) -> (nat64);
+  request_response : (nat64, RequestResponse) -> (ProcessedRequest);
+  request_sign_message : (text, vec nat8) -> (vec nat8);
+  request_sign_transaction : (text, vec nat8, nat64) -> (vec nat8);
+  request_transfer_btc : (BtcTransferRequest, opt nat64) -> (nat64);
+  request_transfer_icp : (IcpTransferRequest, opt nat64) -> (nat64);
+  request_update_settings : (UpdateCanisterSettingsRequest, opt nat64) -> (
+      nat64,
+    );
+  reset_wallet : () -> ();
+  signer_add : (principal, Roles) -> (vec record { principal; Signer });
+  signer_remove : (principal) -> (vec record { principal; Signer });
+  status : () -> (WalletCanisterStatus);
+  unload_wasm : () -> (nat64);
+  upgrage_wallet : () -> ();
+  validate_signer : (principal) -> (bool) query;
+  version : () -> (text) query;
+  wasm_hash : () -> (vec nat8) query;
+  wasm_hash_string : () -> (text) query;
+}

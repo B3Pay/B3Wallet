@@ -47,7 +47,9 @@ mod tests {
 
         println!("identifier: {}", identifier);
 
-        ledger.generate_eth_address(1).unwrap();
+        let eth_chain = ledger.generate_eth_chain(1).unwrap();
+
+        ledger.insert_chain(ChainType::EVM(1), eth_chain);
 
         let eth_address = ledger.eth_address().unwrap();
 
@@ -57,7 +59,9 @@ mod tests {
 
         assert_eq!(eth_address.len(), 42);
 
-        ledger.generate_btc_address(BtcNetwork::Regtest).unwrap();
+        let chain = ledger.generate_btc_chain(BtcNetwork::Regtest).unwrap();
+
+        ledger.insert_chain(ChainType::BTC(BtcNetwork::Regtest), chain);
 
         let btc_address = ledger.chain(ChainType::BTC(BtcNetwork::Regtest)).unwrap();
 
@@ -65,13 +69,17 @@ mod tests {
 
         println!("btc_address: {}", btc_address.address());
 
-        ledger.generate_btc_address(BtcNetwork::Mainnet).unwrap();
+        let chain = ledger.generate_btc_chain(BtcNetwork::Mainnet).unwrap();
+
+        ledger.insert_chain(ChainType::BTC(BtcNetwork::Mainnet), chain);
 
         let btc_address = ledger.chain(ChainType::BTC(BtcNetwork::Mainnet)).unwrap();
 
         assert_eq!(btc_address.address(), "1MnmPQSjKMGaruN9vbc6NFWizXGz6SgpdC");
 
-        ledger.generate_btc_address(BtcNetwork::Testnet).unwrap();
+        let chain = ledger.generate_btc_chain(BtcNetwork::Testnet).unwrap();
+
+        ledger.insert_chain(ChainType::BTC(BtcNetwork::Testnet), chain);
 
         let btc_address = ledger.chain(ChainType::BTC(BtcNetwork::Testnet)).unwrap();
 
@@ -126,7 +134,7 @@ mod tests {
 
         println!("icp_address: {}", icp_address.address());
 
-        ledger.generate_eth_address(1).unwrap();
+        ledger.generate_eth_chain(1).unwrap();
 
         let eth_address = ledger.chain(ChainType::EVM(1)).unwrap();
 
@@ -139,7 +147,7 @@ mod tests {
 
         assert_eq!(eth_address.address().len(), 42);
 
-        ledger.generate_btc_address(BtcNetwork::Mainnet).unwrap();
+        ledger.generate_btc_chain(BtcNetwork::Mainnet).unwrap();
 
         let btc_address = ledger.chain(ChainType::BTC(BtcNetwork::Mainnet)).unwrap();
 
@@ -198,7 +206,7 @@ mod tests {
 
         println!("icp_address: {}", icp_address.address());
 
-        ledger.generate_eth_address(1).unwrap();
+        ledger.generate_eth_chain(1).unwrap();
 
         let eth_address = ledger.chain(ChainType::EVM(1)).unwrap();
 
@@ -211,7 +219,7 @@ mod tests {
 
         assert_eq!(eth_address.address().len(), 42);
 
-        ledger.generate_btc_address(BtcNetwork::Mainnet).unwrap();
+        ledger.generate_btc_chain(BtcNetwork::Mainnet).unwrap();
 
         let btc_address = ledger.chain(ChainType::BTC(BtcNetwork::Mainnet)).unwrap();
 
