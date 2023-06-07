@@ -140,14 +140,17 @@ impl BtcUtxos {
 mod test {
     use std::str::FromStr;
 
-    use crate::ledger::{
-        btc::{network::BtcNetwork, utxos::BtcUtxos},
-        types::{Chain, ChainMap, ChainType},
-        types::{ChainTrait, Ledger},
+    use crate::{
+        ledger::{
+            btc::{network::BtcNetwork, utxos::BtcUtxos},
+            types::{Chain, ChainMap, ChainType},
+            types::{ChainTrait, Ledger},
+        },
+        mocks::ic_cdk_id,
     };
 
     use super::*;
-    use b3_helper_lib::{identifier::AccountIdentifier, mocks::ic_cdk_id, subaccount::Subaccount};
+    use b3_helper_lib::{identifier::AccountIdentifier, subaccount::Subaccount};
     use ic_cdk::api::management_canister::bitcoin::{Outpoint, Utxo};
 
     #[test]
@@ -180,7 +183,7 @@ mod test {
 
         public_keys.set_ecdsa(ecdsa).unwrap();
 
-        public_keys.generate_btc_chain(BtcNetwork::Mainnet).unwrap();
+        public_keys.btc_chain(BtcNetwork::Mainnet).unwrap();
 
         let utxos = BtcUtxos::try_from(vec![
             Utxo {

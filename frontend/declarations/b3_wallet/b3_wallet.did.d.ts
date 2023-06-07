@@ -49,14 +49,14 @@ export type ChainType = { 'BTC' : BtcNetwork } |
   { 'EVM' : bigint } |
   { 'ICP' : null } |
   { 'ICRC' : Principal };
-export interface ConsendInfo { 'consent_message' : string, 'language' : string }
+export interface ConsentInfo { 'consent_message' : string, 'language' : string }
 export interface ConsentMessageRequest {
   'arg' : RequestArgs,
   'method' : string,
   'consent_preferences' : ConsentPreferences,
 }
 export type ConsentMessageResponse = { 'MalformedCall' : ErrorInfo } |
-  { 'Valid' : ConsendInfo } |
+  { 'Valid' : ConsentInfo } |
   { 'Other' : string } |
   { 'Forbidden' : ErrorInfo };
 export interface ConsentPreferences { 'language' : string }
@@ -161,12 +161,17 @@ export interface ICP {
   'created_at_time' : [] | [Timestamp],
 }
 export interface ICRC {
-  'fee' : bigint,
+  'fee' : [] | [bigint],
+  'metadata' : Array<[string, ICRC1MetadataValue]>,
   'memo' : [] | [Uint8Array | number[]],
   'canister_id' : Principal,
   'subaccount' : Uint8Array | number[],
   'created_at_time' : [] | [bigint],
 }
+export type ICRC1MetadataValue = { 'Int' : bigint } |
+  { 'Nat' : bigint } |
+  { 'Blob' : Uint8Array | number[] } |
+  { 'Text' : string };
 export type IcpRequest = { 'IcpTransferRequest' : IcpTransferRequest } |
   { 'TopUpCanisterRequest' : TopUpCanisterRequest };
 export interface IcpTransferRequest {
@@ -194,6 +199,7 @@ export interface Ledger {
   'ecdsa' : [] | [Uint8Array | number[]],
   'chains' : Array<[ChainType, Chain]>,
 }
+export interface OutPoint { 'txid' : Uint8Array | number[], 'vout' : number }
 export interface Outpoint { 'txid' : Uint8Array | number[], 'vout' : number }
 export interface PendingRequest {
   'id' : bigint,
@@ -295,6 +301,15 @@ export type RequestResponse = { 'Reject' : null } |
 export type RequestStatus = { 'Fail' : null } |
   { 'Success' : null } |
   { 'Pending' : null };
+export type Result = { 'Ok' : Array<UtxoStatus> } |
+  { 'Err' : UpdateBalanceError };
+export type RetrieveBtcStatus = { 'Signing' : null } |
+  { 'Confirmed' : { 'txid' : Uint8Array | number[] } } |
+  { 'Sending' : { 'txid' : Uint8Array | number[] } } |
+  { 'AmountTooLow' : null } |
+  { 'Unknown' : null } |
+  { 'Submitted' : { 'txid' : Uint8Array | number[] } } |
+  { 'Pending' : null };
 export type Roles = { 'User' : null } |
   { 'Canister' : null } |
   { 'Admin' : null };
@@ -313,6 +328,17 @@ export interface TopUpCanisterRequest {
   'canister_id' : [] | [Principal],
   'amount' : Tokens,
 }
+export type UpdateBalanceError = {
+    'GenericError' : { 'error_message' : string, 'error_code' : bigint }
+  } |
+  { 'TemporarilyUnavailable' : string } |
+  { 'AlreadyProcessing' : null } |
+  {
+    'NoNewUtxos' : {
+      'required_confirmations' : number,
+      'current_confirmations' : [] | [number],
+    }
+  };
 export interface UpdateCanisterSettingsRequest {
   'canister_id' : Principal,
   'settings' : CanisterSettings,
@@ -332,6 +358,21 @@ export interface Utxo {
 }
 export type UtxoFilter = { 'page' : Uint8Array | number[] } |
   { 'min_confirmations' : number };
+export type UtxoStatus = { 'ValueTooSmall' : Utxo_1 } |
+  { 'Tainted' : Utxo_1 } |
+  {
+    'Minted' : {
+      'minted_amount' : bigint,
+      'block_index' : bigint,
+      'utxo' : Utxo_1,
+    }
+  } |
+  { 'Checked' : Utxo_1 };
+export interface Utxo_1 {
+  'height' : number,
+  'value' : bigint,
+  'outpoint' : OutPoint,
+}
 export interface WalletAccount {
   'id' : string,
   'metadata' : Array<[string, string]>,
@@ -375,7 +416,6 @@ export interface _SERVICE {
   'account_remove' : ActorMethod<[string], undefined>,
   'account_remove_address' : ActorMethod<[string, ChainType], undefined>,
   'account_rename' : ActorMethod<[string, string], undefined>,
-  'account_request_public_key' : ActorMethod<[string], undefined>,
   'account_restore' : ActorMethod<[Environment, bigint], undefined>,
   'account_send' : ActorMethod<[string, ChainType, string, bigint], undefined>,
   'account_send_btc' : ActorMethod<
@@ -386,16 +426,25 @@ export interface _SERVICE {
     [string, string, Tokens, [] | [Tokens], [] | [bigint]],
     bigint
   >,
+  'account_swap_btc_to_ckbtc' : ActorMethod<
+    [string, BtcNetwork, bigint],
+    string
+  >,
+  'account_swap_ckbtc_to_btc' : ActorMethod<[string, string, bigint], string>,
   'account_top_up_and_notify' : ActorMethod<
     [string, Tokens, [] | [Principal], [] | [Tokens]],
     bigint
   >,
+  'account_update_balance' : ActorMethod<[string], Result>,
+  'canister_cycle_balance' : ActorMethod<[], bigint>,
+  'canister_version' : ActorMethod<[], bigint>,
   'get_account' : ActorMethod<[string], WalletAccount>,
   'get_account_count' : ActorMethod<[], bigint>,
   'get_account_counters' : ActorMethod<[], AccountsCounter>,
   'get_account_view' : ActorMethod<[string], WalletAccountView>,
   'get_account_views' : ActorMethod<[], Array<WalletAccountView>>,
   'get_addresses' : ActorMethod<[string], Array<[ChainType, string]>>,
+  'get_balance' : ActorMethod<[bigint], RetrieveBtcStatus>,
   'get_pending_list' : ActorMethod<[], Array<PendingRequest>>,
   'get_processed' : ActorMethod<[bigint], ProcessedRequest>,
   'get_processed_list' : ActorMethod<[], Array<ProcessedRequest>>,

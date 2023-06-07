@@ -2,7 +2,7 @@ use crate::{
     pending::Request,
     signer::{Roles, Signer},
     store::with_permit_mut,
-    types::{ConsendInfo, ConsentMessageResponse},
+    types::{ConsentInfo, ConsentMessageResponse},
 };
 use b3_helper_lib::types::{Metadata, SignerId};
 use b3_wallet_lib::error::WalletError;
@@ -48,7 +48,7 @@ impl AddSignerRequest {
 
             link.signers.insert(signer_id.clone(), self.into());
 
-            Ok(ConsentMessageResponse::Valid(ConsendInfo {
+            Ok(ConsentMessageResponse::Valid(ConsentInfo {
                 consent_message: format!("Signer {} added", signer_id),
                 ..Default::default()
             }))
@@ -78,7 +78,7 @@ impl RemoveSignerRequest {
 
             link.signers.remove(&signer_id);
 
-            Ok(ConsentMessageResponse::Valid(ConsendInfo {
+            Ok(ConsentMessageResponse::Valid(ConsentInfo {
                 consent_message: format!("Signer {} removed", signer_id),
                 ..Default::default()
             }))
@@ -110,7 +110,7 @@ impl UpdateSignerThresholdRequest {
             let mut signer = link.signers.get_mut(&signer_id).unwrap();
             signer.threshold = Some(self.threshold);
 
-            Ok(ConsentMessageResponse::Valid(ConsendInfo {
+            Ok(ConsentMessageResponse::Valid(ConsentInfo {
                 consent_message: format!("Signer {} threshold updated", signer_id),
                 ..Default::default()
             }))

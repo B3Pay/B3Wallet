@@ -5,7 +5,7 @@ use b3_wallet_lib::{error::WalletError, ledger::btc::network::BtcNetwork, store:
 use enum_dispatch::enum_dispatch;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
-use crate::types::{ConsendInfo, ConsentMessageResponse};
+use crate::types::{ConsentInfo, ConsentMessageResponse};
 
 use super::Request;
 
@@ -55,7 +55,7 @@ impl BtcTransferRequest {
 
         match result {
             Err(err) => return Err(WalletError::BitcoinSendTransactionError(err.to_string())),
-            Ok(tx_id) => Ok(ConsentMessageResponse::Valid(ConsendInfo {
+            Ok(tx_id) => Ok(ConsentMessageResponse::Valid(ConsentInfo {
                 consent_message: format!(
                     "Transfer {} BTC to {} on {}, tx_id: {}",
                     self.amount,

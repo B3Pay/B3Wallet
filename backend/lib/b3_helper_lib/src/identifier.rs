@@ -1,11 +1,15 @@
-use ic_cdk::export::{candid::CandidType, serde::Deserialize, Principal};
+use ic_cdk::export::{
+    candid::CandidType,
+    serde::{Deserialize, Serialize},
+    Principal,
+};
 
 use crate::{error::ErrorTrait, subaccount::Subaccount};
 
 use easy_hasher::easy_hasher;
 use std::{fmt, str::FromStr};
 
-#[derive(CandidType, Deserialize, Clone, Debug, PartialEq)]
+#[derive(CandidType, Deserialize, Serialize, Clone, Debug, PartialEq)]
 pub struct AccountIdentifier(pub [u8; 32]);
 
 impl Default for AccountIdentifier {

@@ -3,9 +3,7 @@ use super::{
     types::{AddressMap, Balance, Chain, ChainId, ChainMap, ChainType, Ledger, SendResult},
 };
 use crate::{error::WalletError, ledger::types::ChainTrait};
-use b3_helper_lib::{
-    environment::Environment, raw_keccak256, subaccount::Subaccount, types::CanisterId,
-};
+use b3_helper_lib::{raw_keccak256, subaccount::Subaccount, types::CanisterId};
 use bitcoin::{secp256k1, Address, PublicKey};
 use std::collections::BTreeMap;
 
@@ -89,23 +87,24 @@ impl Ledger {
             .ok_or_else(|| WalletError::MissingAddress)
     }
 
-    pub fn icp_chain(&self) -> Result<Chain, WalletError> {
-        self.chain(ChainType::ICP)
-    }
-
-    pub fn icrc_chain(&self, canister_id: CanisterId) -> Result<Chain, WalletError> {
-        self.chain(ChainType::ICRC(canister_id))
-    }
-
     pub fn eth_address(&self) -> Result<String, WalletError> {
-        self.derive_eth_address()
+        let ecdsa = self.ecdsa()?;
+
+        let pub_key = secp256k1::PublicKey::from_slice(&ecdsa)
+            .map_err(|e| WalletError::GenerateError(e.to_string()))?
+            .serialize_uncompressed();
+
+        let keccak256 = raw_keccak256(&pub_key[1..]);
+
+        let keccak256_hex = keccak256.to_hex_string();
+
+        let address = "0x".to_owned() + &keccak256_hex[24..];
+
+        Ok(address)
     }
 
     pub fn btc_address(&self, btc_network: BtcNetwork) -> Result<Address, WalletError> {
-        let ecdsa = self.ecdsa()?;
-
-        let public_key =
-            PublicKey::from_slice(&ecdsa).map_err(|e| WalletError::GenerateError(e.to_string()))?;
+        let public_key = self.public_key()?;
 
         let address = Address::p2pkh(&public_key, btc_network.into());
 
@@ -119,6 +118,41 @@ impl Ledger {
         }
     }
 
+    pub async fn new_chain(&self, chain_type: ChainType) -> Result<Chain, WalletError> {
+        match chain_type {
+            ChainType::ICRC(canister_id) => self.icrc_chain(canister_id).await,
+            ChainType::BTC(btc_network) => self.btc_chain(btc_network),
+            ChainType::EVM(chain) => self.eth_chain(chain),
+            ChainType::ICP => Ok(self.icp_chain()),
+        }
+    }
+
+    pub async fn icrc_chain(&self, canister_id: CanisterId) -> Result<Chain, WalletError> {
+        let chain = Chain::new_icrc_chain(canister_id, self.subaccount.to_owned()).await?;
+
+        Ok(chain)
+    }
+
+    pub fn icp_chain(&self) -> Chain {
+        Chain::new_icp_chain(self.subaccount.to_owned())
+    }
+
+    pub fn eth_chain(&self, chain_id: ChainId) -> Result<Chain, WalletError> {
+        let eth_address = self.eth_address()?;
+
+        let eth_chain = Chain::new_evm_chain(chain_id, eth_address);
+
+        Ok(eth_chain)
+    }
+
+    pub fn btc_chain(&self, btc_network: BtcNetwork) -> Result<Chain, WalletError> {
+        let btc_address = self.btc_address(btc_network)?;
+
+        let btc_chain = Chain::new_btc_chain(btc_network, btc_address.to_string());
+
+        Ok(btc_chain)
+    }
+
     pub fn set_ecdsa(&mut self, ecdsa: Vec<u8>) -> Result<(), WalletError> {
         if ecdsa.len() != 33 {
             return Err(WalletError::InvalidEcdsaPublicKey);
@@ -128,67 +162,13 @@ impl Ledger {
             return Err(WalletError::EcdsaPublicKeyAlreadySet);
         }
 
-        let env = self.subaccount.environment();
-
         let ecdsa = PublicKey::from_slice(&ecdsa)
             .map_err(|e| WalletError::GenerateError(e.to_string()))?
             .to_bytes();
 
         self.ecdsa = Some(ecdsa);
 
-        let (btc_network, chain_id) = match env {
-            Environment::Production => (BtcNetwork::Mainnet, 1),
-            Environment::Staging => (BtcNetwork::Testnet, 137),
-            Environment::Development => (BtcNetwork::Regtest, 1337),
-        };
-
-        self.insert_chain(
-            ChainType::BTC(btc_network),
-            self.generate_btc_chain(btc_network)?,
-        );
-        self.insert_chain(ChainType::EVM(chain_id), self.generate_eth_chain(chain_id)?);
-
         Ok(())
-    }
-
-    pub async fn generate_address(&self, chain_type: ChainType) -> Result<Chain, WalletError> {
-        match chain_type {
-            ChainType::ICRC(canister_id) => self.generate_icrc_chain(canister_id).await,
-            ChainType::BTC(btc_network) => self.generate_btc_chain(btc_network),
-            ChainType::EVM(chain) => self.generate_eth_chain(chain),
-            ChainType::ICP => Ok(self.generate_icp_chain()),
-        }
-    }
-
-    pub async fn generate_icrc_chain(&self, canister_id: CanisterId) -> Result<Chain, WalletError> {
-        let chain = Chain::new_icrc_chain(canister_id, self.subaccount.to_owned()).await?;
-
-        Ok(chain)
-    }
-
-    pub fn generate_icp_chain(&self) -> Chain {
-        Chain::new_icp_chain(self.subaccount.to_owned())
-    }
-
-    pub fn generate_eth_chain(&self, chain_id: ChainId) -> Result<Chain, WalletError> {
-        let address = self.derive_eth_address()?;
-
-        let eth_chain = Chain::new_evm_chain(chain_id, address);
-
-        Ok(eth_chain)
-    }
-
-    pub fn generate_btc_chain(&self, btc_network: BtcNetwork) -> Result<Chain, WalletError> {
-        let ecdsa = self.ecdsa()?;
-
-        let public_key =
-            PublicKey::from_slice(&ecdsa).map_err(|e| WalletError::GenerateError(e.to_string()))?;
-
-        let address = Address::p2pkh(&public_key, btc_network.into()).to_string();
-
-        let btc_chain = Chain::new_btc_chain(btc_network, address);
-
-        Ok(btc_chain)
     }
 
     pub fn insert_chain(&mut self, chain_type: ChainType, chain: Chain) {
@@ -201,21 +181,5 @@ impl Ledger {
         }
 
         Ok(())
-    }
-
-    fn derive_eth_address(&self) -> Result<String, WalletError> {
-        let ecdsa = self.ecdsa()?;
-
-        let pub_key = secp256k1::PublicKey::from_slice(&ecdsa)
-            .map_err(|e| WalletError::GenerateError(e.to_string()))?
-            .serialize_uncompressed();
-
-        let keccak256 = raw_keccak256(&pub_key[1..]);
-
-        let keccak256_hex = keccak256.to_hex_string();
-
-        let address: String = "0x".to_owned() + &keccak256_hex[24..];
-
-        Ok(address)
     }
 }

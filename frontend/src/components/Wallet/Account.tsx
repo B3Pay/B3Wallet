@@ -1,17 +1,17 @@
 /* eslint-disable no-unused-vars */
-import { AccordionPanel, Box, Button, Stack } from "@chakra-ui/react"
+import { AccordionPanel, Box, Stack } from "@chakra-ui/react"
 
 import { Principal } from "@dfinity/principal"
-import { WalletAccountView } from "declarations/b3_wallet/b3_wallet.did"
+import {
+  BtcNetwork,
+  ChainType,
+  WalletAccountView
+} from "declarations/b3_wallet/b3_wallet.did"
 import { ethers, providers } from "ethers"
 import { isAddress } from "ethers/lib/utils"
-import {
-  ChainSymbol,
-  ChainTypeStringNetwork,
-  handleChainType
-} from "helpers/utiles"
+import { ChainNetwork, ChainSymbol } from "helpers/utiles"
 import useToastMessage from "hooks/useToastMessage"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { B3Wallet } from "service/actor"
 import Loading from "../Loading"
 import { AccountTitle } from "./AccountTitle"
@@ -44,12 +44,20 @@ export interface Loadings {
   ICRC: boolean
 }
 
+export type AddressesWithChain = {
+  symbol: ChainSymbol
+  detail: string
+  address: string
+  network: ChainNetwork
+  chain: ChainType
+}
+
 const Account: React.FC<AccountProps> = ({
   actor,
   id,
   name,
   loading,
-  addresses,
+  addresses: chains,
   isExpanded,
   environment,
   refetchAccount
@@ -70,86 +78,90 @@ const Account: React.FC<AccountProps> = ({
 
   const toast = useToastMessage()
 
-  const getEthBalance = useCallback(async () => {
-    const address = ""
-    if (isAddress(address) === false) {
-      return
-    }
+  const getEthBalance = useCallback(
+    async (chainId: bigint) => {
+      const address = ""
+      if (isAddress(address) === false) {
+        return
+      }
 
-    setLoadings(prev => ({ ...prev, EVM: true }))
-    provider
-      .getBalance(address)
-      .then(balance => {
-        setBalances(prev => ({ ...prev, ETH: balance.toBigInt() }))
-        setLoadings(prev => ({ ...prev, EVM: false }))
-      })
-      .catch(err => {
-        toast({
-          title: "Error",
-          description: err.message,
-          status: "error",
-          duration: 5000,
-          isClosable: true
+      setLoadings(prev => ({ ...prev, EVM: true }))
+      provider
+        .getBalance(address)
+        .then(balance => {
+          setBalances(prev => ({ ...prev, ETH: balance.toBigInt() }))
+          setLoadings(prev => ({ ...prev, EVM: false }))
         })
+        .catch(err => {
+          toast({
+            title: "Error",
+            description: err.message,
+            status: "error",
+            duration: 5000,
+            isClosable: true
+          })
 
-        setLoadings(prev => ({ ...prev, EVM: false }))
-      })
-  }, [toast])
-
-  const getBtcBalance = useCallback(async () => {
-    setLoadings(prev => ({ ...prev, BTC: true }))
-    if (addresses.length <= 1) {
-      return
-    }
-
-    actor
-      .account_balance_btc(id, { Regtest: null }, [])
-      .then(balance => {
-        setBalances(prev => ({ ...prev, BTC: balance }))
-        setLoadings(prev => ({ ...prev, BTC: false }))
-      })
-      .catch(err => {
-        toast({
-          title: "Error",
-          description: err.message,
-          status: "error",
-          duration: 5000,
-          isClosable: true
+          setLoadings(prev => ({ ...prev, EVM: false }))
         })
+    },
+    [toast]
+  )
 
-        setLoadings(prev => ({ ...prev, BTC: false }))
-      })
-  }, [actor, toast, id, addresses])
-
-  const getIcpBalance = useCallback(async () => {
-    setLoadings(prev => ({ ...prev, ICP: true }))
-    actor
-      .account_icp_balance(id)
-      .then(balance => {
-        setBalances(prev => ({ ...prev, ICP: balance }))
-        setLoadings(prev => ({ ...prev, ICP: false }))
-      })
-      .catch(err => {
-        toast({
-          title: "Error",
-          description: err.message,
-          status: "error",
-          duration: 5000,
-          isClosable: true
-        })
-
-        setLoadings(prev => ({ ...prev, ICP: false }))
-      })
-  }, [actor, toast, id])
-
-  const getIcrcBalance = useCallback(
-    async (canisterId: string) => {
-      setLoadings(prev => ({ ...prev, ICRC: true }))
-
-      const principal = Principal.fromText(canisterId)
+  const getBtcBalance = useCallback(
+    async (btcNetwork: BtcNetwork) => {
+      setLoadings(prev => ({ ...prev, BTC: true }))
 
       actor
-        .account_icrc_balance(id, principal)
+        .account_balance_btc(id, btcNetwork, [])
+        .then(balance => {
+          setBalances(prev => ({ ...prev, BTC: balance }))
+          setLoadings(prev => ({ ...prev, BTC: false }))
+        })
+        .catch(err => {
+          toast({
+            title: "Error",
+            description: err.message,
+            status: "error",
+            duration: 5000,
+            isClosable: true
+          })
+
+          setLoadings(prev => ({ ...prev, BTC: false }))
+        })
+    },
+    [actor, toast, id, chains]
+  )
+
+  const getIcpBalance = useCallback(
+    async (_: ChainNetwork) => {
+      setLoadings(prev => ({ ...prev, ICP: true }))
+      actor
+        .account_icp_balance(id)
+        .then(balance => {
+          setBalances(prev => ({ ...prev, ICP: balance }))
+          setLoadings(prev => ({ ...prev, ICP: false }))
+        })
+        .catch(err => {
+          toast({
+            title: "Error",
+            description: err.message,
+            status: "error",
+            duration: 5000,
+            isClosable: true
+          })
+
+          setLoadings(prev => ({ ...prev, ICP: false }))
+        })
+    },
+    [actor, toast, id]
+  )
+
+  const getIcrcBalance = useCallback(
+    async (canisterId: Principal) => {
+      setLoadings(prev => ({ ...prev, ICRC: true }))
+
+      actor
+        .account_icrc_balance(id, canisterId)
         .then(balance => {
           setBalances(prev => ({ ...prev, ICRC: balance }))
           setLoadings(prev => ({ ...prev, ICRC: false }))
@@ -218,10 +230,6 @@ const Account: React.FC<AccountProps> = ({
 
         setLoadings(prev => ({ ...prev, EVM: false }))
       }
-
-      setTimeout(() => {
-        getEthBalance()
-      }, 2000)
     },
     [actor, toast, getEthBalance, id]
   )
@@ -245,10 +253,6 @@ const Account: React.FC<AccountProps> = ({
           console.log(res)
 
           setLoadings(prev => ({ ...prev, BTC: false }))
-
-          setTimeout(() => {
-            getBtcBalance()
-          }, 2000)
         })
         .catch(err => {
           toast({
@@ -296,10 +300,6 @@ const Account: React.FC<AccountProps> = ({
             duration: 5000,
             isClosable: true
           })
-
-          setTimeout(() => {
-            getIcpBalance()
-          }, 2000)
         })
         .catch(err => {
           toast({
@@ -331,7 +331,7 @@ const Account: React.FC<AccountProps> = ({
       await actor
         .account_send(
           id,
-          { ICRC: Principal.fromText("by6od-j4aaa-aaaaa-qaadq-cai") },
+          { ICRC: Principal.fromText("be2us-64aaa-aaaaa-qaabq-cai") },
           to,
           BigInt(amount)
         )
@@ -346,10 +346,6 @@ const Account: React.FC<AccountProps> = ({
             duration: 5000,
             isClosable: true
           })
-
-          setTimeout(() => {
-            getIcrcBalance("by6od-j4aaa-aaaaa-qaadq-cai")
-          }, 2000)
         })
         .catch(err => {
           toast({
@@ -399,9 +395,6 @@ const Account: React.FC<AccountProps> = ({
           })
 
           setLoadings(prev => ({ ...prev, ICP: false }))
-          setTimeout(() => {
-            getIcpBalance()
-          }, 2000)
         })
         .catch(err => {
           console.log(err)
@@ -425,48 +418,65 @@ const Account: React.FC<AccountProps> = ({
     ICRC: getIcrcBalance
   }
 
+  const addressesWithChain: AddressesWithChain[] = useMemo(() => {
+    const addressItem: AddressesWithChain[] = []
+
+    chains.map(([chain, address]) => {
+      const symbol = Object.keys(chain)[0] as ChainSymbol
+      const network = Object.values(chain)[0] as ChainNetwork
+
+      const detail =
+        network === null
+          ? null
+          : typeof network === "string"
+          ? network
+          : typeof network === "bigint"
+          ? network.toString()
+          : (network as Principal)._isPrincipal
+          ? network.toString()
+          : Object.keys(network)[0]
+
+      addressItem.push({
+        address,
+        symbol,
+        network,
+        detail,
+        chain
+      })
+    })
+
+    return addressItem
+  }, [chains])
+
   useEffect(() => {
-    if (!isExpanded) {
+    if (!isExpanded && addressesWithChain.length > 0) {
       return
     }
-    getEthBalance()
-    getBtcBalance()
-    getIcpBalance()
-  }, [getEthBalance, getBtcBalance, getIcpBalance, isExpanded])
+    addressesWithChain.map(({ symbol, network }) => {
+      switch (symbol) {
+        case "ICP":
+          getIcpBalance(network)
+          break
+        case "ICRC":
+          getIcrcBalance(network as Principal)
+          break
+        case "EVM":
+          getEthBalance(network as bigint)
+          break
+        case "BTC":
+          getBtcBalance(network as BtcNetwork)
+          break
+        default:
+          console.log("Unknown chain symbol")
+      }
+    })
+  }, [addressesWithChain, isExpanded])
 
-  const requestPublicKey = async () => {
+  const handleAddressRemove = async (chain: ChainType) => {
     setLoadings(prev => ({ ...prev, global: true }))
-    actor
-      .account_request_public_key(id)
-      .then(() => {
-        setLoadings(prev => ({ ...prev, global: false }))
-        refetchAccount()
-      })
-      .catch(e => {
-        toast({
-          title: "Error",
-          description: e.message,
-          status: "error",
-          duration: 5000,
-          isClosable: true
-        })
-
-        refetchAccount()
-        setLoadings(prev => ({ ...prev, global: false }))
-      })
-  }
-
-  const handleAddressRemove = async (
-    network: ChainTypeStringNetwork,
-    symbol: ChainSymbol
-  ) => {
-    setLoadings(prev => ({ ...prev, global: true }))
-    const networkObject = handleChainType(network, symbol)
-
-    console.log(networkObject)
 
     actor
-      .account_remove_address(id, networkObject as any)
+      .account_remove_address(id, chain)
       .then(() => {
         setLoadings(prev => ({ ...prev, global: false }))
         refetchAccount()
@@ -483,8 +493,6 @@ const Account: React.FC<AccountProps> = ({
         setLoadings(prev => ({ ...prev, global: false }))
       })
   }
-
-  const noPublickey = addresses.length === 1
 
   return (
     <Box position="relative">
@@ -504,42 +512,22 @@ const Account: React.FC<AccountProps> = ({
             actor={actor}
             refetchAccount={refetchAccount}
           />
-          {addresses.map((item, index) => {
-            const key = item[0]
-
-            const symbol = Object.keys(key)[0] as keyof Balances
-            const chains = Object.values(key)[0]
-
-            const network: ChainTypeStringNetwork =
-              chains === null
-                ? null
-                : typeof chains === "string"
-                ? chains
-                : typeof chains === "bigint"
-                ? chains.toString()
-                : (chains as Principal)._isPrincipal
-                ? chains.toString()
-                : Object.keys(chains)[0]
-
-            return (
+          {addressesWithChain.map(
+            ({ address, network, chain, detail, symbol }, index) => (
               <ChainCard
                 key={index}
                 symbol={symbol}
-                address={item[1]}
+                address={address}
                 balance={balances[symbol]}
+                detail={detail}
                 network={network}
                 loading={loadings[symbol]}
                 handleBalance={handleBalance[symbol]}
                 handleTransfer={handleTransfer[symbol]}
-                handlerAddressRemove={handleAddressRemove}
+                handlerAddressRemove={() => handleAddressRemove(chain)}
                 handleTopup={symbol === "ICP" ? handleTopup : undefined}
               />
             )
-          })}
-          {noPublickey && (
-            <Button onClick={requestPublicKey} isLoading={loadings.global}>
-              Request PublicKey
-            </Button>
           )}
         </Stack>
       </AccordionPanel>

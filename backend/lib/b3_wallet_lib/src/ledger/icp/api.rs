@@ -18,7 +18,7 @@ use b3_helper_lib::{
 use ic_cdk::api::call::call;
 
 #[cfg(test)]
-use b3_helper_lib::mocks::ic_cdk_id;
+use crate::mocks::ic_cdk_id;
 #[cfg(not(test))]
 use ic_cdk::api::id as ic_cdk_id;
 

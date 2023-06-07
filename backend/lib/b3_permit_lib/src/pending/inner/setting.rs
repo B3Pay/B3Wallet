@@ -16,13 +16,13 @@ use ic_cdk::{
 
 use crate::{
     pending::Request,
-    types::{ConsendInfo, ConsentMessageResponse},
+    types::{ConsentInfo, ConsentMessageResponse},
 };
 
 use super::InnerRequest;
 
 #[cfg(test)]
-use b3_helper_lib::mocks::ic_cdk_id;
+use crate::mocks::ic_cdk_id;
 #[cfg(not(test))]
 use ic_cdk::api::id as ic_cdk_id;
 
@@ -54,7 +54,7 @@ impl UpdateCanisterSettingsRequest {
             .await
             .map_err(|err| WalletError::UpdateSettingsError(err.1))?;
 
-        Ok(ConsentMessageResponse::Valid(ConsendInfo {
+        Ok(ConsentMessageResponse::Valid(ConsentInfo {
             consent_message: format!("Canister {} settings updated", self.canister_id),
             ..Default::default()
         }))
@@ -112,7 +112,7 @@ impl UpgradeCanisterRequest {
 
         install_code(args).await.unwrap();
 
-        Ok(ConsentMessageResponse::Valid(ConsendInfo {
+        Ok(ConsentMessageResponse::Valid(ConsentInfo {
             consent_message: format!(
                 "Canister {} upgraded to version {}, hash {}",
                 canister_id, self.wasm_version, self.wasm_hash_string

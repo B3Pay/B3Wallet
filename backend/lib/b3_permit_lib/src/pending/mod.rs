@@ -19,7 +19,7 @@ use enum_dispatch::enum_dispatch;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 #[cfg(test)]
-use b3_helper_lib::mocks::ic_timestamp;
+use crate::mocks::ic_timestamp;
 #[cfg(not(test))]
 use ic_cdk::api::time as ic_timestamp;
 

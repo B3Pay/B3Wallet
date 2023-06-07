@@ -5,15 +5,10 @@ use b3_wallet_lib::store::with_wallet;
 use ic_cdk::export::candid::candid_method;
 use ic_cdk::{api::time, query, update};
 
-#[cfg(test)]
-use b3_helper_lib::mocks::ic_cdk_id;
-#[cfg(not(test))]
-use ic_cdk::api::id as ic_cdk_id;
-
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub async fn status() -> WalletCanisterStatus {
-    let canister_id = ic_cdk_id();
+    let canister_id = ic_cdk::api::id();
 
     let version = version();
 
@@ -29,6 +24,18 @@ pub async fn status() -> WalletCanisterStatus {
         canister_status,
         account_status,
     }
+}
+
+#[query]
+#[candid_method(query)]
+pub fn canister_cycle_balance() -> u128 {
+    ic_cdk::api::canister_balance128()
+}
+
+#[query]
+#[candid_method(query)]
+pub fn canister_version() -> u64 {
+    ic_cdk::api::canister_version()
 }
 
 #[query]

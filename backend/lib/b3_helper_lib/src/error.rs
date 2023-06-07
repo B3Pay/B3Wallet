@@ -1,8 +1,11 @@
-use ic_cdk::export::candid::{CandidType, Deserialize};
+use ic_cdk::export::{
+    candid::CandidType,
+    serde::{Deserialize, Serialize},
+};
 
 use crate::{tokens::Tokens, types::BlockIndex};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Serialize, PartialEq)]
 pub enum ICRCAccountError {
     InvalidFormat,
     BadChecksum,
@@ -29,7 +32,7 @@ impl ErrorTrait for ICRCAccountError {
 }
 
 #[rustfmt::skip]
-#[derive(CandidType, Deserialize, Debug)]
+#[derive(CandidType, Deserialize,Serialize, Debug)]
 pub enum SubaccountError {
     HexError(String),
     SliceError(String),
@@ -49,7 +52,7 @@ impl ErrorTrait for SubaccountError {
 }
 
 #[rustfmt::skip]
-#[derive(CandidType, Deserialize, Debug)]
+#[derive(CandidType, Deserialize,Serialize, Debug)]
 pub enum HelperError {
     CanisterStatusError(String),
     CreateCanisterError(String),

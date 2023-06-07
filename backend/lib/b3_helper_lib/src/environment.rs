@@ -1,9 +1,12 @@
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use ic_cdk::export::{
+    candid::CandidType,
+    serde::{Deserialize, Serialize},
+};
 use std::fmt;
 
 use crate::constants::{DEVELOPMENT_PREFIX, STAGING_PREFIX};
 
-#[derive(CandidType, Deserialize, Clone, PartialEq, Default, Debug)]
+#[derive(CandidType, Deserialize, Serialize, Clone, PartialEq, Default, Debug)]
 pub enum Environment {
     Development,
     Staging,

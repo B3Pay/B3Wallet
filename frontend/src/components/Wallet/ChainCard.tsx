@@ -9,7 +9,7 @@ import {
   Stack,
   Text
 } from "@chakra-ui/react"
-import { ChainSymbol, ChainTypeStringNetwork } from "helpers/utiles"
+import { ChainNetwork, ChainSymbol } from "helpers/utiles"
 import React from "react"
 import Address from "./Address"
 import Balance from "./Balance"
@@ -18,15 +18,13 @@ import TransferForm from "./TransferForm"
 interface AddressProps {
   balance: bigint
   symbol: ChainSymbol
-  network: ChainTypeStringNetwork
+  network: ChainNetwork
+  detail: string
   address: string
-  handlerAddressRemove: (
-    network: ChainTypeStringNetwork,
-    symbol: ChainSymbol
-  ) => void
+  handlerAddressRemove: () => void
   handleTransfer: (from: string, to: string, amount: bigint) => Promise<void>
   handleTopup?: (from: string, to: string, amount: bigint) => Promise<void>
-  handleBalance: (chain: ChainTypeStringNetwork) => Promise<void>
+  handleBalance: (network: ChainNetwork) => Promise<void>
   loading: boolean
 }
 
@@ -34,6 +32,7 @@ export const ChainCard: React.FC<AddressProps> = ({
   balance,
   symbol,
   address,
+  detail,
   network,
   handlerAddressRemove,
   handleTransfer,
@@ -56,7 +55,7 @@ export const ChainCard: React.FC<AddressProps> = ({
             <Heading size="xs">{symbol}</Heading>
           </Flex>
           <Flex flex={5}>
-            <Text>{network?.toString()}</Text>
+            <Text>{detail}</Text>
           </Flex>
           <Stack direction="row" justify="end" align="center" flex={2}>
             <IconButton
@@ -67,7 +66,7 @@ export const ChainCard: React.FC<AddressProps> = ({
             />
             <IconButton
               aria-label="Remove"
-              onClick={() => handlerAddressRemove(network, symbol)}
+              onClick={handlerAddressRemove}
               icon={<DeleteIcon />}
               color="red"
             />

@@ -4,11 +4,13 @@ pub mod constants;
 pub mod environment;
 pub mod error;
 pub mod identifier;
-pub mod mocks;
 pub mod subaccount;
 pub mod tokens;
 pub mod types;
 pub mod wasm;
+
+#[cfg(test)]
+pub mod mocks;
 
 use ::easy_hasher::easy_hasher::Hash;
 use easy_hasher::easy_hasher;

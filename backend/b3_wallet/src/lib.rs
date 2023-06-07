@@ -51,7 +51,6 @@ pub fn init() {
 
 #[pre_upgrade]
 pub fn pre_upgrade() {
-    // Unload wasm module that we don't need to upgrade anymore
     with_wasm_mut(|wasm| wasm.unload());
 
     let link = with_permit(|o| o.clone());
@@ -86,6 +85,7 @@ mod tests {
     use b3_permit_lib::types::*;
     use b3_wallet_lib::account::WalletAccount;
     use b3_wallet_lib::ledger::btc::network::BtcNetwork;
+    use b3_wallet_lib::ledger::ckbtc::types::*;
     use b3_wallet_lib::ledger::types::*;
     use b3_wallet_lib::types::*;
 

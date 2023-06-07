@@ -5,7 +5,7 @@ use super::{
 };
 use crate::error::WalletError;
 use async_trait::async_trait;
-use b3_helper_lib::{subaccount::Subaccount, types::CanisterId};
+use b3_helper_lib::{error::ErrorTrait, subaccount::Subaccount, types::CanisterId};
 
 impl Chain {
     pub async fn new_icrc_chain(
@@ -13,8 +13,16 @@ impl Chain {
         subaccount: Subaccount,
     ) -> Result<Self, WalletError> {
         let icrc1 = ICRC1(canister_id.clone());
-        let metadata = icrc1.metadata().await?;
-        let fee = icrc1.fee().await?;
+
+        let metadata = icrc1
+            .metadata()
+            .await
+            .map_err(|e| WalletError::ICRC1Error(e.to_string()))?;
+
+        let fee = icrc1
+            .fee()
+            .await
+            .map_err(|e| WalletError::ICRC1Error(e.to_string()))?;
 
         let chain = Chain::ICRC(ICRC::new(canister_id, subaccount, fee, metadata));
 

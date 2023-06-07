@@ -89,22 +89,22 @@ impl From<&RequestArgs> for ConsentMessageRequest {
 }
 
 #[derive(CandidType, Clone, Debug, Deserialize)]
-pub struct ConsendInfo {
+pub struct ConsentInfo {
     pub consent_message: String,
     pub language: String,
 }
 
-impl Default for ConsendInfo {
+impl Default for ConsentInfo {
     fn default() -> Self {
-        ConsendInfo {
+        ConsentInfo {
             consent_message: "".to_string(),
             language: "en-US".to_string(),
         }
     }
 }
 
-impl From<ConsendInfo> for ConsentMessageResponse {
-    fn from(consent_info: ConsendInfo) -> Self {
+impl From<ConsentInfo> for ConsentMessageResponse {
+    fn from(consent_info: ConsentInfo) -> Self {
         ConsentMessageResponse::Valid(consent_info)
     }
 }
@@ -117,7 +117,7 @@ pub struct ErrorInfo {
 
 #[derive(CandidType, Clone, Debug, Deserialize)]
 pub enum ConsentMessageResponse {
-    Valid(ConsendInfo),
+    Valid(ConsentInfo),
     Forbidden(ErrorInfo),
     MalformedCall(ErrorInfo),
     Other(String),
@@ -143,7 +143,7 @@ impl From<&RequestError> for ConsentMessageResponse {
 
 impl Default for ConsentMessageResponse {
     fn default() -> Self {
-        ConsentMessageResponse::Valid(ConsendInfo::default())
+        ConsentMessageResponse::Valid(ConsentInfo::default())
     }
 }
 

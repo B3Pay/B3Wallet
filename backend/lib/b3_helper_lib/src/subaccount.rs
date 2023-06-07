@@ -7,7 +7,11 @@ use crate::{
     identifier::AccountIdentifier,
     types::CanisterId,
 };
-use ic_cdk::export::{candid::CandidType, serde::Deserialize, Principal};
+use ic_cdk::export::{
+    candid::CandidType,
+    serde::{Deserialize, Serialize},
+    Principal,
+};
 
 use std::{cmp, fmt, hash, mem::size_of, ops::Add};
 
@@ -17,7 +21,7 @@ impl Default for Subaccount {
     }
 }
 
-#[derive(CandidType, Deserialize, Clone, Debug, PartialEq)]
+#[derive(CandidType, Deserialize, Serialize, Clone, Debug, PartialEq)]
 pub struct Subaccount(pub [u8; 32]);
 
 impl Subaccount {

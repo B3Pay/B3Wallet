@@ -5,7 +5,7 @@ use ic_cdk::{
     api::management_canister::main::{CanisterInstallMode, CanisterStatusResponse},
     export::{
         candid::{CandidType, Encode},
-        serde::Deserialize,
+        serde::{Deserialize, Serialize},
         Principal,
     },
 };
@@ -18,7 +18,6 @@ pub type ControllerId = Principal;
 pub type CanisterId = Principal;
 pub type SignerId = Principal;
 
-pub type AccountId = String;
 pub type RequestId = usize;
 pub type Deadline = u64;
 
@@ -26,7 +25,7 @@ pub type Version = String;
 
 pub type Blob = Vec<u8>;
 
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Deserialize, Serialize, Clone)]
 pub struct Wasm(pub ByteBuf);
 
 pub type WasmSize = usize;
@@ -41,7 +40,7 @@ pub struct WalletCanisterInstallArg {
     pub mode: CanisterInstallMode,
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Serialize)]
 pub struct WalletCanisterInitArgs {
     pub owner_id: SignerId,
     pub system_id: Option<CanisterId>,
@@ -53,14 +52,14 @@ impl WalletCanisterInitArgs {
     }
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Serialize)]
 pub struct WalletAllowanceArgs {
     pub limit: Option<u8>,
     pub metadata: Metadata,
     pub expires_at: Option<u64>,
 }
 
-#[derive(CandidType, Default, Deserialize)]
+#[derive(CandidType, Default, Deserialize, Serialize)]
 pub enum TransactionStatus {
     #[default]
     Pending,
@@ -68,14 +67,14 @@ pub enum TransactionStatus {
     Failed,
 }
 
-#[derive(CandidType, Default, Clone, Deserialize)]
+#[derive(CandidType, Default, Clone, Deserialize, Serialize)]
 pub struct AccountsCounter {
     pub development: u64,
     pub production: u64,
     pub staging: u64,
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Serialize)]
 pub struct WalletCanisterStatus {
     pub status_at: u64,
     pub version: String,
@@ -84,7 +83,7 @@ pub struct WalletCanisterStatus {
     pub canister_status: CanisterStatusResponse,
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Serialize)]
 pub struct SystemCanisterStatus {
     pub status_at: u64,
     pub version: String,
@@ -93,12 +92,12 @@ pub struct SystemCanisterStatus {
     pub canister_status: CanisterStatusResponse,
 }
 
-#[derive(CandidType, Deserialize, Debug, PartialEq, Clone)]
+#[derive(CandidType, Deserialize, Serialize, Debug, PartialEq, Clone)]
 pub struct Memo(pub u64);
 
 pub type BlockIndex = u64;
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Serialize)]
 pub struct NotifyTopupArgs {
     pub block_index: BlockIndex,
     pub canister_id: Principal,
@@ -109,13 +108,13 @@ pub struct AccountBalanceArgs {
     pub account: AccountIdentifier,
 }
 
-#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
+#[derive(CandidType, Clone, Deserialize, Serialize, PartialEq, Debug)]
 pub struct Timestamp {
     /// Number of nanoseconds from the UNIX epoch in UTC timezone.
     pub timestamp_nanos: u64,
 }
 
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Deserialize, Serialize, Clone)]
 pub struct TransferArgs {
     pub memo: Memo,
     pub fee: Tokens,
@@ -127,24 +126,24 @@ pub struct TransferArgs {
 
 pub type TransferResult = Result<BlockIndex, HelperError>;
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Serialize)]
 pub enum NotifyTopUpResult {
     Ok(u128),
     Err(HelperError),
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Serialize)]
 pub struct TransferFee {
     pub transfer_fee: Tokens,
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Serialize)]
 pub struct TransferFeeArgs {}
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Serialize)]
 pub struct HeaderField(pub String, pub String);
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Serialize)]
 pub struct HttpRequest {
     pub method: String,
     pub url: String,
@@ -153,7 +152,7 @@ pub struct HttpRequest {
     pub body: Vec<u8>,
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Serialize)]
 pub struct HttpResponse {
     pub status_code: u16,
     pub headers: Vec<HeaderField>,

@@ -5,7 +5,11 @@ use crate::{
     subaccount::Subaccount,
 };
 use easy_hasher::easy_hasher;
-use ic_cdk::export::{candid::CandidType, serde::Deserialize, Principal};
+use ic_cdk::export::{
+    candid::CandidType,
+    serde::{Deserialize, Serialize},
+    Principal,
+};
 use std::{cmp, fmt, hash, str::FromStr};
 
 #[cfg(test)]
@@ -13,7 +17,7 @@ use crate::mocks::ic_cdk_id;
 #[cfg(not(test))]
 use ic_cdk::api::id as ic_cdk_id;
 
-#[derive(CandidType, Deserialize, Debug, Clone)]
+#[derive(CandidType, Deserialize, Serialize, Debug, Clone)]
 pub struct ICRCAccount {
     owner: Principal,
     subaccount: Option<Subaccount>,

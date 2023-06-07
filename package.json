@@ -12,6 +12,7 @@
   ],
   "scripts": {
     "dfx:start": "scripts/start.sh",
+    "dfx:install": "scripts/install.sh",
     "dfx:stop": "dfx stop",
     "build:wallet": "./scripts/build-wallet.sh",
     "deploy": "cargo test && dfx deploy",

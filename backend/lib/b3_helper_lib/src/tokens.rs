@@ -1,7 +1,10 @@
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use ic_cdk::export::{
+    candid::CandidType,
+    serde::{Deserialize, Serialize},
+};
 use std::fmt;
 
-#[derive(CandidType, Deserialize, Clone, Debug, PartialEq)]
+#[derive(CandidType, Deserialize, Serialize, Clone, Debug, PartialEq)]
 pub struct Tokens {
     pub e8s: u64,
 }

@@ -1,6 +1,7 @@
 pub mod api;
 pub mod btc;
 pub mod chain;
+pub mod ckbtc;
 pub mod config;
 pub mod evm;
 pub mod icp;
