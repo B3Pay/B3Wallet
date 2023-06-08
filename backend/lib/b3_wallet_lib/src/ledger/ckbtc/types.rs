@@ -181,21 +181,3 @@ impl ErrorTrait for UpdateBalanceError {
         }
     }
 }
-
-pub enum MinterError {
-    CallError(String),
-    CallResultError(),
-    UpdateError(String),
-    RetrieveError(RetrieveBtcError),
-}
-
-impl ErrorTrait for MinterError {
-    fn to_string(self) -> String {
-        match self {
-            MinterError::CallError(message) => format!("CallError({})", message),
-            MinterError::CallResultError() => "CallResultError".to_string(),
-            MinterError::UpdateError(message) => format!("UpdateError({})", message),
-            MinterError::RetrieveError(error) => format!("RetrieveError({})", error.to_string()),
-        }
-    }
-}

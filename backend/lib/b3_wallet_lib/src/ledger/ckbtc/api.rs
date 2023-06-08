@@ -1,34 +1,32 @@
-use super::types::{ICRC1TransferArgs, TxIndex, ICRC};
+use super::ckbtc::CKBTC;
 use crate::{
     error::WalletError,
+    ledger::icrc::types::ICRC1TransferArgs,
     ledger::types::{Balance, ChainTrait, SendResult},
 };
 use async_trait::async_trait;
 use b3_helper_lib::{account::ICRCAccount, error::ErrorTrait};
-use ic_cdk::api::call::call;
 use std::str::FromStr;
 
-#[cfg(test)]
-use crate::mocks::ic_cdk_id;
-#[cfg(not(test))]
-use ic_cdk::api::id as ic_cdk_id;
-
 #[async_trait]
-impl ChainTrait for ICRC {
+impl ChainTrait for CKBTC {
     fn address(&self) -> String {
-        let owner = ic_cdk_id();
-
-        self.subaccount.icrc_account(owner).to_string()
+        self.account.to_string()
     }
 
     async fn balance(&self) -> Result<Balance, WalletError> {
-        let account = self.subaccount.icrc_account(ic_cdk_id());
+        if self.pending.is_some() {
+            let result = self.update_balance().await?;
 
-        let (res,): (Balance,) = call(self.canister_id, "icrc1_balance_of", (account,))
-            .await
-            .map_err(|e| WalletError::LedgerError(e.1))?;
+            match result {
+                Ok(_) => {}
+                Err(e) => return Err(WalletError::CkbtcUpdateBalance(e.to_string())),
+            };
+        }
 
-        Ok(res)
+        let account = self.account.clone();
+
+        self.ledger.balance_of(account).await
     }
 
     async fn send(&self, to: String, amount: u64) -> Result<SendResult, WalletError> {
@@ -37,17 +35,22 @@ impl ChainTrait for ICRC {
         let transfer_args = ICRC1TransferArgs {
             to,
             amount: amount.into(),
-            from_subaccount: Some(self.subaccount.clone()),
+            from_subaccount: self.account.subaccount(),
             fee: self.fee.clone(),
             memo: self.memo.clone(),
             created_at_time: self.created_at_time,
         };
 
-        let (res,): (TxIndex,) = call(self.canister_id, "icrc1_transfer", (transfer_args,))
+        let result = self
+            .ledger
+            .transfer(transfer_args)
             .await
-            .map_err(|e| WalletError::LedgerError(e.1))?;
+            .map_err(|e| WalletError::ICRC1CallError(e.to_string()))?;
 
-        Ok(SendResult::ICRC(res))
+        match result {
+            Ok(tx_index) => Ok(SendResult::ICRC(tx_index)),
+            Err(e) => Err(WalletError::LedgerError(e.to_string())),
+        }
     }
 
     async fn send_mut(
@@ -57,8 +60,7 @@ impl ChainTrait for ICRC {
         _fee: Option<u64>,
         _memo: Option<String>,
     ) -> Result<SendResult, WalletError> {
-        // TODO: implement the update of the fee and memo fields if user wants to change them
-
+        // TODO: update the struct if the user want that
         self.send(to, amount).await
     }
 }

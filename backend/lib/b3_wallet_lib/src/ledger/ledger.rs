@@ -1,17 +1,27 @@
 use super::{
     btc::network::BtcNetwork,
-    types::{AddressMap, Balance, Chain, ChainId, ChainMap, ChainType, Ledger, SendResult},
+    chain::Chain,
+    ckbtc::ckbtc::CKBTC,
+    icrc::types::ICRC,
+    types::{AddressMap, Balance, ChainEnum, ChainId, ChainMap, EcdsaPublicKey, SendResult},
 };
 use crate::{error::WalletError, ledger::types::ChainTrait};
 use b3_helper_lib::{raw_keccak256, subaccount::Subaccount, types::CanisterId};
 use bitcoin::{secp256k1, Address, PublicKey};
-use std::collections::BTreeMap;
+use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+
+#[derive(CandidType, Deserialize, Clone)]
+pub struct Ledger {
+    pub ecdsa: Option<EcdsaPublicKey>,
+    pub subaccount: Subaccount,
+    pub chains: ChainMap,
+}
 
 impl Default for Ledger {
     fn default() -> Self {
         Ledger {
             ecdsa: None,
-            chains: BTreeMap::default(),
+            chains: ChainMap::default(),
             subaccount: Subaccount::default(),
         }
     }
@@ -23,7 +33,7 @@ impl From<Subaccount> for Ledger {
 
         let mut chains = ChainMap::new();
 
-        chains.insert(ChainType::ICP, ic_chain);
+        chains.insert(ChainEnum::ICP, ic_chain);
 
         Ledger {
             ecdsa: None,
@@ -43,13 +53,32 @@ impl Ledger {
 
     pub async fn send(
         &self,
-        chain_type: ChainType,
+        chain_type: ChainEnum,
         to: String,
         amount: u64,
     ) -> Result<SendResult, WalletError> {
         let chain = self.chain(chain_type)?;
 
         chain.send(to, amount).await
+    }
+    pub async fn send_mut(
+        &mut self,
+        chain_type: ChainEnum,
+        to: String,
+        amount: u64,
+        fee: Option<u64>,
+        memo: Option<String>,
+    ) -> Result<SendResult, WalletError> {
+        let chain = self.chain_mut(chain_type)?;
+
+        chain.send_mut(to, amount, fee, memo).await
+    }
+
+    pub async fn balance(&self, chain_type: ChainEnum) -> Result<Balance, WalletError> {
+        match self.chains.get(&chain_type) {
+            Some(chain) => chain.balance().await,
+            None => Err(WalletError::MissingAddress),
+        }
     }
 
     pub fn addresses(&self) -> AddressMap {
@@ -80,10 +109,15 @@ impl Ledger {
         Ok(public_key)
     }
 
-    pub fn chain(&self, chains: ChainType) -> Result<Chain, WalletError> {
+    pub fn chain(&self, chains: ChainEnum) -> Result<&Chain, WalletError> {
         self.chains
             .get(&chains)
-            .cloned()
+            .ok_or_else(|| WalletError::MissingAddress)
+    }
+
+    pub fn chain_mut(&mut self, chains: ChainEnum) -> Result<&mut Chain, WalletError> {
+        self.chains
+            .get_mut(&chains)
             .ok_or_else(|| WalletError::MissingAddress)
     }
 
@@ -111,26 +145,64 @@ impl Ledger {
         Ok(address)
     }
 
-    pub async fn get_balance(&self, chain_type: ChainType) -> Result<Balance, WalletError> {
-        match self.chains.get(&chain_type) {
-            Some(chain) => chain.balance().await,
-            None => Err(WalletError::MissingAddress),
-        }
-    }
-
-    pub async fn new_chain(&self, chain_type: ChainType) -> Result<Chain, WalletError> {
+    pub async fn new_chain(&self, chain_type: ChainEnum) -> Result<Chain, WalletError> {
         match chain_type {
-            ChainType::ICRC(canister_id) => self.icrc_chain(canister_id).await,
-            ChainType::BTC(btc_network) => self.btc_chain(btc_network),
-            ChainType::EVM(chain) => self.eth_chain(chain),
-            ChainType::ICP => Ok(self.icp_chain()),
+            ChainEnum::CKBTC(btc_network) => {
+                let subaccount = self.subaccount.to_owned();
+                let chain = Chain::new_ckbtc_chain(btc_network, subaccount).await?;
+
+                Ok(chain)
+            }
+            ChainEnum::ICRC(canister_id) => {
+                let subaccount = self.subaccount.to_owned();
+                let chain = Chain::new_icrc_chain(canister_id, subaccount).await?;
+
+                Ok(chain)
+            }
+            ChainEnum::BTC(btc_network) => {
+                let btc_address = self.btc_address(btc_network)?;
+
+                let btc_chain = Chain::new_btc_chain(btc_network, btc_address.to_string());
+
+                Ok(btc_chain)
+            }
+            ChainEnum::EVM(chain_id) => {
+                let eth_address = self.eth_address()?;
+
+                let eth_chain = Chain::new_evm_chain(chain_id, eth_address);
+
+                Ok(eth_chain)
+            }
+            ChainEnum::ICP => {
+                let icp_chain = Chain::new_icp_chain(self.subaccount.to_owned());
+
+                Ok(icp_chain)
+            }
         }
     }
 
-    pub async fn icrc_chain(&self, canister_id: CanisterId) -> Result<Chain, WalletError> {
-        let chain = Chain::new_icrc_chain(canister_id, self.subaccount.to_owned()).await?;
+    pub fn icrc(&self, canister_id: CanisterId) -> Option<&ICRC> {
+        let chain = self.chains.get(&ChainEnum::ICRC(canister_id))?;
 
-        Ok(chain)
+        chain.icrc()
+    }
+
+    pub fn icrc_mut(&mut self, canister_id: CanisterId) -> Option<&mut ICRC> {
+        let chain = self.chains.get_mut(&ChainEnum::ICRC(canister_id))?;
+
+        chain.icrc_mut()
+    }
+
+    pub fn ckbtc(&self, network: BtcNetwork) -> Option<&CKBTC> {
+        let chain = self.chains.get(&ChainEnum::CKBTC(network))?;
+
+        chain.ckbtc()
+    }
+
+    pub fn ckbtc_mut(&mut self, network: BtcNetwork) -> Option<&mut CKBTC> {
+        let chain = self.chains.get_mut(&ChainEnum::CKBTC(network))?;
+
+        chain.ckbtc_mut()
     }
 
     pub fn icp_chain(&self) -> Chain {
@@ -171,11 +243,11 @@ impl Ledger {
         Ok(())
     }
 
-    pub fn insert_chain(&mut self, chain_type: ChainType, chain: Chain) {
+    pub fn insert_chain(&mut self, chain_type: ChainEnum, chain: Chain) {
         self.chains.insert(chain_type, chain);
     }
 
-    pub fn remove_address(&mut self, chain_type: ChainType) -> Result<(), WalletError> {
+    pub fn remove_address(&mut self, chain_type: ChainEnum) -> Result<(), WalletError> {
         if self.chains.remove(&chain_type).is_none() {
             return Err(WalletError::MissingAddress);
         }

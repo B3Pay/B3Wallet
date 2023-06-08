@@ -1,6 +1,6 @@
 use crate::counter::CounterTrait;
 use crate::error::WalletError;
-use crate::ledger::types::Ledger;
+use crate::ledger::ledger::Ledger;
 use crate::types::{WalletAccountMap, WalletAccountView};
 use crate::{account::WalletAccount, types::AccountId};
 use b3_helper_lib::environment::Environment;

@@ -1,12 +1,14 @@
-use crate::ledger::types::Balance;
+use crate::{error::WalletError, ledger::types::Balance};
 use b3_helper_lib::{
     account::ICRCAccount, error::ErrorTrait, subaccount::Subaccount, types::CanisterId,
 };
 use ic_cdk::export::{
     candid::{CandidType, Int, Nat},
-    serde::Deserialize,
+    serde::{Deserialize, Serialize},
 };
 use serde_bytes::ByteBuf;
+
+use super::icrc1::ICRC1;
 
 pub type TxIndex = Nat;
 
@@ -31,7 +33,7 @@ pub struct ICRC1TransferArgs {
 }
 
 /// Variant type for the `metadata` endpoint values.
-#[derive(CandidType, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(CandidType, Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub enum ICRC1MetadataValue {
     Nat(Nat),
     Int(Int),
@@ -50,20 +52,27 @@ pub struct ICRC {
 }
 
 impl ICRC {
-    pub fn new(
-        canister_id: CanisterId,
-        subaccount: Subaccount,
-        fee: ICRCTokens,
-        metadata: ICRCMetadata,
-    ) -> Self {
-        ICRC {
+    pub async fn new(canister_id: CanisterId, subaccount: Subaccount) -> Result<Self, WalletError> {
+        let icrc1 = ICRC1(canister_id.clone());
+
+        let metadata = icrc1
+            .metadata()
+            .await
+            .map_err(|e| WalletError::ICRC1Error(e.to_string()))?;
+
+        let fee = icrc1
+            .fee()
+            .await
+            .map_err(|e| WalletError::ICRC1Error(e.to_string()))?;
+
+        Ok(ICRC {
             canister_id,
             subaccount,
             metadata,
             memo: None,
             fee: Some(fee),
             created_at_time: None,
-        }
+        })
     }
 }
 

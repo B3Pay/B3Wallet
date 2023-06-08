@@ -13,6 +13,18 @@ export const getHostFromUrl = (hostUrl: string) => {
   }
 }
 
+export function convertBigIntToNumber(bigintValue: BigInt): number | null {
+  const numberValue = Number(bigintValue)
+  if (Number.isSafeInteger(numberValue)) {
+    return numberValue
+  } else {
+    console.warn(
+      "The BigInt value is too large to be safely converted to Number."
+    )
+    return null // or throw an error, or handle in some other way
+  }
+}
+
 export interface ChainTypeMap {
   BTC: BtcNetwork
   EVM: bigint

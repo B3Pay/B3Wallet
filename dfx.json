@@ -168,6 +168,7 @@
       "wasm": ""
     },
     "wallet_assets": {
+      "build": "yarn build",
       "frontend": {
         "entrypoint": "out/index.html"
       },

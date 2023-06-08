@@ -1,6 +1,7 @@
+use super::ledger::Ledger;
 use super::subaccount::SubaccountTrait;
 use super::types::{
-    ECDSAPublicKeyArgs, ECDSAPublicKeyResponse, Ledger, SignWithECDSAArgs, SignWithECDSAResponse,
+    ECDSAPublicKeyArgs, ECDSAPublicKeyResponse, SignWithECDSAArgs, SignWithECDSAResponse,
 };
 use crate::error::WalletError;
 use b3_helper_lib::constants::MANAGMENT_CANISTER_ID;

@@ -1,77 +1,95 @@
+use crate::{error::WalletError, ledger::btc::network::BtcNetwork};
+
 use super::types::{
-    GetBtcAddressArgs, MinterError, RetrieveBtcArgs, RetrieveBtcResult, RetrieveBtcStatus,
+    GetBtcAddressArgs, RetrieveBtcArgs, RetrieveBtcResult, RetrieveBtcStatus,
     RetrieveBtcStatusRequest, UpdateBalanceArgs, UpdateBalanceResult,
 };
 use b3_helper_lib::{
     account::ICRCAccount,
-    constants::CKBTC_MINTER_CANISTER,
-    subaccount::Subaccount,
+    constants::CKBTC_MINTER_CANISTER_MAINNET,
     types::{BlockIndex, CanisterId},
 };
 use ic_cdk::api::call::call;
+use ic_cdk::export::{
+    candid::CandidType,
+    serde::{Deserialize, Serialize},
+};
 
-pub struct Minter;
+#[derive(CandidType, Clone, Deserialize, Serialize, PartialEq, Debug)]
+pub struct Minter(pub BtcNetwork);
 
 impl Minter {
-    pub async fn get_btc_address(
-        owner: Option<CanisterId>,
-        subaccount: Option<Subaccount>,
-    ) -> Result<String, MinterError> {
-        let args = GetBtcAddressArgs { owner, subaccount };
+    pub fn canister_id(&self) -> CanisterId {
+        match self.0 {
+            BtcNetwork::Testnet => CanisterId::from_text("ml52i-qqaaa-aaaar-qaaba-cai").unwrap(),
+            BtcNetwork::Regtest => CKBTC_MINTER_CANISTER_MAINNET,
+            BtcNetwork::Mainnet => CKBTC_MINTER_CANISTER_MAINNET,
+        }
+    }
 
-        let (btc_address,): (String,) = call(CKBTC_MINTER_CANISTER, "get_btc_address", (args,))
+    pub async fn get_btc_address(&self, account: ICRCAccount) -> Result<String, WalletError> {
+        let args = GetBtcAddressArgs {
+            owner: Some(account.owner()),
+            subaccount: account.subaccount(),
+        };
+
+        let (btc_address,): (String,) = call(self.canister_id(), "get_btc_address", (args,))
             .await
-            .map_err(|err| MinterError::CallError(err.1))?;
+            .map_err(|err| WalletError::MinterError(err.1))?;
 
         Ok(btc_address)
     }
 
-    pub async fn get_withdrawal_account() -> Result<ICRCAccount, MinterError> {
+    pub async fn get_withdrawal_account(&self) -> Result<ICRCAccount, WalletError> {
         let (withdrawal_account,): (ICRCAccount,) =
-            call(CKBTC_MINTER_CANISTER, "get_withdrawal_account", ())
+            call(self.canister_id(), "get_withdrawal_account", ())
                 .await
-                .map_err(|err| MinterError::CallError(err.1))?;
+                .map_err(|err| WalletError::MinterError(err.1))?;
 
         Ok(withdrawal_account)
     }
 
     pub async fn update_balance(
-        owner: Option<CanisterId>,
-        subaccount: Option<Subaccount>,
-    ) -> Result<UpdateBalanceResult, MinterError> {
-        let args = UpdateBalanceArgs { owner, subaccount };
+        &self,
+        account: ICRCAccount,
+    ) -> Result<UpdateBalanceResult, WalletError> {
+        let args = UpdateBalanceArgs {
+            owner: Some(account.owner()),
+            subaccount: account.subaccount(),
+        };
 
-        let (utxos,): (UpdateBalanceResult,) =
-            call(CKBTC_MINTER_CANISTER, "update_balance", (args,))
-                .await
-                .map_err(|err| MinterError::CallError(err.1))?;
+        let (utxos,): (UpdateBalanceResult,) = call(self.canister_id(), "update_balance", (args,))
+            .await
+            .map_err(|err| WalletError::MinterError(err.1))?;
 
         Ok(utxos)
     }
 
     pub async fn retrieve_btc(
+        &self,
         address: String,
         amount: u64,
-    ) -> Result<RetrieveBtcResult, MinterError> {
+    ) -> Result<RetrieveBtcResult, WalletError> {
         let args = RetrieveBtcArgs { address, amount };
 
         let (block_index,): (RetrieveBtcResult,) =
-            call(CKBTC_MINTER_CANISTER, "retrieve_btc", (args,))
+            call(self.canister_id(), "retrieve_btc", (args,))
                 .await
-                .map_err(|err| MinterError::CallError(err.1))?;
+                .map_err(|err| WalletError::MinterError(err.1))?;
 
         Ok(block_index)
     }
 
     pub async fn retrieve_btc_status(
+        &self,
         block_index: BlockIndex,
-    ) -> Result<RetrieveBtcStatus, MinterError> {
+    ) -> Result<RetrieveBtcStatus, WalletError> {
         let args = RetrieveBtcStatusRequest { block_index };
 
         let (status,): (RetrieveBtcStatus,) =
-            call(CKBTC_MINTER_CANISTER, "retrieve_btc_status", (args,))
+            call(self.canister_id(), "retrieve_btc_status", (args,))
                 .await
-                .map_err(|err| MinterError::CallError(err.1))?;
+                .map_err(|err| WalletError::MinterError(err.1))?;
 
         Ok(status)
     }

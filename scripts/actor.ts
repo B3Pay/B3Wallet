@@ -8,8 +8,8 @@ import { initIdentity } from "./utils"
 
 const systemPrincipalIC = () => {
   const buffer = readFileSync("./canister_ids.json")
-  const { console } = JSON.parse(buffer.toString("utf-8"))
-  return Principal.fromText(console.ic)
+  const { b3_system } = JSON.parse(buffer.toString("utf-8"))
+  return Principal.fromText(b3_system.ic)
 }
 
 const systemPrincipalLocal = () => {
@@ -22,17 +22,6 @@ const userPrincipalLocal = () => {
   const buffer = readFileSync("./.dfx/local/canister_ids.json")
   const { b3_wallet } = JSON.parse(buffer.toString("utf-8"))
   return Principal.fromText(b3_wallet.local)
-}
-
-export const systemActorIC = async () => {
-  const canisterId = systemPrincipalIC()
-
-  const agent = icAgent()
-
-  return Actor.createActor(systemFactory, {
-    agent,
-    canisterId
-  })
 }
 
 export const icAgent = () => {
@@ -60,6 +49,17 @@ export const systemLocalActor = async () => {
   const canisterId = systemPrincipalLocal()
 
   const agent = await localAgent()
+
+  return Actor.createActor(systemFactory, {
+    agent,
+    canisterId
+  }) as Promise<B3System>
+}
+
+export const systemActorIC = async () => {
+  const canisterId = systemPrincipalIC()
+
+  const agent = icAgent()
 
   return Actor.createActor(systemFactory, {
     agent,

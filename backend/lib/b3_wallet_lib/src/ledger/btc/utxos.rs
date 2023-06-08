@@ -143,8 +143,10 @@ mod test {
     use crate::{
         ledger::{
             btc::{network::BtcNetwork, utxos::BtcUtxos},
-            types::{Chain, ChainMap, ChainType},
-            types::{ChainTrait, Ledger},
+            chain::Chain,
+            ledger::Ledger,
+            types::ChainTrait,
+            types::{ChainEnum, ChainMap},
         },
         mocks::ic_cdk_id,
     };
@@ -168,7 +170,7 @@ mod test {
 
         let mut chains = ChainMap::new();
 
-        chains.insert(ChainType::ICP, icp_chain);
+        chains.insert(ChainEnum::ICP, icp_chain);
 
         let mut public_keys = Ledger {
             subaccount,

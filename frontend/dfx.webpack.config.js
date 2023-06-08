@@ -15,7 +15,7 @@ function initCanisterIds() {
     console.log("No local canister_ids.json found. Continuing production")
   }
   try {
-    prodCanisters = require(path.resolve("canister_ids.json"))
+    prodCanisters = require(path.resolve("../", "canister_ids.json"))
   } catch (error) {
     console.log("No production canister_ids.json found. Continuing with local")
   }
@@ -43,7 +43,7 @@ function initCanisterIds() {
   }
 
   writeFileSync(
-    path.resolve(".env"),
+    path.resolve("../.env"),
     Object.entries(envList)
       .map(([key, value]) => `${key}=${value}`)
       .join("\n")

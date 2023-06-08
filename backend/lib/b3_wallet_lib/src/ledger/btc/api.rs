@@ -1,6 +1,7 @@
 use crate::error::WalletError;
-use crate::ledger::types::{ChainTrait, ChainType};
-use crate::ledger::{types::BtcTxId, types::Ledger};
+use crate::ledger::types::{ChainEnum, ChainTrait};
+use crate::ledger::{ledger::Ledger, types::BtcTxId};
+use b3_helper_lib::error::ErrorTrait;
 use bitcoin::consensus::serialize;
 use bitcoin::sighash::{EcdsaSighashType, SighashCache};
 use bitcoin::{ecdsa::Signature, hashes::Hash, Address, Script, Transaction};
@@ -19,7 +20,7 @@ impl Ledger {
         btc_network: BtcNetwork,
         min_confirmations: Option<u32>,
     ) -> Result<Satoshi, WalletError> {
-        let chain = self.chain(ChainType::BTC(btc_network))?;
+        let chain = self.chain(ChainEnum::BTC(btc_network))?;
 
         btc_network
             .get_balance(chain.address(), min_confirmations)
@@ -33,7 +34,7 @@ impl Ledger {
         btc_network: BtcNetwork,
         filter: Option<UtxoFilter>,
     ) -> Result<GetUtxosResponse, WalletError> {
-        let chain = self.chain(ChainType::BTC(btc_network))?;
+        let chain = self.chain(ChainEnum::BTC(btc_network))?;
 
         btc_network.get_utxos(chain.address(), filter).await
     }
@@ -110,5 +111,29 @@ impl Ledger {
         }
 
         Ok(transaction.clone())
+    }
+
+    pub async fn swap_btc_to_ckbtc(
+        &self,
+        btc_network: BtcNetwork,
+        amount: Satoshi,
+    ) -> Result<BtcTxId, WalletError> {
+        let ckbtc = self
+            .ckbtc(btc_network)
+            .ok_or(WalletError::BitcoinSwapToCkbtcError(
+                "CKBtc not initialized!".to_string(),
+            ))?;
+
+        let dst_address = ckbtc
+            .get_btc_address()
+            .await
+            .map_err(|err| WalletError::BitcoinSwapToCkbtcError(err.to_string()))?;
+
+        let tx_id = self
+            .bitcoin_transfer(btc_network, &dst_address, amount)
+            .await
+            .map_err(|err| WalletError::BitcoinSwapToCkbtcError(err.to_string()))?;
+
+        Ok(tx_id)
     }
 }

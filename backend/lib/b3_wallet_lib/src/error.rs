@@ -8,6 +8,8 @@ pub enum WalletError {
     InvalidRequest,
     InvalidNetwork,
     MissingAddress,
+    ChainNotFound,
+    CkbtcNotInitialized,
     InvalidTx(String),
     InvalidMsg(String),
     SignError(String),
@@ -18,8 +20,12 @@ pub enum WalletError {
     MissingSighashType,
     BitcoinGetAddressError,
     NoUtxos,
+    MinterError(String),
     ICRC1Error(String),
     ICRC1CallError(String),
+    CkbtcPendingBalance(String),
+    CkbtcUpdateBalance(String),
+    CkbtcSwapToBtcError(String),
     BitcoinFeeTooHighError(u64, u64),
     BitcoinSignatureError(String),
     BitcoinGetBalanceError(String),
@@ -29,6 +35,7 @@ pub enum WalletError {
     BitcoinGetCurrentFeePercentilesError(String),
     BitcoinGetFeeRateError(String),
     BitcoinInsufficientBalanceError(u64, u64),
+    BitcoinSwapToCkbtcError(String),
     BitcoinInvalidFeePercentile,
     CyclesMintingError(String),
     CanisterStatusError(String),
@@ -67,7 +74,8 @@ pub enum WalletError {
     InvalidRecoveryId(String),
     WalletAccountAlreadyExists,
     WalletAccountCounterMismatch,
-    WasmNotLoaded
+    WasmNotLoaded,
+    ChainTypeMismatch
 }
 
 #[rustfmt::skip]
@@ -79,6 +87,9 @@ impl ErrorTrait for WalletError {
             WalletError::InvalidRequest => "::Invalid request".to_string(),
             WalletError::InvalidNetwork => "::Invalid network".to_string(),
             WalletError::InvalidNetworkAddress => "::Invalid network address".to_string(),
+            WalletError::MinterError(msg) => ["::Minter error: ", &msg].concat(),
+            WalletError::ChainNotFound => "::Chain not found".to_string(),
+            WalletError::CkbtcNotInitialized => "::CKBTC not initialized".to_string(),
             WalletError::MissingAddress => "::Missing address".to_string(),
             WalletError::ICRC1Error(msg) => ["::ICRC1 error: ", &msg].concat(),
             WalletError::ICRC1CallError(msg) => ["::ICRC1 call error: ", &msg].concat(),
@@ -114,6 +125,10 @@ impl ErrorTrait for WalletError {
             WalletError::BitcoinSendTransactionError(msg) => ["::Bitcoin send transaction error: ", &msg].concat(),
             WalletError::BitcoinGetFeeRateError(msg) => ["::Bitcoin get fee rate error: ", &msg].concat(),
             WalletError::BitcoinInsufficientBalanceError(balance, amount) => ["::Bitcoin insufficient balance: ", &balance.to_string(), " < ", &amount.to_string()].concat(),
+            WalletError::BitcoinSwapToCkbtcError(msg) => ["::Bitcoin swap to ckbtc error: ", &msg].concat(),
+            WalletError::CkbtcSwapToBtcError(msg) => format!("Swap CKBTC to BTC failed: {}", msg),
+            WalletError::CkbtcUpdateBalance(msg) => format!("Update CKBTC balance failed: {}", msg),
+            WalletError::CkbtcPendingBalance(msg) => format!("Pending CKBTC balance failed: {}", msg),
             WalletError::Processing => "::Processing error".to_string(),
             WalletError::InvalidMessageLength => "::Invalid message length".to_string(),
             WalletError::MissingEcdsaPublicKey => "::Missing ECDSA public key".to_string(),
@@ -138,6 +153,7 @@ impl ErrorTrait for WalletError {
             WalletError::WalletAccountAlreadyExists => "::Wallet account already exists!".to_string(),
             WalletError::WalletAccountCounterMismatch => "::Wallet account counter mismatch!".to_string(),
             WalletError::WasmNotLoaded => "::Wasm not loaded!".to_string(),
+            WalletError::ChainTypeMismatch => "::Chain type mismatch!".to_string(),
         }
     }
 }

@@ -24,7 +24,8 @@ use ic_cdk::api::id as ic_cdk_id;
 
 use crate::{
     error::WalletError,
-    ledger::types::{Balance, ChainTrait, Ledger, SendResult, ICP},
+    ledger::ledger::Ledger,
+    ledger::types::{Balance, ChainTrait, SendResult, ICP},
 };
 
 #[async_trait]
@@ -65,6 +66,17 @@ impl ChainTrait for ICP {
             .map_err(|e| WalletError::LedgerError(e.1))?;
 
         Ok(SendResult::ICP(res))
+    }
+
+    async fn send_mut(
+        &mut self,
+        to: String,
+        amount: u64,
+        _fee: Option<u64>,
+        _memo: Option<String>,
+    ) -> Result<SendResult, WalletError> {
+        // TODO: This is a hack to get around the fact that we can't have mutable self and
+        self.send(to, amount).await
     }
 }
 

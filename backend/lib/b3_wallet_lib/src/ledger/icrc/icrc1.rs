@@ -1,10 +1,14 @@
 use b3_helper_lib::{account::ICRCAccount, types::CanisterId};
 use ic_cdk::api::call::call;
 
-use crate::error::WalletError;
-
 use super::types::{ICRC1TransferArgs, ICRC1TransferResult, ICRCMetadata, ICRCTokens};
+use crate::error::WalletError;
+use ic_cdk::export::{
+    candid::CandidType,
+    serde::{Deserialize, Serialize},
+};
 
+#[derive(CandidType, Clone, Deserialize, Serialize, PartialEq, Debug)]
 pub struct ICRC1(pub CanisterId);
 
 impl ICRC1 {
@@ -60,8 +64,8 @@ impl ICRC1 {
         Ok(res)
     }
 
-    pub async fn balance_of(&self, account: ICRCAccount) -> Result<u128, WalletError> {
-        let (res,): (u128,) = call(self.0, "icrc1_balance_of", (account,))
+    pub async fn balance_of(&self, account: ICRCAccount) -> Result<ICRCTokens, WalletError> {
+        let (res,): (ICRCTokens,) = call(self.0, "icrc1_balance_of", (account,))
             .await
             .map_err(|e| WalletError::ICRC1CallError(e.1))?;
 

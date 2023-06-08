@@ -10,14 +10,23 @@ type AddSignerRequest = record {
   signer_id : principal;
   expires_at : opt nat64;
 };
-type BTC = record { address : text; btc_network : BtcNetwork };
+type BTC = record { address : text; btc_network : Minter };
 type BtcNetwork = variant { Mainnet; Regtest; Testnet };
 type BtcRequest = variant { BtcTransferRequest : BtcTransferRequest };
 type BtcTransferRequest = record {
   to : text;
   account_id : text;
-  network : BtcNetwork;
+  network : Minter;
   amount : nat64;
+};
+type CKBTC = record {
+  fee : opt nat;
+  pending : opt text;
+  memo : opt vec nat8;
+  subaccount : vec nat8;
+  minter : Minter;
+  ledger : principal;
+  created_at_time : opt nat64;
 };
 type CanisterSettings = record {
   freezing_threshold : opt nat;
@@ -34,12 +43,19 @@ type CanisterStatusResponse = record {
   module_hash : opt vec nat8;
 };
 type CanisterStatusType = variant { stopped; stopping; running };
-type Chain = variant { BTC : BTC; EVM : EVM; ICP : ICP; ICRC : ICRC };
-type ChainType = variant {
-  BTC : BtcNetwork;
+type Chain = variant {
+  BTC : BTC;
+  EVM : EVM;
+  ICP : ICP;
+  ICRC : ICRC;
+  CKBTC : CKBTC;
+};
+type ChainEnum = variant {
+  BTC : Minter;
   EVM : nat64;
   ICP;
   ICRC : principal;
+  CKBTC : Minter;
 };
 type ConsentInfo = record { consent_message : text; language : text };
 type ConsentMessageRequest = record {
@@ -185,8 +201,9 @@ type InnerRequest = variant {
 type Ledger = record {
   subaccount : vec nat8;
   ecdsa : opt vec nat8;
-  chains : vec record { ChainType; Chain };
+  chains : vec record { ChainEnum; Chain };
 };
+type Minter = variant { Mainnet; Regtest; Testnet };
 type OutPoint = record { txid : vec nat8; vout : nat32 };
 type Outpoint = record { txid : vec nat8; vout : nat32 };
 type PendingRequest = record {
@@ -355,7 +372,7 @@ type WalletAccountView = record {
   metadata : vec record { text; text };
   name : text;
   hidden : bool;
-  addresses : vec record { ChainType; text };
+  addresses : vec record { ChainEnum; text };
   environment : Environment;
 };
 type WalletCanisterStatus = record {
@@ -366,27 +383,29 @@ type WalletCanisterStatus = record {
   account_status : AccountsCounter;
 };
 service : () -> {
+  account_balance : (text, ChainEnum) -> (nat);
   account_balance_btc : (text, BtcNetwork, opt nat32) -> (nat64);
   account_btc_fees : (BtcNetwork, nat8) -> (nat64);
   account_btc_utxos : (text, BtcNetwork, opt UtxoFilter) -> (GetUtxosResponse);
+  account_ckbtc_balance : (text, BtcNetwork) -> (nat);
   account_create : (opt Environment, opt text) -> ();
-  account_generate_address : (text, ChainType) -> ();
+  account_generate_address : (text, ChainEnum) -> ();
   account_hide : (text) -> ();
   account_icp_balance : (text) -> (nat);
   account_icrc_balance : (text, principal) -> (nat);
   account_remove : (text) -> ();
-  account_remove_address : (text, ChainType) -> ();
+  account_remove_address : (text, ChainEnum) -> ();
   account_rename : (text, text) -> ();
   account_restore : (Environment, nat64) -> ();
-  account_send : (text, ChainType, text, nat64) -> ();
+  account_send : (text, ChainEnum, text, nat64) -> ();
   account_send_btc : (text, BtcNetwork, text, nat64) -> (text);
   account_send_icp : (text, text, Tokens, opt Tokens, opt nat64) -> (nat64);
   account_swap_btc_to_ckbtc : (text, BtcNetwork, nat64) -> (text);
-  account_swap_ckbtc_to_btc : (text, text, nat64) -> (text);
+  account_swap_ckbtc_to_btc : (text, BtcNetwork, text, nat64) -> (text);
   account_top_up_and_notify : (text, Tokens, opt principal, opt Tokens) -> (
       nat,
     );
-  account_update_balance : (text) -> (Result);
+  account_update_balance : (text, BtcNetwork) -> (Result);
   canister_cycle_balance : () -> (nat) query;
   canister_version : () -> (nat64) query;
   get_account : (text) -> (WalletAccount) query;
@@ -394,8 +413,7 @@ service : () -> {
   get_account_counters : () -> (AccountsCounter) query;
   get_account_view : (text) -> (WalletAccountView) query;
   get_account_views : () -> (vec WalletAccountView) query;
-  get_addresses : (text) -> (vec record { ChainType; text }) query;
-  get_balance : (nat64) -> (RetrieveBtcStatus) query;
+  get_addresses : (text) -> (vec record { ChainEnum; text }) query;
   get_pending_list : () -> (vec PendingRequest) query;
   get_processed : (nat64) -> (ProcessedRequest) query;
   get_processed_list : () -> (vec ProcessedRequest) query;
@@ -415,6 +433,7 @@ service : () -> {
       nat64,
     );
   reset_wallet : () -> ();
+  retrieve_btc_status : (Minter, nat64) -> (RetrieveBtcStatus) query;
   signer_add : (principal, Roles) -> (vec record { principal; Signer });
   signer_remove : (principal) -> (vec record { principal; Signer });
   status : () -> (WalletCanisterStatus);

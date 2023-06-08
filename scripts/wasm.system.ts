@@ -1,6 +1,6 @@
 import { ReleaseArgs } from "../frontend/declarations/b3_system/b3_system.did"
 import { B3System } from "../frontend/src/service/actor"
-import { systemLocalActor } from "./actor"
+import { systemActorIC, systemLocalActor } from "./actor"
 import { chunkGenerator, loadWasm, readVersion } from "./utils"
 
 const loadRelease = async (
@@ -50,8 +50,8 @@ export const load = async (actor: B3System, reload: boolean) => {
   // await loadRelease(actor, wasmModuleCandid, version + "-candid")
 }
 
-const loader = async (reload: boolean) => {
-  const actor = await systemLocalActor()
+const loader = async (mainnet: boolean, reload: boolean) => {
+  const actor = await (mainnet ? systemActorIC : systemLocalActor)()
 
   await load(actor, reload)
 }
@@ -59,4 +59,7 @@ const loader = async (reload: boolean) => {
 const reload =
   process.argv.find(arg => arg.indexOf("--reload") > -1) !== undefined
 
-loader(reload)
+const mainnet =
+  process.argv.find(arg => arg.indexOf("--mainnet") > -1) !== undefined
+
+loader(mainnet, reload)

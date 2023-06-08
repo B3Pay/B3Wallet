@@ -25,7 +25,9 @@
     "wasm:wallet": "ts-node ./scripts/wasm.wallet.ts",
     "wasm:system": "ts-node ./scripts/wasm.system.ts",
     "wasm:copy": "ts-node ./scripts/wasm.copy.ts",
-    "dev": "cd frontend && npm run dev"
+    "ic:dev": "DFX_NETWORK=ic yarn dev",
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build"
   },
   "devDependencies": {
     "@types/node": "^18.15.13",

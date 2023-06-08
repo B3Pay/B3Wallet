@@ -1,6 +1,6 @@
 use crate::{
     error::WalletError,
-    ledger::{evm::api::get_evm_transaction, types::Ledger},
+    ledger::{evm::api::get_evm_transaction, ledger::Ledger},
     types::WalletAccountView,
 };
 use b3_helper_lib::{environment::Environment, subaccount::Subaccount, types::Metadata};

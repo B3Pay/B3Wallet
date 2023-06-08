@@ -1,5 +1,7 @@
 use super::{
     btc::network::BtcNetwork,
+    chain::Chain,
+    ckbtc::ckbtc::CKBTC,
     icrc::types::{TxIndex, ICRC},
 };
 use crate::error::WalletError;
@@ -37,41 +39,35 @@ pub type BtcTxId = Txid;
 
 pub type BtcOutPoint = OutPoint;
 
-pub type ChainMap = BTreeMap<ChainType, Chain>;
+pub type ChainMap = BTreeMap<ChainEnum, Chain>;
 
-pub type AddressMap = BTreeMap<ChainType, String>;
+pub type AddressMap = BTreeMap<ChainEnum, String>;
 
 #[derive(CandidType, PartialEq, Eq, PartialOrd, Ord, Deserialize, Clone)]
-pub enum ChainType {
+pub enum ChainEnum {
+    CKBTC(BtcNetwork),
     ICRC(CanisterId),
     BTC(BtcNetwork),
     EVM(ChainId),
     ICP,
 }
 
-impl ChainType {
+impl ChainEnum {
     pub fn is_icrc(&self) -> bool {
-        matches!(self, ChainType::ICRC(_))
+        matches!(self, ChainEnum::ICRC(_))
     }
 
     pub fn is_btc(&self) -> bool {
-        matches!(self, ChainType::BTC(_))
+        matches!(self, ChainEnum::BTC(_))
     }
 
     pub fn is_evm(&self) -> bool {
-        matches!(self, ChainType::EVM(_))
+        matches!(self, ChainEnum::EVM(_))
     }
 
     pub fn is_icp(&self) -> bool {
-        matches!(self, ChainType::ICP)
+        matches!(self, ChainEnum::ICP)
     }
-}
-
-#[derive(CandidType, Deserialize, Clone)]
-pub struct Ledger {
-    pub ecdsa: Option<EcdsaPublicKey>,
-    pub subaccount: Subaccount,
-    pub chains: ChainMap,
 }
 
 #[async_trait]
@@ -80,28 +76,21 @@ pub trait ChainTrait {
     fn address(&self) -> String;
     async fn balance(&self) -> Result<Balance, WalletError>;
     async fn send(&self, to: String, amount: u64) -> Result<SendResult, WalletError>;
+    async fn send_mut(
+        &mut self,
+        to: String,
+        amount: u64,
+        fee: Option<u64>,
+        memo: Option<String>,
+    ) -> Result<SendResult, WalletError>;
 }
 
 pub enum SendResult {
     ICP(TransferResult),
+    CKBTC(TxIndex),
     ICRC(TxIndex),
     BTC(BtcTxId),
     EVM,
-}
-
-#[enum_dispatch(ChainTrait)]
-#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
-pub enum Chain {
-    ICRC,
-    BTC,
-    EVM,
-    ICP,
-}
-
-impl Default for Chain {
-    fn default() -> Self {
-        Chain::ICP(ICP::new(Subaccount::default()))
-    }
 }
 
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]

@@ -56,6 +56,7 @@ impl Subaccount {
         // Copy the nonce bytes into the subaccount array starting from the 25th byte
         // This leaves the first 24 bytes of the subaccount array as 0 (or the environment prefix at the 24th byte),
         // and the rest of the array as the nonce in big-endian order
+        // with this we get smallest ICRCAccount ids
         subaccount[24..].copy_from_slice(&nonce_bytes);
 
         Subaccount(subaccount)
@@ -162,6 +163,7 @@ impl Subaccount {
     pub fn from_base32(base32: &str) -> Result<Self, SubaccountError> {
         let bytes =
             base32_decode(base32).map_err(|e| SubaccountError::Base32Error(e.to_string()))?;
+
         Subaccount::from_slice(&bytes)
     }
 }
@@ -171,7 +173,7 @@ impl Subaccount {
         AccountIdentifier::new(owner, self.clone())
     }
 
-    pub fn icrc1_account(&self, owner: CanisterId) -> ICRCAccount {
+    pub fn icrc_account(&self, owner: CanisterId) -> ICRCAccount {
         ICRCAccount::new(owner, Some(self.clone()))
     }
 }

@@ -3,7 +3,9 @@ mod tests {
     use crate::{
         ledger::{
             btc::network::BtcNetwork,
-            types::{Chain, ChainMap, ChainTrait, ChainType, Ledger},
+            chain::Chain,
+            ledger::Ledger,
+            types::{ChainEnum, ChainMap, ChainTrait},
         },
         mocks::ic_cdk_id,
     };
@@ -26,7 +28,7 @@ mod tests {
 
         let icp_chain = Chain::new_icp_chain(subaccount.clone());
 
-        chains.insert(ChainType::ICP, icp_chain);
+        chains.insert(ChainEnum::ICP, icp_chain);
 
         let mut ledger = Ledger {
             ecdsa: None,
@@ -50,9 +52,9 @@ mod tests {
 
         let eth_chain = ledger.eth_chain(1).unwrap();
 
-        ledger.insert_chain(ChainType::EVM(1), eth_chain);
+        ledger.insert_chain(ChainEnum::EVM(1), eth_chain);
 
-        let eth_address = ledger.chain(ChainType::EVM(1)).unwrap().address();
+        let eth_address = ledger.chain(ChainEnum::EVM(1)).unwrap().address();
 
         assert_eq!(eth_address, "0x7e87f653ec3e9c6cde261e0e2e3e9c14bbe86802");
 
@@ -62,9 +64,9 @@ mod tests {
 
         let chain = ledger.btc_chain(BtcNetwork::Regtest).unwrap();
 
-        ledger.insert_chain(ChainType::BTC(BtcNetwork::Regtest), chain);
+        ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Regtest), chain);
 
-        let btc_address = ledger.chain(ChainType::BTC(BtcNetwork::Regtest)).unwrap();
+        let btc_address = ledger.chain(ChainEnum::BTC(BtcNetwork::Regtest)).unwrap();
 
         assert_eq!(btc_address.address(), "n2JigTXi8Nhqe1qmeAaUCAj3rWsgxRzMe3");
 
@@ -72,17 +74,17 @@ mod tests {
 
         let chain = ledger.btc_chain(BtcNetwork::Mainnet).unwrap();
 
-        ledger.insert_chain(ChainType::BTC(BtcNetwork::Mainnet), chain);
+        ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Mainnet), chain);
 
-        let btc_address = ledger.chain(ChainType::BTC(BtcNetwork::Mainnet)).unwrap();
+        let btc_address = ledger.chain(ChainEnum::BTC(BtcNetwork::Mainnet)).unwrap();
 
         assert_eq!(btc_address.address(), "1MnmPQSjKMGaruN9vbc6NFWizXGz6SgpdC");
 
         let chain = ledger.btc_chain(BtcNetwork::Testnet).unwrap();
 
-        ledger.insert_chain(ChainType::BTC(BtcNetwork::Testnet), chain);
+        ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Testnet), chain);
 
-        let btc_address = ledger.chain(ChainType::BTC(BtcNetwork::Testnet)).unwrap();
+        let btc_address = ledger.chain(ChainEnum::BTC(BtcNetwork::Testnet)).unwrap();
 
         assert_eq!(btc_address.address(), "n2JigTXi8Nhqe1qmeAaUCAj3rWsgxRzMe3");
 
@@ -109,7 +111,7 @@ mod tests {
 
         let icp_chain = Chain::new_icp_chain(subaccount.clone());
 
-        chains.insert(ChainType::ICP, icp_chain);
+        chains.insert(ChainEnum::ICP, icp_chain);
 
         let mut ledger = Ledger {
             ecdsa: None,
@@ -126,7 +128,7 @@ mod tests {
 
         ledger.set_ecdsa(ecdsa).unwrap();
 
-        let icp_address = ledger.chain(ChainType::ICP).unwrap();
+        let icp_address = ledger.chain(ChainEnum::ICP).unwrap();
 
         assert_eq!(
             icp_address.address(),
@@ -182,7 +184,7 @@ mod tests {
 
         let icp_chain = Chain::new_icp_chain(subaccount.clone());
 
-        chains.insert(ChainType::ICP, icp_chain);
+        chains.insert(ChainEnum::ICP, icp_chain);
 
         let mut ledger = Ledger {
             ecdsa: None,
@@ -197,7 +199,7 @@ mod tests {
 
         ledger.set_ecdsa(ecdsa).unwrap();
 
-        let icp_address = ledger.chain(ChainType::ICP).unwrap();
+        let icp_address = ledger.chain(ChainEnum::ICP).unwrap();
 
         assert_eq!(
             icp_address.address(),

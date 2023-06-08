@@ -31,7 +31,7 @@ const decode = (rawKey: string) => {
 
 export const initIdentity = (mainnet: boolean) => {
   const file = `/Users/b3hr4d/.config/dfx/identity/${
-    mainnet ? "main" : "default"
+    mainnet ? "default" : "default"
   }/identity.pem`
   const buffer = readFileSync(file)
   const key = buffer.toString("utf-8")

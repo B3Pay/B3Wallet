@@ -61,6 +61,14 @@ impl ICRCAccount {
     pub fn to_text(&self) -> String {
         self.to_string()
     }
+
+    pub fn subaccount(&self) -> Option<Subaccount> {
+        self.subaccount.clone()
+    }
+
+    pub fn owner(&self) -> Principal {
+        self.owner.clone()
+    }
 }
 
 impl PartialEq for ICRCAccount {
