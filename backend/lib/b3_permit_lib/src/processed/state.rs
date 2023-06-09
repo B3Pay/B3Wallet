@@ -18,7 +18,7 @@ impl PrmitState {
     ) -> Result<(), RequestError> {
         self.pending
             .remove(&request_id)
-            .ok_or(RequestError::RequestNotExists)?;
+            .ok_or(RequestError::RequestNotFound(request_id))?;
 
         self.processed.insert(request_id, processed);
 
@@ -28,6 +28,6 @@ impl PrmitState {
     pub fn processed(&self, request_id: &RequestId) -> Result<&ProcessedRequest, RequestError> {
         self.processed
             .get(&request_id)
-            .ok_or(RequestError::RequestNotExists)
+            .ok_or(RequestError::RequestNotFound(request_id.to_owned()))
     }
 }

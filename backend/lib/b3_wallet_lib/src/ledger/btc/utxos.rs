@@ -1,8 +1,5 @@
-use super::utils::mock_signer;
-use crate::{
-    error::WalletError,
-    ledger::types::{BtcOutPoint, BtcTransaction, BtcTxOut},
-};
+use super::{error::BitcoinError, utils::mock_signer};
+use crate::ledger::types::{BtcOutPoint, BtcTransaction, BtcTxOut};
 use bitcoin::{
     absolute::LockTime, hashes::Hash, Address, PublicKey, Script, Transaction, TxIn, Txid,
 };
@@ -11,11 +8,11 @@ use ic_cdk::api::management_canister::bitcoin::{GetUtxosResponse, Utxo};
 pub struct BtcUtxos(Vec<Utxo>);
 
 impl TryFrom<GetUtxosResponse> for BtcUtxos {
-    type Error = WalletError;
+    type Error = BitcoinError;
 
     fn try_from(utxos: GetUtxosResponse) -> Result<Self, Self::Error> {
         if utxos.utxos.is_empty() {
-            return Err(WalletError::NoUtxos);
+            return Err(BitcoinError::NoUtxos);
         }
 
         Ok(Self(utxos.utxos))
@@ -23,11 +20,11 @@ impl TryFrom<GetUtxosResponse> for BtcUtxos {
 }
 
 impl TryFrom<Vec<Utxo>> for BtcUtxos {
-    type Error = WalletError;
+    type Error = BitcoinError;
 
     fn try_from(utxos: Vec<Utxo>) -> Result<Self, Self::Error> {
         if utxos.is_empty() {
-            return Err(WalletError::NoUtxos);
+            return Err(BitcoinError::NoUtxos);
         }
 
         Ok(Self(utxos))
@@ -42,7 +39,7 @@ impl BtcUtxos {
         recipient: &Address,
         amount: u64,
         fee_rate: u64,
-    ) -> Result<Transaction, WalletError> {
+    ) -> Result<Transaction, BitcoinError> {
         let mut total_fee = 0;
         loop {
             let mut transaction =
@@ -72,7 +69,7 @@ impl BtcUtxos {
 
             // If the fee is too high, we're done.
             if fee > amount {
-                return Err(WalletError::BitcoinFeeTooHighError(fee, amount));
+                return Err(BitcoinError::FeeTooHigh(fee, amount));
             }
         }
     }
@@ -83,7 +80,7 @@ impl BtcUtxos {
         dst_address: &Address,
         amount: u64,
         fee: u64,
-    ) -> Result<Transaction, WalletError> {
+    ) -> Result<Transaction, BitcoinError> {
         // Assume that any amount below this threshold is dust.
         const DUST_THRESHOLD: u64 = 1_000;
 
@@ -112,10 +109,7 @@ impl BtcUtxos {
         }
 
         if total_spent < amount + fee {
-            return Err(WalletError::BitcoinInsufficientBalanceError(
-                total_spent,
-                amount + fee,
-            ));
+            return Err(BitcoinError::InsufficientBalance(total_spent, amount + fee));
         }
 
         transaction.output.push(BtcTxOut {
@@ -143,9 +137,8 @@ mod test {
     use crate::{
         ledger::{
             btc::{network::BtcNetwork, utxos::BtcUtxos},
-            chain::Chain,
+            chain::{Chain, ChainTrait},
             ledger::Ledger,
-            types::ChainTrait,
             types::{ChainEnum, ChainMap},
         },
         mocks::ic_cdk_id,
@@ -184,8 +177,6 @@ mod test {
         ];
 
         public_keys.set_ecdsa(ecdsa).unwrap();
-
-        public_keys.btc_chain(BtcNetwork::Mainnet).unwrap();
 
         let utxos = BtcUtxos::try_from(vec![
             Utxo {

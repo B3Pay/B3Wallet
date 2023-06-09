@@ -1,20 +1,8 @@
-use super::{
-    btc::network::BtcNetwork,
-    chain::Chain,
-    ckbtc::ckbtc::CKBTC,
-    icrc::types::{TxIndex, ICRC},
-};
-use crate::error::WalletError;
-use async_trait::async_trait;
-use b3_helper_lib::{
-    constants::{CANISTER_TRANSFER_MEMO, IC_TRANSACTION_FEE_ICP},
-    subaccount::Subaccount,
-    tokens::Tokens,
-    types::{CanisterId, Memo, Timestamp, TransferResult},
-};
-use bitcoin::{AddressType, OutPoint, Transaction, TxIn, TxOut, Txid};
+use super::{btc::network::BtcNetwork, chain::Chain, ckbtc::types::BtcTxId, icrc::types::TxIndex};
+
+use b3_helper_lib::types::{CanisterId, TransferResult};
+use bitcoin::{AddressType, OutPoint, Transaction, TxIn, TxOut};
 use candid::Nat;
-use enum_dispatch::enum_dispatch;
 use ic_cdk::export::{
     candid::CandidType,
     serde::{Deserialize, Serialize},
@@ -34,8 +22,6 @@ pub type BtcTransaction = Transaction;
 pub type BtcTxIn = TxIn;
 
 pub type BtcTxOut = TxOut;
-
-pub type BtcTxId = Txid;
 
 pub type BtcOutPoint = OutPoint;
 
@@ -70,21 +56,7 @@ impl ChainEnum {
     }
 }
 
-#[async_trait]
-#[enum_dispatch]
-pub trait ChainTrait {
-    fn address(&self) -> String;
-    async fn balance(&self) -> Result<Balance, WalletError>;
-    async fn send(&self, to: String, amount: u64) -> Result<SendResult, WalletError>;
-    async fn send_mut(
-        &mut self,
-        to: String,
-        amount: u64,
-        fee: Option<u64>,
-        memo: Option<String>,
-    ) -> Result<SendResult, WalletError>;
-}
-
+#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub enum SendResult {
     ICP(TransferResult),
     CKBTC(TxIndex),
@@ -94,32 +66,13 @@ pub enum SendResult {
 }
 
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
-pub struct ICP {
-    pub subaccount: Subaccount,
-    pub memo: Memo,
-    pub fee: Tokens,
-    pub created_at_time: Option<Timestamp>,
-}
-
-impl ICP {
-    pub fn new(subaccount: Subaccount) -> Self {
-        ICP {
-            subaccount,
-            memo: CANISTER_TRANSFER_MEMO,
-            fee: IC_TRANSACTION_FEE_ICP,
-            created_at_time: None,
-        }
-    }
-}
-
-#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
-pub struct BTC {
+pub struct BtcChain {
     pub btc_network: BtcNetwork,
     pub address: String, // Added address field
 }
 
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
-pub struct EVM {
+pub struct EvmChain {
     pub chain_id: ChainId,
     pub address: String,
 }

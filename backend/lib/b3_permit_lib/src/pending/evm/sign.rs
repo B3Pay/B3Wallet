@@ -1,5 +1,5 @@
-use super::EvmRequest;
-use crate::{pending::Request, types::ConsentMessageResponse};
+use crate::{error::RequestError, pending::RequestTrait, types::ConsentMessageResponse};
+use async_trait::async_trait;
 use b3_wallet_lib::{
     error::WalletError,
     ledger::evm::api::{get_evm_transaction, EvmTransaction},
@@ -16,19 +16,29 @@ pub struct EvmSignTranscationRequest {
     pub transaction: EvmTransaction,
 }
 
-impl From<EvmSignTranscationRequest> for Request {
-    fn from(args: EvmSignTranscationRequest) -> Self {
-        EvmRequest::EvmSignTranscationRequest(args).into()
-    }
-}
-
-impl EvmSignTranscationRequest {
-    pub async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+#[async_trait]
+impl RequestTrait for EvmSignTranscationRequest {
+    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
         let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
 
         let _signed = ledger.sign_with_ecdsa(self.message.clone()).await?;
 
-        Ok(ConsentMessageResponse::default())
+        todo!("return signed tx")
+    }
+
+    fn validate_request(&self) -> Result<(), RequestError> {
+        // check if the chain id is initialized
+        with_ledger(&self.account_id, |ledger| {
+            if ledger.evm(self.chain_id).is_some() {
+                Ok(())
+            } else {
+                Err(RequestError::ChainIdNotInitialized)
+            }
+        })?
+    }
+
+    fn method_name(&self) -> String {
+        "evm_sign_transaction".to_string()
     }
 }
 
@@ -59,19 +69,29 @@ impl TryFrom<EvmSignRawTransactionRequest> for EvmSignTranscationRequest {
     }
 }
 
-impl From<EvmSignRawTransactionRequest> for Request {
-    fn from(args: EvmSignRawTransactionRequest) -> Self {
-        EvmRequest::EvmSignRawTransactionRequest(args).into()
-    }
-}
-
-impl EvmSignRawTransactionRequest {
-    pub async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+#[async_trait]
+impl RequestTrait for EvmSignRawTransactionRequest {
+    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
         let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
 
         let _signed = ledger.sign_with_ecdsa(self.hex_raw_tx.clone()).await?;
 
-        Ok(ConsentMessageResponse::default())
+        todo!("return signed tx")
+    }
+
+    fn validate_request(&self) -> Result<(), RequestError> {
+        // check if the chain id is initialized
+        with_ledger(&self.account_id, |ledger| {
+            if ledger.evm(self.chain_id).is_some() {
+                Ok(())
+            } else {
+                Err(RequestError::ChainIdNotInitialized)
+            }
+        })?
+    }
+
+    fn method_name(&self) -> String {
+        "evm_sign_transaction".to_string()
     }
 }
 
@@ -82,18 +102,28 @@ pub struct EvmSignMessageRequest {
     pub message: Vec<u8>,
 }
 
-impl From<EvmSignMessageRequest> for Request {
-    fn from(args: EvmSignMessageRequest) -> Self {
-        EvmRequest::EvmSignMessageRequest(args).into()
-    }
-}
-
-impl EvmSignMessageRequest {
-    pub async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+#[async_trait]
+impl RequestTrait for EvmSignMessageRequest {
+    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
         let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
 
         let _signed = ledger.sign_with_ecdsa(self.message.clone()).await?;
 
-        Ok(ConsentMessageResponse::default())
+        todo!("return signed tx")
+    }
+
+    fn validate_request(&self) -> Result<(), RequestError> {
+        // check if the chain id is initialized
+        with_ledger(&self.account_id, |ledger| {
+            if ledger.evm(1).is_some() {
+                Ok(())
+            } else {
+                Err(RequestError::ChainIdNotInitialized)
+            }
+        })?
+    }
+
+    fn method_name(&self) -> String {
+        "evm_sign_message".to_string()
     }
 }

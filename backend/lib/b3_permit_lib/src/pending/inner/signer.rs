@@ -1,17 +1,17 @@
 use crate::{
-    pending::Request,
+    error::RequestError,
+    pending::RequestTrait,
     signer::{Roles, Signer},
     store::with_permit_mut,
     types::{ConsentInfo, ConsentMessageResponse},
 };
+use async_trait::async_trait;
 use b3_helper_lib::types::{Metadata, SignerId};
 use b3_wallet_lib::error::WalletError;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
-use super::InnerRequest;
-
 // ADD SIGNER
-#[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
+#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub struct AddSignerRequest {
     pub name: Option<String>,
     pub role: Roles,
@@ -32,14 +32,9 @@ impl From<&AddSignerRequest> for Signer {
     }
 }
 
-impl From<AddSignerRequest> for Request {
-    fn from(args: AddSignerRequest) -> Self {
-        InnerRequest::AddSignerRequest(args).into()
-    }
-}
-
-impl AddSignerRequest {
-    pub fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+#[async_trait]
+impl RequestTrait for AddSignerRequest {
+    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
         let signer_id = self.signer_id.clone();
         with_permit_mut(|link| {
             if link.signers.contains_key(&signer_id) {
@@ -50,26 +45,32 @@ impl AddSignerRequest {
 
             Ok(ConsentMessageResponse::Valid(ConsentInfo {
                 consent_message: format!("Signer {} added", signer_id),
-                ..Default::default()
             }))
         })
+    }
+
+    fn validate_request(&self) -> Result<(), RequestError> {
+        if self.threshold.is_some() && self.role != Roles::Threshold {
+            return Err(RequestError::InvalidThreshold);
+        }
+
+        Ok(())
+    }
+
+    fn method_name(&self) -> String {
+        "add_signer".to_string()
     }
 }
 
 // REMOVE SIGNER
-#[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
+#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub struct RemoveSignerRequest {
     pub signer_id: SignerId,
 }
 
-impl From<RemoveSignerRequest> for Request {
-    fn from(args: RemoveSignerRequest) -> Self {
-        InnerRequest::RemoveSignerRequest(args).into()
-    }
-}
-
-impl RemoveSignerRequest {
-    pub fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+#[async_trait]
+impl RequestTrait for RemoveSignerRequest {
+    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
         let signer_id = self.signer_id.clone();
         with_permit_mut(|link| {
             if !link.signers.contains_key(&signer_id) {
@@ -80,27 +81,34 @@ impl RemoveSignerRequest {
 
             Ok(ConsentMessageResponse::Valid(ConsentInfo {
                 consent_message: format!("Signer {} removed", signer_id),
-                ..Default::default()
             }))
         })
+    }
+
+    fn validate_request(&self) -> Result<(), RequestError> {
+        // check if the signer exists
+        if !with_permit_mut(|link| link.signers.contains_key(&self.signer_id)) {
+            return Err(RequestError::SignerDoesNotExist(self.signer_id.to_string()));
+        }
+
+        Ok(())
+    }
+
+    fn method_name(&self) -> String {
+        "remove_signer".to_string()
     }
 }
 
 // UPDATE SIGNER THRESHOLD
-#[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
+#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub struct UpdateSignerThresholdRequest {
     pub signer_id: SignerId,
     pub threshold: u8,
 }
 
-impl From<UpdateSignerThresholdRequest> for Request {
-    fn from(args: UpdateSignerThresholdRequest) -> Self {
-        InnerRequest::UpdateSignerThresholdRequest(args).into()
-    }
-}
-
-impl UpdateSignerThresholdRequest {
-    pub fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+#[async_trait]
+impl RequestTrait for UpdateSignerThresholdRequest {
+    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
         let signer_id = self.signer_id.clone();
         with_permit_mut(|link| {
             if !link.signers.contains_key(&signer_id) {
@@ -112,8 +120,19 @@ impl UpdateSignerThresholdRequest {
 
             Ok(ConsentMessageResponse::Valid(ConsentInfo {
                 consent_message: format!("Signer {} threshold updated", signer_id),
-                ..Default::default()
             }))
         })
+    }
+
+    fn validate_request(&self) -> Result<(), RequestError> {
+        if self.threshold == 0 {
+            return Err(RequestError::InvalidThreshold);
+        }
+
+        Ok(())
+    }
+
+    fn method_name(&self) -> String {
+        "update_signer_threshold".to_string()
     }
 }

@@ -1,10 +1,6 @@
-use std::fmt;
-
-use crate::error::WalletError;
 use b3_helper_lib::constants::{
     GET_BALANCE_COST_CYCLES, GET_CURRENT_FEE_PERCENTILES_CYCLES, GET_UTXOS_COST_CYCLES,
 };
-
 use candid::{CandidType, Deserialize, Principal};
 use ic_cdk::api::management_canister::bitcoin::{bitcoin_send_transaction, SendTransactionRequest};
 use ic_cdk::api::{
@@ -15,6 +11,9 @@ use ic_cdk::api::{
     },
 };
 use serde::Serialize;
+use std::fmt;
+
+use super::error::BitcoinError;
 
 /// Bitcoin Network.
 #[derive(
@@ -35,7 +34,7 @@ impl Default for BtcNetwork {
 impl BtcNetwork {
     /// Get the fee percentile.
     /// This is used to calculate the fee rate.
-    pub async fn fee_percentiles(&self) -> Result<Vec<MillisatoshiPerByte>, WalletError> {
+    pub async fn fee_percentiles(&self) -> Result<Vec<MillisatoshiPerByte>, BitcoinError> {
         let network = BitcoinNetwork::from(*self);
 
         let (satoshies,): (Vec<MillisatoshiPerByte>,) = call_with_payment(
@@ -45,23 +44,26 @@ impl BtcNetwork {
             GET_CURRENT_FEE_PERCENTILES_CYCLES,
         )
         .await
-        .map_err(|err| WalletError::BitcoinGetCurrentFeePercentilesError(err.1))?;
+        .map_err(|err| BitcoinError::GetCurrentFeePercentiles(err.1))?;
 
         Ok(satoshies)
     }
 
     /// Get the fee rate.
     /// This is used to calculate the fee amount.
-    pub async fn fee_rate(&self, fee_percentile: u8) -> Result<MillisatoshiPerByte, WalletError> {
+    pub async fn fee_rate(&self, fee_percentile: u8) -> Result<MillisatoshiPerByte, BitcoinError> {
         let fee_percentiles = self.fee_percentiles().await?;
 
         if fee_percentiles.is_empty() {
             return Ok(2000);
         }
 
-        let fee_percentile = fee_percentiles
-            .get(fee_percentile as usize)
-            .ok_or(WalletError::BitcoinInvalidFeePercentile)?;
+        let fee_percentile = fee_percentiles.get(fee_percentile as usize).ok_or(
+            BitcoinError::InvalidFeePercentile(format!(
+                "fee_percentile {} is out of range",
+                fee_percentile
+            )),
+        )?;
 
         Ok(*fee_percentile)
     }
@@ -74,7 +76,7 @@ impl BtcNetwork {
         &self,
         address: String,
         min_confirmations: Option<u32>,
-    ) -> Result<Satoshi, WalletError> {
+    ) -> Result<Satoshi, BitcoinError> {
         let network = BitcoinNetwork::from(*self);
 
         let (satoshi,): (Satoshi,) = call_with_payment(
@@ -88,7 +90,7 @@ impl BtcNetwork {
             GET_BALANCE_COST_CYCLES,
         )
         .await
-        .map_err(|err| WalletError::BitcoinGetBalanceError(err.1))?;
+        .map_err(|err| BitcoinError::GetBalance(err.1))?;
 
         Ok(satoshi)
     }
@@ -99,7 +101,7 @@ impl BtcNetwork {
         &self,
         address: String,
         filter: Option<UtxoFilter>,
-    ) -> Result<GetUtxosResponse, WalletError> {
+    ) -> Result<GetUtxosResponse, BitcoinError> {
         let network = BitcoinNetwork::from(*self);
 
         let (utxos,): (GetUtxosResponse,) = call_with_payment(
@@ -113,12 +115,12 @@ impl BtcNetwork {
             GET_UTXOS_COST_CYCLES,
         )
         .await
-        .map_err(|err| WalletError::BitcoinGetUtxosError(err.1))?;
+        .map_err(|err| BitcoinError::GetUtxos(err.1))?;
 
         Ok(utxos)
     }
 
-    pub async fn send_transaction(&self, transaction: Vec<u8>) -> Result<(), WalletError> {
+    pub async fn send_transaction(&self, transaction: Vec<u8>) -> Result<(), BitcoinError> {
         let network = BitcoinNetwork::from(*self);
 
         let send_args = SendTransactionRequest {
@@ -128,7 +130,7 @@ impl BtcNetwork {
 
         bitcoin_send_transaction(send_args)
             .await
-            .map_err(|err| WalletError::BitcoinSendTransactionError(err.1))?;
+            .map_err(|err| BitcoinError::SendTransaction(err.1))?;
 
         Ok(())
     }

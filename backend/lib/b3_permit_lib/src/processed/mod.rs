@@ -44,7 +44,7 @@ impl From<PendingRequest> for ProcessedRequest {
         let message = if let Some(error) = &error {
             ConsentMessageResponse::from(error)
         } else {
-            ConsentMessageResponse::default()
+            ConsentMessageResponse::from(&RequestError::InvalidRequest)
         };
 
         ProcessedRequest {
@@ -66,7 +66,7 @@ impl ProcessedRequest {
             method: request.method(),
             request: request.clone(),
             status: RequestStatus::Pending,
-            message: ConsentMessageResponse::default(),
+            message: ConsentMessageResponse::from(&RequestError::InvalidRequest),
         }
     }
 

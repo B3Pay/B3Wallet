@@ -12,12 +12,12 @@ impl PrmitState {
     pub fn signer(&self, signer_id: &SignerId) -> Result<&Signer, RequestError> {
         self.signers
             .get(signer_id)
-            .ok_or(RequestError::RequestNotExists)
+            .ok_or(RequestError::SignerNotFound(signer_id.to_string()))
     }
 
     pub fn signer_mut(&mut self, signer_id: &SignerId) -> Result<&mut Signer, RequestError> {
         self.signers
             .get_mut(signer_id)
-            .ok_or(RequestError::RequestNotExists)
+            .ok_or(RequestError::SignerNotFound(signer_id.to_string()))
     }
 }

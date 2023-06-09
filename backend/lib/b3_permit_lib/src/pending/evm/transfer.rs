@@ -1,7 +1,6 @@
-use crate::{pending::Request, types::ConsentMessageResponse};
+use crate::{error::RequestError, pending::RequestTrait, types::ConsentMessageResponse};
 
-use super::EvmRequest;
-
+use async_trait::async_trait;
 use b3_wallet_lib::{
     error::WalletError,
     ledger::evm::{api::EvmSign, tx1559::EvmTransaction1559, utils::get_transfer_data},
@@ -22,14 +21,9 @@ pub struct EvmTransferEthRequest {
     max_priority_fee_per_gas: Option<u64>,
 }
 
-impl From<EvmTransferEthRequest> for Request {
-    fn from(args: EvmTransferEthRequest) -> Self {
-        EvmRequest::EvmTransferEthRequest(args).into()
-    }
-}
-
-impl EvmTransferEthRequest {
-    pub async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+#[async_trait]
+impl RequestTrait for EvmTransferEthRequest {
+    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
         let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
 
         // TODO: get default gas limit from user settings
@@ -56,7 +50,22 @@ impl EvmTransferEthRequest {
 
         let _signed = ledger.sign_with_ecdsa(raw_tx).await?;
 
-        Ok(ConsentMessageResponse::default())
+        todo!("return signed tx")
+    }
+
+    fn validate_request(&self) -> Result<(), RequestError> {
+        // check if the chain id is initialized
+        with_ledger(&self.account_id, |ledger| {
+            if ledger.evm(self.chain_id).is_some() {
+                Ok(())
+            } else {
+                Err(RequestError::ChainIdNotInitialized)
+            }
+        })?
+    }
+
+    fn method_name(&self) -> String {
+        "evm_transfer_eth".to_string()
     }
 }
 
@@ -74,14 +83,9 @@ pub struct EvmTransferErc20Request {
     max_priority_fee_per_gas: Option<u64>,
 }
 
-impl From<EvmTransferErc20Request> for Request {
-    fn from(args: EvmTransferErc20Request) -> Self {
-        EvmRequest::EvmTransferErc20Request(args).into()
-    }
-}
-
-impl EvmTransferErc20Request {
-    pub async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+#[async_trait]
+impl RequestTrait for EvmTransferErc20Request {
+    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
         let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
 
         let data = "0x".to_owned() + &get_transfer_data(&self.address, self.value)?;
@@ -110,6 +114,21 @@ impl EvmTransferErc20Request {
 
         let _signed = ledger.sign_with_ecdsa(raw_tx).await?;
 
-        Ok(ConsentMessageResponse::default())
+        todo!("return signed tx")
+    }
+
+    fn validate_request(&self) -> Result<(), RequestError> {
+        // check if the chain id is initialized
+        with_ledger(&self.account_id, |ledger| {
+            if ledger.evm(self.chain_id).is_some() {
+                Ok(())
+            } else {
+                Err(RequestError::ChainIdNotInitialized)
+            }
+        })?
+    }
+
+    fn method_name(&self) -> String {
+        self.contract_address.clone()
     }
 }

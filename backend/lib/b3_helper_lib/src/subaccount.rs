@@ -3,7 +3,6 @@ use crate::{
     base32::base32_decode,
     constants::{DEVELOPMENT_PREFIX, STAGING_PREFIX},
     environment::Environment,
-    error::SubaccountError,
     identifier::AccountIdentifier,
     types::CanisterId,
 };
@@ -248,6 +247,25 @@ impl TryFrom<&str> for Subaccount {
 impl fmt::Display for Subaccount {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         hex::encode(&self.0).fmt(f)
+    }
+}
+
+#[derive(CandidType, Deserialize, Serialize, Debug)]
+pub enum SubaccountError {
+    HexError(String),
+    SliceError(String),
+    Base32Error(String),
+    InvalidSubaccount(String),
+}
+
+impl fmt::Display for SubaccountError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            SubaccountError::InvalidSubaccount(e) => write!(f, "InvalidSubaccount: {}", e),
+            SubaccountError::Base32Error(e) => write!(f, "::Subaccount base32 error: {}", e),
+            SubaccountError::SliceError(e) => write!(f, "::Subaccount slice error: {}", e),
+            SubaccountError::HexError(e) => write!(f, "::Subaccount hex error: {}", e),
+        }
     }
 }
 

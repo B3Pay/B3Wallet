@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use b3_helper_lib::{
     types::{CanisterId, WasmHashString, WasmVersion},
     wasm::with_wasm,
@@ -15,11 +16,10 @@ use ic_cdk::{
 };
 
 use crate::{
-    pending::Request,
+    error::RequestError,
+    pending::RequestTrait,
     types::{ConsentInfo, ConsentMessageResponse},
 };
-
-use super::InnerRequest;
 
 #[cfg(test)]
 use crate::mocks::ic_cdk_id;
@@ -27,7 +27,7 @@ use crate::mocks::ic_cdk_id;
 use ic_cdk::api::id as ic_cdk_id;
 
 // UPDATE SETTINGS - START
-#[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
+#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub struct UpdateCanisterSettingsRequest {
     pub canister_id: CanisterId,
     pub settings: CanisterSettings,
@@ -42,42 +42,40 @@ impl From<&UpdateCanisterSettingsRequest> for UpdateSettingsArgument {
     }
 }
 
-impl From<UpdateCanisterSettingsRequest> for Request {
-    fn from(args: UpdateCanisterSettingsRequest) -> Self {
-        InnerRequest::UpdateCanisterSettingsRequest(args).into()
-    }
-}
-
-impl UpdateCanisterSettingsRequest {
-    pub async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+#[async_trait]
+impl RequestTrait for UpdateCanisterSettingsRequest {
+    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
         update_settings(self.into())
             .await
             .map_err(|err| WalletError::UpdateSettingsError(err.1))?;
 
         Ok(ConsentMessageResponse::Valid(ConsentInfo {
             consent_message: format!("Canister {} settings updated", self.canister_id),
-            ..Default::default()
         }))
     }
 
-    pub fn validate_request(&self) -> Result<(), WalletError> {
+    fn validate_request(&self) -> Result<(), RequestError> {
         let canister_id = ic_cdk_id();
 
-        // first check the controller is passed and then check if the controller is in the list of controllers
+        // first check the controller is passed and then check if the canister is in the list of controllers
         if let Some(controller) = self.settings.controllers.as_ref() {
             if !controller.contains(&canister_id) {
-                return Err(WalletError::InvalidController);
+                return Err(RequestError::InvalidController);
             }
         }
 
         Ok(())
+    }
+
+    fn method_name(&self) -> String {
+        "update_canister_settings".to_string()
     }
 }
 
 // UPDATE SETTINGS - END
 
 // UPGRADE CANISTER - START
-#[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
+#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub struct UpgradeCanisterRequest {
     pub wasm_version: WasmVersion,
     pub wasm_hash_string: WasmHashString,
@@ -92,14 +90,9 @@ impl UpgradeCanisterRequest {
     }
 }
 
-impl From<UpgradeCanisterRequest> for Request {
-    fn from(args: UpgradeCanisterRequest) -> Self {
-        InnerRequest::UpgradeCanisterRequest(args).into()
-    }
-}
-
-impl UpgradeCanisterRequest {
-    pub async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+#[async_trait]
+impl RequestTrait for UpgradeCanisterRequest {
+    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
         let canister_id = ic_cdk_id();
         let wasm_module = with_wasm(|w| w.get());
 
@@ -117,7 +110,24 @@ impl UpgradeCanisterRequest {
                 "Canister {} upgraded to version {}, hash {}",
                 canister_id, self.wasm_version, self.wasm_hash_string
             ),
-            ..Default::default()
         }))
+    }
+
+    fn validate_request(&self) -> Result<(), RequestError> {
+        with_wasm(|w| {
+            if w.is_empty() {
+                return Err(RequestError::WasmNotSet);
+            }
+
+            if w.generate_hash_string() != self.wasm_hash_string {
+                return Err(RequestError::InvalidWasmHash);
+            }
+
+            Ok(())
+        })
+    }
+
+    fn method_name(&self) -> String {
+        "upgrade_canister".to_string()
     }
 }

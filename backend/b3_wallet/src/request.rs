@@ -5,14 +5,14 @@ use b3_helper_lib::{
 };
 use b3_permit_lib::{
     pending::{
-        btc::BtcTransferRequest,
-        icp::IcpTransferRequest,
+        btc::transfer::BtcTransferRequest,
+        icp::transfer::IcpTransferRequest,
         inner::{
             account::{CreateAccountRequest, RemoveAccountRequest, RenameAccountRequest},
             setting::UpdateCanisterSettingsRequest,
             signer::AddSignerRequest,
         },
-        Request, RequestArgs,
+        Request, RequestArgs, RequestTrait,
     },
     signer::Roles,
     store::{with_permit, with_permit_mut},

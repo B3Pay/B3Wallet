@@ -14,11 +14,12 @@ pub mod mocks;
 
 use ::easy_hasher::easy_hasher::Hash;
 use easy_hasher::easy_hasher;
-use error::{ErrorTrait, HelperError};
+use error::HelperError;
 use ic_cdk::api::management_canister::{
     main::{canister_status, CanisterStatusResponse},
     provisional::{CanisterId, CanisterIdRecord},
 };
+use std::fmt::Display;
 use types::WasmHash;
 
 pub fn raw_keccak256(data: &[u8]) -> Hash {
@@ -54,6 +55,6 @@ pub async fn b3_canister_status(
     Ok(status)
 }
 
-pub fn revert<T, E: ErrorTrait>(err: E) -> T {
+pub fn revert<T, E: Display>(err: E) -> T {
     ic_cdk::trap(&err.to_string());
 }

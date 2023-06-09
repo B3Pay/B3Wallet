@@ -61,7 +61,7 @@ impl WalletAccount {
         hex_raw_tx: Vec<u8>,
         chain_id: u64,
     ) -> Result<Vec<u8>, WalletError> {
-        let ecdsa = self.ledger.ecdsa()?;
+        let ecdsa = self.ledger.ecdsa().map_err(WalletError::LedgerError)?;
 
         let mut evm_tx = get_evm_transaction(&hex_raw_tx, chain_id)?;
 
@@ -71,7 +71,11 @@ impl WalletAccount {
             return Err(WalletError::InvalidMessageLength);
         }
 
-        let signature = self.ledger.sign_with_ecdsa(message).await?;
+        let signature = self
+            .ledger
+            .sign_with_ecdsa(message)
+            .await
+            .map_err(WalletError::LedgerError)?;
 
         let signed_evm_tx = evm_tx.sign(signature, ecdsa.to_vec())?;
 
@@ -111,6 +115,10 @@ impl WalletAccount {
 
     pub fn ledger(&self) -> &Ledger {
         &self.ledger
+    }
+
+    pub fn is_hidden(&self) -> bool {
+        self.hidden
     }
 
     pub fn ledger_mut(&mut self) -> &mut Ledger {

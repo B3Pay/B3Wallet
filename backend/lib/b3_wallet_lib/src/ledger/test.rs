@@ -3,9 +3,9 @@ mod tests {
     use crate::{
         ledger::{
             btc::network::BtcNetwork,
-            chain::Chain,
+            chain::{Chain, ChainTrait},
             ledger::Ledger,
-            types::{ChainEnum, ChainMap, ChainTrait},
+            types::{ChainEnum, ChainMap},
         },
         mocks::ic_cdk_id,
     };
@@ -50,9 +50,11 @@ mod tests {
 
         println!("identifier: {}", identifier);
 
-        let eth_chain = ledger.eth_chain(1).unwrap();
+        let address = ledger.eth_address().unwrap();
 
-        ledger.insert_chain(ChainEnum::EVM(1), eth_chain);
+        let eth = Chain::new_evm_chain(1, address);
+
+        ledger.insert_chain(ChainEnum::EVM(1), eth);
 
         let eth_address = ledger.chain(ChainEnum::EVM(1)).unwrap().address();
 
@@ -62,7 +64,9 @@ mod tests {
 
         assert_eq!(eth_address.len(), 42);
 
-        let chain = ledger.btc_chain(BtcNetwork::Regtest).unwrap();
+        let btc_address = ledger.btc_address(BtcNetwork::Regtest).unwrap();
+
+        let chain = Chain::new_btc_chain(BtcNetwork::Regtest, btc_address.to_string());
 
         ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Regtest), chain);
 
@@ -72,7 +76,9 @@ mod tests {
 
         println!("btc_address: {}", btc_address.address());
 
-        let chain = ledger.btc_chain(BtcNetwork::Mainnet).unwrap();
+        let btc_address = ledger.btc_address(BtcNetwork::Mainnet).unwrap();
+
+        let chain = Chain::new_btc_chain(BtcNetwork::Mainnet, btc_address.to_string());
 
         ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Mainnet), chain);
 
@@ -80,7 +86,9 @@ mod tests {
 
         assert_eq!(btc_address.address(), "1MnmPQSjKMGaruN9vbc6NFWizXGz6SgpdC");
 
-        let chain = ledger.btc_chain(BtcNetwork::Testnet).unwrap();
+        let btc_address = ledger.btc_address(BtcNetwork::Testnet).unwrap();
+
+        let chain = Chain::new_btc_chain(BtcNetwork::Testnet, btc_address.to_string());
 
         ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Testnet), chain);
 
@@ -137,8 +145,6 @@ mod tests {
 
         println!("icp_address: {}", icp_address.address());
 
-        ledger.eth_chain(1).unwrap();
-
         let eth_address = ledger.eth_address().unwrap();
 
         assert_eq!(eth_address, "0xd0406029f0703f6c04176c16451ce3a324f723c0");
@@ -147,7 +153,14 @@ mod tests {
 
         assert_eq!(eth_address.len(), 42);
 
-        let chain = ledger.btc_chain(BtcNetwork::Mainnet).unwrap();
+        let btc_address = ledger.btc_address(BtcNetwork::Mainnet).unwrap();
+
+        ledger.insert_chain(
+            ChainEnum::BTC(BtcNetwork::Mainnet),
+            Chain::new_btc_chain(BtcNetwork::Mainnet, btc_address.to_string()),
+        );
+
+        let chain = ledger.btc(BtcNetwork::Mainnet).unwrap();
 
         let btc_address = ledger.btc_address(BtcNetwork::Mainnet).unwrap();
 
@@ -208,8 +221,6 @@ mod tests {
 
         println!("icp_address: {}", icp_address.address());
 
-        ledger.eth_chain(1).unwrap();
-
         let eth_address = ledger.eth_address().unwrap();
 
         assert_eq!(eth_address, "0x82f3031c7bd2cd7e5c6d4d83584656b873304502");
@@ -217,8 +228,6 @@ mod tests {
         println!("eth_address: {}", eth_address);
 
         assert_eq!(eth_address.len(), 42);
-
-        ledger.btc_chain(BtcNetwork::Mainnet).unwrap();
 
         let btc_address = ledger.btc_address(BtcNetwork::Mainnet).unwrap().to_string();
 

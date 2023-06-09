@@ -1,12 +1,13 @@
 use crate::{
     error::RequestError,
-    pending::{PendingRequest, RequestArgs},
+    pending::{PendingRequest, RequestArgs, RequestTrait},
     processed::ProcessedRequest,
     signer::Signer,
 };
 use b3_helper_lib::{
-    error::ErrorTrait,
-    types::{RequestId, SignerId},
+    identifier::AccountIdentifier,
+    tokens::Tokens,
+    types::{CanisterId, RequestId, SignerId},
 };
 use enum_dispatch::enum_dispatch;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
@@ -18,9 +19,7 @@ pub type PendingRequestList = Vec<PendingRequest>;
 
 pub type ProcessedRequestList = Vec<ProcessedRequest>;
 
-pub type Response = BTreeMap<SignerId, RequestResponse>;
-
-pub type ResponseMap = BTreeMap<RequestId, RequestResponse>;
+pub type Responses = BTreeMap<SignerId, RequestResponse>;
 
 pub type PendingRequestMap = BTreeMap<RequestId, PendingRequest>;
 
@@ -63,27 +62,17 @@ pub enum RequestResponse {
     Reject,
 }
 
-// ICRC-21: Canister Call Consent Messages --------------------------------------
-#[derive(CandidType, Clone, Deserialize, Debug)]
-pub struct ConsentPreferences {
-    pub language: String,
-}
-
 #[derive(CandidType, Clone, Deserialize, Debug)]
 pub struct ConsentMessageRequest {
     pub method: String,
     pub arg: RequestArgs,
-    pub consent_preferences: ConsentPreferences,
 }
 
 impl From<&RequestArgs> for ConsentMessageRequest {
     fn from(request: &RequestArgs) -> Self {
         ConsentMessageRequest {
-            method: request.request.to_string(),
+            method: request.request.method_name(),
             arg: request.clone(),
-            consent_preferences: ConsentPreferences {
-                language: "en-US".to_string(),
-            },
         }
     }
 }
@@ -91,14 +80,95 @@ impl From<&RequestArgs> for ConsentMessageRequest {
 #[derive(CandidType, Clone, Debug, Deserialize)]
 pub struct ConsentInfo {
     pub consent_message: String,
-    pub language: String,
 }
 
-impl Default for ConsentInfo {
-    fn default() -> Self {
-        ConsentInfo {
-            consent_message: "".to_string(),
-            language: "en-US".to_string(),
+impl ConsentInfo {
+    pub fn new(consent_message: String) -> Self {
+        ConsentInfo { consent_message }
+    }
+}
+
+#[derive(CandidType, Clone, Debug, Deserialize)]
+pub enum ConsentMessages {
+    TopUpCanister { canister_id: String, amount: u64 },
+}
+
+impl From<ConsentMessages> for ConsentMessageResponse {
+    fn from(consent_messages: ConsentMessages) -> Self {
+        match consent_messages {
+            ConsentMessages::TopUpCanister {
+                canister_id,
+                amount,
+            } => {
+                let consent_message = format!(
+                    "You are about to top up canister {} with {} ICP. Do you want to continue?",
+                    canister_id, amount
+                );
+                ConsentMessageResponse::Valid(ConsentInfo::new(consent_message))
+            }
+        }
+    }
+}
+
+#[derive(CandidType, Clone, Debug, Deserialize)]
+pub enum ConsentSuccess {
+    TopUpCanister {
+        canister_id: CanisterId,
+        amount: u128,
+    },
+    IcpTransfer {
+        to: AccountIdentifier,
+        amount: Tokens,
+        block_number: u64,
+    },
+}
+
+impl From<ConsentSuccess> for ConsentMessageResponse {
+    fn from(consent_success: ConsentSuccess) -> Self {
+        match consent_success {
+            ConsentSuccess::TopUpCanister {
+                canister_id,
+                amount,
+            } => {
+                let consent_message = format!(
+                    "You have successfully topped up canister {} with {} ICP.",
+                    canister_id, amount
+                );
+                ConsentMessageResponse::Valid(ConsentInfo::new(consent_message))
+            }
+            ConsentSuccess::IcpTransfer {
+                to,
+                amount,
+                block_number,
+            } => {
+                let consent_message = format!(
+                    "You have successfully transferred {} ICP to canister {} at block number {}.",
+                    amount, to, block_number
+                );
+                ConsentMessageResponse::Valid(ConsentInfo::new(consent_message))
+            }
+        }
+    }
+}
+
+#[derive(CandidType, Clone, Debug, Deserialize)]
+pub enum ConsentError {
+    TopUpCanister { canister_id: String, amount: u64 },
+}
+
+impl From<ConsentError> for ConsentMessageResponse {
+    fn from(consent_error: ConsentError) -> Self {
+        match consent_error {
+            ConsentError::TopUpCanister {
+                canister_id,
+                amount,
+            } => {
+                let consent_message = format!(
+                    "Failed to top up canister {} with {} ICP.",
+                    canister_id, amount
+                );
+                ConsentMessageResponse::Valid(ConsentInfo::new(consent_message))
+            }
         }
     }
 }
@@ -125,34 +195,6 @@ pub enum ConsentMessageResponse {
 
 impl From<&RequestError> for ConsentMessageResponse {
     fn from(error: &RequestError) -> Self {
-        match error {
-            RequestError::InvalidRequest => ConsentMessageResponse::MalformedCall(ErrorInfo {
-                error_code: 400,
-                description: error.to_owned().to_string(),
-            }),
-            RequestError::SignerRoleNotAuthorized(e) => {
-                ConsentMessageResponse::Forbidden(ErrorInfo {
-                    error_code: 403,
-                    description: e.to_string(),
-                })
-            }
-            _ => ConsentMessageResponse::Other(error.to_owned().to_string()),
-        }
+        error.into()
     }
-}
-
-impl Default for ConsentMessageResponse {
-    fn default() -> Self {
-        ConsentMessageResponse::Valid(ConsentInfo::default())
-    }
-}
-
-impl<T: std::fmt::Display> From<T> for ConsentMessageResponse {
-    fn from(item: T) -> Self {
-        ConsentMessageResponse::Other(item.to_string())
-    }
-}
-
-pub trait Service {
-    fn consent_message(&self, request: ConsentMessageRequest) -> Option<ConsentMessageResponse>;
 }

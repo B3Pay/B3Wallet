@@ -1,9 +1,20 @@
-use b3_helper_lib::error::ErrorTrait;
 use ic_cdk::export::candid::{CandidType, Deserialize};
+use std::fmt;
+
+use crate::ledger::{
+    btc::error::BitcoinError, ckbtc::error::CkbtcError, error::LedgerError, evm::error::EvmError,
+    icp::error::IcpError, icrc::error::IcrcError,
+};
 
 #[rustfmt::skip]
-#[derive(CandidType, Deserialize, Debug, PartialEq)]
+#[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
 pub enum WalletError {
+    BitcoinError(BitcoinError),
+    CkbtcError(CkbtcError),
+    IcrcError(IcrcError),
+    EvmError(EvmError),
+    IcpError(IcpError),
+    LedgerError(LedgerError),
     UnknownError,
     InvalidRequest,
     InvalidNetwork,
@@ -13,7 +24,6 @@ pub enum WalletError {
     InvalidTx(String),
     InvalidMsg(String),
     SignError(String),
-    LedgerError(String),
     GenerateError(String),
     PublicKeyError(String),
     MissingWitnessScript,
@@ -26,21 +36,9 @@ pub enum WalletError {
     CkbtcPendingBalance(String),
     CkbtcUpdateBalance(String),
     CkbtcSwapToBtcError(String),
-    BitcoinFeeTooHighError(u64, u64),
-    BitcoinSignatureError(String),
-    BitcoinGetBalanceError(String),
-    BitcoinGetUtxosError(String),
-    BitcoinSendTransactionError(String),
-    BitcoinSendRawTransactionError(String),
-    BitcoinGetCurrentFeePercentilesError(String),
-    BitcoinGetFeeRateError(String),
-    BitcoinInsufficientBalanceError(u64, u64),
-    BitcoinSwapToCkbtcError(String),
-    BitcoinInvalidFeePercentile,
     CyclesMintingError(String),
     CanisterStatusError(String),
     UpdateSettingsError(String),
-    InvalidTransaction(String),
     SignerRoleNotAuthorized(String),
     SignerRoleNotFound(String, String),
     SignerNotFound(String),
@@ -57,6 +55,7 @@ pub enum WalletError {
     CallerIsNotOwner,
     CannotRemoveDefaultAccount,
     EcdsaPublicKeyAlreadySet,
+    EcdsaPublicKeyError(String),
     MissingEcdsaPublicKey,
     InvalidEcdsaPublicKey,
     InvalidAccountIdentifier,
@@ -65,13 +64,8 @@ pub enum WalletError {
     InvalidToken,
     InvalidAddress,
     InvalidNetworkAddress,
-    InvalidEvmTransactionType,
     NotSignedTransaction,
     InvalidController,
-    InvalidSignature(String),
-    InvalidMessage(String),
-    InvalidPublicKey(String),
-    InvalidRecoveryId(String),
     WalletAccountAlreadyExists,
     WalletAccountCounterMismatch,
     WasmNotLoaded,
@@ -79,81 +73,105 @@ pub enum WalletError {
 }
 
 #[rustfmt::skip]
-impl ErrorTrait for WalletError {
-    fn to_string(self) -> String {
+impl fmt::Display for WalletError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            WalletError::UnknownError => "::Unknown error".to_string(),
-            WalletError::InvalidToken => "::Invalid token".to_string(),
-            WalletError::InvalidRequest => "::Invalid request".to_string(),
-            WalletError::InvalidNetwork => "::Invalid network".to_string(),
-            WalletError::InvalidNetworkAddress => "::Invalid network address".to_string(),
-            WalletError::MinterError(msg) => ["::Minter error: ", &msg].concat(),
-            WalletError::ChainNotFound => "::Chain not found".to_string(),
-            WalletError::CkbtcNotInitialized => "::CKBTC not initialized".to_string(),
-            WalletError::MissingAddress => "::Missing address".to_string(),
-            WalletError::ICRC1Error(msg) => ["::ICRC1 error: ", &msg].concat(),
-            WalletError::ICRC1CallError(msg) => ["::ICRC1 call error: ", &msg].concat(),
-            WalletError::ExecutionError(msg) => ["::Execution error: ", &msg].concat(),
-            WalletError::InvalidMsg(msg) => ["::Invalid message: ", &msg].concat(),
-            WalletError::InvalidTx(msg) => ["::Invalid transaction: ", &msg].concat(),
-            WalletError::SignError(msg) => ["::Sign error: ", &msg].concat(),
-            WalletError::SignerNotFound(msg) => ["::", &msg, " is not a signer!"].concat(),
-            WalletError::SignerRoleNotFound(signer, role) => ["::Signer ", &signer, " does not have role ", &role].concat(),
-            WalletError::SignerRoleNotAuthorized(signer) => ["::Signer ", &signer, " is not authorized to sign!"].concat(),
-            WalletError::SignerAlreadyExists(signer) => ["::Signer ", &signer, " already exists!"].concat(),
-            WalletError::SignerDoesNotExist(signer) => ["::Signer ", &signer, " does not exist!"].concat(),
-            WalletError::LedgerError(msg) => ["::Ledger error: ", &msg].concat(),
-            WalletError::GenerateError(msg) => ["::Generation error: ", &msg].concat(),
-            WalletError::PublicKeyError(msg) => ["::Public key error: ", &msg].concat(),
-            WalletError::CyclesMintingError(msg) => ["::Cycles minting error: ", &msg].concat(),
-            WalletError::CanisterStatusError(msg) => ["::Canister status error: ", &msg].concat(),
-            WalletError::UpdateSettingsError(msg) => ["::Update settings error: ", &msg].concat(),
-            WalletError::InvalidTransaction(msg) => ["::Invalid transaction: ", &msg].concat(),
-            WalletError::TransactionTooOld(nanos) => ["::Transaction too old: ", &nanos.to_string(), " nanoseconds"].concat(),
-            WalletError::AlreadySigned(signer) => ["::Signer ", &signer, " already signed"].concat(),
-            WalletError::MissingWitnessScript => "::Missing witness script".to_string(),
-            WalletError::MissingSighashType => "::Missing sighash type".to_string(),
-            WalletError::NoUtxos => "::No UTXOs".to_string(),
-            WalletError::BitcoinFeeTooHighError(fee, amount) => ["::Bitcoin fee too high: ", &fee.to_string(), " > ", &amount.to_string()].concat(),
-            WalletError::BitcoinSignatureError(msg) => ["::Signature error: ", &msg].concat(),
-            WalletError::BitcoinInvalidFeePercentile => "::Bitcoin invalid fee percentile".to_string(),
-            WalletError::BitcoinGetAddressError => "::Bitcoin get address error".to_string(),
-            WalletError::BitcoinGetBalanceError(msg) => ["::Bitcoin get balance error: ", &msg].concat(),
-            WalletError::BitcoinGetUtxosError(msg) => ["::Bitcoin get utxos error: ", &msg].concat(),
-            WalletError::BitcoinSendRawTransactionError(msg) => ["::Bitcoin send raw transaction error: ", &msg].concat(),
-            WalletError::BitcoinGetCurrentFeePercentilesError(msg) => ["::Bitcoin get current fee percentiles error: ", &msg].concat(),
-            WalletError::BitcoinSendTransactionError(msg) => ["::Bitcoin send transaction error: ", &msg].concat(),
-            WalletError::BitcoinGetFeeRateError(msg) => ["::Bitcoin get fee rate error: ", &msg].concat(),
-            WalletError::BitcoinInsufficientBalanceError(balance, amount) => ["::Bitcoin insufficient balance: ", &balance.to_string(), " < ", &amount.to_string()].concat(),
-            WalletError::BitcoinSwapToCkbtcError(msg) => ["::Bitcoin swap to ckbtc error: ", &msg].concat(),
-            WalletError::CkbtcSwapToBtcError(msg) => format!("Swap CKBTC to BTC failed: {}", msg),
-            WalletError::CkbtcUpdateBalance(msg) => format!("Update CKBTC balance failed: {}", msg),
-            WalletError::CkbtcPendingBalance(msg) => format!("Pending CKBTC balance failed: {}", msg),
-            WalletError::Processing => "::Processing error".to_string(),
-            WalletError::InvalidMessageLength => "::Invalid message length".to_string(),
-            WalletError::MissingEcdsaPublicKey => "::Missing ECDSA public key".to_string(),
-            WalletError::CallerIsNotOwner => "::Caller is not the owner".to_string(),
-            WalletError::CannotRemoveDefaultAccount => "::Cannot remove default account!".to_string(),
-            WalletError::EcdsaPublicKeyAlreadySet => "::Public key already exists".to_string(),
-            WalletError::InvalidEcdsaPublicKey => "::Invalid ECDSA public key!".to_string(),
-            WalletError::InvalidAccountIdentifier => "::Invalid account identifier!".to_string(),
-            WalletError::WalletAccountNotExists => "::Wallet account does not exist!".to_string(),
-            WalletError::RequestNotExists => "::Request does not exist!".to_string(),
-            WalletError::NotifyTopUpError(msg) => ["::Notify top up error: ", &msg].concat(),
-            WalletError::RecoverableSignatureError(msg) => ["::Recoverable signature error: ", &msg].concat(),
-            WalletError::InvalidController => "::Invalid controller!".to_string(),
-            WalletError::InvalidAddress => "::Invalid address!".to_string(),
-            WalletError::InvalidEvmTransactionType => "::Invalid EVM transaction type!".to_string(),
-            WalletError::NotSignedTransaction => "::Not signed transaction!".to_string(),
-            WalletError::InvalidMessage(msg) => ["::Invalid message: ", &msg].concat(),
-            WalletError::InvalidPublicKey(msg) => ["::Invalid public key: ", &msg].concat(),
-            WalletError::InvalidRecoveryId(msg) => ["::Invalid recovery id: ", &msg].concat(),
-            WalletError::InvalidSignature(msg) => ["::Invalid signature: ", &msg].concat(),
-            WalletError::DeadlineExceeded => "::Deadline exceeded!".to_string(),
-            WalletError::WalletAccountAlreadyExists => "::Wallet account already exists!".to_string(),
-            WalletError::WalletAccountCounterMismatch => "::Wallet account counter mismatch!".to_string(),
-            WalletError::WasmNotLoaded => "::Wasm not loaded!".to_string(),
-            WalletError::ChainTypeMismatch => "::Chain type mismatch!".to_string(),
+            WalletError::BitcoinError(ref err) => write!(f, "::Bitcoin error: {}", err),
+            WalletError::EvmError(ref err) => write!(f, "::EVM error: {}", err),
+            WalletError::CkbtcError(ref err) => write!(f, "::CKBTC error: {}", err),
+            WalletError::IcrcError(ref err) => write!(f, "::ICRC error: {}", err),
+            WalletError::IcpError(ref err) => write!(f, "::ICP error: {}", err),
+            WalletError::UnknownError => write!(f, "::Unknown error"),
+            WalletError::InvalidToken => write!(f, "::Invalid token"),
+            WalletError::InvalidRequest => write!(f, "::Invalid request"),
+            WalletError::InvalidNetwork => write!(f, "::Invalid network"),
+            WalletError::MissingAddress => write!(f, "::Missing address"),
+            WalletError::ChainNotFound => write!(f, "::Chain not found"),
+            WalletError::CkbtcNotInitialized => write!(f, "::CKBTC not initialized"),
+            WalletError::InvalidTx(ref msg) => write!(f, "::Invalid transaction: {}", msg),
+            WalletError::InvalidMsg(ref msg) => write!(f, "::Invalid message: {}", msg),
+            WalletError::SignError(ref msg) => write!(f, "::Sign error: {}", msg),
+            WalletError::LedgerError(ref msg) => write!(f, "::Ledger error: {}", msg),
+            WalletError::GenerateError(ref msg) => write!(f, "::Generation error: {}", msg),
+            WalletError::PublicKeyError(ref msg) => write!(f, "::Public key error: {}", msg),
+            WalletError::MissingWitnessScript => write!(f, "::Missing witness script"),
+            WalletError::MissingSighashType => write!(f, "::Missing sighash type"),
+            WalletError::BitcoinGetAddressError => write!(f, "::Bitcoin get address error"),
+            WalletError::NoUtxos => write!(f, "::No UTXOs"),
+            WalletError::MinterError(ref msg) => write!(f, "::Minter error: {}", msg),
+            WalletError::ICRC1Error(ref msg) => write!(f, "::ICRC1 error: {}", msg),
+            WalletError::ICRC1CallError(ref msg) => write!(f, "::ICRC1 call error: {}", msg),
+            WalletError::CkbtcPendingBalance(ref msg) => write!(f, "::Pending CKBTC balance failed: {}", msg),
+            WalletError::CkbtcUpdateBalance(ref msg) => write!(f, "::Update CKBTC balance failed: {}", msg),
+            WalletError::CkbtcSwapToBtcError(ref msg) => write!(f, "::Swap CKBTC to BTC failed: {}", msg),
+            WalletError::CyclesMintingError(ref msg) => write!(f, "::Cycles minting error: {}", msg),
+            WalletError::CanisterStatusError(ref msg) => write!(f, "::Canister status error: {}", msg),
+            WalletError::UpdateSettingsError(ref msg) => write!(f, "::Update settings error: {}", msg),
+            WalletError::SignerRoleNotAuthorized(ref msg) => write!(f, "::Signer {} is not authorized to sign!", msg),
+            WalletError::SignerRoleNotFound(ref signer, ref role) => write!(f, "::Signer {} does not have role {}", signer, role),
+            WalletError::SignerNotFound(ref msg) => write!(f, "::{} is not a signer!", msg),
+            WalletError::SignerAlreadyExists(ref msg) => write!(f, "::Signer {} already exists!", msg),
+            WalletError::SignerDoesNotExist(ref msg) => write!(f, "::Signer {} does not exist!", msg),
+            WalletError::TransactionTooOld(nanos) => write!(f, "::Transaction too old: {} nanoseconds", nanos),
+            WalletError::AlreadySigned(ref msg) => write!(f, "::Signer {} already signed", msg),
+            WalletError::ExecutionError(ref msg) => write!(f, "::Execution error: {}", msg),
+            WalletError::NotifyTopUpError(ref msg) => write!(f, "::Notify top up error: {}", msg),
+            WalletError::RecoverableSignatureError(ref msg) => write!(f, "::Recoverable signature error: {}", msg),
+            WalletError::DeadlineExceeded => write!(f, "::Deadline exceeded!"),
+            WalletError::Processing => write!(f, "::Processing error"),
+            WalletError::InvalidMessageLength => write!(f, "::Invalid message length"),
+            WalletError::CallerIsNotOwner => write!(f, "::Caller is not the owner"),
+            WalletError::CannotRemoveDefaultAccount => write!(f, "::Cannot remove default account!"),
+            WalletError::EcdsaPublicKeyAlreadySet => write!(f, "::Public key already exists"),
+            WalletError::EcdsaPublicKeyError(ref msg) => write!(f, "::ECDSA public key error: {}", msg),
+            WalletError::MissingEcdsaPublicKey => write!(f, "::Missing ECDSA public key"),
+            WalletError::InvalidEcdsaPublicKey => write!(f, "::Invalid ECDSA public key!"),
+            WalletError::InvalidAccountIdentifier => write!(f, "::Invalid account identifier!"),
+            WalletError::WalletAccountNotExists => write!(f, "::Wallet account does not exist!"),
+            WalletError::RequestNotExists => write!(f, "::Request does not exist!"),
+            WalletError::InvalidAddress => write!(f, "::Invalid address!"),
+            WalletError::InvalidNetworkAddress => write!(f, "::Invalid network address"),
+            WalletError::NotSignedTransaction => write!(f, "::Not signed transaction!"),
+            WalletError::InvalidController => write!(f, "::Invalid controller!"),
+            WalletError::WalletAccountAlreadyExists => write!(f, "::Wallet account already exists!"),
+            WalletError::WalletAccountCounterMismatch => write!(f, "::Wallet account counter mismatch!"),
+            WalletError::WasmNotLoaded => write!(f, "::Wasm not loaded!"),
+            WalletError::ChainTypeMismatch => write!(f, "::Chain type mismatch!"),
         }
+    }
+}
+impl From<LedgerError> for WalletError {
+    fn from(error: LedgerError) -> Self {
+        WalletError::LedgerError(error)
+    }
+}
+
+impl From<BitcoinError> for WalletError {
+    fn from(error: BitcoinError) -> Self {
+        WalletError::BitcoinError(error)
+    }
+}
+
+impl From<EvmError> for WalletError {
+    fn from(error: EvmError) -> Self {
+        WalletError::EvmError(error)
+    }
+}
+
+impl From<CkbtcError> for WalletError {
+    fn from(value: CkbtcError) -> Self {
+        WalletError::CkbtcError(value)
+    }
+}
+
+impl From<IcrcError> for WalletError {
+    fn from(value: IcrcError) -> Self {
+        WalletError::IcrcError(value)
+    }
+}
+
+impl From<IcpError> for WalletError {
+    fn from(value: IcpError) -> Self {
+        WalletError::IcpError(value)
     }
 }

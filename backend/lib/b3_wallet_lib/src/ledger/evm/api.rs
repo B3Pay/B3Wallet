@@ -1,8 +1,8 @@
+use super::error::EvmError;
 use super::tx1559::EvmTransaction1559;
 use super::tx2930::EvmTransaction2930;
 use super::txlegacy::EvmTransactionLegacy;
 use super::utils::{string_to_vec_u8, vec_u8_to_string};
-use crate::error::WalletError;
 use bitcoin::secp256k1::{
     ecdsa::{RecoverableSignature, RecoveryId},
     Message, PublicKey, Secp256k1,
@@ -51,12 +51,12 @@ impl EvmTransactionType {
 }
 
 pub trait EvmSign {
-    fn sign(&mut self, signature: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, WalletError>;
-    fn get_message_to_sign(&self) -> Result<Vec<u8>, WalletError>;
-    fn get_signature(&self) -> Result<Vec<u8>, WalletError>;
-    fn get_recovery_id(&self) -> Result<u8, WalletError>;
-    fn get_nonce(&self) -> Result<u64, WalletError>;
-    fn serialize(&self) -> Result<Vec<u8>, WalletError>;
+    fn sign(&mut self, signature: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, EvmError>;
+    fn get_message_to_sign(&self) -> Result<Vec<u8>, EvmError>;
+    fn get_signature(&self) -> Result<Vec<u8>, EvmError>;
+    fn get_recovery_id(&self) -> Result<u8, EvmError>;
+    fn get_nonce(&self) -> Result<u64, EvmError>;
+    fn serialize(&self) -> Result<Vec<u8>, EvmError>;
     fn get_transaction(&self) -> EvmTransaction;
     fn is_signed(&self) -> bool;
 }
@@ -64,7 +64,7 @@ pub trait EvmSign {
 pub fn get_evm_transaction(
     hex_raw_tx: &Vec<u8>,
     chain_id: u64,
-) -> Result<Box<dyn EvmSign>, WalletError> {
+) -> Result<Box<dyn EvmSign>, EvmError> {
     let tx_type = get_evm_transaction_type(hex_raw_tx)?;
 
     if tx_type == EvmTransactionType::Legacy {
@@ -77,11 +77,11 @@ pub fn get_evm_transaction(
     } else if tx_type == EvmTransactionType::EIP2930 {
         Ok(Box::new(EvmTransaction2930::from(hex_raw_tx.clone())))
     } else {
-        Err(WalletError::InvalidEvmTransactionType)
+        Err(EvmError::InvalidTransactionType)
     }
 }
 
-pub fn get_evm_transaction_type(hex_raw_tx: &Vec<u8>) -> Result<EvmTransactionType, WalletError> {
+pub fn get_evm_transaction_type(hex_raw_tx: &Vec<u8>) -> Result<EvmTransactionType, EvmError> {
     if hex_raw_tx[0] >= 0xc0 {
         Ok(EvmTransactionType::Legacy)
     } else if hex_raw_tx[0] == 0x01 {
@@ -89,7 +89,7 @@ pub fn get_evm_transaction_type(hex_raw_tx: &Vec<u8>) -> Result<EvmTransactionTy
     } else if hex_raw_tx[0] == 0x02 {
         Ok(EvmTransactionType::EIP1559)
     } else {
-        Err(WalletError::InvalidEvmTransactionType)
+        Err(EvmError::InvalidTransactionType)
     }
 }
 
@@ -97,32 +97,32 @@ pub fn get_recovery_id(
     message: &[u8],
     signature: &[u8],
     public_key: &[u8],
-) -> Result<u8, WalletError> {
+) -> Result<u8, EvmError> {
     let message =
-        Message::from_slice(message).map_err(|err| WalletError::InvalidMessage(err.to_string()))?;
+        Message::from_slice(message).map_err(|err| EvmError::InvalidMessage(err.to_string()))?;
 
     let pub_key = PublicKey::from_slice(public_key)
-        .map_err(|err| WalletError::InvalidPublicKey(err.to_string()))?;
+        .map_err(|err| EvmError::InvalidPublicKey(err.to_string()))?;
 
     let secp = Secp256k1::verification_only();
 
     for i in 0..4 {
-        let recovery_id = RecoveryId::from_i32(i)
-            .map_err(|err| WalletError::InvalidRecoveryId(err.to_string()))?;
+        let recovery_id =
+            RecoveryId::from_i32(i).map_err(|err| EvmError::InvalidRecoveryId(err.to_string()))?;
 
         let signature = RecoverableSignature::from_compact(signature, recovery_id)
-            .map_err(|err| WalletError::InvalidSignature(err.to_string()))?;
+            .map_err(|err| EvmError::InvalidSignature(err.to_string()))?;
 
         let recovered_key = secp
             .recover_ecdsa(&message, &signature)
-            .map_err(|err| WalletError::InvalidSignature(err.to_string()))?;
+            .map_err(|err| EvmError::InvalidSignature(err.to_string()))?;
 
         if recovered_key.eq(&pub_key) {
             return Ok(i as u8);
         }
     }
 
-    Err(WalletError::InvalidSignature(
+    Err(EvmError::InvalidSignature(
         "Not able to recover public key".to_string(),
     ))
 }
@@ -184,7 +184,7 @@ mod tests {
 
     #[test]
     fn get_recovery_id_with_invalid_signature() {
-        let expected = Err(WalletError::InvalidSignature(
+        let expected = Err(EvmError::InvalidSignature(
             "malformed signature".to_string(),
         ));
 
@@ -200,7 +200,7 @@ mod tests {
 
     #[test]
     fn get_recovery_id_with_invalid_message() {
-        let expected = Err(WalletError::InvalidMessage(
+        let expected = Err(EvmError::InvalidMessage(
             "message was not 32 bytes (do you need to hash?)".to_string(),
         ));
 
@@ -215,7 +215,7 @@ mod tests {
 
     #[test]
     fn get_recovery_id_with_invalid_public_key() {
-        let expected = Err(WalletError::InvalidPublicKey(
+        let expected = Err(EvmError::InvalidPublicKey(
             "malformed public key".to_string(),
         ));
 

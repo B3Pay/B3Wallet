@@ -1,7 +1,4 @@
-use crate::error::WalletError;
-use crate::ledger::types::{ChainEnum, ChainTrait};
-use crate::ledger::{ledger::Ledger, types::BtcTxId};
-use b3_helper_lib::error::ErrorTrait;
+use crate::ledger::{chain::ChainTrait, ckbtc::types::BtcTxId, ledger::Ledger, types::ChainEnum};
 use bitcoin::consensus::serialize;
 use bitcoin::sighash::{EcdsaSighashType, SighashCache};
 use bitcoin::{ecdsa::Signature, hashes::Hash, Address, Script, Transaction};
@@ -9,6 +6,7 @@ use ic_cdk::api::management_canister::bitcoin::Satoshi;
 use ic_cdk::api::management_canister::bitcoin::{GetUtxosResponse, UtxoFilter};
 use std::str::FromStr;
 
+use super::error::BitcoinError;
 use super::network::BtcNetwork;
 use super::utxos::BtcUtxos;
 
@@ -19,8 +17,10 @@ impl Ledger {
         &self,
         btc_network: BtcNetwork,
         min_confirmations: Option<u32>,
-    ) -> Result<Satoshi, WalletError> {
-        let chain = self.chain(ChainEnum::BTC(btc_network))?;
+    ) -> Result<Satoshi, BitcoinError> {
+        let chain = self
+            .chain(ChainEnum::BTC(btc_network))
+            .map_err(|err| BitcoinError::InvalidChain(err.to_string()))?;
 
         btc_network
             .get_balance(chain.address(), min_confirmations)
@@ -33,8 +33,10 @@ impl Ledger {
         &self,
         btc_network: BtcNetwork,
         filter: Option<UtxoFilter>,
-    ) -> Result<GetUtxosResponse, WalletError> {
-        let chain = self.chain(ChainEnum::BTC(btc_network))?;
+    ) -> Result<GetUtxosResponse, BitcoinError> {
+        let chain = self
+            .chain(ChainEnum::BTC(btc_network))
+            .map_err(|err| BitcoinError::InvalidChain(err.to_string()))?;
 
         btc_network.get_utxos(chain.address(), filter).await
     }
@@ -47,15 +49,19 @@ impl Ledger {
         btc_network: BtcNetwork,
         dst_address: &str,
         amount: Satoshi,
-    ) -> Result<BtcTxId, WalletError> {
-        let public_key = self.public_key()?;
+    ) -> Result<BtcTxId, BitcoinError> {
+        let public_key = self
+            .public_key()
+            .map_err(|err| BitcoinError::InvalidPublicKey(err.to_string()))?;
 
         let dst_address = Address::from_str(dst_address)
-            .map_err(|_| WalletError::InvalidAddress)?
+            .map_err(|err| BitcoinError::InvalidAddress(err.to_string()))?
             .require_network(btc_network.into())
-            .map_err(|_| WalletError::InvalidNetworkAddress)?;
+            .map_err(|err| BitcoinError::InvalidNetworkAddress(err.to_string()))?;
 
-        let own_address = self.btc_address(btc_network)?;
+        let own_address = self
+            .btc_address(btc_network)
+            .map_err(|err| BitcoinError::InvalidAddress(err.to_string()))?;
 
         let utxo_res = btc_network.get_utxos(own_address.to_string(), None).await?;
 
@@ -74,7 +80,9 @@ impl Ledger {
             .send_transaction(signed_transaction_bytes)
             .await?;
 
-        Ok(signed_transaction.txid())
+        let tx_id = signed_transaction.txid();
+
+        Ok(tx_id.to_string())
     }
 
     /// Signs a bitcoin transaction.
@@ -82,8 +90,10 @@ impl Ledger {
         &self,
         btc_network: BtcNetwork,
         transaction: &mut Transaction,
-    ) -> Result<Transaction, WalletError> {
-        let public_key = self.public_key()?;
+    ) -> Result<Transaction, BitcoinError> {
+        let public_key = self
+            .public_key()
+            .map_err(|err| BitcoinError::InvalidPublicKey(err.to_string()))?;
 
         let address = Address::p2pkh(&public_key, btc_network.into());
 
@@ -95,11 +105,14 @@ impl Ledger {
                     &address.script_pubkey(),
                     EcdsaSighashType::All.to_u32(),
                 )
-                .map_err(|err| WalletError::BitcoinSignatureError(err.to_string()))?;
+                .map_err(|err| BitcoinError::Signature(err.to_string()))?;
 
             let message_bytes = sign_hash.to_byte_array().to_vec();
 
-            let signature = self.sign_btc_transaction(message_bytes).await?;
+            let signature = self
+                .sign_btc_transaction(message_bytes)
+                .await
+                .map_err(|err| BitcoinError::Signature(err.to_string()))?;
 
             let sig = Signature::sighash_all(signature);
 
@@ -117,22 +130,20 @@ impl Ledger {
         &self,
         btc_network: BtcNetwork,
         amount: Satoshi,
-    ) -> Result<BtcTxId, WalletError> {
-        let ckbtc = self
-            .ckbtc(btc_network)
-            .ok_or(WalletError::BitcoinSwapToCkbtcError(
-                "CKBtc not initialized!".to_string(),
-            ))?;
+    ) -> Result<BtcTxId, BitcoinError> {
+        let ckbtc = self.ckbtc(btc_network).ok_or(BitcoinError::SwapToCkbtc(
+            "CKBtc not initialized!".to_string(),
+        ))?;
 
         let dst_address = ckbtc
             .get_btc_address()
             .await
-            .map_err(|err| WalletError::BitcoinSwapToCkbtcError(err.to_string()))?;
+            .map_err(|err| BitcoinError::SwapToCkbtc(err.to_string()))?;
 
         let tx_id = self
             .bitcoin_transfer(btc_network, &dst_address, amount)
             .await
-            .map_err(|err| WalletError::BitcoinSwapToCkbtcError(err.to_string()))?;
+            .map_err(|err| BitcoinError::SwapToCkbtc(err.to_string()))?;
 
         Ok(tx_id)
     }

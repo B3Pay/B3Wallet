@@ -4,16 +4,27 @@ pub mod icp;
 pub mod inner;
 pub mod state;
 
-use std::fmt;
+use btc::transfer::*;
+use evm::other::*;
+use evm::sign::*;
+use evm::transfer::*;
+use icp::transfer::*;
+use inner::account::*;
+use inner::setting::*;
+use inner::signer::*;
 
-use crate::error::RequestError;
-use crate::processed::ProcessedRequest;
-use crate::signer::Roles;
-use crate::types::{
-    ConsentMessageRequest, ConsentMessageResponse, RequestResponse, RequestResponseTrait, Response,
+use crate::{
+    error::RequestError,
+    processed::ProcessedRequest,
+    signer::Roles,
+    types::{
+        ConsentMessageRequest, ConsentMessageResponse, RequestResponse, RequestResponseTrait,
+        Responses,
+    },
 };
+use async_trait::async_trait;
+use b3_helper_lib::types::Deadline;
 use b3_helper_lib::types::{RequestId, SignerId};
-use b3_helper_lib::{error::ErrorTrait, types::Deadline};
 use b3_wallet_lib::error::WalletError;
 use enum_dispatch::enum_dispatch;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
@@ -23,43 +34,40 @@ use crate::mocks::ic_timestamp;
 #[cfg(not(test))]
 use ic_cdk::api::time as ic_timestamp;
 
-use btc::BtcRequest;
-use evm::EvmRequest;
-use icp::IcpRequest;
-use inner::InnerRequest;
-
-#[enum_dispatch(Request)]
-pub trait RequestTrait {}
-
+#[async_trait]
 #[enum_dispatch]
+pub trait RequestTrait {
+    fn method_name(&self) -> String;
+    fn validate_request(&self) -> Result<(), RequestError>;
+    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError>;
+}
+
+#[enum_dispatch(RequestTrait)]
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub enum Request {
-    EvmRequest,
-    BtcRequest,
-    IcpRequest,
-    InnerRequest,
-}
-
-impl fmt::Display for Request {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Request::EvmRequest(method) => write!(f, "{}", method),
-            Request::BtcRequest(method) => write!(f, "{}", method),
-            Request::IcpRequest(method) => write!(f, "{}", method),
-            Request::InnerRequest(method) => write!(f, "{}", method),
-        }
-    }
-}
-
-impl Request {
-    pub async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
-        match self {
-            Request::EvmRequest(args) => args.execute().await,
-            Request::BtcRequest(args) => args.execute().await,
-            Request::IcpRequest(args) => args.execute().await,
-            Request::InnerRequest(args) => args.execute().await,
-        }
-    }
+    // EVM
+    EvmTransferEthRequest,
+    EvmTransferErc20Request,
+    EvmDeployContractRequest,
+    EvmSignMessageRequest,
+    EvmSignTranscationRequest,
+    EvmSignRawTransactionRequest,
+    // BTC
+    BtcTransferRequest,
+    // ICP
+    IcpTransferRequest,
+    TopUpCanisterRequest,
+    // INNER
+    AddSignerRequest,
+    RemoveSignerRequest,
+    CreateAccountRequest,
+    RemoveAccountRequest,
+    RenameAccountRequest,
+    HideAccountRequest,
+    UnhideAccountRequest,
+    UpgradeCanisterRequest,
+    UpdateSignerThresholdRequest,
+    UpdateCanisterSettingsRequest,
 }
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
@@ -85,7 +93,7 @@ pub struct PendingRequest {
     role: Roles,
     request: Request,
     deadline: Deadline,
-    response: Response,
+    responses: Responses,
     consent_message: ConsentMessageRequest,
 }
 
@@ -99,7 +107,7 @@ impl PendingRequest {
 
         PendingRequest {
             consent_message: ConsentMessageRequest::from(&args),
-            response: Response::new(),
+            responses: Responses::new(),
             request: args.request,
             role: args.role,
             deadline,
@@ -131,7 +139,7 @@ impl PendingRequest {
     }
 
     pub fn method(&self) -> String {
-        self.request.to_string()
+        self.request.method_name()
     }
 
     pub fn args(&self) -> RequestArgs {
@@ -142,8 +150,8 @@ impl PendingRequest {
         }
     }
 
-    pub fn signers(&self) -> &Response {
-        &self.response
+    pub fn signers(&self) -> &Responses {
+        &self.responses
     }
 
     pub fn is_expired(&self) -> bool {
@@ -151,11 +159,11 @@ impl PendingRequest {
     }
 
     pub fn is_signed(&self, signer_id: &SignerId) -> bool {
-        self.response.keys().any(|id| id == signer_id)
+        self.responses.keys().any(|id| id == signer_id)
     }
 
     pub fn is_rejected(&self) -> bool {
-        self.response.values().any(|response| response.is_reject())
+        self.responses.values().any(|response| response.is_reject())
     }
 
     pub fn get_error(&self) -> Option<RequestError> {
@@ -179,7 +187,7 @@ impl PendingRequest {
             return Err(RequestError::RequestAlreadySigned(signer.to_string()));
         }
 
-        self.response.insert(signer, response);
+        self.responses.insert(signer, response);
 
         Ok(())
     }

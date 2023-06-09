@@ -1,11 +1,13 @@
-use b3_helper_lib::{error::ErrorTrait, subaccount::Subaccount, types::CanisterId};
-use bitcoin::Txid;
+use super::error::{RetrieveBtcError, UpdateBalanceError};
+use b3_helper_lib::{subaccount::Subaccount, types::CanisterId};
 use ic_cdk::export::{
     candid::CandidType,
     serde::{Deserialize, Serialize},
 };
 
-pub type BtcTxId = Txid;
+pub type BtcTxId = String;
+
+pub type BtcTxHash = [u8; 32];
 
 pub type Satoshi = u64;
 
@@ -72,11 +74,6 @@ pub struct RetrieveBtcOk {
     pub block_index: u64,
 }
 
-pub enum ErrorCode {
-    // The retrieval address didn't pass the KYT check.
-    TaintedAddress = 1,
-}
-
 #[derive(CandidType, Deserialize)]
 pub struct RetrieveBtcStatusRequest {
     pub block_index: u64,
@@ -87,97 +84,8 @@ pub enum RetrieveBtcStatus {
     Unknown,
     Pending,
     Signing,
-    Sending { txid: [u8; 32] },
-    Submitted { txid: [u8; 32] },
+    Sending { txid: BtcTxHash },
+    Submitted { txid: BtcTxHash },
     AmountTooLow,
-    Confirmed { txid: [u8; 32] },
-}
-
-#[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq)]
-pub enum RetrieveBtcError {
-    /// There is another request for this principal.
-    AlreadyProcessing,
-
-    /// The withdrawal amount is too low.
-    AmountTooLow(u64),
-
-    /// The bitcoin address is not valid.
-    MalformedAddress(String),
-
-    /// The withdrawal account does not hold the requested ckBTC amount.
-    InsufficientFunds { balance: u64 },
-
-    /// There are too many concurrent requests, retry later.
-    TemporarilyUnavailable(String),
-
-    /// A generic error reserved for future extensions.
-    GenericError {
-        error_message: String,
-        /// See the [ErrorCode] enum above for the list of possible values.
-        error_code: u64,
-    },
-}
-
-impl ErrorTrait for RetrieveBtcError {
-    fn to_string(self) -> String {
-        match self {
-            RetrieveBtcError::AlreadyProcessing => "AlreadyProcessing".to_string(),
-            RetrieveBtcError::AmountTooLow(amount) => {
-                format!("AmountTooLow({})", amount)
-            }
-            RetrieveBtcError::MalformedAddress(address) => {
-                format!("MalformedAddress({})", address)
-            }
-            RetrieveBtcError::InsufficientFunds { balance } => {
-                format!("InsufficientFunds({})", balance)
-            }
-            RetrieveBtcError::TemporarilyUnavailable(message) => {
-                format!("TemporarilyUnavailable({})", message)
-            }
-            RetrieveBtcError::GenericError {
-                error_message,
-                error_code,
-            } => format!("GenericError({}, {})", error_message, error_code),
-        }
-    }
-}
-
-#[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq)]
-pub enum UpdateBalanceError {
-    TemporarilyUnavailable(String),
-    AlreadyProcessing,
-    NoNewUtxos {
-        /// If there are new UTXOs that do not have enough
-        /// confirmations yet, this field will contain the number of
-        /// confirmations as observed by the minter.
-        current_confirmations: Option<u32>,
-        required_confirmations: u32,
-    },
-    GenericError {
-        error_code: u64,
-        error_message: String,
-    },
-}
-
-impl ErrorTrait for UpdateBalanceError {
-    fn to_string(self) -> String {
-        match self {
-            UpdateBalanceError::TemporarilyUnavailable(message) => {
-                format!("TemporarilyUnavailable({})", message)
-            }
-            UpdateBalanceError::AlreadyProcessing => "AlreadyProcessing".to_string(),
-            UpdateBalanceError::NoNewUtxos {
-                current_confirmations,
-                required_confirmations,
-            } => format!(
-                "NoNewUtxos({}, {})",
-                current_confirmations.unwrap_or(0),
-                required_confirmations
-            ),
-            UpdateBalanceError::GenericError {
-                error_code,
-                error_message,
-            } => format!("GenericError({}, {})", error_code, error_message),
-        }
-    }
+    Confirmed { txid: BtcTxHash },
 }

@@ -74,8 +74,8 @@ mod tests {
     use b3_helper_lib::environment::Environment;
     use b3_helper_lib::tokens::Tokens;
     use b3_helper_lib::types::*;
-    use b3_permit_lib::pending::btc::*;
-    use b3_permit_lib::pending::icp::*;
+    use b3_permit_lib::pending::btc::transfer::*;
+    use b3_permit_lib::pending::icp::transfer::*;
     use b3_permit_lib::pending::inner::account::*;
     use b3_permit_lib::pending::inner::setting::*;
     use b3_permit_lib::pending::inner::signer::*;

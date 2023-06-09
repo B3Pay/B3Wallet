@@ -1,8 +1,11 @@
-use crate::{error::WalletError, ledger::btc::network::BtcNetwork};
+use crate::ledger::btc::network::BtcNetwork;
 
-use super::types::{
-    GetBtcAddressArgs, RetrieveBtcArgs, RetrieveBtcResult, RetrieveBtcStatus,
-    RetrieveBtcStatusRequest, UpdateBalanceArgs, UpdateBalanceResult,
+use super::{
+    error::MinterError,
+    types::{
+        GetBtcAddressArgs, RetrieveBtcArgs, RetrieveBtcResult, RetrieveBtcStatus,
+        RetrieveBtcStatusRequest, UpdateBalanceArgs, UpdateBalanceResult,
+    },
 };
 use b3_helper_lib::{
     account::ICRCAccount,
@@ -27,7 +30,7 @@ impl Minter {
         }
     }
 
-    pub async fn get_btc_address(&self, account: ICRCAccount) -> Result<String, WalletError> {
+    pub async fn get_btc_address(&self, account: ICRCAccount) -> Result<String, MinterError> {
         let args = GetBtcAddressArgs {
             owner: Some(account.owner()),
             subaccount: account.subaccount(),
@@ -35,16 +38,16 @@ impl Minter {
 
         let (btc_address,): (String,) = call(self.canister_id(), "get_btc_address", (args,))
             .await
-            .map_err(|err| WalletError::MinterError(err.1))?;
+            .map_err(|err| MinterError::CallError(err.1))?;
 
         Ok(btc_address)
     }
 
-    pub async fn get_withdrawal_account(&self) -> Result<ICRCAccount, WalletError> {
+    pub async fn get_withdrawal_account(&self) -> Result<ICRCAccount, MinterError> {
         let (withdrawal_account,): (ICRCAccount,) =
             call(self.canister_id(), "get_withdrawal_account", ())
                 .await
-                .map_err(|err| WalletError::MinterError(err.1))?;
+                .map_err(|err| MinterError::CallError(err.1))?;
 
         Ok(withdrawal_account)
     }
@@ -52,7 +55,7 @@ impl Minter {
     pub async fn update_balance(
         &self,
         account: ICRCAccount,
-    ) -> Result<UpdateBalanceResult, WalletError> {
+    ) -> Result<UpdateBalanceResult, MinterError> {
         let args = UpdateBalanceArgs {
             owner: Some(account.owner()),
             subaccount: account.subaccount(),
@@ -60,7 +63,7 @@ impl Minter {
 
         let (utxos,): (UpdateBalanceResult,) = call(self.canister_id(), "update_balance", (args,))
             .await
-            .map_err(|err| WalletError::MinterError(err.1))?;
+            .map_err(|err| MinterError::CallError(err.1))?;
 
         Ok(utxos)
     }
@@ -69,13 +72,13 @@ impl Minter {
         &self,
         address: String,
         amount: u64,
-    ) -> Result<RetrieveBtcResult, WalletError> {
+    ) -> Result<RetrieveBtcResult, MinterError> {
         let args = RetrieveBtcArgs { address, amount };
 
         let (block_index,): (RetrieveBtcResult,) =
             call(self.canister_id(), "retrieve_btc", (args,))
                 .await
-                .map_err(|err| WalletError::MinterError(err.1))?;
+                .map_err(|err| MinterError::CallError(err.1))?;
 
         Ok(block_index)
     }
@@ -83,13 +86,13 @@ impl Minter {
     pub async fn retrieve_btc_status(
         &self,
         block_index: BlockIndex,
-    ) -> Result<RetrieveBtcStatus, WalletError> {
+    ) -> Result<RetrieveBtcStatus, MinterError> {
         let args = RetrieveBtcStatusRequest { block_index };
 
         let (status,): (RetrieveBtcStatus,) =
             call(self.canister_id(), "retrieve_btc_status", (args,))
                 .await
-                .map_err(|err| WalletError::MinterError(err.1))?;
+                .map_err(|err| MinterError::CallError(err.1))?;
 
         Ok(status)
     }

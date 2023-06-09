@@ -1,5 +1,8 @@
 use crate::{
-    error::HelperError, identifier::AccountIdentifier, subaccount::Subaccount, tokens::Tokens,
+    error::{HelperError, NotifyError},
+    identifier::AccountIdentifier,
+    subaccount::Subaccount,
+    tokens::Tokens,
 };
 use ic_cdk::{
     api::management_canister::main::{CanisterInstallMode, CanisterStatusResponse},
@@ -129,7 +132,7 @@ pub type TransferResult = Result<BlockIndex, HelperError>;
 #[derive(CandidType, Deserialize, Serialize)]
 pub enum NotifyTopUpResult {
     Ok(u128),
-    Err(HelperError),
+    Err(NotifyError),
 }
 
 #[derive(CandidType, Deserialize, Serialize)]

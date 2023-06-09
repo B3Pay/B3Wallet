@@ -38,7 +38,7 @@ impl PrmitState {
     pub fn request(&self, request_id: &RequestId) -> Result<&PendingRequest, RequestError> {
         self.pending
             .get(request_id)
-            .ok_or(RequestError::RequestNotExists)
+            .ok_or(RequestError::RequestNotFound(request_id.to_owned()))
     }
 
     pub fn request_mut(
@@ -47,16 +47,16 @@ impl PrmitState {
     ) -> Result<&mut PendingRequest, RequestError> {
         self.pending
             .get_mut(request_id)
-            .ok_or(RequestError::RequestNotExists)
+            .ok_or(RequestError::RequestNotFound(request_id.to_owned()))
     }
 
     pub fn check_request(&self, request_id: &RequestId) -> Result<(), RequestError> {
         if self.processed.get(request_id).is_some() {
-            return Err(RequestError::RequestAlreadyProcessed(*request_id));
+            return Err(RequestError::RequestAlreadyProcessed(request_id.to_owned()));
         }
 
         if !self.pending.contains_key(&request_id) {
-            return Err(RequestError::RequestNotExists);
+            return Err(RequestError::RequestNotFound(request_id.to_owned()));
         }
 
         Ok(())

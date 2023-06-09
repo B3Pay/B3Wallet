@@ -1,19 +1,16 @@
+use super::error::CkbtcError;
 use super::minter::Minter;
 use super::types::{RetrieveBtcOk, RetrieveBtcResult, Satoshi, UpdateBalanceResult};
-use crate::{
-    error::WalletError,
-    ledger::{
-        btc::network::BtcNetwork,
-        icrc::{
-            icrc1::ICRC1,
-            types::{ICRC1TransferArgs, ICRCMemo, ICRCTimestamp, ICRCTokens},
-        },
+use crate::ledger::{
+    btc::network::BtcNetwork,
+    icrc::{
+        icrc1::ICRC1,
+        types::{ICRC1TransferArgs, ICRCMemo, ICRCTimestamp, ICRCTokens},
     },
 };
 use b3_helper_lib::{
     account::ICRCAccount,
     constants::{CKBTC_LEDGER_CANISTER_MAINNET, CKBTC_LEDGER_CANISTER_TESTNET},
-    error::ErrorTrait,
     subaccount::Subaccount,
 };
 use ic_cdk::export::{
@@ -27,7 +24,7 @@ use crate::mocks::ic_cdk_id;
 use ic_cdk::api::id as ic_cdk_id;
 
 #[derive(CandidType, Clone, Deserialize, Serialize, PartialEq, Debug)]
-pub struct CKBTC {
+pub struct CkbtcChain {
     pub ledger: ICRC1,
     pub minter: Minter,
     pub account: ICRCAccount,
@@ -37,8 +34,8 @@ pub struct CKBTC {
     pub pending: Option<String>,
 }
 
-impl CKBTC {
-    pub async fn new(btc_network: BtcNetwork, subaccount: Subaccount) -> Result<Self, WalletError> {
+impl CkbtcChain {
+    pub async fn new(btc_network: BtcNetwork, subaccount: Subaccount) -> Result<Self, CkbtcError> {
         let ledger = match btc_network {
             BtcNetwork::Testnet => ICRC1(CKBTC_LEDGER_CANISTER_TESTNET),
             BtcNetwork::Mainnet => ICRC1(CKBTC_LEDGER_CANISTER_MAINNET),
@@ -47,15 +44,12 @@ impl CKBTC {
 
         let minter = Minter(btc_network);
 
-        let fee = ledger
-            .fee()
-            .await
-            .map_err(|e| WalletError::ICRC1CallError(e.to_string()))?;
+        let fee = ledger.fee().await.map_err(CkbtcError::IcrcError)?;
 
         let owner = ic_cdk_id();
         let account = ICRCAccount::new(owner, Some(subaccount));
 
-        Ok(CKBTC {
+        Ok(CkbtcChain {
             ledger,
             minter,
             account,
@@ -65,27 +59,28 @@ impl CKBTC {
             pending: None,
         })
     }
-}
 
-impl CKBTC {
     pub fn add_pending(&mut self, txid: String) {
         self.pending = Some(txid);
     }
 
-    pub async fn get_btc_address(&self) -> Result<String, WalletError> {
+    pub async fn get_btc_address(&self) -> Result<String, CkbtcError> {
         let account = self.account.clone();
 
-        self.minter.get_btc_address(account).await
+        self.minter
+            .get_btc_address(account)
+            .await
+            .map_err(CkbtcError::MinterError)
     }
 
-    pub async fn update_balance(&self) -> Result<UpdateBalanceResult, WalletError> {
+    pub async fn update_balance(&self) -> Result<UpdateBalanceResult, CkbtcError> {
         let account = self.account.clone();
 
         let result = self
             .minter
             .update_balance(account)
             .await
-            .map_err(|err| WalletError::CkbtcUpdateBalance(err.to_string()))?;
+            .map_err(CkbtcError::MinterError)?;
 
         Ok(result)
     }
@@ -94,12 +89,12 @@ impl CKBTC {
         &self,
         retrieve_address: String,
         amount: Satoshi,
-    ) -> Result<RetrieveBtcOk, WalletError> {
+    ) -> Result<RetrieveBtcOk, CkbtcError> {
         let withdraw_account = self
             .minter
             .get_withdrawal_account()
             .await
-            .map_err(|err| WalletError::CkbtcSwapToBtcError(err.to_string()))?;
+            .map_err(CkbtcError::MinterError)?;
 
         let args = ICRC1TransferArgs {
             to: withdraw_account,
@@ -114,7 +109,7 @@ impl CKBTC {
             .ledger
             .transfer(args)
             .await
-            .map_err(|err| WalletError::CkbtcSwapToBtcError(err.to_string()))?;
+            .map_err(|err| CkbtcError::CkbtcSwapToBtcError(err.to_string()))?;
 
         match result {
             Ok(_) => {
@@ -122,16 +117,16 @@ impl CKBTC {
                     .minter
                     .retrieve_btc(retrieve_address, amount)
                     .await
-                    .map_err(|err| WalletError::CkbtcSwapToBtcError(err.to_string()))?;
+                    .map_err(CkbtcError::MinterError)?;
 
                 match block_index {
                     RetrieveBtcResult::Ok(block_index) => Ok(block_index),
                     RetrieveBtcResult::Err(err) => {
-                        Err(WalletError::CkbtcSwapToBtcError(err.to_string()))
+                        Err(CkbtcError::CkbtcSwapToBtcError(err.to_string()))
                     }
                 }
             }
-            Err(err) => Err(WalletError::CkbtcSwapToBtcError(err.to_string())),
+            Err(err) => Err(CkbtcError::CkbtcSwapToBtcError(err.to_string())),
         }
     }
 }

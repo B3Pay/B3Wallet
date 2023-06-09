@@ -1,8 +1,8 @@
 use super::api::{get_recovery_id, EvmSign, EvmTransaction, EvmTransactionType};
+use super::error::EvmError;
 use super::utils::{
     remove_leading, string_to_vec_u8, u64_to_vec_u8, vec_u8_to_string, vec_u8_to_u64,
 };
-use crate::error::WalletError;
 use b3_helper_lib::raw_keccak256;
 
 pub struct EvmTransactionLegacy {
@@ -87,7 +87,7 @@ impl From<(Vec<u8>, u64)> for EvmTransactionLegacy {
     }
 }
 impl EvmSign for EvmTransactionLegacy {
-    fn get_message_to_sign(&self) -> Result<Vec<u8>, WalletError> {
+    fn get_message_to_sign(&self) -> Result<Vec<u8>, EvmError> {
         let mut stream = rlp::RlpStream::new_list(9);
 
         let items = [
@@ -113,7 +113,8 @@ impl EvmSign for EvmTransactionLegacy {
 
         Ok(result.to_vec())
     }
-    fn sign(&mut self, signature: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, WalletError> {
+
+    fn sign(&mut self, signature: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, EvmError> {
         let chain_id = u64::try_from(self.chain_id).unwrap();
 
         let r_remove_leading_zeros = remove_leading(signature[..32].to_vec(), 0);
@@ -136,6 +137,7 @@ impl EvmSign for EvmTransactionLegacy {
         let result = self.serialize()?;
         Ok(result)
     }
+
     fn is_signed(&self) -> bool {
         let r: String;
         if self.r.starts_with("0x") {
@@ -152,9 +154,10 @@ impl EvmSign for EvmTransactionLegacy {
 
         r != "00" || s != "00"
     }
-    fn get_signature(&self) -> Result<Vec<u8>, WalletError> {
+
+    fn get_signature(&self) -> Result<Vec<u8>, EvmError> {
         if !self.is_signed() {
-            return Err(WalletError::NotSignedTransaction);
+            return Err(EvmError::NotSignedTransaction);
         }
 
         let r = string_to_vec_u8(&self.r);
@@ -162,9 +165,10 @@ impl EvmSign for EvmTransactionLegacy {
 
         Ok([&r[..], &s[..]].concat())
     }
-    fn get_recovery_id(&self) -> Result<u8, WalletError> {
+
+    fn get_recovery_id(&self) -> Result<u8, EvmError> {
         if !self.is_signed() {
-            return Err(WalletError::NotSignedTransaction);
+            return Err(EvmError::NotSignedTransaction);
         }
         let chain_id = i64::try_from(self.chain_id).unwrap();
         let v = string_to_vec_u8(&self.v);
@@ -172,7 +176,8 @@ impl EvmSign for EvmTransactionLegacy {
         let recovery_id = -1 * ((chain_id * 2) + 35 - i64::try_from(v[0]).unwrap());
         Ok(u8::try_from(recovery_id).unwrap())
     }
-    fn serialize(&self) -> Result<Vec<u8>, WalletError> {
+
+    fn serialize(&self) -> Result<Vec<u8>, EvmError> {
         let mut stream = rlp::RlpStream::new_list(9);
 
         let nonce = u64_to_vec_u8(&self.nonce);
@@ -204,7 +209,8 @@ impl EvmSign for EvmTransactionLegacy {
 
         Ok(stream.out().to_vec())
     }
-    fn get_nonce(&self) -> Result<u64, WalletError> {
+
+    fn get_nonce(&self) -> Result<u64, EvmError> {
         Ok(self.nonce)
     }
 

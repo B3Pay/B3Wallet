@@ -3,12 +3,8 @@ use crate::{
     types::{Controllers, State, WalletCanister, WalletCanisters},
     types::{Release, Users},
 };
-use b3_helper_lib::{
-    error::ErrorTrait,
-    types::{
-        CanisterId, ControllerId, SignerId, Version, WalletCanisterInitArgs,
-        WalletCanisterInstallArg,
-    },
+use b3_helper_lib::types::{
+    CanisterId, ControllerId, SignerId, Version, WalletCanisterInitArgs, WalletCanisterInstallArg,
 };
 use ic_cdk::api::management_canister::main::CanisterInstallMode;
 

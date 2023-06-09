@@ -6,10 +6,7 @@ use crate::{
     state::PrmitState,
     types::ProcessedRequestMap,
 };
-use b3_helper_lib::{
-    error::ErrorTrait,
-    types::{RequestId, SignerId},
-};
+use b3_helper_lib::types::{RequestId, SignerId};
 use std::cell::RefCell;
 
 thread_local! {

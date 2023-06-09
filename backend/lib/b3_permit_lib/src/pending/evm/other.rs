@@ -1,7 +1,5 @@
-use crate::{pending::Request, types::ConsentMessageResponse};
-
-use super::EvmRequest;
-
+use crate::{error::RequestError, pending::RequestTrait, types::ConsentMessageResponse};
+use async_trait::async_trait;
 use b3_wallet_lib::{
     error::WalletError,
     ledger::evm::{api::EvmSign, tx1559::EvmTransaction1559, utils::vec_u8_to_string},
@@ -21,14 +19,9 @@ pub struct EvmDeployContractRequest {
     max_priority_fee_per_gas: Option<u64>,
 }
 
-impl From<EvmDeployContractRequest> for Request {
-    fn from(args: EvmDeployContractRequest) -> Self {
-        EvmRequest::EvmDeployContractRequest(args).into()
-    }
-}
-
-impl EvmDeployContractRequest {
-    pub async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+#[async_trait]
+impl RequestTrait for EvmDeployContractRequest {
+    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
         let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
 
         let data = "0x".to_owned() + &vec_u8_to_string(&self.hex_byte_code);
@@ -57,6 +50,20 @@ impl EvmDeployContractRequest {
 
         let _signed = ledger.sign_with_ecdsa(raw_tx).await?;
 
-        Ok(ConsentMessageResponse::default())
+        todo!("return tx hash")
+    }
+
+    fn validate_request(&self) -> Result<(), RequestError> {
+        with_ledger(&self.account_id, |ledger| {
+            if ledger.evm(self.chain_id).is_some() {
+                Ok(())
+            } else {
+                Err(RequestError::ChainIdNotInitialized)
+            }
+        })?
+    }
+
+    fn method_name(&self) -> String {
+        "evm_deploy_contract".to_string()
     }
 }

@@ -101,7 +101,10 @@ where
     F: FnOnce(&Chain) -> T,
 {
     with_ledger(account_id, |ledger| {
-        ledger.chain(chain_type).map(|chain| callback(chain))
+        ledger
+            .chain(chain_type)
+            .map(|chain| callback(chain))
+            .map_err(WalletError::LedgerError)
     })?
 }
 
@@ -117,6 +120,9 @@ where
     F: FnOnce(&mut Chain) -> T,
 {
     with_ledger_mut(account_id, |ledger| {
-        ledger.chain_mut(chain_type).map(|chain| callback(chain))
+        ledger
+            .chain_mut(chain_type)
+            .map(|chain| callback(chain))
+            .map_err(WalletError::LedgerError)
     })?
 }

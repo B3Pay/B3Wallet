@@ -4,7 +4,7 @@ use ic_cdk::export::{
     Principal,
 };
 
-use crate::{error::ErrorTrait, subaccount::Subaccount};
+use crate::subaccount::Subaccount;
 
 use easy_hasher::easy_hasher;
 use std::{fmt, str::FromStr};
@@ -47,22 +47,6 @@ impl From<Vec<u8>> for AccountIdentifier {
     }
 }
 
-pub enum AccountIdentifierError {
-    InvalidLength,
-    InvalidAccountIdentifier,
-}
-
-impl ErrorTrait for AccountIdentifierError {
-    fn to_string(self) -> String {
-        match self {
-            AccountIdentifierError::InvalidLength => "Invalid length".to_string(),
-            AccountIdentifierError::InvalidAccountIdentifier => {
-                "Invalid account identifier".to_string()
-            }
-        }
-    }
-}
-
 impl FromStr for AccountIdentifier {
     type Err = AccountIdentifierError;
 
@@ -93,6 +77,21 @@ impl fmt::Display for AccountIdentifier {
             result.push_str(&format!("{:02x}", byte));
         }
         write!(f, "{}", result)
+    }
+}
+
+pub enum AccountIdentifierError {
+    InvalidLength,
+    InvalidAccountIdentifier,
+}
+
+#[rustfmt::skip]
+impl fmt::Display for AccountIdentifierError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            AccountIdentifierError::InvalidLength => write!(f, "Invalid length"),
+            AccountIdentifierError::InvalidAccountIdentifier => write!(f, "Invalid account identifier")
+        }
     }
 }
 

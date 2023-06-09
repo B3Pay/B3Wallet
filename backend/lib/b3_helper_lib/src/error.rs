@@ -1,97 +1,47 @@
+use crate::{tokens::Tokens, types::BlockIndex};
 use ic_cdk::export::{
     candid::CandidType,
     serde::{Deserialize, Serialize},
 };
+use std::fmt;
 
-use crate::{tokens::Tokens, types::BlockIndex};
-
-#[derive(Debug, Clone, Serialize, PartialEq)]
-pub enum ICRCAccountError {
-    InvalidFormat,
-    BadChecksum,
-    NotCanonical,
-    HexDecode(String),
-    Malformed(String),
-    InvalidPrincipal(String),
-    InvalidSubaccount(String),
-}
-
-#[rustfmt::skip]
-impl ErrorTrait for ICRCAccountError {
-    fn to_string(self) -> String {
-        match self {
-            ICRCAccountError::BadChecksum => "Bad checksum".to_string(),
-            ICRCAccountError::NotCanonical => "Not canonical".to_string(),
-            ICRCAccountError::HexDecode(e) => ["Hex decode error: ", &e].concat(),
-            ICRCAccountError::Malformed(e) => ["Malformed account: ", &e].concat(),
-            ICRCAccountError::InvalidFormat => "Invalid account format".to_string(),
-            ICRCAccountError::InvalidPrincipal(e) => ["Invalid principal: ", &e].concat(),
-            ICRCAccountError::InvalidSubaccount(e) => ["Invalid subaccount: ", &e].concat(),
-        }
-    }
-}
-
-#[rustfmt::skip]
-#[derive(CandidType, Deserialize,Serialize, Debug)]
-pub enum SubaccountError {
-    HexError(String),
-    SliceError(String),
-    Base32Error(String),
-    InvalidSubaccount(String),
-}
-
-impl ErrorTrait for SubaccountError {
-    fn to_string(self) -> String {
-        match self {
-            SubaccountError::InvalidSubaccount(e) => ["InvalidSubaccount: ", &e].concat(),
-            SubaccountError::Base32Error(e) => ["::Subaccount base32 error: ", &e].concat(),
-            SubaccountError::SliceError(e) => ["::Subaccount slice error: ", &e].concat(),
-            SubaccountError::HexError(e) => ["::Subaccount hex error: ", &e].concat(),
-        }
-    }
-}
-
-#[rustfmt::skip]
-#[derive(CandidType, Deserialize,Serialize, Debug)]
+#[derive(CandidType, Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub enum HelperError {
-    CanisterStatusError(String),
-    CreateCanisterError(String),
-    ValidateSignerError(String),
     InvalidSubaccount(String),
-    VersionError(String),
-    InstallCodeError(String),
+    ValidateSignerError(String),
     WasmHashError(String),
+    CreateCanisterError(String),
     EncodeError(String),
+    InstallCodeError(String),
+    VersionError(String),
+    CanisterStatusError(String),
     SignerNotAvailable,
     RateLimitExceeded,
-    InvalidAccountIdentifier,
     UpdateCanisterControllersError(String),
-}
-
-pub trait ErrorTrait {
-    fn to_string(self) -> String;
+    InvalidAccountIdentifier,
 }
 
 #[rustfmt::skip]
-impl ErrorTrait for HelperError {
-    fn to_string(self) -> String {
+impl fmt::Display for HelperError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            HelperError::InvalidSubaccount(e) => ["::Invalid subaccount: ", &e].concat(),
-            HelperError::ValidateSignerError(e) => ["::Get owner error: ", &e].concat(),
-            HelperError::WasmHashError(e) => ["::Wasm hash error: ", &e].concat(),
-            HelperError::CreateCanisterError(e) => ["::Create canister error: ", &e].concat(),
-            HelperError::EncodeError(e) => ["::Encode error: ", &e].concat(),
-            HelperError::InstallCodeError(e) => ["::Install code error: ", &e].concat(),
-            HelperError::VersionError(e) => ["::Version error: ", &e].concat(),
-            HelperError::CanisterStatusError(e) => ["::Canister status error: ", &e].concat(),
-            HelperError::SignerNotAvailable => "::Signer not available!".to_string(),
-            HelperError::RateLimitExceeded => "::Rate limit exceeded, please try again later!".to_string(),
-            HelperError::UpdateCanisterControllersError(e) => ["::Update canister controllers error: " , &e].concat(),
-            HelperError::InvalidAccountIdentifier => "::Invalid account identifier!".to_string(),
+            HelperError::InvalidSubaccount(e) => write!(f, "::Invalid subaccount: {}", e),
+            HelperError::ValidateSignerError(e) => write!(f, "::Get owner error: {}", e),
+            HelperError::WasmHashError(e) => write!(f, "::Wasm hash error: {}", e),
+            HelperError::CreateCanisterError(e) => write!(f, "::Create canister error: {}", e),
+            HelperError::EncodeError(e) => write!(f, "::Encode error: {}", e),
+            HelperError::InstallCodeError(e) => write!(f, "::Install code error: {}", e),
+            HelperError::VersionError(e) => write!(f, "::Version error: {}", e),
+            HelperError::CanisterStatusError(e) => write!(f, "::Canister status error: {}", e),
+            HelperError::SignerNotAvailable => write!(f, "::Signer not available!"),
+            HelperError::RateLimitExceeded => write!(f, "::Rate limit exceeded, please try again later!"),
+            HelperError::UpdateCanisterControllersError(e) => write!(f, "::Update canister controllers error: {}", e),
+            HelperError::InvalidAccountIdentifier => write!(f, "::Invalid account identifier!"),
         }
     }
 }
 
+#[derive(CandidType, Deserialize, Serialize, Debug)]
 pub enum TransferError {
     BadFee { expected_fee: Tokens },
     InsufficientFunds { balance: Tokens },
@@ -101,30 +51,20 @@ pub enum TransferError {
 }
 
 #[rustfmt::skip]
-impl ErrorTrait for TransferError {
-    fn to_string(self) -> String {
+impl fmt::Display for TransferError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            TransferError::BadFee { expected_fee } => {
-                format!("Bad fee, expected at least {} tokens", expected_fee)
-            }
-            TransferError::InsufficientFunds { balance } => {
-                format!("Insufficient funds, balance is {}", balance)
-            }
-            TransferError::TxTooOld {
-                allowed_window_nanos,
-            } => format!(
-                "Transaction is too old, allowed window is {} nanoseconds",
-                allowed_window_nanos
-            ),
-            TransferError::TxCreatedInFuture => "Transaction created in the future".to_string(),
-            TransferError::TxDuplicate { duplicate_of } => {
-                format!("Duplicate transaction, duplicate of {}", duplicate_of)
-            }
+            TransferError::BadFee { expected_fee } => write!(f, "Bad fee, expected at least {} tokens", expected_fee),
+            TransferError::InsufficientFunds { balance } => write!(f, "Insufficient funds, balance is {}", balance),
+            TransferError::TxTooOld { allowed_window_nanos } => write!(f, "Transaction is too old, allowed window is {} nanoseconds", allowed_window_nanos),
+            TransferError::TxCreatedInFuture => write!(f, "Transaction created in the future"),
+            TransferError::TxDuplicate { duplicate_of } => write!(f, "Duplicate transaction, duplicate of {}", duplicate_of)
         }
     }
 }
 
 #[rustfmt::skip]
+#[derive(CandidType, Deserialize, Serialize, Debug)]
 pub enum NotifyError {
     BadFee { expected_fee: Tokens },
     InsufficientFunds { balance: Tokens },
@@ -132,41 +72,29 @@ pub enum NotifyError {
     TxDuplicate { duplicate_of: BlockIndex },
     Refunded { block_index: Option<u64>, reason: String},
     InvalidTransaction(String),
-    Other {
-        error_message: String,
-        error_code: u64,
-    },
+    Other { error_message: String, error_code: u64 },
     Processing,
     TransactionTooOld(u64),    
     TxCreatedInFuture,
 }
 
 #[rustfmt::skip]
-impl ErrorTrait for NotifyError {
-    fn to_string(self) -> String {
+impl fmt::Display for NotifyError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            NotifyError::TransactionTooOld(e) => ["::Transaction too old:", & e.to_string()].concat(),
-            NotifyError::InvalidTransaction(e) => ["::Invalid transaction: ", &e].concat(),
-            NotifyError::Processing => "::Processing!".to_string(),
-            NotifyError::BadFee { expected_fee } => ["::Invalid fee: Expected", &expected_fee.to_string(), "tokens"].join(" "),
-            NotifyError::InsufficientFunds { balance } => ["::Insufficient funds: Balance is", &balance.to_string(), "tokens"].join(" "),
-            NotifyError::TxTooOld { allowed_window_nanos } => ["::Transaction too old: Allowed window is", &allowed_window_nanos.to_string(), "nanoseconds"].join(" "),
-            NotifyError::TxCreatedInFuture => "::Transaction created in the future".to_string(),
-            NotifyError::TxDuplicate { duplicate_of } => ["::Duplicate transaction: Duplicate of block index ", &duplicate_of.to_string()].concat(),
-            NotifyError::Other { error_message, error_code } => ["::Other error", &error_code.to_string(), &error_message].join(" "),
-            NotifyError::Refunded { block_index, reason } => {
-                if let Some(index) = block_index {
-                    [
-                        "::Transaction refunded: Refunded at block index",
-                        &index.to_string(),
-                        "due to",
-                        &reason,
-                    ]
-                    .join(" ")
-                } else {
-                    ["::Transaction refunded: Refunded due to ", &reason].concat()
-                }
-            }
+            NotifyError::TransactionTooOld(e) => write!(f, "::Transaction too old: {}", e),
+            NotifyError::InvalidTransaction(e) => write!(f, "::Invalid transaction: {}", e),
+            NotifyError::Processing => write!(f, "::Processing!"),
+            NotifyError::BadFee { expected_fee } => write!(f, "::Invalid fee: Expected {} tokens", expected_fee),
+            NotifyError::InsufficientFunds { balance } => write!(f, "::Insufficient funds: Balance is {} tokens", balance),
+            NotifyError::TxTooOld { allowed_window_nanos } => write!(f, "::Transaction too old: Allowed window is {} nanoseconds", allowed_window_nanos),
+            NotifyError::TxCreatedInFuture => write!(f, "::Transaction created in the future"),
+            NotifyError::TxDuplicate { duplicate_of } => write!(f, "::Duplicate transaction: Duplicate of block index {}", duplicate_of),
+            NotifyError::Other { error_message, error_code } => write!(f, "::Other error {} {}", error_code, error_message),
+            NotifyError::Refunded { block_index, reason } => match block_index {
+                Some(index) => write!(f, "::Transaction refunded: Refunded at block index {} due to {}", index, reason),
+                None => write!(f, "::Transaction refunded: Refunded due to {}", reason),
+            },
         }
     }
 }

@@ -20,6 +20,17 @@
       "type": "custom",
       "wasm": "wasm/b3_wallet/b3_wallet.wasm"
     },
+    "global_wallet": {
+      "build": "scripts/global_wallet.sh",
+      "candid": "backend/global_wallet/global_wallet.did",
+      "declarations": {
+        "node_compatibility": true,
+        "output": "frontend/declarations/global_wallet"
+      },
+      "package": "global_wallet",
+      "type": "custom",
+      "wasm": "wasm/global_wallet/global_wallet.wasm"
+    },
     "ckbtc": {
       "candid": "wasm/ckbtc/ledger.did",
       "type": "custom",

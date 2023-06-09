@@ -1,4 +1,3 @@
-use b3_helper_lib::error::ErrorTrait;
 use ic_cdk::export::candid::{CandidType, Deserialize};
 
 #[rustfmt::skip]
@@ -34,38 +33,40 @@ pub enum SystemError {
     CanisterStatusError(String),
 }
 
+use std::fmt;
+
 #[rustfmt::skip]
-impl ErrorTrait for SystemError {
-    fn to_string(self) -> String {
+impl fmt::Display for SystemError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            SystemError::ValidateSignerError(e) => ["Validate signer error: ", &e].concat(),
-            SystemError::UpdateCanisterControllersError(e) => ["Update canister controllers error: ", &e].concat(),
-            SystemError::VersionError(e) => ["Version error: ", &e].concat(),
-            SystemError::RateLimitExceeded => "Rate limit exceeded!".to_string(),
-            SystemError::InvalidWalletCanister => "Invalid wallet canister!".to_string(),
-            SystemError::OwnerMismatch { owner, user } => ["Owner mismatch:", &owner, "!=", &user].join(" "),
-            SystemError::InstallArgError(e) => ["Install arg error: ", &e].concat(),
-            SystemError::UpdateControllersError(e) => ["Update controllers error: ", &e].concat(),
-            SystemError::WasmInstallError(e) => ["Wasm install error: ", &e].concat(),
-            SystemError::InvalidAccountIdentifier => "Invalid account identifier!".to_string(),
-            SystemError::ReleaseNotFound => "Release not found!".to_string(),
-            SystemError::UserAlreadyExists => "User already exists!".to_string(),
-            SystemError::UserNotFound => "User not found!".to_string(),
-            SystemError::NoCanisterAvailable => "No canister available!".to_string(),
-            SystemError::ReleaseAlreadyExists => "Release already exists!".to_string(),
-            SystemError::WasmNotFound => "Wasm not found!".to_string(),
-            SystemError::WasmAlreadyLoaded => "Wasm already loaded!".to_string(),
-            SystemError::WasmGetError(e) => ["Wasm get error: ", &e].concat(),
-            SystemError::WasmHashError(e) => ["Wasm hash error: ", &e].concat(),
-            SystemError::EncodeError(e) => ["Encode error: ", &e].concat(),
-            SystemError::CreateCanisterError(e) => ["Create canister error: ", &e].concat(),
-            SystemError::InstallCodeError(e) => ["Install code error: ", &e].concat(),
-            SystemError::CanisterStatusError(e) => ["Wallet status error: ", &e].concat(),
-            SystemError::WalletCanisterRateError(e) => ["Wallet canister rate error: ", &e].concat(),
-            SystemError::WalletCanisterNotFound => "Wallet Canister id not found!".to_string(),
-            SystemError::WalletCanisterDoesNotExist(e) => ["Wallet does not exist: ", &e].concat(),
-            SystemError::WalletCanisterAlreadyExists(e) => ["Wallet already exists: ", &e].concat(),
-            SystemError::WalletCanisterAlreadyInstalled => "Wallet canister already installed!".to_string(),
+            SystemError::ValidateSignerError(e) => write!(f, "Validate signer error: {}", e),
+            SystemError::UpdateCanisterControllersError(e) => write!(f, "Update canister controllers error: {}", e),
+            SystemError::VersionError(e) => write!(f, "Version error: {}", e),
+            SystemError::RateLimitExceeded => write!(f, "Rate limit exceeded!"),
+            SystemError::InvalidWalletCanister => write!(f, "Invalid wallet canister!"),
+            SystemError::OwnerMismatch { owner, user } => write!(f, "Owner mismatch: {} != {}", owner, user),
+            SystemError::InstallArgError(e) => write!(f, "Install arg error: {}", e),
+            SystemError::UpdateControllersError(e) => write!(f, "Update controllers error: {}", e),
+            SystemError::WasmInstallError(e) => write!(f, "Wasm install error: {}", e),
+            SystemError::InvalidAccountIdentifier => write!(f, "Invalid account identifier!"),
+            SystemError::ReleaseNotFound => write!(f, "Release not found!"),
+            SystemError::UserAlreadyExists => write!(f, "User already exists!"),
+            SystemError::UserNotFound => write!(f, "User not found!"),
+            SystemError::NoCanisterAvailable => write!(f, "No canister available!"),
+            SystemError::ReleaseAlreadyExists => write!(f, "Release already exists!"),
+            SystemError::WasmNotFound => write!(f, "Wasm not found!"),
+            SystemError::WasmAlreadyLoaded => write!(f, "Wasm already loaded!"),
+            SystemError::WasmGetError(e) => write!(f, "Wasm get error: {}", e),
+            SystemError::WasmHashError(e) => write!(f, "Wasm hash error: {}", e),
+            SystemError::EncodeError(e) => write!(f, "Encode error: {}", e),
+            SystemError::CreateCanisterError(e) => write!(f, "Create canister error: {}", e),
+            SystemError::InstallCodeError(e) => write!(f, "Install code error: {}", e),
+            SystemError::CanisterStatusError(e) => write!(f, "Wallet status error: {}", e),
+            SystemError::WalletCanisterRateError(e) => write!(f, "Wallet canister rate error: {}", e),
+            SystemError::WalletCanisterNotFound => write!(f, "Wallet Canister id not found!"),
+            SystemError::WalletCanisterDoesNotExist(e) => write!(f, "Wallet does not exist: {}", e),
+            SystemError::WalletCanisterAlreadyExists(e) => write!(f, "Wallet already exists: {}", e),
+            SystemError::WalletCanisterAlreadyInstalled => write!(f, "Wallet canister already installed!"),
         }
     }
 }
