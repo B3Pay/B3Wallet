@@ -104,11 +104,20 @@ impl Ledger {
         }
     }
 
-    pub fn public_key(&self) -> Result<PublicKey, LedgerError> {
+    pub fn btc_public_key(&self) -> Result<PublicKey, LedgerError> {
         let ecdsa = self.ecdsa()?;
 
         let public_key =
             PublicKey::from_slice(&ecdsa).map_err(|_| LedgerError::InvalidEcdsaPublicKey)?;
+
+        Ok(public_key)
+    }
+
+    pub fn eth_public_key(&self) -> Result<secp256k1::PublicKey, LedgerError> {
+        let ecdsa = self.ecdsa()?;
+
+        let public_key = secp256k1::PublicKey::from_slice(&ecdsa)
+            .map_err(|_| LedgerError::InvalidEcdsaPublicKey)?;
 
         Ok(public_key)
     }
@@ -126,11 +135,9 @@ impl Ledger {
     }
 
     pub fn eth_address(&self) -> Result<String, LedgerError> {
-        let ecdsa = self.ecdsa()?;
+        let public_key = self.eth_public_key()?;
 
-        let pub_key = secp256k1::PublicKey::from_slice(&ecdsa)
-            .map_err(|e| LedgerError::GenerateError(e.to_string()))?
-            .serialize_uncompressed();
+        let pub_key = public_key.serialize_uncompressed();
 
         let keccak256 = raw_keccak256(&pub_key[1..]);
 
@@ -142,7 +149,7 @@ impl Ledger {
     }
 
     pub fn btc_address(&self, btc_network: BtcNetwork) -> Result<Address, LedgerError> {
-        let public_key = self.public_key()?;
+        let public_key = self.btc_public_key()?;
 
         let address = Address::p2pkh(&public_key, btc_network.into());
 

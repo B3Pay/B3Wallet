@@ -1,14 +1,13 @@
-use b3_helper_lib::raw_keccak256;
-
-use super::api::{
-    decode_access_list, encode_access_list, get_recovery_id, EvmSign, EvmTransaction,
-    EvmTransactionType,
-};
 use super::error::EvmError;
+use super::evm::{decode_access_list, encode_access_list, get_recovery_id, EvmSignTrait};
 use super::utils::{
     remove_leading, string_to_vec_u8, u64_to_vec_u8, vec_u8_to_string, vec_u8_to_u64,
 };
+use b3_helper_lib::raw_keccak256;
+use bitcoin::secp256k1::PublicKey;
+use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
+#[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
 pub struct EvmTransaction1559 {
     pub chain_id: u64,
     pub nonce: u64,
@@ -22,27 +21,6 @@ pub struct EvmTransaction1559 {
     pub v: String,
     pub r: String,
     pub s: String,
-}
-
-impl From<&EvmTransaction1559> for EvmTransaction {
-    fn from(tx: &EvmTransaction1559) -> Self {
-        EvmTransaction {
-            chain_id: tx.chain_id,
-            nonce: tx.nonce,
-            gas_price: None,
-            gas_limit: tx.gas_limit,
-            max_fee_per_gas: Some(tx.max_fee_per_gas),
-            max_priority_fee_per_gas: Some(tx.max_priority_fee_per_gas),
-            to: tx.to.clone(),
-            value: tx.value,
-            data: tx.data.clone(),
-            access_list: None,
-            v: tx.v.clone(),
-            r: tx.r.clone(),
-            s: tx.s.clone(),
-            transaction_type: EvmTransactionType::EIP1559,
-        }
-    }
 }
 
 impl From<Vec<u8>> for EvmTransaction1559 {
@@ -101,39 +79,8 @@ impl From<Vec<u8>> for EvmTransaction1559 {
         }
     }
 }
-impl EvmSign for EvmTransaction1559 {
-    fn get_message_to_sign(&self) -> Result<Vec<u8>, EvmError> {
-        let mut stream = rlp::RlpStream::new_list(9);
-        let items = [
-            u64_to_vec_u8(&self.chain_id),
-            u64_to_vec_u8(&self.nonce),
-            u64_to_vec_u8(&self.max_priority_fee_per_gas),
-            u64_to_vec_u8(&self.max_fee_per_gas),
-            u64_to_vec_u8(&self.gas_limit),
-            string_to_vec_u8(&self.to),
-            u64_to_vec_u8(&self.value),
-            string_to_vec_u8(&self.data),
-        ];
-
-        for i in 0..=7 {
-            let item = &items[i];
-            stream.append(item);
-        }
-
-        let access_list = encode_access_list(&self.access_list);
-
-        stream.append_raw(&access_list[..], 1);
-
-        let decode_tx = stream.out();
-
-        let encoded_tx = [&[0x02], &decode_tx[..]].concat();
-
-        let result = raw_keccak256(&encoded_tx);
-
-        Ok(result.to_vec())
-    }
-
-    fn sign(&mut self, signature: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, EvmError> {
+impl EvmSignTrait for EvmTransaction1559 {
+    fn sign(&mut self, signature: Vec<u8>, public_key: PublicKey) -> Result<Vec<u8>, EvmError> {
         let r_remove_leading_zeros = remove_leading(signature[..32].to_vec(), 0);
         let s_remove_leading_zeros = remove_leading(signature[32..].to_vec(), 0);
 
@@ -141,8 +88,10 @@ impl EvmSign for EvmTransaction1559 {
 
         let s = vec_u8_to_string(&s_remove_leading_zeros);
 
-        let message = self.get_message_to_sign()?;
+        let message = self.unsigned_serialized();
+
         let recovery_id = get_recovery_id(&message, &signature, &public_key)?;
+
         let v: String;
         if recovery_id == 0 {
             v = "".to_string();
@@ -154,7 +103,8 @@ impl EvmSign for EvmTransaction1559 {
         self.r = r;
         self.s = s;
 
-        let result = self.serialize()?;
+        let result = self.serialized();
+
         Ok(result)
     }
 
@@ -175,7 +125,7 @@ impl EvmSign for EvmTransaction1559 {
         r != "00" || s != "00"
     }
 
-    fn get_signature(&self) -> Result<Vec<u8>, EvmError> {
+    fn signature(&self) -> Result<Vec<u8>, EvmError> {
         if !self.is_signed() {
             return Err(EvmError::NotSignedTransaction);
         }
@@ -186,10 +136,11 @@ impl EvmSign for EvmTransaction1559 {
         Ok([&r[..], &s[..]].concat())
     }
 
-    fn get_recovery_id(&self) -> Result<u8, EvmError> {
+    fn recovery_id(&self) -> Result<u8, EvmError> {
         if !self.is_signed() {
             return Err(EvmError::NotSignedTransaction);
         }
+
         let v = &self.v;
 
         if v.is_empty() {
@@ -199,7 +150,34 @@ impl EvmSign for EvmTransaction1559 {
         }
     }
 
-    fn serialize(&self) -> Result<Vec<u8>, EvmError> {
+    fn unsigned_serialized(&self) -> Vec<u8> {
+        let mut stream = rlp::RlpStream::new_list(9);
+
+        let items = [
+            u64_to_vec_u8(&self.chain_id),
+            u64_to_vec_u8(&self.nonce),
+            u64_to_vec_u8(&self.max_priority_fee_per_gas),
+            u64_to_vec_u8(&self.max_fee_per_gas),
+            u64_to_vec_u8(&self.gas_limit),
+            string_to_vec_u8(&self.to),
+            u64_to_vec_u8(&self.value),
+            string_to_vec_u8(&self.data),
+        ];
+
+        for item in items {
+            stream.append(&item);
+        }
+
+        let access_list = encode_access_list(&self.access_list);
+        stream.append_raw(&access_list, 1);
+
+        let decode_tx = stream.out();
+        let encoded_tx = [&[0x02], &decode_tx[..]].concat();
+
+        encoded_tx
+    }
+
+    fn serialized(&self) -> Vec<u8> {
         let mut stream = rlp::RlpStream::new_list(12);
 
         let chain_id = u64_to_vec_u8(&self.chain_id);
@@ -241,14 +219,88 @@ impl EvmSign for EvmTransaction1559 {
 
         let result = stream.out().to_vec();
 
-        Ok([&[0x02], &result[..]].concat())
+        let serialized = [&[0x02], &result[..]].concat();
+
+        serialized
     }
 
-    fn get_nonce(&self) -> Result<u64, EvmError> {
-        Ok(self.nonce)
+    fn nonce(&self) -> u64 {
+        self.nonce
     }
 
-    fn get_transaction(&self) -> EvmTransaction {
-        self.into()
+    fn chain_id(&self) -> u64 {
+        self.chain_id
+    }
+
+    fn hash(&self) -> Vec<u8> {
+        let result = self.serialized();
+        let hash = raw_keccak256(&result);
+
+        hash.to_vec()
+    }
+
+    fn unsigned_hash(&self) -> Vec<u8> {
+        let result = self.unsigned_serialized();
+        let hash = raw_keccak256(&result);
+
+        hash.to_vec()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_unsigned_serialization() {
+        // create a mock transaction
+        let tx = EvmTransaction1559 {
+            chain_id: 1,
+            nonce: 0,
+            max_priority_fee_per_gas: 0,
+            max_fee_per_gas: 0,
+            gas_limit: 0,
+            to: "0x".to_string(),
+            value: 0,
+            data: "0x".to_string(),
+            access_list: vec![],
+            v: "".to_string(),
+            r: "".to_string(),
+            s: "".to_string(),
+        };
+
+        // compute the unsigned serialization
+        let serialized = tx.unsigned_serialized();
+
+        let expected = [2, 201, 1, 128, 128, 128, 128, 128, 128, 128, 192];
+        // print or check the serialized data
+        println!("{:?}", serialized);
+
+        assert_eq!(serialized, expected);
+
+        // compute the unsigned serialization
+        let serialized = tx.serialized();
+
+        let expected = [
+            2, 204, 1, 128, 128, 128, 128, 128, 128, 128, 192, 128, 128, 128,
+        ];
+
+        // print or check the serialized data
+        println!("{:?}", serialized);
+
+        assert_eq!(serialized, expected);
+
+        // compute the unsigned hash
+        let hash = tx.unsigned_hash();
+
+        let expected = [
+            133, 242, 59, 76, 29, 61, 57, 187, 85, 31, 18, 132, 123, 246, 18, 51, 25, 237, 88, 76,
+            191, 249, 189, 252, 62, 129, 64, 145, 146, 214, 158, 223,
+        ];
+
+        // print or check the hash
+        println!("{:?}", hash);
+
+        assert_eq!(hash, expected);
     }
 }

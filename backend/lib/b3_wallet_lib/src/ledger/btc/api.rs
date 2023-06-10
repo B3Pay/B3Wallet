@@ -51,7 +51,7 @@ impl Ledger {
         amount: Satoshi,
     ) -> Result<BtcTxId, BitcoinError> {
         let public_key = self
-            .public_key()
+            .btc_public_key()
             .map_err(|err| BitcoinError::InvalidPublicKey(err.to_string()))?;
 
         let dst_address = Address::from_str(dst_address)
@@ -92,7 +92,7 @@ impl Ledger {
         transaction: &mut Transaction,
     ) -> Result<Transaction, BitcoinError> {
         let public_key = self
-            .public_key()
+            .btc_public_key()
             .map_err(|err| BitcoinError::InvalidPublicKey(err.to_string()))?;
 
         let address = Address::p2pkh(&public_key, btc_network.into());

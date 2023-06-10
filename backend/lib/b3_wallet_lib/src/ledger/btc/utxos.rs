@@ -268,7 +268,7 @@ mod test {
             .unwrap()
             .clone();
 
-        let public_key = public_keys.public_key().unwrap();
+        let public_key = public_keys.btc_public_key().unwrap();
 
         let tx = utxos
             .build_transaction(&public_key, &own_address, &recipient, 100_000_000, 2000)

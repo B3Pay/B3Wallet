@@ -24,6 +24,8 @@ pub type SignerId = Principal;
 pub type RequestId = usize;
 pub type Deadline = u64;
 
+pub type Cycles = u128;
+
 pub type Version = String;
 
 pub type Blob = Vec<u8>;

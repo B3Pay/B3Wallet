@@ -1,13 +1,13 @@
-use super::api::{
-    decode_access_list, encode_access_list, get_recovery_id, EvmSign, EvmTransaction,
-    EvmTransactionType,
-};
 use super::error::EvmError;
+use super::evm::{decode_access_list, encode_access_list, get_recovery_id, EvmSignTrait};
 use super::utils::{
     remove_leading, string_to_vec_u8, u64_to_vec_u8, vec_u8_to_string, vec_u8_to_u64,
 };
 use b3_helper_lib::raw_keccak256;
+use bitcoin::secp256k1::PublicKey;
+use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
+#[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
 pub struct EvmTransaction2930 {
     pub chain_id: u64,
     pub nonce: u64,
@@ -20,27 +20,6 @@ pub struct EvmTransaction2930 {
     pub v: String,
     pub r: String,
     pub s: String,
-}
-
-impl From<&EvmTransaction2930> for EvmTransaction {
-    fn from(tx: &EvmTransaction2930) -> Self {
-        EvmTransaction {
-            chain_id: tx.chain_id,
-            nonce: tx.nonce,
-            gas_price: Some(tx.gas_price),
-            max_fee_per_gas: None,
-            max_priority_fee_per_gas: None,
-            gas_limit: tx.gas_limit,
-            to: tx.to.clone(),
-            value: tx.value,
-            data: tx.data.clone(),
-            access_list: Some(tx.access_list.clone()),
-            v: tx.v.clone(),
-            r: tx.r.clone(),
-            s: tx.s.clone(),
-            transaction_type: EvmTransactionType::EIP2930,
-        }
-    }
 }
 
 impl From<Vec<u8>> for EvmTransaction2930 {
@@ -93,9 +72,80 @@ impl From<Vec<u8>> for EvmTransaction2930 {
         }
     }
 }
-impl EvmSign for EvmTransaction2930 {
-    fn get_message_to_sign(&self) -> Result<Vec<u8>, EvmError> {
+impl EvmSignTrait for EvmTransaction2930 {
+    fn sign(&mut self, signature: Vec<u8>, public_key: PublicKey) -> Result<Vec<u8>, EvmError> {
+        let r_remove_leading_zeros = remove_leading(signature[..32].to_vec(), 0);
+        let s_remove_leading_zeros = remove_leading(signature[32..].to_vec(), 0);
+
+        let r = vec_u8_to_string(&r_remove_leading_zeros);
+
+        let s = vec_u8_to_string(&s_remove_leading_zeros);
+
+        let message = self.unsigned_serialized();
+
+        let recovery_id = get_recovery_id(&message, &signature, &public_key)?;
+
+        let v: String;
+        if recovery_id == 0 {
+            v = "".to_string();
+        } else {
+            v = "01".to_string();
+        }
+
+        self.v = v;
+        self.r = r;
+        self.s = s;
+
+        let serialized = self.serialized();
+
+        Ok(serialized)
+    }
+
+    fn is_signed(&self) -> bool {
+        let r: String;
+        if self.r.starts_with("0x") {
+            r = self.r[2..].to_string();
+        } else {
+            r = self.r[..].to_string();
+        }
+        let s: String;
+        if self.s.starts_with("0x") {
+            s = self.s[2..].to_string();
+        } else {
+            s = self.s[..].to_string();
+        }
+
+        r != "00" || s != "00"
+    }
+
+    fn signature(&self) -> Result<Vec<u8>, EvmError> {
+        if !self.is_signed() {
+            return Err(EvmError::NotSignedTransaction);
+        }
+
+        let r = string_to_vec_u8(&self.r);
+        let s = string_to_vec_u8(&self.s);
+
+        Ok([&r[..], &s[..]].concat())
+    }
+
+    fn recovery_id(&self) -> Result<u8, EvmError> {
+        if !self.is_signed() {
+            return Err(EvmError::NotSignedTransaction);
+        }
+
+        let v = string_to_vec_u8(&self.v);
+
+        if v.is_empty() {
+            Ok(0 as u8)
+        } else {
+            Ok(1 as u8)
+        }
+    }
+
+    fn unsigned_serialized(&self) -> Vec<u8> {
         let mut stream = rlp::RlpStream::new_list(8);
+
         let items = [
             u64_to_vec_u8(&self.chain_id),
             u64_to_vec_u8(&self.nonce),
@@ -117,79 +167,10 @@ impl EvmSign for EvmTransaction2930 {
 
         let encoded_tx = [&[0x01], &decode_tx[..]].concat();
 
-        let result = raw_keccak256(&encoded_tx);
-
-        Ok(result.to_vec())
+        encoded_tx
     }
 
-    fn sign(&mut self, signature: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, EvmError> {
-        let r_remove_leading_zeros = remove_leading(signature[..32].to_vec(), 0);
-        let s_remove_leading_zeros = remove_leading(signature[32..].to_vec(), 0);
-
-        let r = vec_u8_to_string(&r_remove_leading_zeros);
-
-        let s = vec_u8_to_string(&s_remove_leading_zeros);
-
-        let message = self.get_message_to_sign()?;
-        let recovery_id = get_recovery_id(&message, &signature, &public_key)?;
-        let v: String;
-        if recovery_id == 0 {
-            v = "".to_string();
-        } else {
-            v = "01".to_string();
-        }
-
-        self.v = v;
-        self.r = r;
-        self.s = s;
-
-        let result = self.serialize()?;
-        Ok(result)
-    }
-
-    fn is_signed(&self) -> bool {
-        let r: String;
-        if self.r.starts_with("0x") {
-            r = self.r[2..].to_string();
-        } else {
-            r = self.r[..].to_string();
-        }
-        let s: String;
-        if self.s.starts_with("0x") {
-            s = self.s[2..].to_string();
-        } else {
-            s = self.s[..].to_string();
-        }
-
-        r != "00" || s != "00"
-    }
-
-    fn get_signature(&self) -> Result<Vec<u8>, EvmError> {
-        if !self.is_signed() {
-            return Err(EvmError::NotSignedTransaction);
-        }
-
-        let r = string_to_vec_u8(&self.r);
-        let s = string_to_vec_u8(&self.s);
-
-        Ok([&r[..], &s[..]].concat())
-    }
-
-    fn get_recovery_id(&self) -> Result<u8, EvmError> {
-        if !self.is_signed() {
-            return Err(EvmError::NotSignedTransaction);
-        }
-
-        let v = string_to_vec_u8(&self.v);
-
-        if v.is_empty() {
-            Ok(0 as u8)
-        } else {
-            Ok(1 as u8)
-        }
-    }
-
-    fn serialize(&self) -> Result<Vec<u8>, EvmError> {
+    fn serialized(&self) -> Vec<u8> {
         let mut stream = rlp::RlpStream::new_list(11);
 
         let chain_id = u64_to_vec_u8(&self.chain_id);
@@ -227,14 +208,85 @@ impl EvmSign for EvmTransaction2930 {
 
         let result = stream.out().to_vec();
 
-        Ok([&[0x01], &result[..]].concat())
+        let serialized = [&[0x01], &result[..]].concat();
+
+        serialized
     }
 
-    fn get_nonce(&self) -> Result<u64, EvmError> {
-        Ok(self.nonce)
+    fn nonce(&self) -> u64 {
+        self.nonce
     }
 
-    fn get_transaction(&self) -> EvmTransaction {
-        self.into()
+    fn chain_id(&self) -> u64 {
+        self.chain_id
+    }
+
+    fn hash(&self) -> Vec<u8> {
+        let tx = self.serialized();
+        let result = raw_keccak256(&tx);
+
+        result.to_vec()
+    }
+
+    fn unsigned_hash(&self) -> Vec<u8> {
+        let tx = self.unsigned_serialized();
+        let result = raw_keccak256(&tx);
+
+        result.to_vec()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_unsigned_serialization() {
+        // create a mock transaction
+        let tx = EvmTransaction2930 {
+            chain_id: 1,
+            nonce: 0,
+            gas_limit: 0,
+            to: "0x".to_string(),
+            value: 0,
+            data: "0x".to_string(),
+            access_list: vec![],
+            v: "".to_string(),
+            r: "".to_string(),
+            s: "".to_string(),
+            gas_price: 0,
+        };
+
+        // compute the unsigned serialization
+        let serialized = tx.unsigned_serialized();
+
+        let expected = [1, 200, 1, 128, 128, 128, 128, 128, 128, 192];
+
+        // print or check the serialized data
+        println!("{:?}", serialized);
+
+        assert_eq!(serialized, expected);
+
+        // compute the unsigned serialization
+        let serialized = tx.serialized();
+
+        let expected = [1, 203, 1, 128, 128, 128, 128, 128, 128, 192, 128, 128, 128];
+        // print or check the serialized data
+        println!("{:?}", serialized);
+
+        assert_eq!(serialized, expected);
+
+        // compute the unsigned hash
+        let hash = tx.unsigned_hash();
+
+        let expected = [
+            98, 43, 65, 123, 240, 41, 8, 221, 135, 196, 191, 91, 25, 66, 81, 51, 5, 1, 44, 111,
+            159, 51, 127, 89, 170, 235, 80, 65, 130, 139, 20, 180,
+        ];
+
+        // print or check the hash
+        println!("{:?}", hash);
+
+        assert_eq!(hash, expected);
     }
 }

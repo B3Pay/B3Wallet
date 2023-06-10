@@ -17,8 +17,7 @@ use ic_cdk::{
 
 use crate::{
     error::RequestError,
-    pending::RequestTrait,
-    types::{ConsentInfo, ConsentMessageResponse},
+    request::{success::ExecutionResult, RequestTrait},
 };
 
 #[cfg(test)]
@@ -28,13 +27,13 @@ use ic_cdk::api::id as ic_cdk_id;
 
 // UPDATE SETTINGS - START
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
-pub struct UpdateCanisterSettingsRequest {
+pub struct UpdateCanisterSettings {
     pub canister_id: CanisterId,
     pub settings: CanisterSettings,
 }
 
-impl From<&UpdateCanisterSettingsRequest> for UpdateSettingsArgument {
-    fn from(args: &UpdateCanisterSettingsRequest) -> Self {
+impl From<&UpdateCanisterSettings> for UpdateSettingsArgument {
+    fn from(args: &UpdateCanisterSettings) -> Self {
         UpdateSettingsArgument {
             canister_id: args.canister_id,
             settings: args.settings.clone(),
@@ -43,15 +42,15 @@ impl From<&UpdateCanisterSettingsRequest> for UpdateSettingsArgument {
 }
 
 #[async_trait]
-impl RequestTrait for UpdateCanisterSettingsRequest {
-    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
-        update_settings(self.into())
+impl RequestTrait for UpdateCanisterSettings {
+    async fn execute(self) -> Result<ExecutionResult, WalletError> {
+        let args = UpdateSettingsArgument::from(&self);
+
+        update_settings(args)
             .await
             .map_err(|err| WalletError::UpdateSettingsError(err.1))?;
 
-        Ok(ConsentMessageResponse::Valid(ConsentInfo {
-            consent_message: format!("Canister {} settings updated", self.canister_id),
-        }))
+        Ok(self.into())
     }
 
     fn validate_request(&self) -> Result<(), RequestError> {
@@ -76,14 +75,14 @@ impl RequestTrait for UpdateCanisterSettingsRequest {
 
 // UPGRADE CANISTER - START
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
-pub struct UpgradeCanisterRequest {
+pub struct UpgradeCanister {
     pub wasm_version: WasmVersion,
     pub wasm_hash_string: WasmHashString,
 }
 
-impl UpgradeCanisterRequest {
+impl UpgradeCanister {
     pub fn new(wasm_hash_string: WasmHashString, wasm_version: WasmVersion) -> Self {
-        UpgradeCanisterRequest {
+        UpgradeCanister {
             wasm_hash_string,
             wasm_version,
         }
@@ -91,8 +90,8 @@ impl UpgradeCanisterRequest {
 }
 
 #[async_trait]
-impl RequestTrait for UpgradeCanisterRequest {
-    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+impl RequestTrait for UpgradeCanister {
+    async fn execute(self) -> Result<ExecutionResult, WalletError> {
         let canister_id = ic_cdk_id();
         let wasm_module = with_wasm(|w| w.get());
 
@@ -105,12 +104,7 @@ impl RequestTrait for UpgradeCanisterRequest {
 
         install_code(args).await.unwrap();
 
-        Ok(ConsentMessageResponse::Valid(ConsentInfo {
-            consent_message: format!(
-                "Canister {} upgraded to version {}, hash {}",
-                canister_id, self.wasm_version, self.wasm_hash_string
-            ),
-        }))
+        Ok(self.into())
     }
 
     fn validate_request(&self) -> Result<(), RequestError> {

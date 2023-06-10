@@ -4,13 +4,13 @@ use b3_helper_lib::{
     types::{Deadline, RequestId},
 };
 use b3_permit_lib::{
-    pending::{
-        btc::transfer::BtcTransferRequest,
-        icp::transfer::IcpTransferRequest,
+    request::{
+        btc::transfer::BtcTransfer,
+        icp::transfer::IcpTransfer,
         inner::{
-            account::{CreateAccountRequest, RemoveAccountRequest, RenameAccountRequest},
-            setting::UpdateCanisterSettingsRequest,
-            signer::AddSignerRequest,
+            account::{CreateAccount, RemoveAccount, RenameAccount},
+            setting::UpdateCanisterSettings,
+            signer::AddSigner,
         },
         Request, RequestArgs, RequestTrait,
     },
@@ -43,7 +43,7 @@ pub fn request_maker(request: Request, deadline: Option<Deadline>) -> RequestId 
 
 #[candid_method(update)]
 #[update(guard = "caller_is_admin")]
-pub fn request_add_signer(request: AddSignerRequest, deadline: Option<Deadline>) -> RequestId {
+pub fn request_add_signer(request: AddSigner, deadline: Option<Deadline>) -> RequestId {
     let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
 
     with_permit_mut(|s| {
@@ -55,7 +55,7 @@ pub fn request_add_signer(request: AddSignerRequest, deadline: Option<Deadline>)
 #[candid_method(update)]
 #[update(guard = "caller_is_admin")]
 pub fn request_update_settings(
-    request: UpdateCanisterSettingsRequest,
+    request: UpdateCanisterSettings,
     deadline: Option<Deadline>,
 ) -> RequestId {
     request.validate_request().unwrap_or_else(revert);
@@ -70,10 +70,7 @@ pub fn request_update_settings(
 
 #[candid_method(update)]
 #[update(guard = "caller_is_admin")]
-pub fn request_account_rename(
-    request: RenameAccountRequest,
-    deadline: Option<Deadline>,
-) -> RequestId {
+pub fn request_account_rename(request: RenameAccount, deadline: Option<Deadline>) -> RequestId {
     let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
 
     with_permit_mut(|s| {
@@ -84,10 +81,7 @@ pub fn request_account_rename(
 
 #[candid_method(update)]
 #[update(guard = "caller_is_admin")]
-pub fn request_create_account(
-    request: CreateAccountRequest,
-    deadline: Option<Deadline>,
-) -> RequestId {
+pub fn request_create_account(request: CreateAccount, deadline: Option<Deadline>) -> RequestId {
     let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
 
     with_permit_mut(|s| {
@@ -98,10 +92,7 @@ pub fn request_create_account(
 
 #[candid_method(update)]
 #[update(guard = "caller_is_admin")]
-pub fn request_delete_account(
-    request: RemoveAccountRequest,
-    deadline: Option<Deadline>,
-) -> RequestId {
+pub fn request_delete_account(request: RemoveAccount, deadline: Option<Deadline>) -> RequestId {
     let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
 
     with_permit_mut(|s| {
@@ -112,7 +103,7 @@ pub fn request_delete_account(
 
 #[candid_method(update)]
 #[update(guard = "caller_is_admin")]
-pub fn request_transfer_icp(request: IcpTransferRequest, deadline: Option<Deadline>) -> RequestId {
+pub fn request_transfer_icp(request: IcpTransfer, deadline: Option<Deadline>) -> RequestId {
     let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
 
     with_permit_mut(|s| {
@@ -123,7 +114,7 @@ pub fn request_transfer_icp(request: IcpTransferRequest, deadline: Option<Deadli
 
 #[candid_method(update)]
 #[update(guard = "caller_is_admin")]
-pub fn request_transfer_btc(request: BtcTransferRequest, deadline: Option<Deadline>) -> RequestId {
+pub fn request_transfer_btc(request: BtcTransfer, deadline: Option<Deadline>) -> RequestId {
     let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
 
     with_permit_mut(|s| {

@@ -1,6 +1,8 @@
 use crate::error::RequestError;
-use crate::pending::RequestTrait;
-use crate::types::{ConsentMessageResponse, ConsentSuccess};
+use crate::request::success::CanisterTopUped;
+use crate::request::success::IcpTransfered;
+use crate::request::ExecutionResult;
+use crate::request::RequestTrait;
 use async_trait::async_trait;
 use b3_helper_lib::identifier::AccountIdentifier;
 use b3_helper_lib::tokens::Tokens;
@@ -16,7 +18,7 @@ use ic_cdk::api::id as ic_cdk_id;
 
 // TRANSFER ICP
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
-pub struct IcpTransferRequest {
+pub struct IcpTransfer {
     account_id: String,
     to: AccountIdentifier,
     amount: Tokens,
@@ -25,8 +27,8 @@ pub struct IcpTransferRequest {
 }
 
 #[async_trait]
-impl RequestTrait for IcpTransferRequest {
-    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+impl RequestTrait for IcpTransfer {
+    async fn execute(self) -> Result<ExecutionResult, WalletError> {
         let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
 
         let result = ledger
@@ -39,12 +41,7 @@ impl RequestTrait for IcpTransferRequest {
             .await?;
 
         match result {
-            TransferResult::Ok(block_number) => Ok(ConsentSuccess::IcpTransfer {
-                to: self.to.clone(),
-                amount: self.amount.clone(),
-                block_number,
-            }
-            .into()),
+            TransferResult::Ok(block_number) => Ok(IcpTransfered(block_number).into()),
             TransferResult::Err(err) => Err(WalletError::NotifyTopUpError(err.to_string())),
         }
     }
@@ -68,7 +65,7 @@ impl RequestTrait for IcpTransferRequest {
 
 // TOP UP CANISTER
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
-pub struct TopUpCanisterRequest {
+pub struct TopUpCanister {
     account_id: String,
     canister_id: Option<CanisterId>,
     amount: Tokens,
@@ -76,8 +73,8 @@ pub struct TopUpCanisterRequest {
 }
 
 #[async_trait]
-impl RequestTrait for TopUpCanisterRequest {
-    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+impl RequestTrait for TopUpCanister {
+    async fn execute(self) -> Result<ExecutionResult, WalletError> {
         let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
 
         let canister_id = self.canister_id.unwrap_or(ic_cdk_id());
@@ -87,11 +84,7 @@ impl RequestTrait for TopUpCanisterRequest {
             .await?;
 
         match result {
-            NotifyTopUpResult::Ok(amount) => Ok(ConsentSuccess::TopUpCanister {
-                canister_id,
-                amount,
-            }
-            .into()),
+            NotifyTopUpResult::Ok(amount) => Ok(CanisterTopUped(amount).into()),
             NotifyTopUpResult::Err(err) => Err(WalletError::NotifyTopUpError(err.to_string())),
         }
     }

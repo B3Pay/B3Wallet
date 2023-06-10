@@ -9,3 +9,4 @@ pub mod types;
 
 #[cfg(test)]
 pub mod mocks;
+pub mod request;

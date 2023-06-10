@@ -1,16 +1,20 @@
-use crate::{error::RequestError, pending::RequestTrait, types::ConsentMessageResponse};
+use crate::{
+    error::RequestError,
+    request::ExecutionResult,
+    request::{success::EvmTransfered, RequestTrait},
+};
 
 use async_trait::async_trait;
 use b3_wallet_lib::{
     error::WalletError,
-    ledger::evm::{api::EvmSign, tx1559::EvmTransaction1559, utils::get_transfer_data},
+    ledger::evm::{evm::EvmSignTrait, london::EvmTransaction1559, utils::get_transfer_data},
     store::with_ledger,
 };
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 // TRANSFER ETH
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
-pub struct EvmTransferEthRequest {
+pub struct EvmTransfer {
     account_id: String,
     chain_id: u64,
     nonce: u64,
@@ -22,16 +26,18 @@ pub struct EvmTransferEthRequest {
 }
 
 #[async_trait]
-impl RequestTrait for EvmTransferEthRequest {
-    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+impl RequestTrait for EvmTransfer {
+    async fn execute(self) -> Result<ExecutionResult, WalletError> {
         let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
+
+        let public_key = ledger.eth_public_key()?;
 
         // TODO: get default gas limit from user settings
         let gas_limit = self.gas_limit.unwrap_or(0);
         let max_fee_per_gas = self.max_fee_per_gas.unwrap_or(0);
         let max_priority_fee_per_gas = self.max_priority_fee_per_gas.unwrap_or(0);
 
-        let tx = EvmTransaction1559 {
+        let mut transaction = EvmTransaction1559 {
             nonce: self.nonce,
             chain_id: self.chain_id,
             to: self.to.clone(),
@@ -46,11 +52,13 @@ impl RequestTrait for EvmTransferEthRequest {
             s: "0x00".to_string(),
         };
 
-        let raw_tx = tx.get_message_to_sign()?;
+        let raw_tx = transaction.unsigned_serialized();
 
         let _signed = ledger.sign_with_ecdsa(raw_tx).await?;
 
-        todo!("return signed tx")
+        transaction.sign(_signed, public_key)?;
+
+        Ok(EvmTransfered(transaction).into())
     }
 
     fn validate_request(&self) -> Result<(), RequestError> {
@@ -71,7 +79,7 @@ impl RequestTrait for EvmTransferEthRequest {
 
 // EVM TRANSFER ERC20
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
-pub struct EvmTransferErc20Request {
+pub struct EvmTransferErc20 {
     account_id: String,
     chain_id: u64,
     nonce: u64,
@@ -84,9 +92,11 @@ pub struct EvmTransferErc20Request {
 }
 
 #[async_trait]
-impl RequestTrait for EvmTransferErc20Request {
-    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+impl RequestTrait for EvmTransferErc20 {
+    async fn execute(self) -> Result<ExecutionResult, WalletError> {
         let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
+
+        let public_key = ledger.eth_public_key()?;
 
         let data = "0x".to_owned() + &get_transfer_data(&self.address, self.value)?;
 
@@ -95,7 +105,7 @@ impl RequestTrait for EvmTransferErc20Request {
         let max_fee_per_gas = self.max_fee_per_gas.unwrap_or(0);
         let max_priority_fee_per_gas = self.max_priority_fee_per_gas.unwrap_or(0);
 
-        let tx = EvmTransaction1559 {
+        let mut transaction = EvmTransaction1559 {
             nonce: self.nonce,
             chain_id: self.chain_id,
             max_priority_fee_per_gas,
@@ -110,11 +120,13 @@ impl RequestTrait for EvmTransferErc20Request {
             s: "0x00".to_string(),
         };
 
-        let raw_tx = tx.serialize()?;
+        let raw_tx = transaction.unsigned_serialized();
 
-        let _signed = ledger.sign_with_ecdsa(raw_tx).await?;
+        let signature = ledger.sign_with_ecdsa(raw_tx).await?;
 
-        todo!("return signed tx")
+        transaction.sign(signature, public_key)?;
+
+        Ok(EvmTransfered(transaction).into())
     }
 
     fn validate_request(&self) -> Result<(), RequestError> {

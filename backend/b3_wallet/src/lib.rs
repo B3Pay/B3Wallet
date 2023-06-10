@@ -74,13 +74,11 @@ mod tests {
     use b3_helper_lib::environment::Environment;
     use b3_helper_lib::tokens::Tokens;
     use b3_helper_lib::types::*;
-    use b3_permit_lib::pending::btc::transfer::*;
-    use b3_permit_lib::pending::icp::transfer::*;
-    use b3_permit_lib::pending::inner::account::*;
-    use b3_permit_lib::pending::inner::setting::*;
-    use b3_permit_lib::pending::inner::signer::*;
-    use b3_permit_lib::pending::Request;
     use b3_permit_lib::processed::ProcessedRequest;
+    use b3_permit_lib::request::{
+        btc::transfer::*, icp::transfer::*, inner::account::*, inner::setting::*, inner::signer::*,
+        Request,
+    };
     use b3_permit_lib::signer::Roles;
     use b3_permit_lib::types::*;
     use b3_wallet_lib::account::WalletAccount;

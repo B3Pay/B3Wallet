@@ -1,91 +1,20 @@
-pub mod btc;
-pub mod evm;
-pub mod icp;
-pub mod inner;
 pub mod state;
-
-use btc::transfer::*;
-use evm::other::*;
-use evm::sign::*;
-use evm::transfer::*;
-use icp::transfer::*;
-use inner::account::*;
-use inner::setting::*;
-use inner::signer::*;
 
 use crate::{
     error::RequestError,
     processed::ProcessedRequest,
+    request::{Request, RequestArgs, RequestTrait},
     signer::Roles,
-    types::{
-        ConsentMessageRequest, ConsentMessageResponse, RequestResponse, RequestResponseTrait,
-        Responses,
-    },
+    types::{ConsentMessage, RequestResponse, Responses},
 };
-use async_trait::async_trait;
 use b3_helper_lib::types::Deadline;
 use b3_helper_lib::types::{RequestId, SignerId};
-use b3_wallet_lib::error::WalletError;
-use enum_dispatch::enum_dispatch;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 #[cfg(test)]
 use crate::mocks::ic_timestamp;
 #[cfg(not(test))]
 use ic_cdk::api::time as ic_timestamp;
-
-#[async_trait]
-#[enum_dispatch]
-pub trait RequestTrait {
-    fn method_name(&self) -> String;
-    fn validate_request(&self) -> Result<(), RequestError>;
-    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError>;
-}
-
-#[enum_dispatch(RequestTrait)]
-#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
-pub enum Request {
-    // EVM
-    EvmTransferEthRequest,
-    EvmTransferErc20Request,
-    EvmDeployContractRequest,
-    EvmSignMessageRequest,
-    EvmSignTranscationRequest,
-    EvmSignRawTransactionRequest,
-    // BTC
-    BtcTransferRequest,
-    // ICP
-    IcpTransferRequest,
-    TopUpCanisterRequest,
-    // INNER
-    AddSignerRequest,
-    RemoveSignerRequest,
-    CreateAccountRequest,
-    RemoveAccountRequest,
-    RenameAccountRequest,
-    HideAccountRequest,
-    UnhideAccountRequest,
-    UpgradeCanisterRequest,
-    UpdateSignerThresholdRequest,
-    UpdateCanisterSettingsRequest,
-}
-
-#[derive(CandidType, Clone, Deserialize, Debug)]
-pub struct RequestArgs {
-    pub role: Roles,
-    pub request: Request,
-    pub deadline: Option<Deadline>,
-}
-
-impl RequestArgs {
-    pub fn new(role: Roles, request: Request, deadline: Option<Deadline>) -> Self {
-        RequestArgs {
-            role,
-            request,
-            deadline,
-        }
-    }
-}
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
 pub struct PendingRequest {
@@ -94,7 +23,7 @@ pub struct PendingRequest {
     request: Request,
     deadline: Deadline,
     responses: Responses,
-    consent_message: ConsentMessageRequest,
+    consent_message: ConsentMessage,
 }
 
 impl PendingRequest {
@@ -106,7 +35,7 @@ impl PendingRequest {
         };
 
         PendingRequest {
-            consent_message: ConsentMessageRequest::from(&args),
+            consent_message: ConsentMessage::from(&args.request),
             responses: Responses::new(),
             request: args.request,
             role: args.role,
@@ -115,7 +44,7 @@ impl PendingRequest {
         }
     }
 
-    pub async fn execute(&self) -> ProcessedRequest {
+    pub async fn execute(self) -> ProcessedRequest {
         let mut confirmed = ProcessedRequest::new(&self);
 
         let match_result = self.request.execute().await;
@@ -197,13 +126,13 @@ impl PendingRequest {
 mod tests {
     use candid::Principal;
 
-    use crate::{pending::inner::account::RenameAccountRequest, types::Confirm};
+    use crate::request::inner::account::RenameAccount;
 
     use super::*;
 
     #[test]
     fn test_request_args() {
-        let request = RenameAccountRequest {
+        let request = RenameAccount {
             account_id: "test".to_string(),
             new_name: "test".to_string(),
         };
@@ -220,7 +149,7 @@ mod tests {
 
     #[test]
     fn test_request_args_with_deadline() {
-        let request = RenameAccountRequest {
+        let request = RenameAccount {
             account_id: "test".to_string(),
             new_name: "test".to_string(),
         };
@@ -237,7 +166,7 @@ mod tests {
 
     #[test]
     fn test_confirm_request() {
-        let request = RenameAccountRequest {
+        let request = RenameAccount {
             account_id: "test".to_string(),
             new_name: "test".to_string(),
         };
@@ -248,9 +177,7 @@ mod tests {
 
         let mut pending = PendingRequest::new(1, args);
 
-        pending
-            .response(signer, RequestResponse::Confirm(Confirm))
-            .unwrap();
+        pending.response(signer, RequestResponse::Confirm).unwrap();
 
         assert_eq!(pending.id(), 1);
         assert_eq!(pending.role(), Roles::Admin);
@@ -261,7 +188,7 @@ mod tests {
 
     #[test]
     fn test_response() {
-        let response: RequestResponse = RequestResponse::Confirm(Confirm);
+        let response: RequestResponse = RequestResponse::Confirm;
 
         if response.is_reject() {
             println!("Response is Reject");

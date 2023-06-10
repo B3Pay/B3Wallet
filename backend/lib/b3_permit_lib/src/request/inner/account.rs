@@ -1,8 +1,4 @@
-use crate::{
-    error::RequestError,
-    pending::RequestTrait,
-    types::{ConsentInfo, ConsentMessageResponse},
-};
+use crate::{error::RequestError, request::ExecutionResult, request::RequestTrait};
 use async_trait::async_trait;
 use b3_helper_lib::environment::Environment;
 use b3_wallet_lib::{
@@ -14,25 +10,21 @@ use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 // CREATE ACCOUNT
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
-pub struct CreateAccountRequest {
+pub struct CreateAccount {
     name: Option<String>,
     env: Option<Environment>,
 }
 
 #[async_trait]
-impl RequestTrait for CreateAccountRequest {
-    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+impl RequestTrait for CreateAccount {
+    async fn execute(self) -> Result<ExecutionResult, WalletError> {
         let subaccount = with_wallet(|s| s.new_subaccount(self.env.clone()));
 
         let new_account: WalletAccount = subaccount.into();
 
-        let name = new_account.id().to_string();
-
         with_wallet_mut(|s| s.insert_account(new_account, self.name.clone()));
 
-        Ok(ConsentMessageResponse::Valid(ConsentInfo {
-            consent_message: format!("Account {} created", name),
-        }))
+        Ok(self.into())
     }
 
     fn validate_request(&self) -> Result<(), RequestError> {
@@ -46,18 +38,16 @@ impl RequestTrait for CreateAccountRequest {
 
 // REMOVE ACCOUNT
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
-pub struct RemoveAccountRequest {
+pub struct RemoveAccount {
     pub account_id: String,
 }
 
 #[async_trait]
-impl RequestTrait for RemoveAccountRequest {
-    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+impl RequestTrait for RemoveAccount {
+    async fn execute(self) -> Result<ExecutionResult, WalletError> {
         with_wallet_mut(|s| s.remove_account(&self.account_id))?;
 
-        Ok(ConsentMessageResponse::Valid(ConsentInfo {
-            consent_message: format!("Account {} removed", self.account_id),
-        }))
+        Ok(self.into())
     }
 
     fn validate_request(&self) -> Result<(), RequestError> {
@@ -77,21 +67,19 @@ impl RequestTrait for RemoveAccountRequest {
 
 // RENAME ACCOUNT
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
-pub struct RenameAccountRequest {
+pub struct RenameAccount {
     pub new_name: String,
     pub account_id: String,
 }
 
 #[async_trait]
-impl RequestTrait for RenameAccountRequest {
-    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+impl RequestTrait for RenameAccount {
+    async fn execute(self) -> Result<ExecutionResult, WalletError> {
         with_account_mut(&self.account_id, |account| {
             account.rename(self.new_name.clone())
         })?;
 
-        Ok(ConsentMessageResponse::Valid(ConsentInfo {
-            consent_message: format!("Account {} renamed to {}", self.account_id, self.new_name),
-        }))
+        Ok(self.into())
     }
 
     fn validate_request(&self) -> Result<(), RequestError> {
@@ -111,20 +99,18 @@ impl RequestTrait for RenameAccountRequest {
 
 // HIDING ACCOUNT
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
-pub struct HideAccountRequest {
+pub struct HideAccount {
     pub account_id: String,
 }
 
 #[async_trait]
-impl RequestTrait for HideAccountRequest {
-    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+impl RequestTrait for HideAccount {
+    async fn execute(self) -> Result<ExecutionResult, WalletError> {
         with_account_mut(&self.account_id, |account| {
             account.hide();
         })?;
 
-        Ok(ConsentMessageResponse::Valid(ConsentInfo {
-            consent_message: format!("Account {} hidden", self.account_id),
-        }))
+        Ok(self.into())
     }
 
     fn validate_request(&self) -> Result<(), RequestError> {
@@ -144,20 +130,18 @@ impl RequestTrait for HideAccountRequest {
 
 // UNHIDING ACCOUNT
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
-pub struct UnhideAccountRequest {
+pub struct UnhideAccount {
     pub account_id: String,
 }
 
 #[async_trait]
-impl RequestTrait for UnhideAccountRequest {
-    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+impl RequestTrait for UnhideAccount {
+    async fn execute(self) -> Result<ExecutionResult, WalletError> {
         with_account_mut(&self.account_id, |account| {
             account.unhide();
         })?;
 
-        Ok(ConsentMessageResponse::Valid(ConsentInfo {
-            consent_message: format!("Account {} unhidden", self.account_id),
-        }))
+        Ok(self.into())
     }
 
     fn validate_request(&self) -> Result<(), RequestError> {

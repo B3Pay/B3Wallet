@@ -5,7 +5,7 @@ use crate::mocks::ic_timestamp;
 #[cfg(not(test))]
 use ic_cdk::api::time as ic_timestamp;
 
-use crate::{error::RequestError, pending::PendingRequest, types::ConsentMessageResponse};
+use crate::{error::RequestError, pending::PendingRequest, request::success::ExecutionResult};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 #[derive(CandidType, PartialEq, Clone, Deserialize)]
@@ -17,7 +17,7 @@ pub enum RequestStatus {
 
 #[derive(CandidType, Clone, Deserialize)]
 pub struct ProcessedRequest {
-    message: ConsentMessageResponse,
+    message: Option<ExecutionResult>,
     error: Option<RequestError>,
     method: String,
     request: PendingRequest,
@@ -41,10 +41,10 @@ impl From<PendingRequest> for ProcessedRequest {
             RequestStatus::Success
         };
 
-        let message = if let Some(error) = &error {
-            ConsentMessageResponse::from(error)
+        let message = if status == RequestStatus::Success {
+            todo!("Convert request to message")
         } else {
-            ConsentMessageResponse::from(&RequestError::InvalidRequest)
+            None
         };
 
         ProcessedRequest {
@@ -62,25 +62,24 @@ impl ProcessedRequest {
     pub fn new(request: &PendingRequest) -> Self {
         ProcessedRequest {
             error: None,
+            message: None,
             timestamp: ic_timestamp(),
             method: request.method(),
             request: request.clone(),
             status: RequestStatus::Pending,
-            message: ConsentMessageResponse::from(&RequestError::InvalidRequest),
         }
     }
 
-    pub fn succeed(&mut self, message: ConsentMessageResponse) -> Self {
+    pub fn succeed(&mut self, message: ExecutionResult) -> Self {
         self.status = RequestStatus::Success;
         self.timestamp = ic_timestamp();
-        self.message = message;
+        self.message = Some(message);
 
         self.clone()
     }
 
     pub fn fail(&mut self, error: RequestError) -> Self {
         self.status = RequestStatus::Fail;
-        self.message = ConsentMessageResponse::from(&error);
         self.error = Some(error);
         self.timestamp = ic_timestamp();
 

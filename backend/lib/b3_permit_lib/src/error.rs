@@ -1,5 +1,8 @@
 use b3_helper_lib::types::RequestId;
-use b3_wallet_lib::error::WalletError;
+use b3_wallet_lib::{
+    error::WalletError,
+    ledger::{error::LedgerError, evm::error::EvmError},
+};
 use ic_cdk::export::candid::{CandidType, Deserialize};
 use std::fmt;
 
@@ -7,9 +10,11 @@ use std::fmt;
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
 pub enum RequestError {
     WalletError(WalletError),
+    LedgerError(LedgerError),
+    EvmError(EvmError),
+    RequestAlreadySigned(String),
     RequestRejected,
     RequestExpired,
-    RequestAlreadySigned(String),
     RequestNotFound(RequestId),
     RequestAlreadyProcessed(RequestId),
     SignerNotFound(String),
@@ -26,9 +31,12 @@ pub enum RequestError {
     AccountIsNotHidden,
     AccountDoesNotExist,
     WasmNotSet,
+    InvalidChainId(u64, u64),
     InvalidAmount,
     InvalidWasmHash,
     InvalidController,
+    InvalidTransaction,
+    SneakyMessage,
     ChainIdNotInitialized
 }
 
@@ -37,6 +45,8 @@ impl fmt::Display for RequestError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             RequestError::WalletError(err) => write!(f, "::Wallet error: {}", err),
+            RequestError::LedgerError(err) => write!(f, "::Ledger error: {}", err),
+            RequestError::EvmError(err) => write!(f, "::Evm error: {}", err),
             RequestError::AccountIsHidden => write!(f, "::Account is hidden!"),
             RequestError::AccountIsNotHidden => write!(f, "::Account is not hidden!"),
             RequestError::AccountDoesNotExist => write!(f, "::Account does not exist!"),
@@ -56,9 +66,12 @@ impl fmt::Display for RequestError {
             RequestError::RequestAlreadySigned(ref signer) => write!(f, "::Signer {} already signed", signer),
             RequestError::RequestAlreadyProcessed(ref request_id) => write!(f, "::Request {} already processed!", request_id),
             RequestError::WasmNotSet => write!(f, "::Wasm not set!"),
+            RequestError::InvalidChainId(ref chain_id, ref expected_chain_id) => write!(f, "::Invalid chain id! Expected: {}, got: {}", expected_chain_id, chain_id),
             RequestError::InvalidAmount => write!(f, "::Invalid amount!"),
             RequestError::InvalidWasmHash => write!(f, "::Invalid wasm hash!"),
             RequestError::InvalidController => write!(f, "::Invalid controller!"),
+            RequestError::InvalidTransaction => write!(f, "::Invalid transaction!"),
+            RequestError::SneakyMessage => write!(f, "::Sneaky message, if you want to send transaction use 'send_transaction' method!"),
             RequestError::ChainIdNotInitialized => write!(f, "::Chain ID not initialized!"),
         }
     }
@@ -67,5 +80,17 @@ impl fmt::Display for RequestError {
 impl From<WalletError> for RequestError {
     fn from(err: WalletError) -> Self {
         RequestError::WalletError(err)
+    }
+}
+
+impl From<LedgerError> for RequestError {
+    fn from(err: LedgerError) -> Self {
+        RequestError::LedgerError(err)
+    }
+}
+
+impl From<EvmError> for RequestError {
+    fn from(err: EvmError) -> Self {
+        RequestError::EvmError(err)
     }
 }

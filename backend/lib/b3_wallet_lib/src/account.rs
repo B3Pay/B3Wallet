@@ -1,11 +1,13 @@
 use crate::{
     error::WalletError,
-    ledger::{evm::api::get_evm_transaction, ledger::Ledger},
+    ledger::{
+        evm::evm::{get_evm_transaction, EvmSignTrait},
+        ledger::Ledger,
+    },
     types::WalletAccountView,
 };
 use b3_helper_lib::{environment::Environment, subaccount::Subaccount, types::Metadata};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
-
 impl From<&WalletAccount> for WalletAccountView {
     fn from(account: &WalletAccount) -> Self {
         Self {
@@ -61,11 +63,11 @@ impl WalletAccount {
         hex_raw_tx: Vec<u8>,
         chain_id: u64,
     ) -> Result<Vec<u8>, WalletError> {
-        let ecdsa = self.ledger.ecdsa().map_err(WalletError::LedgerError)?;
+        let public_key = self.ledger.eth_public_key()?;
 
         let mut evm_tx = get_evm_transaction(&hex_raw_tx, chain_id)?;
 
-        let message = evm_tx.get_message_to_sign()?;
+        let message = evm_tx.unsigned_serialized();
 
         if message.len() != 32 {
             return Err(WalletError::InvalidMessageLength);
@@ -77,7 +79,7 @@ impl WalletAccount {
             .await
             .map_err(WalletError::LedgerError)?;
 
-        let signed_evm_tx = evm_tx.sign(signature, ecdsa.to_vec())?;
+        let signed_evm_tx = evm_tx.sign(signature, public_key)?;
 
         Ok(signed_evm_tx)
     }

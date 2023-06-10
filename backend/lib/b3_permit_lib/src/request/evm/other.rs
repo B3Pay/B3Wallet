@@ -1,15 +1,23 @@
-use crate::{error::RequestError, pending::RequestTrait, types::ConsentMessageResponse};
+use crate::{
+    error::RequestError,
+    request::ExecutionResult,
+    request::{success::EvmContractDeployed, RequestTrait},
+};
 use async_trait::async_trait;
 use b3_wallet_lib::{
     error::WalletError,
-    ledger::evm::{api::EvmSign, tx1559::EvmTransaction1559, utils::vec_u8_to_string},
+    ledger::evm::{
+        evm::EvmSignTrait,
+        london::EvmTransaction1559,
+        utils::{create_address_from, vec_u8_to_string},
+    },
     store::with_ledger,
 };
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 // DEPLOY CONTRACT
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
-pub struct EvmDeployContractRequest {
+pub struct EvmDeployContract {
     account_id: String,
     chain_id: u64,
     nonce: u64,
@@ -20,9 +28,13 @@ pub struct EvmDeployContractRequest {
 }
 
 #[async_trait]
-impl RequestTrait for EvmDeployContractRequest {
-    async fn execute(&self) -> Result<ConsentMessageResponse, WalletError> {
+impl RequestTrait for EvmDeployContract {
+    async fn execute(self) -> Result<ExecutionResult, WalletError> {
         let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
+
+        let public_key = ledger.eth_public_key()?;
+
+        let contract_address = create_address_from(&public_key, self.nonce);
 
         let data = "0x".to_owned() + &vec_u8_to_string(&self.hex_byte_code);
 
@@ -31,7 +43,7 @@ impl RequestTrait for EvmDeployContractRequest {
         let max_fee_per_gas = self.max_fee_per_gas.unwrap_or(0);
         let max_priority_fee_per_gas = self.max_priority_fee_per_gas.unwrap_or(0);
 
-        let tx = EvmTransaction1559 {
+        let mut transaction = EvmTransaction1559 {
             nonce: self.nonce,
             chain_id: self.chain_id,
             gas_limit,
@@ -46,11 +58,17 @@ impl RequestTrait for EvmDeployContractRequest {
             s: "0x00".to_string(),
         };
 
-        let raw_tx = tx.serialize()?;
+        let raw_tx = transaction.serialized();
 
-        let _signed = ledger.sign_with_ecdsa(raw_tx).await?;
+        let signature = ledger.sign_with_ecdsa(raw_tx).await?;
 
-        todo!("return tx hash")
+        transaction.sign(signature, public_key)?;
+
+        Ok(EvmContractDeployed {
+            transaction,
+            contract_address,
+        }
+        .into())
     }
 
     fn validate_request(&self) -> Result<(), RequestError> {

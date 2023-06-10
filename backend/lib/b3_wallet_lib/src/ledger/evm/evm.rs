@@ -1,36 +1,35 @@
+use super::berlin::EvmTransaction2930;
 use super::error::EvmError;
-use super::tx1559::EvmTransaction1559;
-use super::tx2930::EvmTransaction2930;
-use super::txlegacy::EvmTransactionLegacy;
+use super::legacy::EvmTransactionLegacy;
+use super::london::EvmTransaction1559;
 use super::utils::{string_to_vec_u8, vec_u8_to_string};
 use bitcoin::secp256k1::{
     ecdsa::{RecoverableSignature, RecoveryId},
     Message, PublicKey, Secp256k1,
 };
 use candid::{CandidType, Deserialize};
+use enum_dispatch::enum_dispatch;
 
-pub enum EvmTransactions {
+#[enum_dispatch]
+pub trait EvmSignTrait {
+    fn sign(&mut self, signature: Vec<u8>, public_key: PublicKey) -> Result<Vec<u8>, EvmError>;
+    fn signature(&self) -> Result<Vec<u8>, EvmError>;
+    fn recovery_id(&self) -> Result<u8, EvmError>;
+    fn unsigned_serialized(&self) -> Vec<u8>;
+    fn serialized(&self) -> Vec<u8>;
+    fn is_signed(&self) -> bool;
+    fn nonce(&self) -> u64;
+    fn chain_id(&self) -> u64;
+    fn hash(&self) -> Vec<u8>;
+    fn unsigned_hash(&self) -> Vec<u8>;
+}
+
+#[enum_dispatch(EvmSignTrait)]
+#[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
+pub enum EvmTransaction {
     EvmTransactionLegacy,
     EvmTransaction1559,
     EvmTransaction2930,
-}
-
-#[derive(Clone, Deserialize, PartialEq, CandidType, Debug)]
-pub struct EvmTransaction {
-    pub chain_id: u64,
-    pub nonce: u64,
-    pub gas_limit: u64,
-    pub to: String,
-    pub value: u64,
-    pub data: String,
-    pub v: String,
-    pub r: String,
-    pub s: String,
-    pub transaction_type: EvmTransactionType,
-    pub gas_price: Option<u64>,
-    pub max_fee_per_gas: Option<u64>,
-    pub max_priority_fee_per_gas: Option<u64>,
-    pub access_list: Option<Vec<(String, Vec<String>)>>,
 }
 
 #[derive(Clone, Deserialize, PartialEq, CandidType, Debug)]
@@ -50,32 +49,24 @@ impl EvmTransactionType {
     }
 }
 
-pub trait EvmSign {
-    fn sign(&mut self, signature: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, EvmError>;
-    fn get_message_to_sign(&self) -> Result<Vec<u8>, EvmError>;
-    fn get_signature(&self) -> Result<Vec<u8>, EvmError>;
-    fn get_recovery_id(&self) -> Result<u8, EvmError>;
-    fn get_nonce(&self) -> Result<u64, EvmError>;
-    fn serialize(&self) -> Result<Vec<u8>, EvmError>;
-    fn get_transaction(&self) -> EvmTransaction;
-    fn is_signed(&self) -> bool;
-}
-
 pub fn get_evm_transaction(
     hex_raw_tx: &Vec<u8>,
     chain_id: u64,
-) -> Result<Box<dyn EvmSign>, EvmError> {
+) -> Result<EvmTransaction, EvmError> {
     let tx_type = get_evm_transaction_type(hex_raw_tx)?;
 
     if tx_type == EvmTransactionType::Legacy {
-        Ok(Box::new(EvmTransactionLegacy::from((
-            hex_raw_tx.clone(),
-            chain_id,
-        ))))
+        let transaction = EvmTransactionLegacy::from((hex_raw_tx.to_owned(), chain_id));
+
+        Ok(transaction.into())
     } else if tx_type == EvmTransactionType::EIP1559 {
-        Ok(Box::new(EvmTransaction1559::from(hex_raw_tx.clone())))
+        let transaction = EvmTransaction1559::from(hex_raw_tx.to_owned());
+
+        Ok(transaction.into())
     } else if tx_type == EvmTransactionType::EIP2930 {
-        Ok(Box::new(EvmTransaction2930::from(hex_raw_tx.clone())))
+        let transaction = EvmTransaction2930::from(hex_raw_tx.to_owned());
+
+        Ok(transaction.into())
     } else {
         Err(EvmError::InvalidTransactionType)
     }
@@ -96,13 +87,10 @@ pub fn get_evm_transaction_type(hex_raw_tx: &Vec<u8>) -> Result<EvmTransactionTy
 pub fn get_recovery_id(
     message: &[u8],
     signature: &[u8],
-    public_key: &[u8],
+    public_key: &PublicKey,
 ) -> Result<u8, EvmError> {
     let message =
         Message::from_slice(message).map_err(|err| EvmError::InvalidMessage(err.to_string()))?;
-
-    let pub_key = PublicKey::from_slice(public_key)
-        .map_err(|err| EvmError::InvalidPublicKey(err.to_string()))?;
 
     let secp = Secp256k1::verification_only();
 
@@ -117,7 +105,7 @@ pub fn get_recovery_id(
             .recover_ecdsa(&message, &signature)
             .map_err(|err| EvmError::InvalidSignature(err.to_string()))?;
 
-        if recovered_key.eq(&pub_key) {
+        if recovered_key.eq(&public_key) {
             return Ok(i as u8);
         }
     }
@@ -173,8 +161,11 @@ mod tests {
     fn get_recovery_id_valid() {
         let expected = 0;
 
-        let public_key =
+        let pub_key =
             string_to_vec_u8("02c397f23149d3464517d57b7cdc8e287428407f9beabfac731e7c24d536266cd1");
+
+        let public_key = PublicKey::from_slice(&pub_key).unwrap();
+
         let signature =string_to_vec_u8("29edd4e1d65e1b778b464112d2febc6e97bb677aba5034408fd27b49921beca94c4e5b904d58553bcd9c788360e0bd55c513922cf1f33a6386033e886cd4f77f");
         let message =
             string_to_vec_u8("79965df63d7d9364f4bc8ed54ffd1c267042d4db673e129e3c459afbcb73a6f1");
@@ -188,8 +179,11 @@ mod tests {
             "malformed signature".to_string(),
         ));
 
-        let public_key =
+        let pub_key =
             string_to_vec_u8("02c397f23149d3464517d57b7cdc8e287428407f9beabfac731e7c24d536266cd1");
+
+        let public_key = PublicKey::from_slice(&pub_key).unwrap();
+
         let signature = string_to_vec_u8("");
         let message =
             string_to_vec_u8("79965df63d7d9364f4bc8ed54ffd1c267042d4db673e129e3c459afbcb73a6f1");
@@ -204,25 +198,13 @@ mod tests {
             "message was not 32 bytes (do you need to hash?)".to_string(),
         ));
 
-        let public_key =
+        let pub_key =
             string_to_vec_u8("02c397f23149d3464517d57b7cdc8e287428407f9beabfac731e7c24d536266cd1");
+
+        let public_key = PublicKey::from_slice(&pub_key).unwrap();
+
         let signature = string_to_vec_u8("29edd4e1d65e1b778b464112d2febc6e97bb677aba5034408fd27b49921beca94c4e5b904d58553bcd9c788360e0bd55c513922cf1f33a6386033e886cd4f77f");
         let message = string_to_vec_u8("");
-        let result = get_recovery_id(&message, &signature, &public_key);
-
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn get_recovery_id_with_invalid_public_key() {
-        let expected = Err(EvmError::InvalidPublicKey(
-            "malformed public key".to_string(),
-        ));
-
-        let public_key = string_to_vec_u8("");
-        let signature = string_to_vec_u8("29edd4e1d65e1b778b464112d2febc6e97bb677aba5034408fd27b49921beca94c4e5b904d58553bcd9c788360e0bd55c513922cf1f33a6386033e886cd4f77f");
-        let message =
-            string_to_vec_u8("79965df63d7d9364f4bc8ed54ffd1c267042d4db673e129e3c459afbcb73a6f1");
         let result = get_recovery_id(&message, &signature, &public_key);
 
         assert_eq!(result, expected);
