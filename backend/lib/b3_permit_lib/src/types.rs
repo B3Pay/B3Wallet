@@ -1,8 +1,8 @@
 use crate::{
     error::RequestError,
-    pending::PendingRequest,
+    pending::new::PendingRequest,
     processed::ProcessedRequest,
-    request::{Request, RequestTrait},
+    request::request::{Request, RequestTrait},
     signer::Signer,
 };
 use b3_helper_lib::types::{RequestId, SignerId};
@@ -15,29 +15,29 @@ pub type PendingRequestList = Vec<PendingRequest>;
 
 pub type ProcessedRequestList = Vec<ProcessedRequest>;
 
-pub type Responses = BTreeMap<SignerId, RequestResponse>;
+pub type ResponseMap = BTreeMap<SignerId, Response>;
 
 pub type PendingRequestMap = BTreeMap<RequestId, PendingRequest>;
 
 pub type ProcessedRequestMap = BTreeMap<RequestId, ProcessedRequest>;
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
-pub enum RequestResponse {
+pub enum Response {
     Confirm,
     Reject,
 }
 
-impl RequestResponse {
+impl Response {
     pub fn is_confirm(&self) -> bool {
         match self {
-            RequestResponse::Confirm => true,
+            Response::Confirm => true,
             _ => false,
         }
     }
 
     pub fn is_reject(&self) -> bool {
         match self {
-            RequestResponse::Reject => true,
+            Response::Reject => true,
             _ => false,
         }
     }
@@ -46,24 +46,20 @@ impl RequestResponse {
 #[derive(CandidType, Clone, Debug, Deserialize)]
 pub struct ConsentMessage {
     pub message: String,
-    pub method: String,
+    pub reason: String,
+    pub title: String,
 }
 
 impl ConsentMessage {
-    pub fn new(request: &Request) -> Self {
+    pub fn new(request: &Request, reason: String) -> Self {
         let method = request.method_name();
         let message = format!("You are about to call {}", method);
 
         ConsentMessage {
             message,
-            method: method.to_string(),
+            reason,
+            title: method.to_string(),
         }
-    }
-}
-
-impl From<&Request> for ConsentMessage {
-    fn from(request: &Request) -> Self {
-        ConsentMessage::new(request)
     }
 }
 

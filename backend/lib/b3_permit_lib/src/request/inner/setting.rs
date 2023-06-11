@@ -17,7 +17,7 @@ use ic_cdk::{
 
 use crate::{
     error::RequestError,
-    request::{success::ExecutionResult, RequestTrait},
+    request::{request::RequestTrait, result::ExecutionResult},
 };
 
 #[cfg(test)]

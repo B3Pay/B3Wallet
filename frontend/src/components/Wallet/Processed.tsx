@@ -15,21 +15,16 @@ interface ProcessedRequestProps extends ProcessedRequest {}
 
 const Processed: React.FC<ProcessedRequestProps> = ({
   request,
-  message,
+  result,
   timestamp,
   status
 }) => {
-  const consentMessage = useMemo(() => {
-    if ("Valid" in message) return message.Valid.consent_message
-    if ("MalformedCall" in message) return message.MalformedCall.description
-    if ("Forbidden" in message) return message.Forbidden.description
-    if ("Other" in message) return message.Other
-  }, [message])
-
   const date = useMemo(() => {
     const time = timestamp / BigInt(1e6)
     return new Date(Number(time))
   }, [timestamp])
+
+  console.log(result)
 
   const stt = Object.keys(status)[0]
   return (
@@ -61,13 +56,13 @@ const Processed: React.FC<ProcessedRequestProps> = ({
           <strong>Status:</strong> {stt}
         </Text>
         <Text>
-          <strong>Message:</strong> {consentMessage}
+          <strong>Message:</strong> {request.consent_message.message}
         </Text>
         <Text>
           <strong>Role:</strong> {Object.keys(request.role)[0]}
         </Text>
         <strong>Args:</strong>
-        {Object.entries(request.consent_message.arg).map(([key, value]) => (
+        {Object.entries(request.consent_message).map(([key, value]) => (
           <Parent key={key} parent={key} child={value} />
         ))}
       </AccordionPanel>

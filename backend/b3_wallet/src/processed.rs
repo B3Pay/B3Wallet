@@ -6,7 +6,7 @@ use b3_permit_lib::{
         with_pending_mut, with_permit, with_permit_mut, with_processed_request,
         with_signer_ids_by_role,
     },
-    types::{ProcessedRequestList, RequestResponse},
+    types::{ProcessedRequestList, Response},
 };
 use ic_cdk::{export::candid::candid_method, query, update};
 
@@ -28,14 +28,11 @@ pub fn get_processed_list() -> ProcessedRequestList {
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub async fn request_response(
-    request_id: RequestId,
-    response: RequestResponse,
-) -> ProcessedRequest {
+pub async fn response(request_id: RequestId, answer: Response) -> ProcessedRequest {
     let caller = ic_cdk::caller();
 
     let request = with_pending_mut(&request_id, |request| {
-        request.response(caller, response).unwrap_or_else(revert);
+        request.response(caller, answer).unwrap_or_else(revert);
         request.clone()
     })
     .unwrap_or_else(revert);
@@ -49,7 +46,7 @@ pub async fn request_response(
         return processed;
     }
 
-    let is_succeed = with_signer_ids_by_role(request.role(), |signer_ids| {
+    let is_succeed = with_signer_ids_by_role(request.role, |signer_ids| {
         signer_ids
             .iter()
             .all(|signer_id| request.is_signed(signer_id))

@@ -168,7 +168,7 @@ mod test {
         let mut public_keys = Ledger {
             subaccount,
             chains,
-            ecdsa: None,
+            public_key: None,
         };
 
         let ecdsa = vec![
@@ -176,7 +176,7 @@ mod test {
             153, 192, 65, 30, 59, 177, 153, 39, 80, 76, 185, 200, 51, 255, 218,
         ];
 
-        public_keys.set_ecdsa(ecdsa).unwrap();
+        public_keys.set_ecdsa_public_key(ecdsa).unwrap();
 
         let utxos = BtcUtxos::try_from(vec![
             Utxo {

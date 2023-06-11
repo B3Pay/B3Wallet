@@ -1,7 +1,11 @@
 use crate::{
     error::RequestError,
-    request::{success::EvmMessageSigned, ExecutionResult},
-    request::{success::EvmTransactionSigned, RequestTrait},
+    request::{
+        request::RequestTrait,
+        result::{
+            EvmMessageSigned, EvmRawTransactionSigned, EvmTransactionSigned, ExecutionResult,
+        },
+    },
 };
 use async_trait::async_trait;
 use b3_wallet_lib::{
@@ -25,7 +29,7 @@ impl RequestTrait for EvmSignTranscation {
         let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
         let public_key = ledger.eth_public_key()?;
 
-        let mut transaction = self.transaction;
+        let mut transaction = self.transaction.clone();
 
         transaction.unsigned_serialized();
 
@@ -33,7 +37,7 @@ impl RequestTrait for EvmSignTranscation {
 
         transaction.sign(signature, public_key)?;
 
-        Ok(EvmTransactionSigned(transaction).into())
+        Ok(EvmTransactionSigned(self, transaction.tx_id()).into())
     }
 
     fn validate_request(&self) -> Result<(), RequestError> {
@@ -89,7 +93,7 @@ impl RequestTrait for EvmSignRawTransaction {
 
         transaction.sign(signature, public_key)?;
 
-        Ok(EvmTransactionSigned(transaction).into())
+        Ok(EvmRawTransactionSigned(self, transaction.tx_id()).into())
     }
 
     fn validate_request(&self) -> Result<(), RequestError> {
@@ -136,7 +140,7 @@ impl RequestTrait for EvmSignMessage {
 
         let signed = ledger.sign_with_ecdsa(self.message.clone()).await?;
 
-        Ok(EvmMessageSigned(signed).into())
+        Ok(EvmMessageSigned(self, signed).into())
     }
 
     fn validate_request(&self) -> Result<(), RequestError> {

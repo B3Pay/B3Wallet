@@ -44,7 +44,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   }
 
   const confirmHandler = async (request_id: bigint) => {
-    actor.request_response(request_id, { Confirm: null }).then(async () => {
+    actor.response(request_id, { Confirm: null }).then(async () => {
       onClose()
       await fetchRequests()
       fetchAccounts()
@@ -52,7 +52,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   }
 
   const rejectHandler = async (request_id: bigint) => {
-    actor.request_response(request_id, { Reject: null }).then(() => {
+    actor.response(request_id, { Reject: null }).then(() => {
       onClose()
       fetchRequests()
     })

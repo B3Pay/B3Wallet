@@ -1,24 +1,24 @@
-use crate::counter::CounterTrait;
 use crate::error::WalletError;
 use crate::ledger::ledger::Ledger;
+use crate::nonces::NonceTrait;
 use crate::types::{WalletAccountMap, WalletAccountView};
 use crate::{account::WalletAccount, types::AccountId};
 use b3_helper_lib::environment::Environment;
 use b3_helper_lib::subaccount::Subaccount;
-use b3_helper_lib::types::AccountsCounter;
+use b3_helper_lib::types::AccountsNonce;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct WalletState {
     pub accounts: WalletAccountMap,
-    pub counters: AccountsCounter,
+    pub nonces: AccountsNonce,
 }
 
 impl Default for WalletState {
     fn default() -> Self {
         WalletState {
             accounts: WalletAccountMap::default(),
-            counters: AccountsCounter::default(),
+            nonces: AccountsNonce::default(),
         }
     }
 }
@@ -36,15 +36,15 @@ impl WalletState {
 
         self.accounts.insert("default".to_owned(), account);
 
-        self.counters.increment(Environment::Production);
+        self.nonces.increment(Environment::Production);
     }
 
     pub fn new_subaccount(&self, opt_env: Option<Environment>) -> Subaccount {
         let env = opt_env.unwrap_or(Environment::Production);
 
-        let counter = self.account_counter(&env);
+        let nonce = self.account_nonce(&env);
 
-        Subaccount::new(env, counter)
+        Subaccount::new(env, nonce)
     }
 
     pub fn insert_account(&mut self, mut account: WalletAccount, opt_name: Option<String>) {
@@ -53,7 +53,7 @@ impl WalletState {
         } else {
             let env = account.environment();
 
-            let name = self.counters.generate_next_name(env);
+            let name = self.nonces.generate_next_name(env);
 
             account.rename(name);
         }
@@ -63,8 +63,8 @@ impl WalletState {
         self.accounts.insert(id.clone(), account);
     }
 
-    pub fn counters(&self) -> &AccountsCounter {
-        &self.counters
+    pub fn counters(&self) -> &AccountsNonce {
+        &self.nonces
     }
 
     pub fn account(&self, id: &AccountId) -> Result<&WalletAccount, WalletError> {
@@ -97,12 +97,12 @@ impl WalletState {
         self.accounts.len()
     }
 
-    pub fn account_status(&self) -> AccountsCounter {
-        self.counters.clone().into()
+    pub fn account_status(&self) -> AccountsNonce {
+        self.nonces.clone().into()
     }
 
-    pub fn account_counter(&self, env: &Environment) -> u64 {
-        self.counters.account(env)
+    pub fn account_nonce(&self, env: &Environment) -> u64 {
+        self.nonces.account(env)
     }
 
     pub fn remove_account(&mut self, id: &String) -> Result<(), WalletError> {
@@ -122,7 +122,7 @@ impl WalletState {
             return Err(WalletError::WalletAccountAlreadyExists);
         }
 
-        if self.counters.account(&subaccount.environment()) <= subaccount.nonce() {
+        if self.nonces.account(&subaccount.environment()) <= subaccount.nonce() {
             return Err(WalletError::WalletAccountCounterMismatch);
         }
 
@@ -137,7 +137,7 @@ impl WalletState {
 
     pub fn reset(&mut self) {
         self.accounts.clear();
-        self.counters.reset();
+        self.nonces.reset();
 
         self.init_wallet();
     }
@@ -290,14 +290,14 @@ mod test {
     fn test_account_counter() {
         let mut state = WalletState::default();
 
-        let counter = state.account_counter(&Environment::Production);
+        let nonce = state.account_nonce(&Environment::Production);
 
-        assert_eq!(counter, 0);
+        assert_eq!(nonce, 0);
 
         state.init_wallet();
 
-        let counter = state.account_counter(&Environment::Production);
+        let nonce = state.account_nonce(&Environment::Production);
 
-        assert_eq!(counter, 1);
+        assert_eq!(nonce, 1);
     }
 }

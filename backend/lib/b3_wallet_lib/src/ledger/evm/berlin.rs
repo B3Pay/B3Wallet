@@ -234,6 +234,13 @@ impl EvmSignTrait for EvmTransaction2930 {
 
         result.to_vec()
     }
+
+    fn tx_id(&self) -> String {
+        let hash = self.hash();
+        let tx_id = hex::encode(hash);
+
+        tx_id
+    }
 }
 
 #[cfg(test)]

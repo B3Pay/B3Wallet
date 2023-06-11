@@ -1,7 +1,7 @@
 use crate::{
     error::RequestError,
-    request::ExecutionResult,
-    request::{success::EvmTransfered, RequestTrait},
+    request::result::{EvmTransfered, ExecutionResult},
+    request::{request::RequestTrait, result::EvmErc20Transfered},
 };
 
 use async_trait::async_trait;
@@ -15,14 +15,14 @@ use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 // TRANSFER ETH
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
 pub struct EvmTransfer {
-    account_id: String,
-    chain_id: u64,
-    nonce: u64,
-    to: String,
-    value: u64,
-    gas_limit: Option<u64>,
-    max_fee_per_gas: Option<u64>,
-    max_priority_fee_per_gas: Option<u64>,
+    pub account_id: String,
+    pub chain_id: u64,
+    pub nonce: u64,
+    pub to: String,
+    pub value: u64,
+    pub gas_limit: Option<u64>,
+    pub max_fee_per_gas: Option<u64>,
+    pub max_priority_fee_per_gas: Option<u64>,
 }
 
 #[async_trait]
@@ -58,7 +58,7 @@ impl RequestTrait for EvmTransfer {
 
         transaction.sign(_signed, public_key)?;
 
-        Ok(EvmTransfered(transaction).into())
+        Ok(EvmTransfered(self, transaction.tx_id()).into())
     }
 
     fn validate_request(&self) -> Result<(), RequestError> {
@@ -80,15 +80,15 @@ impl RequestTrait for EvmTransfer {
 // EVM TRANSFER ERC20
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
 pub struct EvmTransferErc20 {
-    account_id: String,
-    chain_id: u64,
-    nonce: u64,
-    address: String,
-    value: u64,
-    contract_address: String,
-    gas_limit: Option<u64>,
-    max_fee_per_gas: Option<u64>,
-    max_priority_fee_per_gas: Option<u64>,
+    pub account_id: String,
+    pub chain_id: u64,
+    pub nonce: u64,
+    pub to: String,
+    pub value: u64,
+    pub contract_address: String,
+    pub gas_limit: Option<u64>,
+    pub max_fee_per_gas: Option<u64>,
+    pub max_priority_fee_per_gas: Option<u64>,
 }
 
 #[async_trait]
@@ -98,7 +98,7 @@ impl RequestTrait for EvmTransferErc20 {
 
         let public_key = ledger.eth_public_key()?;
 
-        let data = "0x".to_owned() + &get_transfer_data(&self.address, self.value)?;
+        let data = "0x".to_owned() + &get_transfer_data(&self.to, self.value)?;
 
         // TODO: get default gas limit from user settings
         let gas_limit = self.gas_limit.unwrap_or(0);
@@ -126,7 +126,7 @@ impl RequestTrait for EvmTransferErc20 {
 
         transaction.sign(signature, public_key)?;
 
-        Ok(EvmTransfered(transaction).into())
+        Ok(EvmErc20Transfered(self, transaction.tx_id()).into())
     }
 
     fn validate_request(&self) -> Result<(), RequestError> {

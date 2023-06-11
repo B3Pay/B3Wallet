@@ -1,7 +1,7 @@
 use crate::{
     error::RequestError,
-    request::ExecutionResult,
-    request::{success::BtcTransfered, RequestTrait},
+    request::result::ExecutionResult,
+    request::{request::RequestTrait, result::BtcTransfered},
 };
 use async_trait::async_trait;
 use b3_wallet_lib::{error::WalletError, ledger::btc::network::BtcNetwork, store::with_ledger};
@@ -26,7 +26,7 @@ impl RequestTrait for BtcTransfer {
 
         match result {
             Err(err) => return Err(WalletError::ExecutionError(err.to_string())),
-            Ok(tx_id) => Ok(BtcTransfered(tx_id).into()),
+            Ok(tx_id) => Ok(BtcTransfered(self, tx_id).into()),
         }
     }
 

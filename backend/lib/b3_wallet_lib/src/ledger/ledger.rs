@@ -16,7 +16,7 @@ use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct Ledger {
-    pub ecdsa: Option<EcdsaPublicKey>,
+    pub public_key: Option<EcdsaPublicKey>,
     pub subaccount: Subaccount,
     pub chains: ChainMap,
 }
@@ -24,7 +24,7 @@ pub struct Ledger {
 impl Default for Ledger {
     fn default() -> Self {
         Ledger {
-            ecdsa: None,
+            public_key: None,
             chains: ChainMap::default(),
             subaccount: Subaccount::default(),
         }
@@ -40,7 +40,7 @@ impl From<Subaccount> for Ledger {
         chains.insert(ChainEnum::ICP, ic_chain);
 
         Ledger {
-            ecdsa: None,
+            public_key: None,
             subaccount,
             chains,
         }
@@ -48,11 +48,8 @@ impl From<Subaccount> for Ledger {
 }
 
 impl Ledger {
-    pub fn is_ecdsa_set(&self) -> bool {
-        self.ecdsa
-            .as_ref()
-            .map(|ecdsa| ecdsa.len() == 33)
-            .unwrap_or(false)
+    pub fn is_public_key_set(&self) -> bool {
+        self.public_key.is_some()
     }
 
     pub async fn send(
@@ -97,15 +94,15 @@ impl Ledger {
         addresses
     }
 
-    pub fn ecdsa(&self) -> Result<&Vec<u8>, LedgerError> {
-        match &self.ecdsa {
-            Some(ecdsa) => Ok(ecdsa),
+    pub fn public_key(&self) -> Result<&EcdsaPublicKey, LedgerError> {
+        match &self.public_key {
+            Some(public_key) => Ok(public_key),
             None => Err(LedgerError::MissingEcdsaPublicKey),
         }
     }
 
     pub fn btc_public_key(&self) -> Result<PublicKey, LedgerError> {
-        let ecdsa = self.ecdsa()?;
+        let ecdsa = self.public_key()?;
 
         let public_key =
             PublicKey::from_slice(&ecdsa).map_err(|_| LedgerError::InvalidEcdsaPublicKey)?;
@@ -114,12 +111,9 @@ impl Ledger {
     }
 
     pub fn eth_public_key(&self) -> Result<secp256k1::PublicKey, LedgerError> {
-        let ecdsa = self.ecdsa()?;
+        let ecdsa = self.btc_public_key()?;
 
-        let public_key = secp256k1::PublicKey::from_slice(&ecdsa)
-            .map_err(|_| LedgerError::InvalidEcdsaPublicKey)?;
-
-        Ok(public_key)
+        Ok(ecdsa.inner)
     }
 
     pub fn chain(&self, chains: ChainEnum) -> Result<&Chain, LedgerError> {
@@ -252,12 +246,8 @@ impl Ledger {
         chain.btc_mut()
     }
 
-    pub fn set_ecdsa(&mut self, ecdsa: Vec<u8>) -> Result<(), LedgerError> {
-        if ecdsa.len() != 33 {
-            return Err(LedgerError::InvalidEcdsaPublicKey);
-        }
-
-        if self.is_ecdsa_set() {
+    pub fn set_ecdsa_public_key(&mut self, ecdsa: Vec<u8>) -> Result<(), LedgerError> {
+        if self.is_public_key_set() {
             return Err(LedgerError::EcdsaPublicKeyAlreadySet);
         }
 
@@ -265,7 +255,7 @@ impl Ledger {
             .map_err(|e| LedgerError::EcdsaPublicKeyError(e.to_string()))?
             .to_bytes();
 
-        self.ecdsa = Some(ecdsa);
+        self.public_key = Some(ecdsa);
 
         Ok(())
     }

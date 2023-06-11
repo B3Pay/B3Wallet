@@ -1,9 +1,10 @@
-use crate::permit::{caller_is_admin, caller_is_signer};
-use b3_helper_lib::{
-    revert,
-    types::{Deadline, RequestId},
+use crate::{
+    permit::{caller_is_admin, caller_is_signer},
+    status::version,
 };
+use b3_helper_lib::{revert, time::NanoTimeStamp, types::RequestId};
 use b3_permit_lib::{
+    pending::new::RequestArgs,
     request::{
         btc::transfer::BtcTransfer,
         icp::transfer::IcpTransfer,
@@ -12,7 +13,7 @@ use b3_permit_lib::{
             setting::UpdateCanisterSettings,
             signer::AddSigner,
         },
-        Request, RequestArgs, RequestTrait,
+        request::{Request, RequestTrait},
     },
     signer::Roles,
     store::{with_permit, with_permit_mut},
@@ -32,8 +33,18 @@ pub fn get_pending_list() -> PendingRequestList {
 // UPDATE ---------------------------------------------------------------------
 #[candid_method(update)]
 #[update(guard = "caller_is_admin")]
-pub fn request_maker(request: Request, deadline: Option<Deadline>) -> RequestId {
-    let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
+pub fn request_maker(
+    request: Request,
+    reason: String,
+    deadline: Option<NanoTimeStamp>,
+) -> RequestId {
+    let request_args = RequestArgs {
+        role: Roles::Admin,
+        request: request.into(),
+        version: version(),
+        reason,
+        deadline,
+    };
 
     with_permit_mut(|s| {
         let new_request = s.new_request(request_args);
@@ -43,8 +54,18 @@ pub fn request_maker(request: Request, deadline: Option<Deadline>) -> RequestId 
 
 #[candid_method(update)]
 #[update(guard = "caller_is_admin")]
-pub fn request_add_signer(request: AddSigner, deadline: Option<Deadline>) -> RequestId {
-    let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
+pub fn request_add_signer(
+    request: AddSigner,
+    reason: String,
+    deadline: Option<NanoTimeStamp>,
+) -> RequestId {
+    let request_args = RequestArgs {
+        role: Roles::Admin,
+        request: request.into(),
+        version: version(),
+        reason,
+        deadline,
+    };
 
     with_permit_mut(|s| {
         let new_request = s.new_request(request_args);
@@ -56,11 +77,18 @@ pub fn request_add_signer(request: AddSigner, deadline: Option<Deadline>) -> Req
 #[update(guard = "caller_is_admin")]
 pub fn request_update_settings(
     request: UpdateCanisterSettings,
-    deadline: Option<Deadline>,
+    reason: String,
+    deadline: Option<NanoTimeStamp>,
 ) -> RequestId {
     request.validate_request().unwrap_or_else(revert);
 
-    let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
+    let request_args = RequestArgs {
+        role: Roles::Admin,
+        request: request.into(),
+        version: version(),
+        reason,
+        deadline,
+    };
 
     with_permit_mut(|s| {
         let new_request = s.new_request(request_args);
@@ -70,8 +98,18 @@ pub fn request_update_settings(
 
 #[candid_method(update)]
 #[update(guard = "caller_is_admin")]
-pub fn request_account_rename(request: RenameAccount, deadline: Option<Deadline>) -> RequestId {
-    let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
+pub fn request_account_rename(
+    request: RenameAccount,
+    reason: String,
+    deadline: Option<NanoTimeStamp>,
+) -> RequestId {
+    let request_args = RequestArgs {
+        role: Roles::Admin,
+        request: request.into(),
+        version: version(),
+        reason,
+        deadline,
+    };
 
     with_permit_mut(|s| {
         let new_request = s.new_request(request_args);
@@ -81,8 +119,18 @@ pub fn request_account_rename(request: RenameAccount, deadline: Option<Deadline>
 
 #[candid_method(update)]
 #[update(guard = "caller_is_admin")]
-pub fn request_create_account(request: CreateAccount, deadline: Option<Deadline>) -> RequestId {
-    let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
+pub fn request_create_account(
+    request: CreateAccount,
+    reason: String,
+    deadline: Option<NanoTimeStamp>,
+) -> RequestId {
+    let request_args = RequestArgs {
+        role: Roles::Admin,
+        request: request.into(),
+        version: version(),
+        reason,
+        deadline,
+    };
 
     with_permit_mut(|s| {
         let new_request = s.new_request(request_args);
@@ -92,8 +140,18 @@ pub fn request_create_account(request: CreateAccount, deadline: Option<Deadline>
 
 #[candid_method(update)]
 #[update(guard = "caller_is_admin")]
-pub fn request_delete_account(request: RemoveAccount, deadline: Option<Deadline>) -> RequestId {
-    let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
+pub fn request_delete_account(
+    request: RemoveAccount,
+    reason: String,
+    deadline: Option<NanoTimeStamp>,
+) -> RequestId {
+    let request_args = RequestArgs {
+        role: Roles::Admin,
+        request: request.into(),
+        version: version(),
+        reason,
+        deadline,
+    };
 
     with_permit_mut(|s| {
         let new_request = s.new_request(request_args);
@@ -103,8 +161,18 @@ pub fn request_delete_account(request: RemoveAccount, deadline: Option<Deadline>
 
 #[candid_method(update)]
 #[update(guard = "caller_is_admin")]
-pub fn request_transfer_icp(request: IcpTransfer, deadline: Option<Deadline>) -> RequestId {
-    let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
+pub fn request_transfer_icp(
+    request: IcpTransfer,
+    reason: String,
+    deadline: Option<NanoTimeStamp>,
+) -> RequestId {
+    let request_args = RequestArgs {
+        role: Roles::Admin,
+        request: request.into(),
+        version: version(),
+        reason,
+        deadline,
+    };
 
     with_permit_mut(|s| {
         let new_request = s.new_request(request_args);
@@ -114,8 +182,18 @@ pub fn request_transfer_icp(request: IcpTransfer, deadline: Option<Deadline>) ->
 
 #[candid_method(update)]
 #[update(guard = "caller_is_admin")]
-pub fn request_transfer_btc(request: BtcTransfer, deadline: Option<Deadline>) -> RequestId {
-    let request_args = RequestArgs::new(Roles::Admin, request.into(), deadline);
+pub fn request_transfer_btc(
+    request: BtcTransfer,
+    reason: String,
+    deadline: Option<NanoTimeStamp>,
+) -> RequestId {
+    let request_args = RequestArgs {
+        role: Roles::Admin,
+        request: request.into(),
+        version: version(),
+        reason,
+        deadline,
+    };
 
     with_permit_mut(|s| {
         let new_request = s.new_request(request_args);

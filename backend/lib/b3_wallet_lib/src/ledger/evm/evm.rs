@@ -22,6 +22,7 @@ pub trait EvmSignTrait {
     fn chain_id(&self) -> u64;
     fn hash(&self) -> Vec<u8>;
     fn unsigned_hash(&self) -> Vec<u8>;
+    fn tx_id(&self) -> String;
 }
 
 #[enum_dispatch(EvmSignTrait)]

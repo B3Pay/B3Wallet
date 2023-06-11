@@ -1,12 +1,12 @@
 use crate::{
-    counter::RequestCounters,
+    nonce::RequestNonce,
     types::{PendingRequestMap, ProcessedRequestMap, SignerMap},
 };
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct PrmitState {
-    pub counters: RequestCounters,
+    pub counters: RequestNonce,
     pub signers: SignerMap,
     pub pending: PendingRequestMap,
     pub processed: ProcessedRequestMap,
@@ -18,7 +18,7 @@ impl Default for PrmitState {
             signers: SignerMap::new(),
             pending: PendingRequestMap::new(),
             processed: ProcessedRequestMap::new(),
-            counters: RequestCounters::new(),
+            counters: RequestNonce::new(),
         }
     }
 }

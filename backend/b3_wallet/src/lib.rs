@@ -72,12 +72,13 @@ pub fn post_upgrade() {
 #[cfg(test)]
 mod tests {
     use b3_helper_lib::environment::Environment;
+    use b3_helper_lib::time::NanoTimeStamp;
     use b3_helper_lib::tokens::Tokens;
     use b3_helper_lib::types::*;
     use b3_permit_lib::processed::ProcessedRequest;
     use b3_permit_lib::request::{
         btc::transfer::*, icp::transfer::*, inner::account::*, inner::setting::*, inner::signer::*,
-        Request,
+        request::Request,
     };
     use b3_permit_lib::signer::Roles;
     use b3_permit_lib::types::*;

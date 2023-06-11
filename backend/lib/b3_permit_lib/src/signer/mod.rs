@@ -30,6 +30,37 @@ impl fmt::Display for Roles {
     }
 }
 
+impl Roles {
+    pub fn is_canister_or_admin(&self) -> bool {
+        self.is_canister() || self.is_admin()
+    }
+
+    pub fn is_canister(&self) -> bool {
+        self == &Roles::Canister
+    }
+
+    pub fn is_admin(&self) -> bool {
+        self == &Roles::Admin
+    }
+
+    pub fn is_user(&self) -> bool {
+        if self.is_admin() {
+            return true;
+        }
+
+        self == &Roles::User
+    }
+
+    pub fn get_num_signers(&self) -> usize {
+        match self {
+            Roles::Threshold => 0,
+            Roles::Canister => 1,
+            Roles::Admin => 1,
+            Roles::User => 1,
+        }
+    }
+}
+
 #[derive(CandidType, Deserialize, Clone)]
 pub struct Signer {
     pub role: Roles,
@@ -75,23 +106,19 @@ impl Signer {
     }
 
     pub fn is_canister_or_admin(&self) -> bool {
-        self.is_canister() || self.is_admin()
+        self.role.is_canister_or_admin()
     }
 
     pub fn is_canister(&self) -> bool {
-        self.role == Roles::Canister
+        self.role.is_canister()
     }
 
     pub fn is_admin(&self) -> bool {
-        self.role == Roles::Admin
+        self.role.is_admin()
     }
 
     pub fn is_user(&self) -> bool {
-        if self.is_admin() {
-            return true;
-        }
-
-        self.role == Roles::User
+        self.role.is_user()
     }
 
     pub fn set_metadata(&mut self, metadata: Metadata) {

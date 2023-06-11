@@ -1,8 +1,8 @@
 use crate::error::RequestError;
-use crate::request::success::CanisterTopUped;
-use crate::request::success::IcpTransfered;
-use crate::request::ExecutionResult;
-use crate::request::RequestTrait;
+use crate::request::request::RequestTrait;
+use crate::request::result::CanisterTopUped;
+use crate::request::result::ExecutionResult;
+use crate::request::result::IcpTransfered;
 use async_trait::async_trait;
 use b3_helper_lib::identifier::AccountIdentifier;
 use b3_helper_lib::tokens::Tokens;
@@ -11,19 +11,14 @@ use b3_wallet_lib::error::WalletError;
 use b3_wallet_lib::store::with_ledger;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
-#[cfg(test)]
-use crate::mocks::ic_cdk_id;
-#[cfg(not(test))]
-use ic_cdk::api::id as ic_cdk_id;
-
 // TRANSFER ICP
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
 pub struct IcpTransfer {
-    account_id: String,
-    to: AccountIdentifier,
-    amount: Tokens,
-    fee: Option<Tokens>,
-    memo: Option<Memo>,
+    pub account_id: String,
+    pub to: AccountIdentifier,
+    pub amount: Tokens,
+    pub fee: Option<Tokens>,
+    pub memo: Option<Memo>,
 }
 
 #[async_trait]
@@ -41,7 +36,7 @@ impl RequestTrait for IcpTransfer {
             .await?;
 
         match result {
-            TransferResult::Ok(block_number) => Ok(IcpTransfered(block_number).into()),
+            TransferResult::Ok(block_number) => Ok(IcpTransfered(self, block_number).into()),
             TransferResult::Err(err) => Err(WalletError::NotifyTopUpError(err.to_string())),
         }
     }
@@ -66,10 +61,10 @@ impl RequestTrait for IcpTransfer {
 // TOP UP CANISTER
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
 pub struct TopUpCanister {
-    account_id: String,
-    canister_id: Option<CanisterId>,
-    amount: Tokens,
-    fee: Option<Tokens>,
+    pub account_id: String,
+    pub canister_id: CanisterId,
+    pub amount: Tokens,
+    pub fee: Option<Tokens>,
 }
 
 #[async_trait]
@@ -77,14 +72,12 @@ impl RequestTrait for TopUpCanister {
     async fn execute(self) -> Result<ExecutionResult, WalletError> {
         let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
 
-        let canister_id = self.canister_id.unwrap_or(ic_cdk_id());
-
         let result = ledger
-            .topup_and_notify_top_up(canister_id, self.amount.clone(), self.fee.clone())
+            .topup_and_notify_top_up(self.canister_id, self.amount.clone(), self.fee.clone())
             .await?;
 
         match result {
-            NotifyTopUpResult::Ok(amount) => Ok(CanisterTopUped(amount).into()),
+            NotifyTopUpResult::Ok(cycles) => Ok(CanisterTopUped(self, cycles).into()),
             NotifyTopUpResult::Err(err) => Err(WalletError::NotifyTopUpError(err.to_string())),
         }
     }

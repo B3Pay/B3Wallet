@@ -73,7 +73,7 @@ pub enum TransactionStatus {
 }
 
 #[derive(CandidType, Default, Clone, Deserialize, Serialize)]
-pub struct AccountsCounter {
+pub struct AccountsNonce {
     pub development: u64,
     pub production: u64,
     pub staging: u64,
@@ -84,7 +84,7 @@ pub struct WalletCanisterStatus {
     pub status_at: u64,
     pub version: String,
     pub canister_id: CanisterId,
-    pub account_status: AccountsCounter,
+    pub account_status: AccountsNonce,
     pub canister_status: CanisterStatusResponse,
 }
 

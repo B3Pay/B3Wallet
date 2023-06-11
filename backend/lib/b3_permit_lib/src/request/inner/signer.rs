@@ -1,5 +1,5 @@
-use crate::request::success::ExecutionResult;
-use crate::request::RequestTrait;
+use crate::request::request::RequestTrait;
+use crate::request::result::ExecutionResult;
 use crate::store::with_permit;
 use crate::{
     error::RequestError,

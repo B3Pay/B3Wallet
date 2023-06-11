@@ -1,6 +1,6 @@
-use b3_helper_lib::{environment::Environment, types::AccountsCounter};
+use b3_helper_lib::{environment::Environment, types::AccountsNonce};
 
-pub trait CounterTrait {
+pub trait NonceTrait {
     fn reset(&mut self);
     fn total(&self) -> u64;
     fn account(&self, environment: &Environment) -> u64;
@@ -8,7 +8,7 @@ pub trait CounterTrait {
     fn generate_next_name(&mut self, environment: Environment) -> String;
 }
 
-impl CounterTrait for AccountsCounter {
+impl NonceTrait for AccountsNonce {
     fn total(&self) -> u64 {
         self.development + self.production + self.staging
     }

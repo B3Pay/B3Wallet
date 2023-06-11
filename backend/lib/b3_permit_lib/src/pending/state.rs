@@ -1,6 +1,6 @@
 use b3_helper_lib::types::RequestId;
 
-use super::{PendingRequest, RequestArgs};
+use super::new::{PendingRequest, RequestArgs};
 use crate::{error::RequestError, state::PrmitState, types::PendingRequestList};
 
 impl PrmitState {
@@ -11,7 +11,7 @@ impl PrmitState {
     }
 
     pub fn insert_new_request(&mut self, sign_request: PendingRequest) -> RequestId {
-        let id = sign_request.id();
+        let id = sign_request.id;
 
         self.pending.insert(id.clone(), sign_request);
 

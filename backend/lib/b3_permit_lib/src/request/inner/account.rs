@@ -1,4 +1,6 @@
-use crate::{error::RequestError, request::ExecutionResult, request::RequestTrait};
+use crate::{
+    error::RequestError, request::request::RequestTrait, request::result::ExecutionResult,
+};
 use async_trait::async_trait;
 use b3_helper_lib::environment::Environment;
 use b3_wallet_lib::{

@@ -5,24 +5,25 @@ use crate::mocks::ic_timestamp;
 #[cfg(not(test))]
 use ic_cdk::api::time as ic_timestamp;
 
-use crate::{error::RequestError, pending::PendingRequest, request::success::ExecutionResult};
+use crate::{error::RequestError, pending::new::PendingRequest, request::result::ExecutionResult};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
-#[derive(CandidType, PartialEq, Clone, Deserialize)]
+#[derive(CandidType, Deserialize, PartialEq, Debug, Copy, Clone)]
 pub enum RequestStatus {
+    Expired,
     Pending,
     Success,
     Fail,
 }
 
-#[derive(CandidType, Clone, Deserialize)]
+#[derive(CandidType, Deserialize, Debug, Clone)]
 pub struct ProcessedRequest {
-    message: Option<ExecutionResult>,
-    error: Option<RequestError>,
-    method: String,
-    request: PendingRequest,
-    status: RequestStatus,
     timestamp: u64,
+    method: String,
+    error: Option<String>,
+    status: RequestStatus,
+    request: PendingRequest,
+    result: Option<ExecutionResult>,
 }
 
 impl From<ProcessedRequest> for PendingRequest {
@@ -41,17 +42,11 @@ impl From<PendingRequest> for ProcessedRequest {
             RequestStatus::Success
         };
 
-        let message = if status == RequestStatus::Success {
-            todo!("Convert request to message")
-        } else {
-            None
-        };
-
         ProcessedRequest {
             error,
             timestamp: ic_timestamp(),
             method: request.method(),
-            message,
+            result: None,
             status,
             request,
         }
@@ -62,7 +57,7 @@ impl ProcessedRequest {
     pub fn new(request: &PendingRequest) -> Self {
         ProcessedRequest {
             error: None,
-            message: None,
+            result: None,
             timestamp: ic_timestamp(),
             method: request.method(),
             request: request.clone(),
@@ -73,14 +68,14 @@ impl ProcessedRequest {
     pub fn succeed(&mut self, message: ExecutionResult) -> Self {
         self.status = RequestStatus::Success;
         self.timestamp = ic_timestamp();
-        self.message = Some(message);
+        self.result = Some(message);
 
         self.clone()
     }
 
     pub fn fail(&mut self, error: RequestError) -> Self {
         self.status = RequestStatus::Fail;
-        self.error = Some(error);
+        self.error = Some(error.to_string());
         self.timestamp = ic_timestamp();
 
         self.clone()
@@ -98,7 +93,7 @@ impl ProcessedRequest {
         self.status == RequestStatus::Pending
     }
 
-    pub fn get_error(&self) -> &Option<RequestError> {
+    pub fn get_error(&self) -> &Option<String> {
         &self.error
     }
 

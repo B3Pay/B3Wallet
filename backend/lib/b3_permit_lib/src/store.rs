@@ -1,6 +1,6 @@
 use crate::{
     error::RequestError,
-    pending::PendingRequest,
+    pending::new::PendingRequest,
     processed::ProcessedRequest,
     signer::{Roles, Signer},
     state::PrmitState,

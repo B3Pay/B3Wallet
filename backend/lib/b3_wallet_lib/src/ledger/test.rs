@@ -31,7 +31,7 @@ mod tests {
         chains.insert(ChainEnum::ICP, icp_chain);
 
         let mut ledger = Ledger {
-            ecdsa: None,
+            public_key: None,
             subaccount,
             chains,
         };
@@ -41,7 +41,7 @@ mod tests {
             153, 192, 65, 30, 59, 177, 153, 39, 80, 76, 185, 200, 51, 255, 218,
         ];
 
-        ledger.set_ecdsa(ecdsa).unwrap();
+        ledger.set_ecdsa_public_key(ecdsa).unwrap();
 
         assert_eq!(
             identifier.to_string(),
@@ -122,7 +122,7 @@ mod tests {
         chains.insert(ChainEnum::ICP, icp_chain);
 
         let mut ledger = Ledger {
-            ecdsa: None,
+            public_key: None,
             subaccount,
             chains,
         };
@@ -134,7 +134,7 @@ mod tests {
 
         assert_eq!(identifier.to_string(), expected_identifier.to_string());
 
-        ledger.set_ecdsa(ecdsa).unwrap();
+        ledger.set_ecdsa_public_key(ecdsa).unwrap();
 
         let icp_address = ledger.chain(ChainEnum::ICP).unwrap();
 
@@ -200,7 +200,7 @@ mod tests {
         chains.insert(ChainEnum::ICP, icp_chain);
 
         let mut ledger = Ledger {
-            ecdsa: None,
+            public_key: None,
             subaccount,
             chains,
         };
@@ -210,7 +210,7 @@ mod tests {
             26, 182, 33, 68, 123, 186, 216, 216, 41, 136, 9, 40, 38,
         ];
 
-        ledger.set_ecdsa(ecdsa).unwrap();
+        ledger.set_ecdsa_public_key(ecdsa).unwrap();
 
         let icp_address = ledger.chain(ChainEnum::ICP).unwrap();
 

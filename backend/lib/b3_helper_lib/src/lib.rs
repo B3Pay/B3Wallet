@@ -11,6 +11,7 @@ pub mod wasm;
 
 #[cfg(test)]
 pub mod mocks;
+pub mod time;
 
 use ::easy_hasher::easy_hasher::Hash;
 use easy_hasher::easy_hasher;

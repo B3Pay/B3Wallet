@@ -5,16 +5,15 @@ use b3_helper_lib::{
     revert,
     subaccount::Subaccount,
     tokens::Tokens,
-    types::{AccountsCounter, BlockIndex, CanisterId, Memo, NotifyTopUpResult},
+    types::{AccountsNonce, BlockIndex, CanisterId, Cycles, Memo, NotifyTopUpResult},
 };
 use b3_wallet_lib::{
     account::WalletAccount,
-    error::WalletError,
     ledger::{
         btc::network::BtcNetwork,
         ckbtc::{
             minter::Minter,
-            types::{RetrieveBtcStatus, UpdateBalanceResult},
+            types::{BtcTxId, RetrieveBtcStatus, UtxoStatus},
         },
         types::{AddressMap, Balance, ChainEnum},
     },
@@ -46,7 +45,7 @@ pub fn get_account_count() -> usize {
 
 #[candid_method(query)]
 #[query(guard = "caller_is_signer")]
-pub fn get_account_counters() -> AccountsCounter {
+pub fn get_account_counters() -> AccountsNonce {
     with_wallet(|s| s.counters().clone())
 }
 
@@ -122,8 +121,8 @@ pub fn account_remove_address(account_id: AccountId, chain: ChainEnum) {
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub fn account_restore(env: Environment, index: u64) {
-    let subaccount = Subaccount::new(env, index);
+pub fn account_restore(env: Environment, nonce: u64) {
+    let subaccount = Subaccount::new(env, nonce);
 
     with_wallet_mut(|s| s.restore_account(subaccount)).unwrap_or_else(revert);
 }
@@ -261,18 +260,15 @@ pub async fn account_balance_btc(
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub async fn account_update_balance(
-    account_id: AccountId,
-    network: BtcNetwork,
-) -> UpdateBalanceResult {
+pub async fn account_update_balance(account_id: AccountId, network: BtcNetwork) -> Vec<UtxoStatus> {
     let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
     let ckbtc = ledger
         .ckbtc(network)
-        .ok_or(WalletError::CkbtcNotInitialized)
+        .ok_or(format!("Ckbtc not initialized!"))
         .unwrap_or_else(revert);
 
-    let result = ckbtc.update_balance().await;
+    let result = ckbtc.update_balance().await.unwrap_or_else(revert);
 
     match result {
         Ok(result) => result,
@@ -286,7 +282,7 @@ pub async fn account_swap_btc_to_ckbtc(
     account_id: AccountId,
     network: BtcNetwork,
     amount: Satoshi,
-) -> String {
+) -> BtcTxId {
     let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
     let result = ledger.swap_btc_to_ckbtc(network, amount).await;
@@ -314,12 +310,12 @@ pub async fn account_swap_ckbtc_to_btc(
     network: BtcNetwork,
     btc_address: String,
     amount: Satoshi,
-) -> String {
+) -> BtcTxId {
     let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
     let ckbtc = ledger
         .ckbtc(network)
-        .ok_or(WalletError::CkbtcNotInitialized)
+        .ok_or(format!("Ckbtc not initialized!"))
         .unwrap_or_else(revert);
 
     let result = ckbtc.swap_ckbtc_to_btc(btc_address, amount).await;
@@ -337,7 +333,7 @@ pub async fn account_send_btc(
     network: BtcNetwork,
     to: String,
     amount: Satoshi,
-) -> String {
+) -> BtcTxId {
     let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
     let result = ledger.bitcoin_transfer(network, &to, amount).await;
@@ -355,7 +351,7 @@ pub async fn account_top_up_and_notify(
     amount: Tokens,
     canister_id: Option<CanisterId>,
     fee: Option<Tokens>,
-) -> u128 {
+) -> Cycles {
     let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
     let canister_id = canister_id.unwrap_or(ic_cdk::id());
@@ -373,15 +369,17 @@ pub async fn account_top_up_and_notify(
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub async fn account_generate_address(account_id: AccountId, chain_type: ChainEnum) {
+pub async fn account_create_address(account_id: AccountId, chain_type: ChainEnum) {
     let mut ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
     let ecdsa = match chain_type {
         ChainEnum::BTC(_) | ChainEnum::EVM(_) => {
-            if !ledger.is_ecdsa_set() {
+            if !ledger.is_public_key_set() {
                 let ecdsa = ledger.ecdsa_public_key().await.unwrap_or_else(revert);
 
-                ledger.set_ecdsa(ecdsa.clone()).unwrap_or_else(revert);
+                ledger
+                    .set_ecdsa_public_key(ecdsa.clone())
+                    .unwrap_or_else(revert);
 
                 Some(ecdsa)
             } else {
@@ -398,7 +396,7 @@ pub async fn account_generate_address(account_id: AccountId, chain_type: ChainEn
 
     with_ledger_mut(&account_id, |ledger| {
         if let Some(ecdsa) = ecdsa {
-            ledger.set_ecdsa(ecdsa).unwrap_or_else(revert);
+            ledger.set_ecdsa_public_key(ecdsa).unwrap_or_else(revert);
         }
 
         ledger.insert_chain(chain_type, chain)
