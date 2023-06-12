@@ -7,10 +7,13 @@ import {
   Input,
   InputGroup,
   Link,
+  Radio,
+  RadioGroup,
   Stack,
   Text
 } from "@chakra-ui/react"
 import { Principal } from "@dfinity/principal"
+import { Release } from "declarations/b3_system/b3_system.did"
 import { useCallback, useEffect, useState } from "react"
 import { B3System } from "../../service/actor"
 import Disclaimer from "../Disclaimer"
@@ -24,6 +27,8 @@ interface SystemProps {
 
 const System: React.FC<SystemProps> = ({ systemActor, fetchUserActor }) => {
   const [input, setInput] = useState<string>("")
+  const [releases, setReleases] = useState<Release[]>([])
+  const [selectedVersion, setSelectedVersion] = useState<string>("")
 
   const [error, setError] = useState<string>()
   const [loading, setLoading] = useState<boolean>()
@@ -33,6 +38,18 @@ const System: React.FC<SystemProps> = ({ systemActor, fetchUserActor }) => {
   const fetchCanisterId = useCallback(async () => {
     setError(undefined)
     setLoading(true)
+
+    systemActor
+      .releases()
+      .then(releases => {
+        setReleases(releases)
+
+        setLoading(false)
+      })
+      .catch(e => {
+        console.log(e)
+        setLoading(false)
+      })
 
     systemActor
       .get_canister()
@@ -138,44 +155,70 @@ const System: React.FC<SystemProps> = ({ systemActor, fetchUserActor }) => {
       <Stack borderBottom="1px solid #e2e8f0" spacing="8" p={3}>
         {error && <Error error={error} />}
         {loading && <Loading />}
-        <Stack>
-          <FormLabel as="label">
-            Install a canister by entering its id and clicking the intall
-            button.
-          </FormLabel>
-          <Text fontSize="sm">
-            You can create a canister id on the&nbsp;
-            <Link
-              color="blue.500"
-              isExternal
-              target="_blank"
-              rel="noopener noreferrer"
-              href="https://nns.ic0.app/"
-            >
-              NNS Dapp
-            </Link>
-            . and add this canister as controller to your canister then click on
-            the button below.
-          </Text>
+        {releases.length > 0 && (
           <FormControl as="fieldset">
-            <InputGroup>
-              <Input
-                flex={8}
-                type="text"
-                placeholder="Enter Canister id"
-                value={canisterId}
-                onChange={e => setCanisterId(e.target.value)}
-              />
-              <Button flex={4} onClick={() => installCanister(canisterId)}>
-                Install Wallet
-              </Button>
-            </InputGroup>
-            <FormHelperText fontSize="xs">
-              Note: This will install the wallet canister on your canister then
-              remove the controller, so you have full control over your wallet.
+            <FormLabel as="label">Select a version:</FormLabel>
+            <RadioGroup
+              display="grid"
+              gridTemplateColumns="repeat(2, 1fr)"
+              gap={2}
+              value={selectedVersion}
+              onChange={e => setSelectedVersion(e)}
+            >
+              {releases.map(release => (
+                <Radio
+                  flex={6}
+                  key={release.version}
+                  value={release.version}
+                  isDisabled={release.deprecated}
+                >
+                  <Text as="span" fontWeight="bold" mr={2}>
+                    {release.name}
+                  </Text>
+                  {release.version}
+                </Radio>
+              ))}
+            </RadioGroup>
+            <FormHelperText>
+              &nbsp;For candid interface select &quot;-candid&quot; version
             </FormHelperText>
           </FormControl>
-        </Stack>
+        )}
+        <FormLabel as="label">
+          Install a canister by entering its id or create a new one:
+        </FormLabel>
+        <Text fontSize="sm">
+          You can create a canister id on the&nbsp;
+          <Link
+            color="blue.500"
+            isExternal
+            target="_blank"
+            rel="noopener noreferrer"
+            href="https://nns.ic0.app/"
+          >
+            NNS Dapp
+          </Link>
+          . and add this canister as controller to your canister then click on
+          the button below.
+        </Text>
+        <FormControl as="fieldset">
+          <InputGroup>
+            <Input
+              flex={8}
+              type="text"
+              placeholder="Enter Canister id"
+              value={canisterId}
+              onChange={e => setCanisterId(e.target.value)}
+            />
+            <Button flex={4} onClick={() => installCanister(canisterId)}>
+              Install Wallet
+            </Button>
+          </InputGroup>
+          <FormHelperText fontSize="xs">
+            Note: This will install the wallet canister on your canister then
+            remove the controller, so you have full control over your wallet.
+          </FormHelperText>
+        </FormControl>
         <Stack>
           <FormLabel as="label">
             Create a canister and install the wallet canister on it.

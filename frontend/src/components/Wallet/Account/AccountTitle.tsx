@@ -20,7 +20,7 @@ import {
 } from "@chakra-ui/react"
 import { Environment } from "declarations/b3_wallet/b3_wallet.did"
 import React, { useState } from "react"
-import { Loadings } from "./Account"
+import { Loadings } from "."
 
 interface AccountTitleProps {
   name: string
@@ -31,7 +31,7 @@ interface AccountTitleProps {
   refetchAccount: () => void
 }
 
-export const AccountTitle: React.FC<AccountTitleProps> = ({
+const AccountTitle: React.FC<AccountTitleProps> = ({
   name,
   environment,
   id,
@@ -131,3 +131,5 @@ export const AccountTitle: React.FC<AccountTitleProps> = ({
     </Stack>
   )
 }
+
+export default AccountTitle

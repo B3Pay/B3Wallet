@@ -19,7 +19,7 @@ use b3_permit_lib::{
     store::{with_permit, with_permit_mut},
     types::PendingRequestList,
 };
-use b3_wallet_lib::store::{with_account, with_ledger};
+use b3_wallet_lib::store::with_ledger;
 use ic_cdk::{export::candid::candid_method, query, update};
 
 // QUERY ---------------------------------------------------------------------
@@ -219,9 +219,9 @@ pub async fn request_sign_transaction(
     hex_raw_tx: Vec<u8>,
     chain_id: u64,
 ) -> Vec<u8> {
-    let account = with_account(&account_id, |account| account.clone()).unwrap_or_else(revert);
+    let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
-    account
+    ledger
         .sign_evm_transaction(hex_raw_tx, chain_id)
         .await
         .unwrap_or_else(revert)

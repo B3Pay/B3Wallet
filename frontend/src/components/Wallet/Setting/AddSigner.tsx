@@ -27,12 +27,12 @@ type Role = keyof typeof RoleEnum
 const AddSigner: React.FC<AddSignerProps> = ({ actor }) => {
   const [principal, setPrincipal] = useState("")
   const [role, setRole] = useState<Role>()
-  const toast = useToastMessage()
+  const { errorToast } = useToastMessage()
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!role) {
-      toast({
+      errorToast({
         title: "Role not selected.",
         description: `Please select a role`,
         status: "error",
@@ -52,7 +52,7 @@ const AddSigner: React.FC<AddSignerProps> = ({ actor }) => {
     actor
       .signer_add(Principal.fromText(principal), roles)
       .then(() => {
-        toast({
+        errorToast({
           title: "Signer added.",
           description: `Principal ${principal} added with role ${role}`,
           status: "success",
@@ -66,7 +66,7 @@ const AddSigner: React.FC<AddSignerProps> = ({ actor }) => {
       })
       .catch(e => {
         console.log(e)
-        toast({
+        errorToast({
           title: "Error adding signer.",
           description: `Please try again`,
           status: "error",

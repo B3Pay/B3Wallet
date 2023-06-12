@@ -1,3 +1,6 @@
+use crate::ledger::error::LedgerError;
+use crate::ledger::ledger::Ledger;
+
 use super::berlin::EvmTransaction2930;
 use super::error::EvmError;
 use super::legacy::EvmTransactionLegacy;
@@ -152,6 +155,33 @@ pub fn decode_access_list(access_list: &Vec<u8>) -> Vec<(String, Vec<String>)> {
         decoded_access_list.push((vec_u8_to_string(&address), storage_keys));
     }
     decoded_access_list
+}
+
+impl Ledger {
+    pub async fn sign_evm_transaction(
+        &self,
+        hex_raw_tx: Vec<u8>,
+        chain_id: u64,
+    ) -> Result<Vec<u8>, LedgerError> {
+        let public_key = self.eth_public_key()?;
+
+        let mut evm_tx =
+            get_evm_transaction(&hex_raw_tx, chain_id).map_err(LedgerError::EvmError)?;
+
+        let message = evm_tx.unsigned_serialized();
+
+        if message.len() != 32 {
+            return Err(LedgerError::InvalidMessageLength);
+        }
+
+        let signature = self.sign_with_ecdsa(message).await?;
+
+        let signed_evm_tx = evm_tx
+            .sign(signature, public_key)
+            .map_err(LedgerError::EvmError)?;
+
+        Ok(signed_evm_tx)
+    }
 }
 
 #[cfg(test)]

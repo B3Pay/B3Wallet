@@ -1,3 +1,4 @@
+use crate::ledger::types::Balance;
 use crate::ledger::{chain::ChainTrait, ckbtc::types::BtcTxId, ledger::Ledger, types::ChainEnum};
 use bitcoin::consensus::serialize;
 use bitcoin::sighash::{EcdsaSighashType, SighashCache};
@@ -17,7 +18,7 @@ impl Ledger {
         &self,
         btc_network: BtcNetwork,
         min_confirmations: Option<u32>,
-    ) -> Result<Satoshi, BitcoinError> {
+    ) -> Result<Balance, BitcoinError> {
         let chain = self
             .chain(ChainEnum::BTC(btc_network))
             .map_err(|err| BitcoinError::InvalidChain(err.to_string()))?;
@@ -134,6 +135,12 @@ impl Ledger {
         let ckbtc = self.ckbtc(btc_network).ok_or(BitcoinError::SwapToCkbtc(
             "CKBtc not initialized!".to_string(),
         ))?;
+
+        if ckbtc.has_pending_swap() {
+            return Err(BitcoinError::SwapToCkbtc(
+                "CKBtc has pending swap!".to_string(),
+            ));
+        }
 
         let dst_address = ckbtc
             .get_btc_address()

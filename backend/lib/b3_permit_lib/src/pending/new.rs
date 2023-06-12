@@ -34,8 +34,6 @@ pub struct RequestArgs {
 }
 
 impl PendingRequest {
-    // Constructor function
-
     pub fn new(id: RequestId, args: RequestArgs) -> Self {
         let deadline = if let Some(deadline) = args.deadline {
             deadline
@@ -58,13 +56,13 @@ impl PendingRequest {
         }
     }
 
-    // Function to add a response to the request
+    /// Add a response to the request
     pub fn add_response(&mut self, signer_id: SignerId, response: Response) {
         self.responses.insert(signer_id, response); // Assuming `ResponseMap::insert` exists and `Response` can be inserted
         self.check_status();
     }
 
-    // Function to check if the request status needs to be updated
+    /// Check if the request status needs to be updated
     pub fn check_status(&mut self) {
         if NanoTimeStamp::now() > self.deadline {
             self.status = RequestStatus::Expired;
@@ -74,7 +72,7 @@ impl PendingRequest {
         }
     }
 
-    // Function to get the current status of the request
+    /// Get the current status of the request
     pub fn get_status(&self) -> RequestStatus {
         self.status.clone() // Assuming `RequestStatus` implements `Clone`
     }
@@ -130,101 +128,5 @@ impl PendingRequest {
         self.responses.insert(signer, response);
 
         Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use candid::Principal;
-
-    use crate::request::inner::account::RenameAccount;
-
-    use super::*;
-
-    #[test]
-    fn test_request_args() {
-        let request = RenameAccount {
-            account_id: "test".to_string(),
-            new_name: "test".to_string(),
-        };
-
-        let args = RequestArgs {
-            role: Roles::Admin,
-            request: request.into(),
-            reason: "test".to_string(),
-            version: "1.0.0".to_string(),
-            deadline: None,
-        };
-
-        let pending = PendingRequest::new(1, args);
-
-        assert_eq!(pending.id, 1);
-        assert_eq!(pending.role, Roles::Admin);
-        assert_eq!(pending.deadline, NanoTimeStamp::days_from_now(7));
-        assert_eq!(pending.is_expired(), false);
-    }
-
-    #[test]
-    fn test_request_args_with_deadline() {
-        let request = RenameAccount {
-            account_id: "test".to_string(),
-            new_name: "test".to_string(),
-        };
-
-        let args = RequestArgs {
-            role: Roles::Admin,
-            request: request.into(),
-            reason: "test".to_string(),
-            version: "1.0.0".to_string(),
-            deadline: Some(NanoTimeStamp(1_000_000_000)),
-        };
-
-        let pending = PendingRequest::new(1, args);
-
-        assert_eq!(pending.id, 1);
-        assert_eq!(pending.role, Roles::Admin);
-        assert_eq!(pending.deadline, NanoTimeStamp(1_000_000_000));
-        assert_eq!(pending.is_expired(), true);
-    }
-
-    #[test]
-    fn test_confirm_request() {
-        let request = RenameAccount {
-            account_id: "test".to_string(),
-            new_name: "test".to_string(),
-        };
-
-        let signer = Principal::anonymous();
-
-        let args = RequestArgs {
-            role: Roles::Admin,
-            request: request.into(),
-            reason: "test".to_string(),
-            version: "1.0.0".to_string(),
-            deadline: None,
-        };
-
-        let mut pending = PendingRequest::new(1, args);
-
-        pending.response(signer, Response::Confirm).unwrap();
-
-        assert_eq!(pending.id, 1);
-        assert_eq!(pending.role, Roles::Admin);
-        assert_eq!(pending.deadline, NanoTimeStamp::days_from_now(7));
-        assert_eq!(pending.is_expired(), false);
-        assert_eq!(pending.is_signed(&signer), true);
-    }
-
-    #[test]
-    fn test_response() {
-        let response: Response = Response::Confirm;
-
-        if response.is_reject() {
-            println!("Response is Reject");
-        } else if response.is_confirm() {
-            println!("Response is Confirm");
-        } else {
-            println!("Unknown response");
-        }
     }
 }

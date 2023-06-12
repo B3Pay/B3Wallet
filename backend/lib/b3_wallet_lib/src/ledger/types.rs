@@ -66,12 +66,6 @@ pub enum SendResult {
 }
 
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
-pub struct BtcChain {
-    pub btc_network: BtcNetwork,
-    pub address: String, // Added address field
-}
-
-#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub struct EvmChain {
     pub chain_id: ChainId,
     pub address: String,

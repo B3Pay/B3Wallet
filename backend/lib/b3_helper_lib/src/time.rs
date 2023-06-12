@@ -13,10 +13,10 @@ pub struct NanoTimeStamp(pub u64);
 
 impl NanoTimeStamp {
     // Constants for nanosecond conversions
-    const NS_PER_SECOND: u64 = 1_000_000_000;
-    const NS_PER_MINUTE: u64 = Self::NS_PER_SECOND * 60;
-    const NS_PER_HOUR: u64 = Self::NS_PER_MINUTE * 60;
-    const NS_PER_DAY: u64 = Self::NS_PER_HOUR * 24;
+    pub const NS_PER_SECOND: u64 = 1_000_000_000;
+    pub const NS_PER_MINUTE: u64 = Self::NS_PER_SECOND * 60;
+    pub const NS_PER_HOUR: u64 = Self::NS_PER_MINUTE * 60;
+    pub const NS_PER_DAY: u64 = Self::NS_PER_HOUR * 24;
 
     /// Constructor function that returns the current timestamp
     pub fn now() -> Self {
@@ -70,6 +70,14 @@ impl NanoTimeStamp {
         } else {
             0
         }
+    }
+
+    /// check if the rate limit has been exceeded
+    /// returns true if the rate limit has been exceeded
+    pub fn rate_limit_exceeded(&self, rate_limit: u64) -> bool {
+        let now = NanoTimeStamp::now();
+        let time_since = now.0 - self.0;
+        time_since < rate_limit
     }
 
     /// add seconds to the timestamp

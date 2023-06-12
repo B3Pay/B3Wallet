@@ -1,5 +1,7 @@
-use b3_helper_lib::types::{Wasm, WasmHash, WasmModule, WasmSize};
-use ic_cdk::api::time;
+use b3_helper_lib::{
+    time::NanoTimeStamp,
+    types::{Wasm, WasmHash, WasmModule, WasmSize},
+};
 
 use crate::{
     error::SystemError,
@@ -10,8 +12,9 @@ use crate::{
 impl Default for Release {
     fn default() -> Self {
         Self {
+            name: "".to_string(),
             version: "0.0.0".to_string(),
-            date: 0,
+            date: NanoTimeStamp(0),
             size: 0,
             hash: WasmHash::default(),
             deprecated: false,
@@ -23,7 +26,8 @@ impl Default for Release {
 impl From<ReleaseArgs> for Release {
     fn from(args: ReleaseArgs) -> Self {
         Self {
-            date: time(),
+            name: args.name,
+            date: NanoTimeStamp::now(),
             size: args.size,
             deprecated: false,
             hash: WasmHash::default(),
@@ -81,7 +85,7 @@ impl Release {
     pub fn update(&mut self, release: ReleaseArgs) {
         self.size = release.size;
         self.features = release.features;
-        self.date = time();
+        self.date = NanoTimeStamp::now();
     }
 
     pub fn deprecate(&mut self) {

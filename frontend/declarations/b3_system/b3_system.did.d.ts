@@ -27,12 +27,14 @@ export interface Release {
   'features' : [] | [Array<string>],
   'date' : bigint,
   'hash' : Uint8Array | number[],
+  'name' : string,
   'size' : bigint,
   'version' : string,
   'deprecated' : boolean,
 }
 export interface ReleaseArgs {
   'features' : [] | [Array<string>],
+  'name' : string,
   'size' : bigint,
   'version' : string,
 }

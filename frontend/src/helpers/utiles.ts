@@ -1,7 +1,7 @@
 import { Principal } from "@dfinity/principal"
 import {
   BtcNetwork,
-  ChainType
+  ChainEnum
 } from "../../declarations/b3_wallet/b3_wallet.did"
 
 export const getHostFromUrl = (hostUrl: string) => {
@@ -29,6 +29,7 @@ export interface ChainTypeMap {
   BTC: BtcNetwork
   EVM: bigint
   ICP: null
+  CKBTC: null
   ICRC: Principal
 }
 
@@ -40,6 +41,7 @@ export interface ChainTypeString {
   BTC: "Mainnet" | "Testnet" | "Regtest"
   EVM: string
   ICP: null
+  CKBTC: null
   ICRC: string
 }
 
@@ -48,13 +50,18 @@ export type ChainTypeStringNetwork = ChainTypeString[ChainSymbol]
 export function handleChainType<T extends ChainSymbol>(
   network: ChainTypeString[T],
   symbol: T
-): ChainType {
+): ChainEnum {
   switch (symbol) {
-    case "BTC": {
+    case "BTC":
       const btcNetwork = { [network]: null } as BtcNetwork
 
       return { BTC: btcNetwork }
+    case "CKBTC": {
+      const btcNetwork = { [network]: null } as BtcNetwork
+
+      return { CKBTC: btcNetwork }
     }
+
     case "EVM": {
       const evmChainId = BigInt(network)
 
@@ -63,6 +70,7 @@ export function handleChainType<T extends ChainSymbol>(
     case "ICP": {
       return { ICP: null }
     }
+
     case "ICRC": {
       const icrcId = Principal.fromText(network)
 
@@ -72,4 +80,25 @@ export function handleChainType<T extends ChainSymbol>(
       throw new Error("Invalid ChainType")
     }
   }
+}
+
+export interface PendingTranscation {
+  currentConfirmations: number | null
+  requiredConfirmations: number | null
+}
+
+export function extractConfirmations(msg: string): PendingTranscation {
+  let currentConfirmationsMatch = msg.match(/Current confirmations: (\d+)/)
+  let requiredConfirmationsMatch = msg.match(/required confirmations: (\d+)/)
+
+  let result = {
+    currentConfirmations: currentConfirmationsMatch
+      ? parseInt(currentConfirmationsMatch[1])
+      : null,
+    requiredConfirmations: requiredConfirmationsMatch
+      ? parseInt(requiredConfirmationsMatch[1])
+      : null
+  }
+
+  return result
 }

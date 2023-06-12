@@ -13,6 +13,8 @@ use ic_cdk::api::{
 use serde::Serialize;
 use std::fmt;
 
+use crate::ledger::types::Balance;
+
 use super::error::BitcoinError;
 
 /// Bitcoin Network.
@@ -76,7 +78,7 @@ impl BtcNetwork {
         &self,
         address: String,
         min_confirmations: Option<u32>,
-    ) -> Result<Satoshi, BitcoinError> {
+    ) -> Result<Balance, BitcoinError> {
         let network = BitcoinNetwork::from(*self);
 
         let (satoshi,): (Satoshi,) = call_with_payment(
@@ -92,7 +94,7 @@ impl BtcNetwork {
         .await
         .map_err(|err| BitcoinError::GetBalance(err.1))?;
 
-        Ok(satoshi)
+        Ok(satoshi.into())
     }
 
     /// Get the UTXOs of the canister's bitcoin wallet.

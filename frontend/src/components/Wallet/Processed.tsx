@@ -42,7 +42,7 @@ const Processed: React.FC<ProcessedRequestProps> = ({
             justify="space-between"
           >
             <Box flex="8" textAlign="left">
-              {request.consent_message.method}
+              {request.consent_message.title}
             </Box>
             <Box flex="4" textAlign="left">
               {date.toLocaleDateString()} {date.toLocaleTimeString()}

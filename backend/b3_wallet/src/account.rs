@@ -245,7 +245,7 @@ pub async fn account_balance_btc(
     account_id: AccountId,
     network: BtcNetwork,
     min_confirmations: Option<u32>,
-) -> Satoshi {
+) -> Balance {
     let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
     let balance = ledger

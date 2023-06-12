@@ -26,22 +26,22 @@ pub fn init() {
 
     match call_arg {
         Some(args) => {
-            with_permit_mut(|link| {
-                link.signers.insert(args.owner_id, owner);
+            with_permit_mut(|permit| {
+                permit.signers.insert(args.owner_id, owner);
 
                 if let Some(system_id) = args.system_id {
                     let name = "system".to_owned();
                     let system = Signer::new(Roles::Canister, Some(name), None);
 
-                    link.signers.insert(system_id, system);
+                    permit.signers.insert(system_id, system);
                 }
             });
         }
         None => {
             let owner_id = ic_cdk::caller();
 
-            with_permit_mut(|link| {
-                link.signers.insert(owner_id, owner);
+            with_permit_mut(|permit| {
+                permit.signers.insert(owner_id, owner);
             });
         }
     };
@@ -53,10 +53,10 @@ pub fn init() {
 pub fn pre_upgrade() {
     with_wasm_mut(|wasm| wasm.unload());
 
-    let link = with_permit(|o| o.clone());
+    let permit = with_permit(|o| o.clone());
     let state = with_wallet(|s| s.clone());
 
-    ic_cdk::storage::stable_save((state, link)).unwrap();
+    ic_cdk::storage::stable_save((state, permit)).unwrap();
 }
 
 #[post_upgrade]
@@ -66,7 +66,7 @@ pub fn post_upgrade() {
 
     with_wallet_mut(|state| *state = state_prev);
 
-    with_permit_mut(|link| *link = sign_prev);
+    with_permit_mut(|permit| *permit = sign_prev);
 }
 
 #[cfg(test)]

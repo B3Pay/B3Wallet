@@ -18,12 +18,14 @@ type Release = record {
   features : opt vec text;
   date : nat64;
   hash : vec nat8;
+  name : text;
   size : nat64;
   version : text;
   deprecated : bool;
 };
 type ReleaseArgs = record {
   features : opt vec text;
+  name : text;
   size : nat64;
   version : text;
 };

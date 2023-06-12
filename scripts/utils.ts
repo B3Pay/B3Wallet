@@ -39,17 +39,15 @@ export const initIdentity = (mainnet: boolean) => {
   return decode(key)
 }
 
-export const loadWasm = async (withCandid?: boolean) => {
+export const loadWasm = async (name: string, withCandid?: boolean) => {
   const buffer = await readFile(
-    `${process.cwd()}/wasm/b3_wallet/b3_wallet${
-      withCandid ? "_candid" : ""
-    }.wasm`
+    `${process.cwd()}/wasm/${name}/${name}${withCandid ? "_candid" : ""}.wasm`
   )
   return [...new Uint8Array(buffer)]
 }
 
-export const readVersion = async () => {
-  const file = await open(`${process.cwd()}/backend/b3_wallet/Cargo.toml`)
+export const readVersion = async (name: string) => {
+  const file = await open(`${process.cwd()}/backend/${name}/Cargo.toml`)
 
   try {
     for await (const line of file.readLines()) {

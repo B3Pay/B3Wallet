@@ -123,15 +123,19 @@ export const idlFactory = ({ IDL }) => {
   const WalletAccountView = IDL.Record({
     'id' : IDL.Text,
     'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
+    'pendings' : IDL.Vec(IDL.Tuple(ChainEnum, IDL.Text)),
     'name' : IDL.Text,
     'hidden' : IDL.Bool,
     'addresses' : IDL.Vec(IDL.Tuple(ChainEnum, IDL.Text)),
     'environment' : Environment,
   });
-  const RequestAnswer = IDL.Variant({
-    'Reject' : IDL.Null,
-    'Confirm' : IDL.Null,
+  const RequestStatus = IDL.Variant({
+    'Fail' : IDL.Null,
+    'Success' : IDL.Null,
+    'Expired' : IDL.Null,
+    'Pending' : IDL.Null,
   });
+  const Response = IDL.Variant({ 'Reject' : IDL.Null, 'Confirm' : IDL.Null });
   const HideAccount = IDL.Record({ 'account_id' : IDL.Text });
   const EvmDeployContract = IDL.Record({
     'account_id' : IDL.Text,
@@ -303,21 +307,20 @@ export const idlFactory = ({ IDL }) => {
     'UpdateSignerThreshold' : UpdateSignerThreshold,
   });
   const ConsentMessage = IDL.Record({
-    'method' : IDL.Text,
+    'title' : IDL.Text,
     'message' : IDL.Text,
+    'reason' : IDL.Text,
   });
   const PendingRequest = IDL.Record({
     'id' : IDL.Nat64,
-    'responses' : IDL.Vec(IDL.Tuple(IDL.Principal, RequestAnswer)),
+    'status' : RequestStatus,
+    'responses' : IDL.Vec(IDL.Tuple(IDL.Principal, Response)),
     'request' : Request,
     'role' : Roles,
     'deadline' : IDL.Nat64,
     'consent_message' : ConsentMessage,
-  });
-  const RequestStatus = IDL.Variant({
-    'Fail' : IDL.Null,
-    'Success' : IDL.Null,
-    'Pending' : IDL.Null,
+    'created_at' : IDL.Nat64,
+    'version' : IDL.Text,
   });
   const EvmContractDeployed = IDL.Record({
     'transaction' : EvmTransaction1559,
@@ -398,7 +401,7 @@ export const idlFactory = ({ IDL }) => {
     'account_balance' : IDL.Func([IDL.Text, ChainEnum], [IDL.Nat], []),
     'account_balance_btc' : IDL.Func(
         [IDL.Text, BtcNetwork, IDL.Opt(IDL.Nat32)],
-        [IDL.Nat64],
+        [IDL.Nat],
         [],
       ),
     'account_btc_fees' : IDL.Func([BtcNetwork, IDL.Nat8], [IDL.Nat64], []),
@@ -477,27 +480,32 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'load_wasm' : IDL.Func([IDL.Vec(IDL.Nat8)], [IDL.Nat64], []),
+    'name' : IDL.Func([], [IDL.Text], ['query']),
     'request_account_rename' : IDL.Func(
-        [RenameAccount, IDL.Opt(IDL.Nat64)],
+        [RenameAccount, IDL.Text, IDL.Opt(IDL.Nat64)],
         [IDL.Nat64],
         [],
       ),
     'request_add_signer' : IDL.Func(
-        [AddSigner, IDL.Opt(IDL.Nat64)],
+        [AddSigner, IDL.Text, IDL.Opt(IDL.Nat64)],
         [IDL.Nat64],
         [],
       ),
     'request_create_account' : IDL.Func(
-        [CreateAccount, IDL.Opt(IDL.Nat64)],
+        [CreateAccount, IDL.Text, IDL.Opt(IDL.Nat64)],
         [IDL.Nat64],
         [],
       ),
     'request_delete_account' : IDL.Func(
-        [HideAccount, IDL.Opt(IDL.Nat64)],
+        [HideAccount, IDL.Text, IDL.Opt(IDL.Nat64)],
         [IDL.Nat64],
         [],
       ),
-    'request_maker' : IDL.Func([Request, IDL.Opt(IDL.Nat64)], [IDL.Nat64], []),
+    'request_maker' : IDL.Func(
+        [Request, IDL.Text, IDL.Opt(IDL.Nat64)],
+        [IDL.Nat64],
+        [],
+      ),
     'request_sign_message' : IDL.Func(
         [IDL.Text, IDL.Vec(IDL.Nat8)],
         [IDL.Vec(IDL.Nat8)],
@@ -509,22 +517,22 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'request_transfer_btc' : IDL.Func(
-        [BtcTransfer, IDL.Opt(IDL.Nat64)],
+        [BtcTransfer, IDL.Text, IDL.Opt(IDL.Nat64)],
         [IDL.Nat64],
         [],
       ),
     'request_transfer_icp' : IDL.Func(
-        [IcpTransfer, IDL.Opt(IDL.Nat64)],
+        [IcpTransfer, IDL.Text, IDL.Opt(IDL.Nat64)],
         [IDL.Nat64],
         [],
       ),
     'request_update_settings' : IDL.Func(
-        [UpdateCanisterSettings, IDL.Opt(IDL.Nat64)],
+        [UpdateCanisterSettings, IDL.Text, IDL.Opt(IDL.Nat64)],
         [IDL.Nat64],
         [],
       ),
     'reset_wallet' : IDL.Func([], [], []),
-    'response' : IDL.Func([IDL.Nat64, RequestAnswer], [ProcessedRequest], []),
+    'response' : IDL.Func([IDL.Nat64, Response], [ProcessedRequest], []),
     'retrieve_btc_status' : IDL.Func(
         [Minter, IDL.Nat64],
         [RetrieveBtcStatus],

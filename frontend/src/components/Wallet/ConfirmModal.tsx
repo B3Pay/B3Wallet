@@ -10,8 +10,7 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  useDisclosure,
-  useInterval
+  useDisclosure
 } from "@chakra-ui/react"
 import { useState } from "react"
 import { PendingRequest } from "../../../declarations/b3_wallet/b3_wallet.did"
@@ -58,9 +57,9 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     })
   }
 
-  useInterval(async () => {
-    fetchRequests()
-  }, 10000)
+  // useInterval(async () => {
+  //   fetchRequests()
+  // }, 10000)
 
   return (
     <Box>
@@ -82,7 +81,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         <ModalOverlay />
         {requests.length > 0 && (
           <ModalContent>
-            <ModalHeader> {requests[0].consent_message.method}</ModalHeader>
+            <ModalHeader> {requests[0].consent_message.title}</ModalHeader>
             <ModalCloseButton />
             <ModalBody>
               {Object.entries(requests[0].consent_message).map(

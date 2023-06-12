@@ -2,6 +2,7 @@ use crate::{
     error::{HelperError, NotifyError},
     identifier::AccountIdentifier,
     subaccount::Subaccount,
+    time::NanoTimeStamp,
     tokens::Tokens,
 };
 use ic_cdk::{
@@ -81,8 +82,8 @@ pub struct AccountsNonce {
 
 #[derive(CandidType, Deserialize, Serialize)]
 pub struct WalletCanisterStatus {
-    pub status_at: u64,
     pub version: String,
+    pub status_at: NanoTimeStamp,
     pub canister_id: CanisterId,
     pub account_status: AccountsNonce,
     pub canister_status: CanisterStatusResponse,
@@ -90,7 +91,7 @@ pub struct WalletCanisterStatus {
 
 #[derive(CandidType, Deserialize, Serialize)]
 pub struct SystemCanisterStatus {
-    pub status_at: u64,
+    pub status_at: NanoTimeStamp,
     pub version: String,
     pub user_status: usize,
     pub canister_id: CanisterId,

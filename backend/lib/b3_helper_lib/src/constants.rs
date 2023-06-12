@@ -1,5 +1,6 @@
 use crate::{
     subaccount::Subaccount,
+    time::NanoTimeStamp,
     tokens::Tokens,
     types::{CanisterId, Memo},
 };
@@ -10,7 +11,7 @@ pub const STAGING_PREFIX: u8 = 170;
 
 pub const DEFAULT_SUBACCOUNT: Subaccount = Subaccount([0u8; 32]);
 
-pub const RATE_LIMIT: u64 = 60000000000;
+pub const RATE_LIMIT: u64 = NanoTimeStamp::NS_PER_MINUTE;
 
 pub const IC_TRANSACTION_FEE_ICP: Tokens = Tokens::from_e8s(10_000);
 

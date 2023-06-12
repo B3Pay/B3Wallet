@@ -1,13 +1,7 @@
-use crate::{
-    error::WalletError,
-    ledger::{
-        evm::evm::{get_evm_transaction, EvmSignTrait},
-        ledger::Ledger,
-    },
-    types::WalletAccountView,
-};
+use crate::{ledger::ledger::Ledger, types::WalletAccountView};
 use b3_helper_lib::{environment::Environment, subaccount::Subaccount, types::Metadata};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+
 impl From<&WalletAccount> for WalletAccountView {
     fn from(account: &WalletAccount) -> Self {
         Self {
@@ -16,6 +10,7 @@ impl From<&WalletAccount> for WalletAccountView {
             hidden: account.hidden,
             metadata: account.metadata.clone(),
             environment: account.environment().clone(),
+            pendings: account.ledger.pendings().clone(),
             addresses: account.ledger.addresses().clone(),
         }
     }
@@ -58,32 +53,6 @@ impl From<Subaccount> for WalletAccount {
 }
 
 impl WalletAccount {
-    pub async fn sign_evm_transaction(
-        &self,
-        hex_raw_tx: Vec<u8>,
-        chain_id: u64,
-    ) -> Result<Vec<u8>, WalletError> {
-        let public_key = self.ledger.eth_public_key()?;
-
-        let mut evm_tx = get_evm_transaction(&hex_raw_tx, chain_id)?;
-
-        let message = evm_tx.unsigned_serialized();
-
-        if message.len() != 32 {
-            return Err(WalletError::InvalidMessageLength);
-        }
-
-        let signature = self
-            .ledger
-            .sign_with_ecdsa(message)
-            .await
-            .map_err(WalletError::LedgerError)?;
-
-        let signed_evm_tx = evm_tx.sign(signature, public_key)?;
-
-        Ok(signed_evm_tx)
-    }
-
     pub fn view(&self) -> WalletAccountView {
         WalletAccountView {
             id: self.id.clone(),
@@ -91,6 +60,7 @@ impl WalletAccount {
             hidden: self.hidden,
             metadata: self.metadata.clone(),
             addresses: self.ledger.addresses().clone(),
+            pendings: self.ledger.pendings().clone(),
             environment: self.ledger.subaccount.environment(),
         }
     }

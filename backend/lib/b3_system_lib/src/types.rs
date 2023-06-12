@@ -1,4 +1,7 @@
-use b3_helper_lib::types::{CanisterId, ControllerId, SignerId, Version, Wasm, WasmHash, WasmSize};
+use b3_helper_lib::{
+    time::NanoTimeStamp,
+    types::{CanisterId, ControllerId, SignerId, Version, Wasm, WasmHash, WasmSize},
+};
 use ic_cdk::export::candid::{CandidType, Deserialize};
 use std::collections::HashMap;
 
@@ -15,8 +18,8 @@ pub type WasmMap = HashMap<Version, Wasm>;
 #[derive(CandidType, Deserialize, Clone)]
 pub struct WalletCanister {
     pub canisters: Vec<CanisterId>,
-    pub created_at: u64,
-    pub updated_at: u64,
+    pub created_at: NanoTimeStamp,
+    pub updated_at: NanoTimeStamp,
 }
 
 #[derive(Default, CandidType, Deserialize, Clone)]
@@ -35,7 +38,8 @@ pub struct LoadRelease {
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct Release {
-    pub date: u64,
+    pub name: String,
+    pub date: NanoTimeStamp,
     pub size: WasmSize,
     pub hash: WasmHash,
     pub version: Version,
@@ -46,6 +50,7 @@ pub struct Release {
 #[derive(CandidType, Deserialize, Clone)]
 pub struct ReleaseArgs {
     pub size: usize,
+    pub name: String,
     pub version: Version,
     pub features: Option<Features>,
 }

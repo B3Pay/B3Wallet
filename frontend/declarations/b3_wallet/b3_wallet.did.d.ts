@@ -59,7 +59,11 @@ export interface CkbtcChain {
   'account' : ICRCAccount,
   'created_at_time' : [] | [bigint],
 }
-export interface ConsentMessage { 'method' : string, 'message' : string }
+export interface ConsentMessage {
+  'title' : string,
+  'message' : string,
+  'reason' : string,
+}
 export interface CreateAccount {
   'env' : [] | [Environment],
   'name' : [] | [string],
@@ -232,11 +236,14 @@ export interface OutPoint { 'txid' : Uint8Array | number[], 'vout' : number }
 export interface Outpoint { 'txid' : Uint8Array | number[], 'vout' : number }
 export interface PendingRequest {
   'id' : bigint,
-  'responses' : Array<[Principal, RequestAnswer]>,
+  'status' : RequestStatus,
+  'responses' : Array<[Principal, Response]>,
   'request' : Request,
   'role' : Roles,
   'deadline' : bigint,
   'consent_message' : ConsentMessage,
+  'created_at' : bigint,
+  'version' : string,
 }
 export interface ProcessedRequest {
   'status' : RequestStatus,
@@ -267,11 +274,12 @@ export type Request = { 'UnhideAccount' : HideAccount } |
   { 'EvmTransfer' : EvmTransfer } |
   { 'RemoveSigner' : RemoveSigner } |
   { 'UpdateSignerThreshold' : UpdateSignerThreshold };
-export type RequestAnswer = { 'Reject' : null } |
-  { 'Confirm' : null };
 export type RequestStatus = { 'Fail' : null } |
   { 'Success' : null } |
+  { 'Expired' : null } |
   { 'Pending' : null };
+export type Response = { 'Reject' : null } |
+  { 'Confirm' : null };
 export type RetrieveBtcStatus = { 'Signing' : null } |
   { 'Confirmed' : { 'txid' : Uint8Array | number[] } } |
   { 'Sending' : { 'txid' : Uint8Array | number[] } } |
@@ -342,6 +350,7 @@ export interface WalletAccount {
 export interface WalletAccountView {
   'id' : string,
   'metadata' : Array<[string, string]>,
+  'pendings' : Array<[ChainEnum, string]>,
   'name' : string,
   'hidden' : boolean,
   'addresses' : Array<[ChainEnum, string]>,
@@ -416,17 +425,24 @@ export interface _SERVICE {
   'get_processed_list' : ActorMethod<[], Array<ProcessedRequest>>,
   'get_signers' : ActorMethod<[], Array<[Principal, Signer]>>,
   'load_wasm' : ActorMethod<[Uint8Array | number[]], bigint>,
+  'name' : ActorMethod<[], string>,
   'request_account_rename' : ActorMethod<
-    [RenameAccount, [] | [bigint]],
+    [RenameAccount, string, [] | [bigint]],
     bigint
   >,
-  'request_add_signer' : ActorMethod<[AddSigner, [] | [bigint]], bigint>,
+  'request_add_signer' : ActorMethod<
+    [AddSigner, string, [] | [bigint]],
+    bigint
+  >,
   'request_create_account' : ActorMethod<
-    [CreateAccount, [] | [bigint]],
+    [CreateAccount, string, [] | [bigint]],
     bigint
   >,
-  'request_delete_account' : ActorMethod<[HideAccount, [] | [bigint]], bigint>,
-  'request_maker' : ActorMethod<[Request, [] | [bigint]], bigint>,
+  'request_delete_account' : ActorMethod<
+    [HideAccount, string, [] | [bigint]],
+    bigint
+  >,
+  'request_maker' : ActorMethod<[Request, string, [] | [bigint]], bigint>,
   'request_sign_message' : ActorMethod<
     [string, Uint8Array | number[]],
     Uint8Array | number[]
@@ -435,14 +451,20 @@ export interface _SERVICE {
     [string, Uint8Array | number[], bigint],
     Uint8Array | number[]
   >,
-  'request_transfer_btc' : ActorMethod<[BtcTransfer, [] | [bigint]], bigint>,
-  'request_transfer_icp' : ActorMethod<[IcpTransfer, [] | [bigint]], bigint>,
+  'request_transfer_btc' : ActorMethod<
+    [BtcTransfer, string, [] | [bigint]],
+    bigint
+  >,
+  'request_transfer_icp' : ActorMethod<
+    [IcpTransfer, string, [] | [bigint]],
+    bigint
+  >,
   'request_update_settings' : ActorMethod<
-    [UpdateCanisterSettings, [] | [bigint]],
+    [UpdateCanisterSettings, string, [] | [bigint]],
     bigint
   >,
   'reset_wallet' : ActorMethod<[], undefined>,
-  'response' : ActorMethod<[bigint, RequestAnswer], ProcessedRequest>,
+  'response' : ActorMethod<[bigint, Response], ProcessedRequest>,
   'retrieve_btc_status' : ActorMethod<[Minter, bigint], RetrieveBtcStatus>,
   'signer_add' : ActorMethod<[Principal, Roles], Array<[Principal, Signer]>>,
   'signer_remove' : ActorMethod<[Principal], Array<[Principal, Signer]>>,

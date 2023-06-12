@@ -1,0 +1,168 @@
+type AccountsNonce = record {
+  staging : nat64;
+  production : nat64;
+  development : nat64;
+};
+type BtcChain = record { address : text; btc_network : Minter };
+type BtcNetwork = variant { Mainnet; Regtest; Testnet };
+type CanisterStatusResponse = record {
+  status : CanisterStatusType;
+  memory_size : nat;
+  cycles : nat;
+  settings : DefiniteCanisterSettings;
+  idle_cycles_burned_per_day : nat;
+  module_hash : opt vec nat8;
+};
+type CanisterStatusType = variant { stopped; stopping; running };
+type Chain = variant {
+  EvmChain : EvmChain;
+  BtcChain : BtcChain;
+  IcpChain : IcpChain;
+  IcrcChain : IcrcChain;
+  CkbtcChain : CkbtcChain;
+};
+type ChainEnum = variant {
+  BTC : Minter;
+  EVM : nat64;
+  ICP;
+  ICRC : principal;
+  CKBTC : Minter;
+};
+type CkbtcChain = record {
+  fee : opt nat;
+  pending : opt text;
+  memo : opt vec nat8;
+  minter : Minter;
+  ledger : principal;
+  account : ICRCAccount;
+  created_at_time : opt nat64;
+};
+type DefiniteCanisterSettings = record {
+  freezing_threshold : nat;
+  controllers : vec principal;
+  memory_allocation : nat;
+  compute_allocation : nat;
+};
+type Environment = variant { Production; Development; Staging };
+type EvmChain = record { chain_id : nat64; address : text };
+type GetUtxosResponse = record {
+  next_page : opt vec nat8;
+  tip_height : nat32;
+  tip_block_hash : vec nat8;
+  utxos : vec Utxo;
+};
+type ICRC1MetadataValue = variant {
+  Int : int;
+  Nat : nat;
+  Blob : vec nat8;
+  Text : text;
+};
+type ICRCAccount = record { owner : principal; subaccount : opt vec nat8 };
+type IcpChain = record {
+  fee : Tokens;
+  memo : nat64;
+  subaccount : vec nat8;
+  created_at_time : opt Timestamp;
+};
+type IcrcChain = record {
+  fee : opt nat;
+  metadata : vec record { text; ICRC1MetadataValue };
+  memo : opt vec nat8;
+  canister_id : principal;
+  subaccount : vec nat8;
+  created_at_time : opt nat64;
+};
+type Ledger = record {
+  public_key : opt vec nat8;
+  subaccount : vec nat8;
+  chains : vec record { ChainEnum; Chain };
+};
+type Minter = variant { Mainnet; Regtest; Testnet };
+type OutPoint = record { txid : vec nat8; vout : nat32 };
+type Outpoint = record { txid : vec nat8; vout : nat32 };
+type RetrieveBtcStatus = variant {
+  Signing;
+  Confirmed : record { txid : vec nat8 };
+  Sending : record { txid : vec nat8 };
+  AmountTooLow;
+  Unknown;
+  Submitted : record { txid : vec nat8 };
+  Pending;
+};
+type Timestamp = record { timestamp_nanos : nat64 };
+type Tokens = record { e8s : nat64 };
+type Utxo = record { height : nat32; value : nat64; outpoint : Outpoint };
+type UtxoFilter = variant { page : vec nat8; min_confirmations : nat32 };
+type UtxoStatus = variant {
+  ValueTooSmall : Utxo_1;
+  Tainted : Utxo_1;
+  Minted : record { minted_amount : nat64; block_index : nat64; utxo : Utxo_1 };
+  Checked : Utxo_1;
+};
+type Utxo_1 = record { height : nat32; value : nat64; outpoint : OutPoint };
+type WalletAccount = record {
+  id : text;
+  metadata : vec record { text; text };
+  name : text;
+  hidden : bool;
+  ledger : Ledger;
+};
+type WalletAccountView = record {
+  id : text;
+  metadata : vec record { text; text };
+  pendings : vec record { ChainEnum; text };
+  name : text;
+  hidden : bool;
+  addresses : vec record { ChainEnum; text };
+  environment : Environment;
+};
+type WalletCanisterStatus = record {
+  canister_id : principal;
+  status_at : nat64;
+  version : text;
+  canister_status : CanisterStatusResponse;
+  account_status : AccountsNonce;
+};
+service : () -> {
+  account_balance : (text, ChainEnum) -> (nat);
+  account_balance_btc : (text, BtcNetwork, opt nat32) -> (nat);
+  account_btc_fees : (BtcNetwork, nat8) -> (nat64);
+  account_btc_utxos : (text, BtcNetwork, opt UtxoFilter) -> (GetUtxosResponse);
+  account_ckbtc_balance : (text, BtcNetwork) -> (nat);
+  account_create : (opt Environment, opt text) -> ();
+  account_create_address : (text, ChainEnum) -> ();
+  account_hide : (text) -> ();
+  account_icp_balance : (text) -> (nat);
+  account_icrc_balance : (text, principal) -> (nat);
+  account_remove : (text) -> ();
+  account_remove_address : (text, ChainEnum) -> ();
+  account_rename : (text, text) -> ();
+  account_restore : (Environment, nat64) -> ();
+  account_send : (text, ChainEnum, text, nat64) -> ();
+  account_send_btc : (text, BtcNetwork, text, nat64) -> (text);
+  account_send_icp : (text, text, Tokens, opt Tokens, opt nat64) -> (nat64);
+  account_swap_btc_to_ckbtc : (text, BtcNetwork, nat64) -> (text);
+  account_swap_ckbtc_to_btc : (text, BtcNetwork, text, nat64) -> (text);
+  account_top_up_and_notify : (text, Tokens, opt principal, opt Tokens) -> (
+      nat,
+    );
+  account_update_balance : (text, BtcNetwork) -> (vec UtxoStatus);
+  canister_cycle_balance : () -> (nat) query;
+  canister_version : () -> (nat64) query;
+  get_account : (text) -> (WalletAccount) query;
+  get_account_count : () -> (nat64) query;
+  get_account_counters : () -> (AccountsNonce) query;
+  get_account_view : (text) -> (WalletAccountView) query;
+  get_account_views : () -> (vec WalletAccountView) query;
+  get_addresses : (text) -> (vec record { ChainEnum; text }) query;
+  load_wasm : (vec nat8) -> (nat64);
+  name : () -> (text) query;
+  reset_wallet : () -> ();
+  retrieve_btc_status : (Minter, nat64) -> (RetrieveBtcStatus) query;
+  status : () -> (WalletCanisterStatus);
+  unload_wasm : () -> (nat64);
+  upgrage_wallet : () -> ();
+  version : () -> (text) query;
+  wasm_hash : () -> (vec nat8) query;
+  wasm_hash_string : () -> (text) query;
+}

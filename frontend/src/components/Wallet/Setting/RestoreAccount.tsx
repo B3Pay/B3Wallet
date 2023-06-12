@@ -16,7 +16,7 @@ const RestoreAccount: React.FC<RestoreAccountProps> = ({
 }) => {
   const [loading, setLoading] = useState(false)
   const [nonce, setNonce] = useState<bigint>(0n)
-  const toast = useToastMessage()
+  const { errorToast } = useToastMessage()
 
   const [environment, setEnvironment] = useState<Environment>(
     IS_LOCAL
@@ -45,7 +45,7 @@ const RestoreAccount: React.FC<RestoreAccountProps> = ({
         fetchAccounts()
       })
       .catch(e => {
-        toast({
+        errorToast({
           title: "Error",
           description: e.message,
           status: "error",

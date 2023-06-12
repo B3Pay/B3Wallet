@@ -1,28 +1,26 @@
 use crate::{error::SystemError, types::WalletCanister};
 use b3_helper_lib::{
     constants::RATE_LIMIT,
+    time::NanoTimeStamp,
     types::{
         CanisterId, ControllerId, SignerId, Version, WalletCanisterInstallArg,
         WalletCanisterStatus, WasmHash,
     },
 };
-use ic_cdk::api::{
-    management_canister::{
-        main::{
-            create_canister_with_extra_cycles, install_code, update_settings,
-            CreateCanisterArgument, InstallCodeArgument, UpdateSettingsArgument,
-        },
-        provisional::CanisterSettings,
+use ic_cdk::api::management_canister::{
+    main::{
+        create_canister_with_extra_cycles, install_code, update_settings, CreateCanisterArgument,
+        InstallCodeArgument, UpdateSettingsArgument,
     },
-    time,
+    provisional::CanisterSettings,
 };
 
 impl From<CanisterId> for WalletCanister {
     fn from(canister_id: CanisterId) -> Self {
         Self {
             canisters: vec![canister_id],
-            updated_at: time(),
-            created_at: time(),
+            updated_at: NanoTimeStamp::now(),
+            created_at: NanoTimeStamp::now(),
         }
     }
 }
@@ -30,19 +28,17 @@ impl From<CanisterId> for WalletCanister {
 impl WalletCanister {
     /// Create a new canister.
     pub fn new() -> Self {
-        let now = time();
-
         Self {
             canisters: vec![],
-            updated_at: now,
-            created_at: now,
+            updated_at: NanoTimeStamp::now(),
+            created_at: NanoTimeStamp::now(),
         }
     }
 
     /// get with updated_at.
     pub fn get_with_update_rate(&mut self) -> Result<WalletCanister, SystemError> {
         self.check_rate()?;
-        self.updated_at = time();
+        self.updated_at = NanoTimeStamp::now();
 
         Ok(self.clone())
     }
@@ -50,7 +46,7 @@ impl WalletCanister {
     /// Set the canister id.
     pub fn add_canister_id(&mut self, canister_id: CanisterId) {
         self.canisters.push(canister_id);
-        self.updated_at = time();
+        self.updated_at = NanoTimeStamp::now();
     }
 
     /// Returns the canister ids, throws an error if it is not available.
@@ -63,11 +59,8 @@ impl WalletCanister {
 
     /// Make an function that use updated_at and check the rate of the user.
     pub fn check_rate(&self) -> Result<(), SystemError> {
-        let now = time();
-        let updated_at = self.updated_at;
-
-        if now - updated_at < RATE_LIMIT {
-            Err(SystemError::RateLimitExceeded)
+        if self.updated_at.rate_limit_exceeded(RATE_LIMIT) {
+            return Err(SystemError::RateLimitExceeded);
         } else {
             Ok(())
         }

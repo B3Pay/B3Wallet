@@ -1,4 +1,11 @@
-import { Button, Card, Container, Stack, Text } from "@chakra-ui/react"
+import {
+  Button,
+  Card,
+  Container,
+  Stack,
+  Text,
+  useToast
+} from "@chakra-ui/react"
 import Head from "next/head"
 import { useCallback, useState } from "react"
 import Disclaimer from "../components/Disclaimer"
@@ -8,7 +15,6 @@ import Loading from "../components/Loading"
 import System from "../components/System"
 import Wallet from "../components/Wallet"
 import useAuthClient from "../hooks/useAuthClient"
-import useToastMessage from "../hooks/useToastMessage"
 import { B3Wallet, makeB3WalletActor } from "../service/actor"
 
 function HomePage() {
@@ -24,9 +30,8 @@ function HomePage() {
   const [loading, setLoading] = useState(false)
   const [walletCanisterId, setWalletCanisterId] = useState<string>("")
   const [walletActor, setWalletActor] = useState<B3Wallet>()
-  const [version, setVersion] = useState<string>("")
 
-  const toast = useToastMessage()
+  const toast = useToast()
 
   const fetchUserActor = useCallback(
     async (canisterId: string) => {
@@ -42,7 +47,6 @@ function HomePage() {
         .version()
         .then(async version => {
           console.log("user actor version", version)
-          setVersion(version)
           setWalletActor(userActor)
           setLoading(false)
         })
@@ -73,11 +77,7 @@ function HomePage() {
         {loading && <Loading title="Loading Wallet" />}
         {isAuthenticated ? (
           walletActor ? (
-            <Wallet
-              actor={walletActor}
-              walletCanisterId={walletCanisterId}
-              version={version}
-            />
+            <Wallet actor={walletActor} walletCanisterId={walletCanisterId} />
           ) : systemActor ? (
             <System systemActor={systemActor} fetchUserActor={fetchUserActor} />
           ) : (

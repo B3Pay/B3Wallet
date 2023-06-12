@@ -1,10 +1,10 @@
 use super::{
-    btc::network::BtcNetwork,
+    btc::{btc::BtcChain, network::BtcNetwork},
     ckbtc::ckbtc::CkbtcChain,
     error::LedgerError,
     icp::icp::IcpChain,
     icrc::types::IcrcChain,
-    types::{Balance, BtcChain, ChainId, EvmChain, SendResult},
+    types::{Balance, ChainId, EvmChain, SendResult},
 };
 use async_trait::async_trait;
 use b3_helper_lib::{subaccount::Subaccount, types::CanisterId};
@@ -150,31 +150,6 @@ impl Chain {
             Chain::IcpChain(icp) => Some(icp),
             _ => None,
         }
-    }
-}
-
-#[async_trait]
-impl ChainTrait for BtcChain {
-    fn address(&self) -> String {
-        self.address.clone()
-    }
-
-    async fn balance(&self) -> Result<Balance, LedgerError> {
-        todo!("implement the async method for BTC...")
-    }
-
-    async fn send(&self, _to: String, _amount: u64) -> Result<SendResult, LedgerError> {
-        todo!("implement the async method for BTC...")
-    }
-
-    async fn send_mut(
-        &mut self,
-        _to: String,
-        _amount: u64,
-        _fee: Option<u64>,
-        _memo: Option<String>,
-    ) -> Result<SendResult, LedgerError> {
-        todo!("implement the async method for BTC...")
     }
 }
 

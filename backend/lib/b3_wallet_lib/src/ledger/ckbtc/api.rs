@@ -1,4 +1,4 @@
-use super::{ckbtc::CkbtcChain, error::CkbtcError};
+use super::ckbtc::CkbtcChain;
 use crate::{
     ledger::types::{Balance, SendResult},
     ledger::{
@@ -18,20 +18,6 @@ impl ChainTrait for CkbtcChain {
     }
 
     async fn balance(&self) -> Result<Balance, LedgerError> {
-        if self.pending.is_some() {
-            let result = self
-                .update_balance()
-                .await
-                .map_err(LedgerError::CkbtcError)?;
-
-            match result {
-                Ok(_) => {}
-                Err(err) => {
-                    return Err(LedgerError::CkbtcError(CkbtcError::UpdateBalanceError(err)))
-                }
-            }
-        }
-
         let account = self.account.clone();
 
         let result = self.ledger.balance_of(account).await;

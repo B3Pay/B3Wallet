@@ -1,15 +1,13 @@
 use super::{
-    btc::network::BtcNetwork,
+    btc::{btc::BtcChain, network::BtcNetwork},
     chain::Chain,
     ckbtc::ckbtc::CkbtcChain,
     error::LedgerError,
     icp::icp::IcpChain,
     icrc::types::IcrcChain,
-    types::{
-        AddressMap, Balance, BtcChain, ChainEnum, ChainMap, EcdsaPublicKey, EvmChain, SendResult,
-    },
+    types::{AddressMap, Balance, ChainEnum, ChainMap, EcdsaPublicKey, EvmChain, SendResult},
 };
-use crate::ledger::chain::ChainTrait;
+use crate::{ledger::chain::ChainTrait, types::PendingMap};
 use b3_helper_lib::{raw_keccak256, subaccount::Subaccount, types::CanisterId};
 use bitcoin::{secp256k1, Address, PublicKey};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
@@ -62,6 +60,7 @@ impl Ledger {
 
         chain.send(to, amount).await
     }
+
     pub async fn send_mut(
         &mut self,
         chain_type: ChainEnum,
@@ -92,6 +91,20 @@ impl Ledger {
         }
 
         addresses
+    }
+
+    pub fn pendings(&self) -> PendingMap {
+        let mut pendings = PendingMap::new();
+
+        for (chain_type, chain) in &self.chains {
+            if let Some(ckbtc) = chain.ckbtc() {
+                if let Some(pending) = ckbtc.pending.clone() {
+                    pendings.insert(chain_type.clone(), pending);
+                }
+            }
+        }
+
+        pendings
     }
 
     pub fn public_key(&self) -> Result<&EcdsaPublicKey, LedgerError> {

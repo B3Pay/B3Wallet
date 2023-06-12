@@ -18,14 +18,14 @@ fi
   # go to the root directory
   ROOT_DIR=$SCRIPT_DIR/..
 
-  NEW_WALLET_DIR=$ROOT_DIR/target/$TARGET/release/global_wallet.wasm
+  NEW_WALLET_DIR=$ROOT_DIR/target/$TARGET/release/b3_simple_wallet.wasm
+  
+  OLD_WALLET_DIR=$ROOT_DIR/wasm/b3_simple_wallet/b3_simple_wallet.wasm
+  OLD_WALLET_CANDID_DIR=$ROOT_DIR/wasm/b3_simple_wallet/b3_simple_wallet_candid.wasm
 
-  OLD_WALLET_DIR=$ROOT_DIR/wasm/global_wallet/global_wallet.wasm
-  OLD_WALLET_CANDID_DIR=$ROOT_DIR/wasm/global_wallet/global_wallet_candid.wasm
+  DID_FILE=$ROOT_DIR/backend/b3_simple_wallet/b3_simple_wallet.did
 
-  DID_FILE=$ROOT_DIR/backend/global_wallet/global_wallet.did
-
-  mkdir -p $ROOT_DIR/wasm/global_wallet
+  mkdir -p $ROOT_DIR/wasm/b3_simple_wallet
 
   printf "\nOptimizing wasm...\n"
 

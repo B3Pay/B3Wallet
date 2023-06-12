@@ -11,7 +11,7 @@ import { WalletAccountView } from "../../../declarations/b3_wallet/b3_wallet.did
 import useToastMessage from "../../hooks/useToastMessage"
 import { B3Wallet } from "../../service/actor"
 import Account from "./Account"
-import CreateAccount from "./CreateAccount"
+import CreateAccount from "./Account/CreateAccount"
 import ProcessedList from "./ProcessedList"
 import Settings from "./Setting"
 
@@ -22,7 +22,6 @@ interface Loadings {
 interface WalletBodyProps extends StackProps {
   mode: Mode
   actor: B3Wallet
-  version: string
   accounts: WalletAccountView[]
   setAccounts: React.Dispatch<React.SetStateAction<WalletAccountView[]>>
   fetchAccounts: () => void
@@ -31,14 +30,13 @@ interface WalletBodyProps extends StackProps {
 const WalletBody: React.FC<WalletBodyProps> = ({
   mode,
   actor,
-  version,
   accounts,
   setAccounts,
   fetchAccounts,
   ...rest
 }) => {
   const [loading, setLoading] = useState<Loadings>({})
-  const toast = useToastMessage()
+  const { errorToast } = useToastMessage()
 
   const refetchAccount = useCallback(
     async (account_id: string) => {
@@ -62,7 +60,7 @@ const WalletBody: React.FC<WalletBodyProps> = ({
           setLoading(prev => ({ ...prev, [account_id]: false }))
         })
         .catch(e => {
-          toast({
+          errorToast({
             title: "Error refreshing account.",
             description: e.message,
             status: "error",
@@ -72,7 +70,7 @@ const WalletBody: React.FC<WalletBodyProps> = ({
           setLoading(prev => ({ ...prev, [account_id]: false }))
         })
     },
-    [actor, toast, setAccounts]
+    [actor, setAccounts]
   )
 
   return (
@@ -80,7 +78,6 @@ const WalletBody: React.FC<WalletBodyProps> = ({
       {mode === Mode.Settings ? (
         <Settings
           actor={actor}
-          version={version}
           fetchAccounts={fetchAccounts}
           setLoading={(global: boolean) =>
             setLoading(prev => ({ ...prev, global }))

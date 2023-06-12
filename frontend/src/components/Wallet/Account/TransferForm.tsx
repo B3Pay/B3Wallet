@@ -1,18 +1,23 @@
 import { Button, Input, Stack } from "@chakra-ui/react"
+import { ChainEnum } from "declarations/b3_wallet/b3_wallet.did"
 import React, { useCallback, useState } from "react"
 
 interface TransferFormProps {
-  address: string
+  chain: ChainEnum
   loading: boolean
   title: string
-  handleTransfer: (from: string, to: string, amount: bigint) => Promise<void>
+  handleTransfer: (
+    chain: ChainEnum,
+    to: string,
+    amount: bigint
+  ) => Promise<void>
 }
 
-export const TransferForm: React.FC<TransferFormProps> = ({
-  address,
+const TransferForm: React.FC<TransferFormProps> = ({
+  chain,
   loading,
   title,
-  handleTransfer
+  handleTransfer: handleTransfer
 }) => {
   const [to, setTo] = useState<string>("")
   const [amount, setAmount] = useState<string>("")
@@ -22,7 +27,7 @@ export const TransferForm: React.FC<TransferFormProps> = ({
 
     const bigintAmount = BigInt(Number(amount) * 10 ** decimals)
 
-    handleTransfer(address, to, bigintAmount)
+    handleTransfer(chain, to, bigintAmount)
       .then(() => {
         setTo("")
         setAmount("")
@@ -30,7 +35,7 @@ export const TransferForm: React.FC<TransferFormProps> = ({
       .catch(e => {
         console.log(e)
       })
-  }, [address, amount, handleTransfer, to])
+  }, [chain, amount, handleTransfer, to])
 
   return (
     <Stack direction="row" justify="space-between" align="center">

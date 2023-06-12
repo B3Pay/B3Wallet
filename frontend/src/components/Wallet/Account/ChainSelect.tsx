@@ -1,11 +1,10 @@
 /* eslint-disable no-unused-vars */
-import { Button, Flex, Input, Select, Stack } from "@chakra-ui/react"
+import { Button, Flex, Input, Select, Stack, useToast } from "@chakra-ui/react"
 import { ChainSymbol, handleChainType } from "helpers/utiles"
-import useToastMessage from "hooks/useToastMessage"
 import { useState } from "react"
 import { B3Wallet } from "service/actor"
 
-const chains: ChainSymbol[] = ["BTC", "EVM", "ICRC", "ICP"]
+const chains: ChainSymbol[] = ["BTC", "CKBTC", "EVM", "ICRC", "ICP"]
 const btcNetworks = ["Mainnet", "Testnet", "Regtest"]
 
 interface ChainSelectProps {
@@ -23,7 +22,7 @@ const ChainSelect: React.FC<ChainSelectProps> = ({
   const [network, setNetwork] = useState("")
 
   const [loading, setLoading] = useState(false)
-  const toast = useToastMessage()
+  const toast = useToast()
 
   const handleChainChange = (e: any) => {
     setChain(e.target.value)
@@ -40,7 +39,7 @@ const ChainSelect: React.FC<ChainSelectProps> = ({
     let chainType = handleChainType(network, chain)
 
     actor
-      .account_generate_address(account_id, chainType)
+      .account_create_address(account_id, chainType)
       .then(() => {
         setLoading(false)
         refetchAccount()
@@ -68,7 +67,7 @@ const ChainSelect: React.FC<ChainSelectProps> = ({
           </option>
         ))}
       </Select>
-      {chain === "BTC" && (
+      {(chain === "BTC" || chain === "CKBTC") && (
         <Select value={network} onChange={handleNetworkChange}>
           <option value="">Select a network</option>
           {btcNetworks.map((network, index) => (

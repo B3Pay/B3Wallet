@@ -9,12 +9,14 @@ export const idlFactory = ({ IDL }) => {
     'features' : IDL.Opt(IDL.Vec(IDL.Text)),
     'date' : IDL.Nat64,
     'hash' : IDL.Vec(IDL.Nat8),
+    'name' : IDL.Text,
     'size' : IDL.Nat64,
     'version' : IDL.Text,
     'deprecated' : IDL.Bool,
   });
   const ReleaseArgs = IDL.Record({
     'features' : IDL.Opt(IDL.Vec(IDL.Text)),
+    'name' : IDL.Text,
     'size' : IDL.Nat64,
     'version' : IDL.Text,
   });

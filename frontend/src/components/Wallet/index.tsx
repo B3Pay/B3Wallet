@@ -9,7 +9,6 @@ import WalletHeader from "./WalletHeader"
 
 interface WalletProps {
   actor: B3Wallet
-  version: string
   walletCanisterId: string
 }
 
@@ -19,16 +18,12 @@ export enum Mode {
   Accounts
 }
 
-const Wallet: React.FC<WalletProps> = ({
-  actor,
-  version,
-  walletCanisterId
-}) => {
+const Wallet: React.FC<WalletProps> = ({ actor, walletCanisterId }) => {
   const [mode, setMode] = useState<Mode>(Mode.Accounts)
 
   const [loading, setLoading] = useState(false)
   const [accounts, setAccounts] = useState<WalletAccountView[]>([])
-  const toast = useToastMessage()
+  const { errorToast } = useToastMessage()
 
   const fetchAccounts = useCallback(async () => {
     console.log("fetching accounts")
@@ -42,7 +37,7 @@ const Wallet: React.FC<WalletProps> = ({
       })
       .catch(e => {
         console.log(e)
-        toast({
+        errorToast({
           title: "Error",
           description: e.message,
           status: "error",
@@ -52,7 +47,7 @@ const Wallet: React.FC<WalletProps> = ({
 
         setLoading(false)
       })
-  }, [actor, toast])
+  }, [actor])
 
   useEffect(() => {
     fetchAccounts()
@@ -79,7 +74,6 @@ const Wallet: React.FC<WalletProps> = ({
         flex={11}
         mode={mode}
         actor={actor}
-        version={version}
         accounts={accounts}
         setAccounts={setAccounts}
         fetchAccounts={fetchAccounts}

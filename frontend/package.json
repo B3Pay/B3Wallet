@@ -16,7 +16,7 @@
     "dfx:stop": "dfx stop",
     "dev": "next dev",
     "ic:dev": "DFX_NETWORK=ic next dev",
-    "build:wallet": "./scripts/build-wallet.sh",
+    "build:wallet": "./scripts/b3_wallet.sh",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

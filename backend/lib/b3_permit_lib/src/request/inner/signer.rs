@@ -73,12 +73,12 @@ pub struct RemoveSigner {
 impl RequestTrait for RemoveSigner {
     async fn execute(self) -> Result<ExecutionResult, WalletError> {
         let signer_id = self.signer_id.clone();
-        with_permit_mut(|link| {
-            if !link.signers.contains_key(&signer_id) {
+        with_permit_mut(|permit| {
+            if !permit.signers.contains_key(&signer_id) {
                 return Err(WalletError::SignerDoesNotExist(signer_id.to_string()));
             }
 
-            link.signers.remove(&signer_id);
+            permit.signers.remove(&signer_id);
 
             Ok(self.into())
         })
@@ -86,7 +86,7 @@ impl RequestTrait for RemoveSigner {
 
     fn validate_request(&self) -> Result<(), RequestError> {
         // check if the signer exists
-        if !with_permit(|link| link.signers.contains_key(&self.signer_id)) {
+        if !with_permit(|permit| permit.signers.contains_key(&self.signer_id)) {
             return Err(RequestError::SignerDoesNotExist(self.signer_id.to_string()));
         }
 

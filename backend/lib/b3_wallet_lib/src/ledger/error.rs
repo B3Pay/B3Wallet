@@ -23,12 +23,14 @@ pub enum LedgerError {
     MissingEcdsaPublicKey,
     InvalidEcdsaPublicKey,
     EcdsaPublicKeyAlreadySet,
+    InvalidMessageLength,
 }
 
 #[rustfmt::skip]
 impl fmt::Display for LedgerError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            LedgerError::InvalidMessageLength => write!(f, "Invalid message length"),
             LedgerError::MissingAddress => write!(f, "Missing address"),
             LedgerError::MissingEcdsaPublicKey => write!(f, "Missing ecdsa public key"),
             LedgerError::InvalidEcdsaPublicKey => write!(f, "Invalid ecdsa public key"),

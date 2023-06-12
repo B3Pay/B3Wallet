@@ -64,6 +64,14 @@ impl CkbtcChain {
         self.pending = Some(txid);
     }
 
+    pub fn remove_pending(&mut self) {
+        self.pending = None;
+    }
+
+    pub fn has_pending_swap(&self) -> bool {
+        self.pending.is_some()
+    }
+
     pub async fn get_btc_address(&self) -> Result<String, CkbtcError> {
         let account = self.account.clone();
 

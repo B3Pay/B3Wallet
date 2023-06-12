@@ -47,7 +47,7 @@ pub fn with_pending<T, F>(request_id: &RequestId, callback: F) -> Result<T, Requ
 where
     F: FnOnce(&PendingRequest) -> T,
 {
-    with_permit(|link| link.request(request_id).map(callback))
+    with_permit(|permit| permit.request(request_id).map(callback))
 }
 
 /// Get Request mutably.
@@ -55,7 +55,7 @@ pub fn with_pending_mut<T, F>(request_id: &RequestId, callback: F) -> Result<T, 
 where
     F: FnOnce(&mut PendingRequest) -> T,
 {
-    with_permit_mut(|link| link.request_mut(&request_id).map(callback))
+    with_permit_mut(|permit| permit.request_mut(&request_id).map(callback))
 }
 
 // CONFIRMED ------------------------------------------------------------------------
@@ -90,7 +90,7 @@ pub fn with_signer<T, F>(signer_id: &SignerId, callback: F) -> Result<T, Request
 where
     F: FnOnce(&Signer) -> T,
 {
-    with_permit(|link| link.signer(signer_id).map(callback))
+    with_permit(|permit| permit.signer(signer_id).map(callback))
 }
 
 /// Check if a signer exists, and optionally check if it has a role.
@@ -98,8 +98,9 @@ pub fn with_signer_check<F>(signer_id: SignerId, callback: F) -> Result<(), Stri
 where
     F: FnOnce(&Signer) -> bool,
 {
-    with_permit(|link| {
-        link.signers
+    with_permit(|permit| {
+        permit
+            .signers
             .get(&signer_id)
             .ok_or(RequestError::SignerNotFound(signer_id.to_string()).to_string())
             .map(callback)
@@ -113,13 +114,13 @@ where
     })
 }
 
-/// Get all link with a role, admins is always included.
+/// Get all permit with a role, admins is always included.
 pub fn with_signer_ids_by_role<T, F>(role: Roles, callback: F) -> T
 where
     F: FnOnce(&Vec<SignerId>) -> T,
 {
-    with_permit(|link| {
-        let filtered_signers: Vec<SignerId> = link
+    with_permit(|permit| {
+        let filtered_signers: Vec<SignerId> = permit
             .signers
             .iter()
             .filter(|(_, signer)| signer.has_role(role))

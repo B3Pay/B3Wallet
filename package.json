@@ -14,7 +14,8 @@
     "dfx:start": "scripts/start.sh",
     "dfx:install": "scripts/install.sh",
     "dfx:stop": "dfx stop",
-    "build:wallet": "./scripts/build-wallet.sh",
+    "build:wallet": "./scripts/b3_wallet.sh",
+    "build:simple-wallet": "./scripts/b3_simple_wallet.sh",
     "deploy": "cargo test && dfx deploy",
     "ic:deploy": "dfx generate b3_wallet && dfx deploy b3_wallet --network ic",
     "env": "node dfx.webpack.config.js init",
@@ -24,7 +25,7 @@
     "ledger:account-id": "ts-node ./scripts/ledger.account-id.ts",
     "wasm:wallet": "ts-node ./scripts/wasm.wallet.ts",
     "wasm:system": "ts-node ./scripts/wasm.system.ts",
-    "wasm:copy": "ts-node ./scripts/wasm.copy.ts",
+    "wasm:copy": "yarn build:wallet && yarn build:simple-wallet && ts-node ./scripts/wasm.copy.ts",
     "ic:dev": "DFX_NETWORK=ic yarn dev",
     "dev": "cd frontend && npm run dev",
     "build": "cd frontend && npm run build"
@@ -32,7 +33,7 @@
   "devDependencies": {
     "@types/node": "^18.15.13",
     "@types/node-fetch": "^2.6.3",
-    "ethers": "^6.5.1",
+    "@types/semver": "^7.5.0",
     "typescript": "5.0.4"
   },
   "dependencies": {
@@ -53,6 +54,7 @@
     "node-fetch": "^2.6.6",
     "pem-file": "^1.0.1",
     "react-dropzone": "^14.2",
+    "semver": "^7.5.1",
     "stream-browserify": "^3.0.0",
     "util": "^0.12.5"
   }

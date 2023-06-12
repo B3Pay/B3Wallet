@@ -4,7 +4,7 @@ import { useCallback } from "react"
 const useToastMessage = () => {
   const toast = useToast()
 
-  const toastCompiler = useCallback(
+  const errorToast = useCallback(
     (props: ToastProps) => {
       const description = props.description
         ? props.description.toString().includes("::")
@@ -28,7 +28,7 @@ const useToastMessage = () => {
     [toast]
   )
 
-  return toastCompiler
+  return { toast, errorToast }
 }
 
 export default useToastMessage
