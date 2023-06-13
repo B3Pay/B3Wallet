@@ -18,10 +18,16 @@ const systemPrincipalLocal = () => {
   return Principal.fromText(b3_system.local)
 }
 
-const userPrincipalLocal = () => {
+const walletPrincipalLocal = () => {
   const buffer = readFileSync("./.dfx/local/canister_ids.json")
   const { b3_wallet } = JSON.parse(buffer.toString("utf-8"))
   return Principal.fromText(b3_wallet.local)
+}
+
+const walletPrincipalIC = () => {
+  const buffer = readFileSync("./canister_ids.json")
+  const { b3_wallet } = JSON.parse(buffer.toString("utf-8"))
+  return Principal.fromText(b3_wallet.ic)
 }
 
 export const icAgent = () => {
@@ -67,12 +73,21 @@ export const systemActorIC = async () => {
   }) as Promise<B3System>
 }
 
-export const userLocalActor = async (canister_address?: string) => {
-  const canisterId = canister_address
-    ? Principal.fromText(canister_address)
-    : userPrincipalLocal()
+export const walletLocalActor = async () => {
+  const canisterId = walletPrincipalLocal()
 
   const agent = await localAgent()
+
+  return Actor.createActor(userFactory, {
+    agent,
+    canisterId
+  }) as Promise<B3Wallet>
+}
+
+export const walletActorIC = async () => {
+  const canisterId = walletPrincipalIC()
+
+  const agent = icAgent()
 
   return Actor.createActor(userFactory, {
     agent,

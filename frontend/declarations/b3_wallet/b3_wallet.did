@@ -49,7 +49,6 @@ type ChainEnum = variant {
 };
 type CkbtcChain = record {
   fee : opt nat;
-  pending : opt text;
   memo : opt vec nat8;
   minter : Minter;
   ledger : principal;
@@ -217,7 +216,12 @@ type IcrcChain = record {
 };
 type Ledger = record {
   public_key : opt vec nat8;
+  pending_sends : vec record {
+    Minter;
+    vec record { nat64; RetrieveBtcStatus };
+  };
   subaccount : vec nat8;
+  pending_receives : vec record { Minter; text };
   chains : vec record { ChainEnum; Chain };
 };
 type Minter = variant { Mainnet; Regtest; Testnet };
@@ -316,10 +320,11 @@ type WalletAccount = record {
 };
 type WalletAccountView = record {
   id : text;
+  pending_send : vec record { Minter; vec record { nat64; RetrieveBtcStatus } };
   metadata : vec record { text; text };
-  pendings : vec record { ChainEnum; text };
   name : text;
   hidden : bool;
+  pending_receive : vec record { Minter; text };
   addresses : vec record { ChainEnum; text };
   environment : Environment;
 };
@@ -343,6 +348,8 @@ service : () -> {
   account_icrc_balance : (text, principal) -> (nat);
   account_remove : (text) -> ();
   account_remove_address : (text, ChainEnum) -> ();
+  account_remove_pending_receive : (text, BtcNetwork) -> ();
+  account_remove_pending_send : (text, BtcNetwork, nat64) -> ();
   account_rename : (text, text) -> ();
   account_restore : (Environment, nat64) -> ();
   account_send : (text, ChainEnum, text, nat64) -> ();

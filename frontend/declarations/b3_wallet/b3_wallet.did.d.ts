@@ -52,7 +52,6 @@ export type ChainEnum = { 'BTC' : Minter } |
   { 'CKBTC' : Minter };
 export interface CkbtcChain {
   'fee' : [] | [bigint],
-  'pending' : [] | [string],
   'memo' : [] | [Uint8Array | number[]],
   'minter' : Minter,
   'ledger' : Principal,
@@ -226,7 +225,9 @@ export interface IcrcChain {
 }
 export interface Ledger {
   'public_key' : [] | [Uint8Array | number[]],
+  'pending_sends' : Array<[Minter, Array<[bigint, RetrieveBtcStatus]>]>,
   'subaccount' : Uint8Array | number[],
+  'pending_receives' : Array<[Minter, string]>,
   'chains' : Array<[ChainEnum, Chain]>,
 }
 export type Minter = { 'Mainnet' : null } |
@@ -349,10 +350,11 @@ export interface WalletAccount {
 }
 export interface WalletAccountView {
   'id' : string,
+  'pending_send' : Array<[Minter, Array<[bigint, RetrieveBtcStatus]>]>,
   'metadata' : Array<[string, string]>,
-  'pendings' : Array<[ChainEnum, string]>,
   'name' : string,
   'hidden' : boolean,
+  'pending_receive' : Array<[Minter, string]>,
   'addresses' : Array<[ChainEnum, string]>,
   'environment' : Environment,
 }
@@ -385,6 +387,14 @@ export interface _SERVICE {
   'account_icrc_balance' : ActorMethod<[string, Principal], bigint>,
   'account_remove' : ActorMethod<[string], undefined>,
   'account_remove_address' : ActorMethod<[string, ChainEnum], undefined>,
+  'account_remove_pending_receive' : ActorMethod<
+    [string, BtcNetwork],
+    undefined
+  >,
+  'account_remove_pending_send' : ActorMethod<
+    [string, BtcNetwork, bigint],
+    undefined
+  >,
   'account_rename' : ActorMethod<[string, string], undefined>,
   'account_restore' : ActorMethod<[Environment, bigint], undefined>,
   'account_send' : ActorMethod<[string, ChainEnum, string, bigint], undefined>,

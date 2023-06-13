@@ -58,6 +58,12 @@
       "type": "custom",
       "wasm": "wasm/minter/minter.wasm"
     },
+    "index": {
+      "build": "",
+      "candid": "wasm/index/index.did",
+      "type": "custom",
+      "wasm": "wasm/index/index.wasm"
+    },
     "nns-cycles-minting": {
       "build": "",
       "candid": "candid/nns-cycles-minting.did",

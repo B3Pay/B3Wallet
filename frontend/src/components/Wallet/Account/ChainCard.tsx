@@ -1,6 +1,8 @@
 /* eslint-disable no-unused-vars */
 import { DeleteIcon, InfoOutlineIcon, RepeatIcon } from "@chakra-ui/icons"
 import {
+  Box,
+  Button,
   CardBody,
   CardHeader,
   Flex,
@@ -22,11 +24,10 @@ import React, { useCallback, useEffect, useState } from "react"
 import { B3Wallet } from "service/actor"
 import Address from "../Address"
 import Balance from "../Balance"
-import SwapForm from "./SwapForm"
-import TopUpForm from "./TopUpForm"
 import TransferForm from "./TransferForm"
 
 import { keyframes } from "@chakra-ui/react"
+import useToastMessage from "hooks/useToastMessage"
 
 const pulse = keyframes`
   0% { transform: scale(1); color: orange; }
@@ -36,70 +37,144 @@ const pulse = keyframes`
 
 interface AddressProps {
   actor: B3Wallet
-  account_id: string
-  balance: bigint
+  accountId: string
   symbol: ChainSymbol
   network: ChainNetwork
   chain: ChainEnum
   networkDetail: string
   address: string
-  pendings?: [ChainEnum, string][]
-  handlerAddressRemove: (chain: ChainEnum) => void
-  handleTransfer: (
-    chain: ChainEnum,
-    to: string,
-    amount: bigint
-  ) => Promise<void>
-  handleTopup?: (from: string, to: string, amount: bigint) => Promise<void>
-  handleSwapBtcToCkbtc?: (network: BtcNetwork, amount: bigint) => Promise<void>
-  handleBalance: (chain: ChainEnum) => Promise<void>
-  loading: boolean
+  pendings: [BtcNetwork, string][]
+  refetchAccount: () => void
+  extra?: () => JSX.Element
 }
 
 const ChainCard: React.FC<AddressProps> = ({
-  balance,
   actor,
   symbol,
   address,
-  account_id,
+  accountId,
   networkDetail,
   network,
   chain,
   pendings,
-  handleSwapBtcToCkbtc,
-  handlerAddressRemove,
-  handleTransfer,
-  handleBalance,
-  handleTopup,
-  loading,
+  extra,
+  refetchAccount,
   ...rest
 }) => {
+  const [balance, setBalances] = useState<bigint>()
+  const [loading, setLoadings] = useState(false)
   const [ckbtcPending, setCkbtcPending] = useState<PendingTranscation>()
 
+  const errorToast = useToastMessage()
   const toast = useToast()
+
+  const handleBalance = useCallback(() => {
+    setLoadings(true)
+    actor
+      .account_balance(accountId, chain)
+      .then(res => {
+        console.log(res)
+
+        setBalances(res)
+        setLoadings(false)
+      })
+      .catch(err => {
+        errorToast({
+          title: "Error",
+          description: err.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+
+        setLoadings(false)
+      })
+  }, [actor, accountId])
+
+  useEffect(handleBalance, [handleBalance])
+
+  const handleTransfer = useCallback(
+    async (chain: ChainEnum, to: string, amount: bigint) => {
+      console.log(`Transfering ${amount} ${symbol} from ${accountId} to ${to}`)
+      errorToast({
+        title: `Sending ${symbol}`,
+        description: `Transfering ${amount} ${symbol} from ${accountId} to ${to}`,
+        status: "info",
+        duration: 5000,
+        isClosable: true
+      })
+
+      setLoadings(true)
+
+      await actor
+        .account_send(accountId, chain, to, amount)
+        .then(res => {
+          console.log(res)
+
+          setLoadings(false)
+          handleBalance()
+          errorToast({
+            title: "Success",
+            description: `Transfered ${amount} CKBTC from ${chain} to ${to}`,
+            status: "success",
+            duration: 5000,
+            isClosable: true
+          })
+        })
+        .catch(err => {
+          errorToast({
+            title: "Error",
+            description: err.message,
+            status: "error",
+            duration: 5000,
+            isClosable: true
+          })
+
+          setLoadings(false)
+        })
+    },
+    [actor, handleBalance, accountId]
+  )
 
   const showPendingToast = () => {
     toast({
       id: "ckbtc-pending",
       title: "ckBTC is being minted. Please wait for confirmations.",
       description: (
-        <Stack>
-          <Text>
+        <Box>
+          <Text fontSize="sm">
             ckBTC({networkDetail}) has {ckbtcPending.currentConfirmations}{" "}
             confirmations. Please wait for {ckbtcPending.requiredConfirmations}{" "}
             confirmations before you can use it.
           </Text>
-          <Link
-            variant="link"
-            href={`https://blockstream.info/tx/${pendings[0][1]}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            View on Blockstream
-          </Link>
-        </Stack>
+          <Stack direction="row" align="center">
+            <Link
+              variant="link"
+              href={`https://blockstream.info/tx/${pendings[0][1]}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              View on Blockstream
+            </Link>
+            <Button
+              onClick={() =>
+                actor
+                  .account_remove_pending_receive(
+                    accountId,
+                    network as BtcNetwork
+                  )
+                  .then(() => {
+                    toast.closeAll()
+                    handleBalance()
+                  })
+              }
+            >
+              Cancel
+            </Button>
+          </Stack>
+        </Box>
       ),
-      status: "info",
+      status: "loading",
       duration: 10000,
       isClosable: true
     })
@@ -110,16 +185,15 @@ const ChainCard: React.FC<AddressProps> = ({
       return
     }
     actor
-      .account_update_balance(account_id, network as BtcNetwork)
+      .account_update_receive_pending(accountId, network as BtcNetwork)
       .then(utxos => {
         console.log(utxos)
 
-        handleBalance(chain)
+        handleBalance()
         setCkbtcPending(undefined)
         toast.closeAll()
       })
       .catch(err => {
-        console.log(err)
         if (err.message.includes("Current confirmations:")) {
           let pending = extractConfirmations(err.message)
 
@@ -149,6 +223,28 @@ const ChainCard: React.FC<AddressProps> = ({
     return () => clearInterval(interval)
   }, [updatePending])
 
+  const handleAddressRemove = async () => {
+    setLoadings(true)
+
+    actor
+      .account_remove_address(accountId, chain)
+      .then(() => {
+        setLoadings(false)
+        refetchAccount()
+      })
+      .catch(e => {
+        errorToast({
+          title: "Error",
+          description: e.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+
+        setLoadings(false)
+      })
+  }
+
   return (
     <Stack
       direction="column"
@@ -173,18 +269,18 @@ const ChainCard: React.FC<AddressProps> = ({
                 colorScheme="orange"
                 animation={`${pulse} 1s infinite`}
                 variant="ghost"
-                onClick={() => showPendingToast()}
+                onClick={showPendingToast}
               />
             )}
             <IconButton
               aria-label="Refresh"
               icon={<RepeatIcon />}
               color="green"
-              onClick={() => handleBalance(chain)}
+              onClick={handleBalance}
             />
             <IconButton
               aria-label="Remove"
-              onClick={() => handlerAddressRemove(chain)}
+              onClick={handleAddressRemove}
               icon={<DeleteIcon />}
               color="red"
             />
@@ -208,22 +304,7 @@ const ChainCard: React.FC<AddressProps> = ({
             title={`Send ${symbol}`}
             handleTransfer={handleTransfer}
           />
-          {handleTopup && (
-            <TopUpForm
-              address={address}
-              loading={loading}
-              title="Topup"
-              handleTransfer={handleTopup}
-            />
-          )}
-          {handleSwapBtcToCkbtc && (
-            <SwapForm
-              network={network as BtcNetwork}
-              loading={loading}
-              title="Swap BTC to cKBTC"
-              handleSwap={handleSwapBtcToCkbtc}
-            />
-          )}
+          {extra && extra()}
         </Stack>
       </CardBody>
     </Stack>

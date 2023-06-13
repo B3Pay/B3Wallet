@@ -11,12 +11,14 @@ import { ethers, providers } from "ethers"
 import { isAddress } from "ethers/lib/utils"
 import { ChainNetwork, ChainSymbol } from "helpers/utiles"
 import useToastMessage from "hooks/useToastMessage"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { B3Wallet } from "service/actor"
 import Loading from "../../Loading"
 import AccountTitle from "./AccountTitle"
 import ChainCard from "./ChainCard"
-import ChainsSelect from "./ChainSelect"
+import CreateAddress from "./CreateAddress"
+import SwapForm from "./SwapForm"
+import TopUpForm from "./TopUpForm"
 
 const provider = new providers.JsonRpcProvider(
   "https://data-seed-prebsc-2-s1.binance.org:8545"
@@ -57,7 +59,7 @@ const Account: React.FC<AccountProps> = ({
   id,
   name,
   loading,
-  pendings,
+  pending_receive,
   addresses: chains,
   isExpanded,
   environment,
@@ -77,7 +79,7 @@ const Account: React.FC<AccountProps> = ({
     ICRC: 0n
   })
 
-  const { errorToast } = useToastMessage()
+  const errorToast = useToastMessage()
 
   const getEthBalance = useCallback(
     async (chainId: bigint) => {
@@ -106,105 +108,6 @@ const Account: React.FC<AccountProps> = ({
         })
     },
     [errorToast]
-  )
-
-  const getBtcBalance = useCallback(
-    async (btcNetwork: BtcNetwork) => {
-      setLoadings(prev => ({ ...prev, BTC: true }))
-
-      actor
-        .account_balance_btc(id, btcNetwork, [])
-        .then(balance => {
-          setBalances(prev => ({ ...prev, BTC: balance }))
-          setLoadings(prev => ({ ...prev, BTC: false }))
-        })
-        .catch(err => {
-          errorToast({
-            title: "Error",
-            description: err.message,
-            status: "error",
-            duration: 5000,
-            isClosable: true
-          })
-
-          setLoadings(prev => ({ ...prev, BTC: false }))
-        })
-    },
-    [actor, id, chains]
-  )
-
-  const getIcpBalance = useCallback(
-    async (_: ChainNetwork) => {
-      setLoadings(prev => ({ ...prev, ICP: true }))
-      actor
-        .account_icp_balance(id)
-        .then(balance => {
-          setBalances(prev => ({ ...prev, ICP: balance }))
-          setLoadings(prev => ({ ...prev, ICP: false }))
-        })
-        .catch(err => {
-          errorToast({
-            title: "Error",
-            description: err.message,
-            status: "error",
-            duration: 5000,
-            isClosable: true
-          })
-
-          setLoadings(prev => ({ ...prev, ICP: false }))
-        })
-    },
-    [actor, id]
-  )
-
-  const getIcrcBalance = useCallback(
-    async (canisterId: Principal) => {
-      setLoadings(prev => ({ ...prev, ICRC: true }))
-
-      actor
-        .account_icrc_balance(id, canisterId)
-        .then(balance => {
-          setBalances(prev => ({ ...prev, ICRC: balance }))
-          setLoadings(prev => ({ ...prev, ICRC: false }))
-        })
-        .catch(err => {
-          errorToast({
-            title: "Error",
-            description: err.message,
-            status: "error",
-            duration: 5000,
-            isClosable: true
-          })
-
-          setLoadings(prev => ({ ...prev, ICRC: false }))
-        })
-    },
-    [actor, id]
-  )
-
-  const getCkbtcBalance = useCallback(
-    async (btcNetwork: BtcNetwork) => {
-      setLoadings(prev => ({ ...prev, ICRC: true }))
-
-      actor
-        .account_ckbtc_balance(id, btcNetwork)
-        .then(balance => {
-          setBalances(prev => ({ ...prev, ICRC: balance }))
-          setLoadings(prev => ({ ...prev, ICRC: false }))
-        })
-        .catch(err => {
-          errorToast({
-            title: "Error",
-            description: err.message,
-            status: "error",
-            duration: 5000,
-            isClosable: true
-          })
-
-          setLoadings(prev => ({ ...prev, ICRC: false }))
-        })
-    },
-    [actor, id]
   )
 
   const handleEthTransfer = useCallback(
@@ -238,13 +141,11 @@ const Account: React.FC<AccountProps> = ({
 
         console.log({ title: "Signing transaction...", variant: "subtle" })
 
-        const res = await actor.request_sign_transaction(
-          id,
-          [...serializeTx],
-          97n
-        )
-
-        console.log(res)
+        // const res = await actor.request_sign_transaction(
+        //   id,
+        //   [...serializeTx],
+        //   97n
+        // )
       } catch (error: any) {
         errorToast({
           title: "Error",
@@ -258,199 +159,6 @@ const Account: React.FC<AccountProps> = ({
       }
     },
     [actor, getEthBalance, id]
-  )
-
-  const handleBtcTransfer = useCallback(
-    async (from: string, to: string, amount: bigint) => {
-      console.log(`Transfering ${amount} BTC from ${from} to ${to}`)
-      setLoadings(prev => ({ ...prev, BTC: true }))
-
-      await actor
-        .account_send_btc(id, { Regtest: null }, to, amount)
-        .then(res => {
-          console.log(res)
-
-          setLoadings(prev => ({ ...prev, BTC: false }))
-        })
-        .catch(err => {
-          errorToast({
-            title: "Error",
-            description: err.message,
-            status: "error",
-            duration: 5000,
-            isClosable: true
-          })
-
-          setLoadings(prev => ({ ...prev, BTC: false }))
-        })
-    },
-    [actor, getBtcBalance, id]
-  )
-
-  const handleIcpTransfer = useCallback(
-    async (from: string, to: string, amount: bigint) => {
-      console.log(`Transfering ${amount} ICP from ${from} to ${to}`)
-      errorToast({
-        title: "Sending ICP",
-        description: `Transfering ${amount} ICP from ${from} to ${to}`,
-        status: "info",
-        duration: 5000,
-        isClosable: true
-      })
-
-      const tokenAmount = {
-        e8s: BigInt(amount)
-      }
-
-      setLoadings(prev => ({ ...prev, ICP: true }))
-
-      await actor
-        .account_send_icp(id, to, tokenAmount, [], [])
-        .then(res => {
-          console.log(res)
-
-          setLoadings(prev => ({ ...prev, ICP: false }))
-
-          errorToast({
-            title: "Success",
-            description: `Transfered ${amount} ICP from ${from} to ${to}`,
-            status: "success",
-            duration: 5000,
-            isClosable: true
-          })
-        })
-        .catch(err => {
-          errorToast({
-            title: "Error",
-            description: err.message,
-            status: "error",
-            duration: 5000,
-            isClosable: true
-          })
-
-          setLoadings(prev => ({ ...prev, ICP: false }))
-        })
-    },
-    [actor, getIcpBalance, id]
-  )
-
-  const handleTransfer = useCallback(
-    async (chain: ChainEnum, to: string, amount: bigint) => {
-      const symbol = Object.keys(chain)[0] as ChainSymbol
-
-      console.log(`Transfering ${amount} ${symbol} from ${id} to ${to}`)
-      errorToast({
-        title: `Sending ${symbol}`,
-        description: `Transfering ${amount} ${symbol} from ${id} to ${to}`,
-        status: "info",
-        duration: 5000,
-        isClosable: true
-      })
-
-      setLoadings(prev => ({ ...prev, CKBTC: true }))
-
-      await actor
-        .account_send(id, chain, to, amount)
-        .then(res => {
-          console.log(res)
-
-          setLoadings(prev => ({ ...prev, CKBTC: false }))
-
-          errorToast({
-            title: "Success",
-            description: `Transfered ${amount} CKBTC from ${chain} to ${to}`,
-            status: "success",
-            duration: 5000,
-            isClosable: true
-          })
-        })
-        .catch(err => {
-          errorToast({
-            title: "Error",
-            description: err.message,
-            status: "error",
-            duration: 5000,
-            isClosable: true
-          })
-
-          setLoadings(prev => ({ ...prev, CKBTC: false }))
-        })
-    },
-    [actor, getCkbtcBalance, id]
-  )
-
-  const handleIcrcTransfer = useCallback(
-    async (from: string, to: string, amount: bigint) => {
-      console.log(`Transfering ${amount} ICRC from ${from} to ${to}`)
-      errorToast({
-        title: "Sending ICRC",
-        description: `Transfering ${amount} ICRC from ${from} to ${to}`,
-        status: "info",
-        duration: 5000,
-        isClosable: true
-      })
-
-      setLoadings(prev => ({ ...prev, ICRC: true }))
-      await actor
-        .account_send(
-          id,
-          { ICRC: Principal.fromText("be2us-64aaa-aaaaa-qaabq-cai") },
-          to,
-          BigInt(amount)
-        )
-        .then(res => {
-          console.log(res)
-
-          setLoadings(prev => ({ ...prev, ICRC: false }))
-          errorToast({
-            title: "Success",
-            description: `Transfered ${amount} ICRC from ${from} to ${to}`,
-            status: "success",
-            duration: 5000,
-            isClosable: true
-          })
-        })
-        .catch(err => {
-          errorToast({
-            title: "Error",
-            description: err.message,
-            status: "error",
-            duration: 5000,
-            isClosable: true
-          })
-
-          setLoadings(prev => ({ ...prev, ICRC: false }))
-        })
-    },
-    [actor, getIcrcBalance, id]
-  )
-
-  const handleBalance = useCallback(
-    async (chain: ChainEnum) => {
-      const symbol = Object.keys(chain)[0] as ChainSymbol
-
-      setLoadings(prev => ({ ...prev, [symbol]: true }))
-      actor
-        .account_balance(id, chain)
-        .then(res => {
-          console.log(res)
-
-          setBalances(prev => ({ ...prev, [symbol]: res }))
-          setLoadings(prev => ({ ...prev, [symbol]: false }))
-        })
-        .catch(err => {
-          errorToast({
-            title: "Error",
-            description: err.message,
-            status: "error",
-            duration: 5000,
-            isClosable: true
-          })
-
-          setLoadings(prev => ({ ...prev, [symbol]: false }))
-        })
-    },
-    [actor, id]
   )
 
   const addressesWithChain: AddressesWithChain[] = useMemo(() => {
@@ -483,60 +191,12 @@ const Account: React.FC<AccountProps> = ({
     return addressItem
   }, [chains])
 
-  useEffect(() => {
-    if (!isExpanded && addressesWithChain.length > 0) {
-      return
-    }
-    addressesWithChain.map(({ symbol, network }) => {
-      switch (symbol) {
-        case "ICP":
-          getIcpBalance(network)
-          break
-        case "CKBTC":
-          getIcpBalance(network)
-          break
-        case "ICRC":
-          getIcrcBalance(network as Principal)
-          break
-        case "EVM":
-          getEthBalance(network as bigint)
-          break
-        case "BTC":
-          getBtcBalance(network as BtcNetwork)
-          break
-        default:
-          console.log("Unknown chain symbol")
-      }
-    })
-  }, [addressesWithChain, isExpanded])
-
-  const handleAddressRemove = async (chain: ChainEnum) => {
-    setLoadings(prev => ({ ...prev, global: true }))
-
-    actor
-      .account_remove_address(id, chain)
-      .then(() => {
-        setLoadings(prev => ({ ...prev, global: false }))
-        refetchAccount()
-      })
-      .catch(e => {
-        errorToast({
-          title: "Error",
-          description: e.message,
-          status: "error",
-          duration: 5000,
-          isClosable: true
-        })
-
-        setLoadings(prev => ({ ...prev, global: false }))
-      })
-  }
-  const handleTopup = useCallback(
-    async (from: string, to: string, amount: bigint) => {
-      console.log(`Toping up ${amount} ICP from ${from} to ${to}`)
+  const handleTopUp = useCallback(
+    async (to: string, amount: bigint) => {
+      console.log(`Toping up ${amount} ICP from ${id} to ${to}`)
       errorToast({
         title: "Toping up ICP",
-        description: `Toping up ${amount} ICP from ${from} to ${to}`,
+        description: `Toping up ${amount} ICP from ${id} to ${to}`,
         status: "info",
         duration: 5000,
         isClosable: true
@@ -557,7 +217,7 @@ const Account: React.FC<AccountProps> = ({
 
           errorToast({
             title: "Success",
-            description: `Toped up ${amount} ICP from ${from} to ${to}`,
+            description: `Toped up ${amount} ICP from ${id} to ${to}`,
             status: "success",
             duration: 5000,
             isClosable: true
@@ -570,11 +230,13 @@ const Account: React.FC<AccountProps> = ({
           setLoadings(prev => ({ ...prev, ICP: false }))
         })
     },
-    [actor, getIcpBalance, id, errorToast]
+    [actor, id, errorToast]
   )
 
   const swapBtcToCkbtc = useCallback(
-    async (network: BtcNetwork, amount: bigint) => {
+    async (network: BtcNetwork, to: string, amount: bigint) => {
+      console.log(`Swapping ${amount} BTC to cKBTC on ${network}, to ${to}`)
+
       setLoadings(prev => ({ ...prev, BTC: true }))
 
       actor
@@ -599,6 +261,34 @@ const Account: React.FC<AccountProps> = ({
     [actor]
   )
 
+  const swapCkbtcToBtc = useCallback(
+    async (network: BtcNetwork, to: string, amount: bigint) => {
+      console.log(`Swapping ${amount} cKBTC to BTC on ${network}, to ${to}`)
+      setLoadings(prev => ({ ...prev, CKBTC: true }))
+
+      actor
+        .account_swap_ckbtc_to_btc(id, network, to, amount)
+        .then(txId => {
+          console.log(txId)
+          setLoadings(prev => ({ ...prev, CKBTC: false }))
+          refetchAccount()
+        })
+        .catch(e => {
+          console.log(e)
+          errorToast({
+            title: "Error",
+            description: e.message,
+            status: "error",
+            duration: 5000,
+            isClosable: true
+          })
+
+          setLoadings(prev => ({ ...prev, CKBTC: false }))
+        })
+    },
+    [actor]
+  )
+
   return (
     <Box position="relative">
       {(loadings.global || loading) && <Loading />}
@@ -612,30 +302,56 @@ const Account: React.FC<AccountProps> = ({
       />
       <AccordionPanel px={0} fontSize="14">
         <Stack spacing="2">
-          <ChainsSelect
+          <CreateAddress
             account_id={id}
             actor={actor}
             refetchAccount={refetchAccount}
           />
-          {addressesWithChain.map(({ symbol, ...rest }, index) => (
-            <ChainCard
-              {...rest}
-              account_id={id}
-              key={index}
-              actor={actor}
-              symbol={symbol}
-              balance={balances[symbol]}
-              loading={loadings[symbol]}
-              pendings={pendings}
-              handleBalance={handleBalance}
-              handleTransfer={handleTransfer}
-              handlerAddressRemove={handleAddressRemove}
-              handleTopup={symbol === "ICP" ? handleTopup : undefined}
-              handleSwapBtcToCkbtc={
-                symbol === "BTC" ? swapBtcToCkbtc : undefined
-              }
-            />
-          ))}
+          {isExpanded &&
+            addressesWithChain.map(({ symbol, network, ...rest }, index) => (
+              <ChainCard
+                {...rest}
+                accountId={id}
+                key={index}
+                network={network}
+                actor={actor}
+                symbol={symbol}
+                pendings={pending_receive}
+                refetchAccount={refetchAccount}
+                extra={() => {
+                  switch (symbol) {
+                    case "ICP":
+                      return (
+                        <TopUpForm
+                          loading={loading}
+                          handleTopUp={handleTopUp}
+                        />
+                      )
+                    case "BTC":
+                      return (
+                        <SwapForm
+                          network={network as BtcNetwork}
+                          loading={loading}
+                          toAddress={rest.address}
+                          title="Swap BTC to cKBTC"
+                          handleSwap={swapBtcToCkbtc}
+                        />
+                      )
+                    case "CKBTC":
+                      return (
+                        <SwapForm
+                          network={network as BtcNetwork}
+                          loading={loading}
+                          title="Swap cKBTC to BTC"
+                          handleSwap={swapCkbtcToBtc}
+                        />
+                      )
+                    default:
+                      return null
+                  }
+                }}
+              />
+            ))}
         </Stack>
       </AccordionPanel>
     </Box>

@@ -1,5 +1,5 @@
 use crate::{
-    error::RequestError,
+    error::PermitError,
     request::result::ExecutionResult,
     request::{request::RequestTrait, result::EvmContractDeployed},
 };
@@ -71,12 +71,12 @@ impl RequestTrait for EvmDeployContract {
         .into())
     }
 
-    fn validate_request(&self) -> Result<(), RequestError> {
+    fn validate_request(&self) -> Result<(), PermitError> {
         with_ledger(&self.account_id, |ledger| {
             if ledger.evm(self.chain_id).is_some() {
                 Ok(())
             } else {
-                Err(RequestError::ChainIdNotInitialized)
+                Err(PermitError::ChainIdNotInitialized)
             }
         })?
     }

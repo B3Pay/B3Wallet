@@ -9,6 +9,7 @@ if [[ $* == *--enable-bitcoin* ]]; then
     sh scripts/ckbtc.sh
     sh scripts/kyt.sh
     sh scripts/minter.sh
+    sh scripts/index.sh
 fi
 
 dfx identity use default

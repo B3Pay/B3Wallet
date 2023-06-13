@@ -1,7 +1,7 @@
 use b3_helper_lib::types::RequestId;
 
 use super::new::{PendingRequest, RequestArgs};
-use crate::{error::RequestError, state::PrmitState, types::PendingRequestList};
+use crate::{error::PermitError, state::PrmitState, types::PendingRequestList};
 
 impl PrmitState {
     pub fn new_request(&self, args: RequestArgs) -> PendingRequest {
@@ -35,28 +35,28 @@ impl PrmitState {
             .collect()
     }
 
-    pub fn request(&self, request_id: &RequestId) -> Result<&PendingRequest, RequestError> {
+    pub fn request(&self, request_id: &RequestId) -> Result<&PendingRequest, PermitError> {
         self.pending
             .get(request_id)
-            .ok_or(RequestError::RequestNotFound(request_id.to_owned()))
+            .ok_or(PermitError::RequestNotFound(request_id.to_owned()))
     }
 
     pub fn request_mut(
         &mut self,
         request_id: &RequestId,
-    ) -> Result<&mut PendingRequest, RequestError> {
+    ) -> Result<&mut PendingRequest, PermitError> {
         self.pending
             .get_mut(request_id)
-            .ok_or(RequestError::RequestNotFound(request_id.to_owned()))
+            .ok_or(PermitError::RequestNotFound(request_id.to_owned()))
     }
 
-    pub fn check_request(&self, request_id: &RequestId) -> Result<(), RequestError> {
+    pub fn check_request(&self, request_id: &RequestId) -> Result<(), PermitError> {
         if self.processed.get(request_id).is_some() {
-            return Err(RequestError::RequestAlreadyProcessed(request_id.to_owned()));
+            return Err(PermitError::RequestAlreadyProcessed(request_id.to_owned()));
         }
 
         if !self.pending.contains_key(&request_id) {
-            return Err(RequestError::RequestNotFound(request_id.to_owned()));
+            return Err(PermitError::RequestNotFound(request_id.to_owned()));
         }
 
         Ok(())

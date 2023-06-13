@@ -1,4 +1,4 @@
-use crate::error::RequestError;
+use crate::error::PermitError;
 use crate::request::request::RequestTrait;
 use crate::request::result::CanisterTopUped;
 use crate::request::result::ExecutionResult;
@@ -41,13 +41,13 @@ impl RequestTrait for IcpTransfer {
         }
     }
 
-    fn validate_request(&self) -> Result<(), RequestError> {
+    fn validate_request(&self) -> Result<(), PermitError> {
         if self.amount.is_zero() {
-            return Err(RequestError::AmountIsZero);
+            return Err(PermitError::AmountIsZero);
         }
 
         if self.fee.is_some() && self.fee.as_ref().unwrap().is_zero() {
-            return Err(RequestError::FeeIsZero);
+            return Err(PermitError::FeeIsZero);
         }
 
         Ok(())
@@ -82,13 +82,13 @@ impl RequestTrait for TopUpCanister {
         }
     }
 
-    fn validate_request(&self) -> Result<(), RequestError> {
+    fn validate_request(&self) -> Result<(), PermitError> {
         if self.amount.is_zero() {
-            return Err(RequestError::AmountIsZero);
+            return Err(PermitError::AmountIsZero);
         }
 
         if self.fee.is_some() && self.fee.as_ref().unwrap().is_zero() {
-            return Err(RequestError::FeeIsZero);
+            return Err(PermitError::FeeIsZero);
         }
 
         Ok(())

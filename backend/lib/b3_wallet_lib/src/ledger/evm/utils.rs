@@ -1,8 +1,7 @@
-use crate::error::WalletError;
 use b3_helper_lib::raw_keccak256;
 use bitcoin::secp256k1::PublicKey;
 
-use super::types::PublicKeyTrait;
+use super::{error::EvmError, types::PublicKeyTrait};
 
 pub fn get_method_id(method_sig: &str) -> String {
     let result = raw_keccak256(method_sig.as_bytes()).to_hex_string();
@@ -12,9 +11,9 @@ pub fn get_method_id(method_sig: &str) -> String {
     hex_string
 }
 
-pub fn get_transfer_data(address: &str, amount: u64) -> Result<String, WalletError> {
+pub fn get_transfer_data(address: &str, amount: u64) -> Result<String, EvmError> {
     if address.len() != 42 {
-        return Err(WalletError::InvalidAddress);
+        return Err(EvmError::InvalidAddress(address.to_string()));
     }
     let method_sig = "transfer(address,uint256)";
 

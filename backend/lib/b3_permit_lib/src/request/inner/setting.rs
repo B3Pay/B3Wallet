@@ -16,7 +16,7 @@ use ic_cdk::{
 };
 
 use crate::{
-    error::RequestError,
+    error::PermitError,
     request::{request::RequestTrait, result::ExecutionResult},
 };
 
@@ -53,13 +53,13 @@ impl RequestTrait for UpdateCanisterSettings {
         Ok(self.into())
     }
 
-    fn validate_request(&self) -> Result<(), RequestError> {
+    fn validate_request(&self) -> Result<(), PermitError> {
         let canister_id = ic_cdk_id();
 
         // first check the controller is passed and then check if the canister is in the list of controllers
         if let Some(controller) = self.settings.controllers.as_ref() {
             if !controller.contains(&canister_id) {
-                return Err(RequestError::InvalidController);
+                return Err(PermitError::InvalidController);
             }
         }
 
@@ -107,14 +107,14 @@ impl RequestTrait for UpgradeCanister {
         Ok(self.into())
     }
 
-    fn validate_request(&self) -> Result<(), RequestError> {
+    fn validate_request(&self) -> Result<(), PermitError> {
         with_wasm(|w| {
             if w.is_empty() {
-                return Err(RequestError::WasmNotSet);
+                return Err(PermitError::WasmNotSet);
             }
 
             if w.generate_hash_string() != self.wasm_hash_string {
-                return Err(RequestError::InvalidWasmHash);
+                return Err(PermitError::InvalidWasmHash);
             }
 
             Ok(())

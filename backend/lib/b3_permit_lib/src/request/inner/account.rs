@@ -1,6 +1,4 @@
-use crate::{
-    error::RequestError, request::request::RequestTrait, request::result::ExecutionResult,
-};
+use crate::{error::PermitError, request::request::RequestTrait, request::result::ExecutionResult};
 use async_trait::async_trait;
 use b3_helper_lib::environment::Environment;
 use b3_wallet_lib::{
@@ -29,7 +27,7 @@ impl RequestTrait for CreateAccount {
         Ok(self.into())
     }
 
-    fn validate_request(&self) -> Result<(), RequestError> {
+    fn validate_request(&self) -> Result<(), PermitError> {
         Ok(())
     }
 
@@ -52,12 +50,12 @@ impl RequestTrait for RemoveAccount {
         Ok(self.into())
     }
 
-    fn validate_request(&self) -> Result<(), RequestError> {
+    fn validate_request(&self) -> Result<(), PermitError> {
         with_wallet(|s| {
             if s.account(&self.account_id).is_ok() {
                 Ok(())
             } else {
-                Err(RequestError::AccountDoesNotExist)
+                Err(PermitError::AccountDoesNotExist)
             }
         })
     }
@@ -84,12 +82,12 @@ impl RequestTrait for RenameAccount {
         Ok(self.into())
     }
 
-    fn validate_request(&self) -> Result<(), RequestError> {
+    fn validate_request(&self) -> Result<(), PermitError> {
         with_wallet(|s| {
             if s.account(&self.new_name).is_ok() {
                 Ok(())
             } else {
-                Err(RequestError::AccountDoesNotExist)
+                Err(PermitError::AccountDoesNotExist)
             }
         })
     }
@@ -115,10 +113,10 @@ impl RequestTrait for HideAccount {
         Ok(self.into())
     }
 
-    fn validate_request(&self) -> Result<(), RequestError> {
+    fn validate_request(&self) -> Result<(), PermitError> {
         with_account_mut(&self.account_id, |account| {
             if account.is_hidden() {
-                Err(RequestError::AccountIsHidden)
+                Err(PermitError::AccountIsHidden)
             } else {
                 Ok(())
             }
@@ -146,10 +144,10 @@ impl RequestTrait for UnhideAccount {
         Ok(self.into())
     }
 
-    fn validate_request(&self) -> Result<(), RequestError> {
+    fn validate_request(&self) -> Result<(), PermitError> {
         with_account_mut(&self.account_id, |account| {
             if !account.is_hidden() {
-                Err(RequestError::AccountIsNotHidden)
+                Err(PermitError::AccountIsNotHidden)
             } else {
                 Ok(())
             }

@@ -8,6 +8,7 @@ mod tests {
             types::{ChainEnum, ChainMap},
         },
         mocks::ic_cdk_id,
+        types::{PendingReceiveMap, PendingSendMap},
     };
     use b3_helper_lib::{identifier::AccountIdentifier, subaccount::Subaccount, types::CanisterId};
 
@@ -31,6 +32,8 @@ mod tests {
         chains.insert(ChainEnum::ICP, icp_chain);
 
         let mut ledger = Ledger {
+            pending_sends: PendingSendMap::default(),
+            pending_receives: PendingReceiveMap::default(),
             public_key: None,
             subaccount,
             chains,
@@ -122,6 +125,8 @@ mod tests {
         chains.insert(ChainEnum::ICP, icp_chain);
 
         let mut ledger = Ledger {
+            pending_sends: PendingSendMap::default(),
+            pending_receives: PendingReceiveMap::default(),
             public_key: None,
             subaccount,
             chains,
@@ -200,6 +205,8 @@ mod tests {
         chains.insert(ChainEnum::ICP, icp_chain);
 
         let mut ledger = Ledger {
+            pending_sends: PendingSendMap::default(),
+            pending_receives: PendingReceiveMap::default(),
             public_key: None,
             subaccount,
             chains,

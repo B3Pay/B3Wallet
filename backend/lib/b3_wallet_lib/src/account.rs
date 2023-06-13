@@ -10,7 +10,8 @@ impl From<&WalletAccount> for WalletAccountView {
             hidden: account.hidden,
             metadata: account.metadata.clone(),
             environment: account.environment().clone(),
-            pendings: account.ledger.pendings().clone(),
+            pending_receive: account.ledger.pending_receives().clone(),
+            pending_send: account.ledger.pending_sends().clone(),
             addresses: account.ledger.addresses().clone(),
         }
     }
@@ -60,7 +61,8 @@ impl WalletAccount {
             hidden: self.hidden,
             metadata: self.metadata.clone(),
             addresses: self.ledger.addresses().clone(),
-            pendings: self.ledger.pendings().clone(),
+            pending_receive: self.ledger.pending_receives().clone(),
+            pending_send: self.ledger.pending_sends().clone(),
             environment: self.ledger.subaccount.environment(),
         }
     }

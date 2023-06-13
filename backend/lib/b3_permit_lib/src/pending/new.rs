@@ -1,5 +1,5 @@
 use crate::{
-    error::RequestError,
+    error::PermitError,
     processed::{ProcessedRequest, RequestStatus},
     request::request::{Request, RequestTrait},
     signer::Roles,
@@ -84,7 +84,7 @@ impl PendingRequest {
 
         match match_result {
             Ok(message) => confirmed.succeed(message),
-            Err(err) => confirmed.fail(RequestError::ExecutionError(err.to_string())),
+            Err(err) => confirmed.fail(PermitError::ExecutionError(err.to_string())),
         }
     }
 
@@ -110,19 +110,19 @@ impl PendingRequest {
 
     pub fn get_error(&self) -> Option<String> {
         if self.is_rejected() {
-            return Some(RequestError::RequestRejected.to_string());
+            return Some(PermitError::RequestRejected.to_string());
         }
 
         if self.is_expired() {
-            return Some(RequestError::RequestExpired.to_string());
+            return Some(PermitError::RequestExpired.to_string());
         }
 
         None
     }
 
-    pub fn response(&mut self, signer: SignerId, response: Response) -> Result<(), RequestError> {
+    pub fn response(&mut self, signer: SignerId, response: Response) -> Result<(), PermitError> {
         if self.is_signed(&signer) {
-            return Err(RequestError::RequestAlreadySigned(signer.to_string()));
+            return Err(PermitError::RequestAlreadySigned(signer.to_string()));
         }
 
         self.responses.insert(signer, response);

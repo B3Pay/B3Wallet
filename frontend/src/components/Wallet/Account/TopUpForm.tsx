@@ -2,18 +2,11 @@ import { Button, Input, Stack } from "@chakra-ui/react"
 import React, { useCallback, useState } from "react"
 
 interface TopUpFormProps {
-  address: string
   loading: boolean
-  title: string
-  handleTransfer: (from: string, to: string, amount: bigint) => Promise<void>
+  handleTopUp: (to: string, amount: bigint) => Promise<void>
 }
 
-const TopUpForm: React.FC<TopUpFormProps> = ({
-  address,
-  loading,
-  title,
-  handleTransfer: handleTransfer
-}) => {
+const TopUpForm: React.FC<TopUpFormProps> = ({ loading, handleTopUp }) => {
   const [to, setTo] = useState<string>("")
   const [amount, setAmount] = useState<string>("")
 
@@ -22,7 +15,7 @@ const TopUpForm: React.FC<TopUpFormProps> = ({
 
     const bigintAmount = BigInt(Number(amount) * 10 ** decimals)
 
-    handleTransfer(address, to, bigintAmount)
+    handleTopUp(to, bigintAmount)
       .then(() => {
         setTo("")
         setAmount("")
@@ -30,7 +23,7 @@ const TopUpForm: React.FC<TopUpFormProps> = ({
       .catch(e => {
         console.log(e)
       })
-  }, [address, amount, handleTransfer, to])
+  }, [amount, handleTopUp, to])
 
   return (
     <Stack direction="row" justify="space-between" align="center">
@@ -63,7 +56,7 @@ const TopUpForm: React.FC<TopUpFormProps> = ({
         onClick={transferHandler}
         isLoading={loading}
       >
-        {title}
+        Top Up
       </Button>
     </Stack>
   )

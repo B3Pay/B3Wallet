@@ -2,6 +2,7 @@ import {
   Button,
   CardBody,
   CardHeader,
+  Progress,
   Select,
   Stack,
   Text
@@ -10,6 +11,7 @@ import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useEffect, useState } from "react"
 import { B3Wallet } from "service/actor"
 import Error from "../../Error"
+import Address from "../Address"
 
 interface JsonFile {
   name: string
@@ -36,21 +38,34 @@ const chunkGenerator = async function* (
   }
 }
 
-export const loadRelease = async (
-  actor: B3Wallet,
-  wasmModule: number[],
-  version: string
-) => {
-  console.log(`loading wasm code ${version} in User Canister.`)
+export const useLoadRelease = (actor: B3Wallet) => {
+  const [progress, setProgress] = useState<number>(0)
 
-  console.log(`Wasm size:`, wasmModule.length)
+  const uploader = useCallback(async (releaseUrl: string) => {
+    const wasm = await fetch(releaseUrl)
 
-  for await (const chunks of chunkGenerator(wasmModule)) {
-    const result = await actor.load_wasm(chunks)
-    console.log(`Chunks :`, result)
+    const wasmBuffer = await wasm.arrayBuffer()
+    const wasmModule = Array.from(new Uint8Array(wasmBuffer))
+
+    console.log(`Wasm size:`, wasmModule.length)
+    let uploadedSize = 0
+
+    for await (const chunks of chunkGenerator(wasmModule)) {
+      const result = await actor.load_wasm(chunks)
+      console.log(`Chunks :`, result)
+
+      uploadedSize += chunks.length
+
+      setProgress((uploadedSize / wasmModule.length) * 100)
+    }
+
+    console.log(`loading done.`)
+  }, [])
+
+  return {
+    progress,
+    uploader
   }
-
-  console.log(`loading done.`)
 }
 
 interface WasmProps {
@@ -61,19 +76,22 @@ interface WasmProps {
 
 const Wasm: React.FC<WasmProps> = ({ actor, setLoading, fetchAccounts }) => {
   const [error, setError] = useState<string>()
-  const { errorToast } = useToastMessage()
   const [releases, setReleases] = useState<Release[]>()
-
   const [selectedRelease, setSelectedRelease] = useState("")
-
   const [version, setVersion] = useState<string>()
+  const [wasmHash, setWasmHash] = useState<string>()
+
+  const errorToast = useToastMessage()
+  const { uploader, progress } = useLoadRelease(actor)
 
   const updateVersion = async () => actor.version().then(setVersion)
+  const updateWasmVersion = async () =>
+    actor.wasm_hash_string().then(setWasmHash)
 
   useEffect(() => {
     const fetchReleases = async () => {
       let walletName = await actor.name()
-
+      console.log("walletName", walletName)
       const response = await fetch("wasm/releases.json")
 
       const releases = (await response.json()) as JsonFile[]
@@ -102,6 +120,7 @@ const Wasm: React.FC<WasmProps> = ({ actor, setLoading, fetchAccounts }) => {
     console.log("Fetching releases")
 
     updateVersion()
+    updateWasmVersion()
     fetchReleases()
   }, [])
 
@@ -109,15 +128,11 @@ const Wasm: React.FC<WasmProps> = ({ actor, setLoading, fetchAccounts }) => {
     setError(undefined)
     setLoading(true)
 
-    const wasm = await fetch(selectedRelease)
-
-    const wasm_buffer = await wasm.arrayBuffer()
-    const wasm_module = Array.from(new Uint8Array(wasm_buffer))
-
-    await loadRelease(actor, wasm_module, "0.0.0-alpha.8")
+    await uploader(selectedRelease)
 
     console.log("Wasm loaded")
 
+    updateWasmVersion()
     setLoading(false)
   }, [actor, selectedRelease, setLoading])
 
@@ -143,14 +158,24 @@ const Wasm: React.FC<WasmProps> = ({ actor, setLoading, fetchAccounts }) => {
 
     actor.version().then(version => {
       console.log("Canister upgraded")
-      errorToast({
-        title: "Success",
-        description: `Canister upgraded to version ${version}`,
-        status: "success",
-        duration: 5000,
-        isClosable: true
-      })
-
+      if (wasm_version === version) {
+        errorToast({
+          title: "Success",
+          description: `Canister upgraded to version ${version}`,
+          status: "success",
+          duration: 5000,
+          isClosable: true
+        })
+      } else {
+        errorToast({
+          title: "Error",
+          description: "Canister upgrade failed",
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+      }
+      updateWasmVersion()
       fetchAccounts()
       setLoading(false)
     })
@@ -175,6 +200,7 @@ const Wasm: React.FC<WasmProps> = ({ actor, setLoading, fetchAccounts }) => {
 
     console.log("Canister reset")
 
+    updateWasmVersion()
     setLoading(false)
   }
 
@@ -218,14 +244,32 @@ const Wasm: React.FC<WasmProps> = ({ actor, setLoading, fetchAccounts }) => {
           )}
           {error && <Error error={error} />}
         </Stack>
-        <Stack direction="row" spacing={2} mt={4}>
-          <Button onClick={resetWasm} flex={2} colorScheme="red">
-            Reset
-          </Button>
-          <Button onClick={upgradeCanister} flex={10} colorScheme="orange">
-            Upgrade
-          </Button>
-        </Stack>
+        {wasmHash ? (
+          <Stack>
+            <Stack
+              direction="row"
+              spacing={2}
+              mt={4}
+              justify="space-between"
+              align="center"
+            >
+              <Text fontSize="sm" fontWeight="semibold">
+                Wasm Hash:
+              </Text>
+              <Address address={wasmHash} />
+            </Stack>
+            <Stack direction="row" spacing={2} mt={4}>
+              <Button onClick={resetWasm} flex={2} colorScheme="red">
+                Reset
+              </Button>
+              <Button onClick={upgradeCanister} flex={10} colorScheme="orange">
+                Upgrade
+              </Button>
+            </Stack>
+          </Stack>
+        ) : (
+          <Progress hasStripe value={progress} mt={4} />
+        )}
       </CardBody>
     </Stack>
   )

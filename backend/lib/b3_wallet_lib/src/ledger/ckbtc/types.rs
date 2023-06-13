@@ -84,8 +84,8 @@ pub enum RetrieveBtcStatus {
     Unknown,
     Pending,
     Signing,
+    AmountTooLow,
     Sending { txid: BtcTxHash },
     Submitted { txid: BtcTxHash },
-    AmountTooLow,
     Confirmed { txid: BtcTxHash },
 }

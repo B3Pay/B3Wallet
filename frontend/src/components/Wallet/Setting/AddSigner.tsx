@@ -27,7 +27,7 @@ type Role = keyof typeof RoleEnum
 const AddSigner: React.FC<AddSignerProps> = ({ actor }) => {
   const [principal, setPrincipal] = useState("")
   const [role, setRole] = useState<Role>()
-  const { errorToast } = useToastMessage()
+  const errorToast = useToastMessage()
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()

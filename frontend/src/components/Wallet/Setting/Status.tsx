@@ -25,7 +25,7 @@ interface ResponseProps {
 const Status: React.FC<ResponseProps> = ({ actor }) => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState<WalletCanisterStatus>()
-  const { errorToast } = useToastMessage()
+  const errorToast = useToastMessage()
 
   const fetchStatus = async () => {
     setStatus(undefined)

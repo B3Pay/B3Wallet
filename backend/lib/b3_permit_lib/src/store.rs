@@ -1,5 +1,5 @@
 use crate::{
-    error::RequestError,
+    error::PermitError,
     pending::new::PendingRequest,
     processed::ProcessedRequest,
     signer::{Roles, Signer},
@@ -43,7 +43,7 @@ where
 // REQUEST ------------------------------------------------------------------------
 
 /// Get Request.
-pub fn with_pending<T, F>(request_id: &RequestId, callback: F) -> Result<T, RequestError>
+pub fn with_pending<T, F>(request_id: &RequestId, callback: F) -> Result<T, PermitError>
 where
     F: FnOnce(&PendingRequest) -> T,
 {
@@ -51,7 +51,7 @@ where
 }
 
 /// Get Request mutably.
-pub fn with_pending_mut<T, F>(request_id: &RequestId, callback: F) -> Result<T, RequestError>
+pub fn with_pending_mut<T, F>(request_id: &RequestId, callback: F) -> Result<T, PermitError>
 where
     F: FnOnce(&mut PendingRequest) -> T,
 {
@@ -76,7 +76,7 @@ where
     with_permit_mut(|state| callback(&mut state.processed))
 }
 
-pub fn with_processed_request<T, F>(request_id: &RequestId, callback: F) -> Result<T, RequestError>
+pub fn with_processed_request<T, F>(request_id: &RequestId, callback: F) -> Result<T, PermitError>
 where
     F: FnOnce(&ProcessedRequest) -> T,
 {
@@ -86,7 +86,7 @@ where
 // SIGNERS ----------------------------------------------------------------------
 
 /// Get a signer.
-pub fn with_signer<T, F>(signer_id: &SignerId, callback: F) -> Result<T, RequestError>
+pub fn with_signer<T, F>(signer_id: &SignerId, callback: F) -> Result<T, PermitError>
 where
     F: FnOnce(&Signer) -> T,
 {
@@ -102,13 +102,13 @@ where
         permit
             .signers
             .get(&signer_id)
-            .ok_or(RequestError::SignerNotFound(signer_id.to_string()).to_string())
+            .ok_or(PermitError::SignerNotFound(signer_id.to_string()).to_string())
             .map(callback)
             .and_then(|result| {
                 if result {
                     Ok(())
                 } else {
-                    Err(RequestError::SignerNotFound(signer_id.to_string()).to_string())
+                    Err(PermitError::SignerNotFound(signer_id.to_string()).to_string())
                 }
             })
     })

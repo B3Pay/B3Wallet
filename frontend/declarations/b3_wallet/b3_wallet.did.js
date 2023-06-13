@@ -60,6 +60,15 @@ export const idlFactory = ({ IDL }) => {
     }),
     'Checked' : Utxo_1,
   });
+  const RetrieveBtcStatus = IDL.Variant({
+    'Signing' : IDL.Null,
+    'Confirmed' : IDL.Record({ 'txid' : IDL.Vec(IDL.Nat8) }),
+    'Sending' : IDL.Record({ 'txid' : IDL.Vec(IDL.Nat8) }),
+    'AmountTooLow' : IDL.Null,
+    'Unknown' : IDL.Null,
+    'Submitted' : IDL.Record({ 'txid' : IDL.Vec(IDL.Nat8) }),
+    'Pending' : IDL.Null,
+  });
   const EvmChain = IDL.Record({ 'chain_id' : IDL.Nat64, 'address' : IDL.Text });
   const BtcChain = IDL.Record({ 'address' : IDL.Text, 'btc_network' : Minter });
   const Timestamp = IDL.Record({ 'timestamp_nanos' : IDL.Nat64 });
@@ -89,7 +98,6 @@ export const idlFactory = ({ IDL }) => {
   });
   const CkbtcChain = IDL.Record({
     'fee' : IDL.Opt(IDL.Nat),
-    'pending' : IDL.Opt(IDL.Text),
     'memo' : IDL.Opt(IDL.Vec(IDL.Nat8)),
     'minter' : Minter,
     'ledger' : IDL.Principal,
@@ -105,7 +113,11 @@ export const idlFactory = ({ IDL }) => {
   });
   const Ledger = IDL.Record({
     'public_key' : IDL.Opt(IDL.Vec(IDL.Nat8)),
+    'pending_sends' : IDL.Vec(
+      IDL.Tuple(Minter, IDL.Vec(IDL.Tuple(IDL.Nat64, RetrieveBtcStatus)))
+    ),
     'subaccount' : IDL.Vec(IDL.Nat8),
+    'pending_receives' : IDL.Vec(IDL.Tuple(Minter, IDL.Text)),
     'chains' : IDL.Vec(IDL.Tuple(ChainEnum, Chain)),
   });
   const WalletAccount = IDL.Record({
@@ -122,10 +134,13 @@ export const idlFactory = ({ IDL }) => {
   });
   const WalletAccountView = IDL.Record({
     'id' : IDL.Text,
+    'pending_send' : IDL.Vec(
+      IDL.Tuple(Minter, IDL.Vec(IDL.Tuple(IDL.Nat64, RetrieveBtcStatus)))
+    ),
     'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
-    'pendings' : IDL.Vec(IDL.Tuple(ChainEnum, IDL.Text)),
     'name' : IDL.Text,
     'hidden' : IDL.Bool,
+    'pending_receive' : IDL.Vec(IDL.Tuple(Minter, IDL.Text)),
     'addresses' : IDL.Vec(IDL.Tuple(ChainEnum, IDL.Text)),
     'environment' : Environment,
   });
@@ -362,15 +377,6 @@ export const idlFactory = ({ IDL }) => {
     'role' : Roles,
     'expires_at' : IDL.Opt(IDL.Nat64),
   });
-  const RetrieveBtcStatus = IDL.Variant({
-    'Signing' : IDL.Null,
-    'Confirmed' : IDL.Record({ 'txid' : IDL.Vec(IDL.Nat8) }),
-    'Sending' : IDL.Record({ 'txid' : IDL.Vec(IDL.Nat8) }),
-    'AmountTooLow' : IDL.Null,
-    'Unknown' : IDL.Null,
-    'Submitted' : IDL.Record({ 'txid' : IDL.Vec(IDL.Nat8) }),
-    'Pending' : IDL.Null,
-  });
   const CanisterStatusType = IDL.Variant({
     'stopped' : IDL.Null,
     'stopping' : IDL.Null,
@@ -422,6 +428,12 @@ export const idlFactory = ({ IDL }) => {
     'account_icrc_balance' : IDL.Func([IDL.Text, IDL.Principal], [IDL.Nat], []),
     'account_remove' : IDL.Func([IDL.Text], [], []),
     'account_remove_address' : IDL.Func([IDL.Text, ChainEnum], [], []),
+    'account_remove_pending_receive' : IDL.Func([IDL.Text, BtcNetwork], [], []),
+    'account_remove_pending_send' : IDL.Func(
+        [IDL.Text, BtcNetwork, IDL.Nat64],
+        [],
+        [],
+      ),
     'account_rename' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'account_restore' : IDL.Func([Environment, IDL.Nat64], [], []),
     'account_send' : IDL.Func(

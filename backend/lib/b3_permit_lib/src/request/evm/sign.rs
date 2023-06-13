@@ -1,5 +1,5 @@
 use crate::{
-    error::RequestError,
+    error::PermitError,
     request::{
         request::RequestTrait,
         result::{
@@ -40,13 +40,13 @@ impl RequestTrait for EvmSignTranscation {
         Ok(EvmTransactionSigned(self, transaction.tx_id()).into())
     }
 
-    fn validate_request(&self) -> Result<(), RequestError> {
+    fn validate_request(&self) -> Result<(), PermitError> {
         // check if the chain id is initialized
         with_ledger(&self.account_id, |ledger| {
             if ledger.evm(self.chain_id).is_some() {
                 Ok(())
             } else {
-                Err(RequestError::ChainIdNotInitialized)
+                Err(PermitError::ChainIdNotInitialized)
             }
         })?
     }
@@ -65,9 +65,9 @@ pub struct EvmSignRawTransaction {
 }
 
 impl TryFrom<EvmSignRawTransaction> for EvmSignTranscation {
-    type Error = RequestError;
+    type Error = PermitError;
 
-    fn try_from(args: EvmSignRawTransaction) -> Result<Self, RequestError> {
+    fn try_from(args: EvmSignRawTransaction) -> Result<Self, PermitError> {
         let transaction = get_evm_transaction(&args.hex_raw_tx, args.chain_id)?;
 
         Ok(EvmSignTranscation {
@@ -96,25 +96,25 @@ impl RequestTrait for EvmSignRawTransaction {
         Ok(EvmRawTransactionSigned(self, transaction.tx_id()).into())
     }
 
-    fn validate_request(&self) -> Result<(), RequestError> {
+    fn validate_request(&self) -> Result<(), PermitError> {
         // check if the chain id is initialized
         with_ledger(&self.account_id, |ledger| {
             if ledger.evm(self.chain_id).is_some() {
                 Ok(())
             } else {
-                Err(RequestError::ChainIdNotInitialized)
+                Err(PermitError::ChainIdNotInitialized)
             }
         })??;
 
         // check if the hex_raw_tx is valid
         let transaction = get_evm_transaction(&self.hex_raw_tx, self.chain_id)
-            .map_err(|_| RequestError::InvalidTransaction)?;
+            .map_err(|_| PermitError::InvalidTransaction)?;
 
         let chain_id = transaction.chain_id();
 
         // check if the transaction is valid
         if chain_id != self.chain_id {
-            return Err(RequestError::InvalidChainId(chain_id, self.chain_id));
+            return Err(PermitError::InvalidChainId(chain_id, self.chain_id));
         }
 
         Ok(())
@@ -143,13 +143,13 @@ impl RequestTrait for EvmSignMessage {
         Ok(EvmMessageSigned(self, signed).into())
     }
 
-    fn validate_request(&self) -> Result<(), RequestError> {
+    fn validate_request(&self) -> Result<(), PermitError> {
         // check if the chain id is initialized
         with_ledger(&self.account_id, |ledger| {
             if ledger.evm(1).is_some() {
                 Ok(())
             } else {
-                Err(RequestError::ChainIdNotInitialized)
+                Err(PermitError::ChainIdNotInitialized)
             }
         })??;
 
@@ -157,7 +157,7 @@ impl RequestTrait for EvmSignMessage {
         let transaction = get_evm_transaction(&self.message, self.chain_id);
 
         if transaction.is_ok() {
-            return Err(RequestError::SneakyMessage);
+            return Err(PermitError::SneakyMessage);
         }
 
         Ok(())

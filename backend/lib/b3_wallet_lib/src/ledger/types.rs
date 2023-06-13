@@ -39,6 +39,10 @@ pub enum ChainEnum {
 }
 
 impl ChainEnum {
+    pub fn is_ckbtc(&self) -> bool {
+        matches!(self, ChainEnum::CKBTC(_))
+    }
+
     pub fn is_icrc(&self) -> bool {
         matches!(self, ChainEnum::ICRC(_))
     }

@@ -1,8 +1,8 @@
+use crate::error::PermitError;
 use crate::request::request::RequestTrait;
 use crate::request::result::ExecutionResult;
 use crate::store::with_permit;
 use crate::{
-    error::RequestError,
     signer::{Roles, Signer},
     store::with_permit_mut,
 };
@@ -50,9 +50,9 @@ impl RequestTrait for AddSigner {
         })
     }
 
-    fn validate_request(&self) -> Result<(), RequestError> {
+    fn validate_request(&self) -> Result<(), PermitError> {
         if self.threshold.is_some() && self.role != Roles::Threshold {
-            return Err(RequestError::InvalidThreshold);
+            return Err(PermitError::InvalidThreshold);
         }
 
         Ok(())
@@ -84,10 +84,10 @@ impl RequestTrait for RemoveSigner {
         })
     }
 
-    fn validate_request(&self) -> Result<(), RequestError> {
+    fn validate_request(&self) -> Result<(), PermitError> {
         // check if the signer exists
         if !with_permit(|permit| permit.signers.contains_key(&self.signer_id)) {
-            return Err(RequestError::SignerDoesNotExist(self.signer_id.to_string()));
+            return Err(PermitError::SignerDoesNotExist(self.signer_id.to_string()));
         }
 
         Ok(())
@@ -122,14 +122,14 @@ impl RequestTrait for UpdateSignerThreshold {
         })
     }
 
-    fn validate_request(&self) -> Result<(), RequestError> {
+    fn validate_request(&self) -> Result<(), PermitError> {
         if self.threshold == 0 {
-            return Err(RequestError::InvalidThreshold);
+            return Err(PermitError::InvalidThreshold);
         }
 
         with_permit(|state| {
             if !state.signers.contains_key(&self.signer_id) {
-                return Err(RequestError::SignerDoesNotExist(self.signer_id.to_string()));
+                return Err(PermitError::SignerDoesNotExist(self.signer_id.to_string()));
             }
             return Ok(());
         })

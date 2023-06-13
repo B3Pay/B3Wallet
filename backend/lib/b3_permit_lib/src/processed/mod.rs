@@ -5,7 +5,7 @@ use crate::mocks::ic_timestamp;
 #[cfg(not(test))]
 use ic_cdk::api::time as ic_timestamp;
 
-use crate::{error::RequestError, pending::new::PendingRequest, request::result::ExecutionResult};
+use crate::{error::PermitError, pending::new::PendingRequest, request::result::ExecutionResult};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 #[derive(CandidType, Deserialize, PartialEq, Debug, Copy, Clone)]
@@ -73,7 +73,7 @@ impl ProcessedRequest {
         self.clone()
     }
 
-    pub fn fail(&mut self, error: RequestError) -> Self {
+    pub fn fail(&mut self, error: PermitError) -> Self {
         self.status = RequestStatus::Fail;
         self.error = Some(error.to_string());
         self.timestamp = ic_timestamp();

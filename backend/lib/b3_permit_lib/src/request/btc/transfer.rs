@@ -1,5 +1,5 @@
 use crate::{
-    error::RequestError,
+    error::PermitError,
     request::result::ExecutionResult,
     request::{request::RequestTrait, result::BtcTransfered},
 };
@@ -30,16 +30,16 @@ impl RequestTrait for BtcTransfer {
         }
     }
 
-    fn validate_request(&self) -> Result<(), RequestError> {
+    fn validate_request(&self) -> Result<(), PermitError> {
         if self.amount == 0 {
-            return Err(RequestError::InvalidAmount);
+            return Err(PermitError::InvalidAmount);
         }
 
         with_ledger(&self.account_id, |ledger| {
             if ledger.btc(self.network).is_some() {
                 Ok(())
             } else {
-                Err(RequestError::ChainIdNotInitialized)
+                Err(PermitError::ChainIdNotInitialized)
             }
         })?
     }

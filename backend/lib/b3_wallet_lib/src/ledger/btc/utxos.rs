@@ -142,6 +142,7 @@ mod test {
             types::{ChainEnum, ChainMap},
         },
         mocks::ic_cdk_id,
+        types::{PendingReceiveMap, PendingSendMap},
     };
 
     use super::*;
@@ -168,6 +169,8 @@ mod test {
         let mut public_keys = Ledger {
             subaccount,
             chains,
+            pending_receives: PendingReceiveMap::new(),
+            pending_sends: PendingSendMap::new(),
             public_key: None,
         };
 

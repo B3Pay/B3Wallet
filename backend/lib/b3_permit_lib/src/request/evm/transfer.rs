@@ -1,5 +1,5 @@
 use crate::{
-    error::RequestError,
+    error::PermitError,
     request::result::{EvmTransfered, ExecutionResult},
     request::{request::RequestTrait, result::EvmErc20Transfered},
 };
@@ -61,13 +61,13 @@ impl RequestTrait for EvmTransfer {
         Ok(EvmTransfered(self, transaction.tx_id()).into())
     }
 
-    fn validate_request(&self) -> Result<(), RequestError> {
+    fn validate_request(&self) -> Result<(), PermitError> {
         // check if the chain id is initialized
         with_ledger(&self.account_id, |ledger| {
             if ledger.evm(self.chain_id).is_some() {
                 Ok(())
             } else {
-                Err(RequestError::ChainIdNotInitialized)
+                Err(PermitError::ChainIdNotInitialized)
             }
         })?
     }
@@ -129,13 +129,13 @@ impl RequestTrait for EvmTransferErc20 {
         Ok(EvmErc20Transfered(self, transaction.tx_id()).into())
     }
 
-    fn validate_request(&self) -> Result<(), RequestError> {
+    fn validate_request(&self) -> Result<(), PermitError> {
         // check if the chain id is initialized
         with_ledger(&self.account_id, |ledger| {
             if ledger.evm(self.chain_id).is_some() {
                 Ok(())
             } else {
-                Err(RequestError::ChainIdNotInitialized)
+                Err(PermitError::ChainIdNotInitialized)
             }
         })?
     }

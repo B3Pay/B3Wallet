@@ -31,7 +31,6 @@ pub struct CkbtcChain {
     pub fee: Option<ICRCTokens>,
     pub memo: Option<ICRCMemo>,
     pub created_at_time: Option<ICRCTimestamp>,
-    pub pending: Option<String>,
 }
 
 impl CkbtcChain {
@@ -56,20 +55,7 @@ impl CkbtcChain {
             fee: Some(fee),
             memo: None,
             created_at_time: None,
-            pending: None,
         })
-    }
-
-    pub fn add_pending(&mut self, txid: String) {
-        self.pending = Some(txid);
-    }
-
-    pub fn remove_pending(&mut self) {
-        self.pending = None;
-    }
-
-    pub fn has_pending_swap(&self) -> bool {
-        self.pending.is_some()
     }
 
     pub async fn get_btc_address(&self) -> Result<String, CkbtcError> {

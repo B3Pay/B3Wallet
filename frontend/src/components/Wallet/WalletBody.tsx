@@ -36,7 +36,7 @@ const WalletBody: React.FC<WalletBodyProps> = ({
   ...rest
 }) => {
   const [loading, setLoading] = useState<Loadings>({})
-  const { errorToast } = useToastMessage()
+  const errorToast = useToastMessage()
 
   const refetchAccount = useCallback(
     async (account_id: string) => {

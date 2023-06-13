@@ -1,19 +1,20 @@
 /* eslint-disable no-unused-vars */
-import { Button, Flex, Input, Select, Stack, useToast } from "@chakra-ui/react"
+import { Button, Flex, Input, Select, Stack } from "@chakra-ui/react"
 import { ChainSymbol, handleChainType } from "helpers/utiles"
+import useToastMessage from "hooks/useToastMessage"
 import { useState } from "react"
 import { B3Wallet } from "service/actor"
 
 const chains: ChainSymbol[] = ["BTC", "CKBTC", "EVM", "ICRC", "ICP"]
 const btcNetworks = ["Mainnet", "Testnet", "Regtest"]
 
-interface ChainSelectProps {
+interface CreateAddressProps {
   actor: B3Wallet
   account_id: string
   refetchAccount: () => void
 }
 
-const ChainSelect: React.FC<ChainSelectProps> = ({
+const CreateAddress: React.FC<CreateAddressProps> = ({
   actor,
   account_id,
   refetchAccount
@@ -22,7 +23,7 @@ const ChainSelect: React.FC<ChainSelectProps> = ({
   const [network, setNetwork] = useState("")
 
   const [loading, setLoading] = useState(false)
-  const toast = useToast()
+  const errorToast = useToastMessage()
 
   const handleChainChange = (e: any) => {
     setChain(e.target.value)
@@ -34,7 +35,7 @@ const ChainSelect: React.FC<ChainSelectProps> = ({
     setNetwork(e.target.value)
   }
 
-  const generateAddress = async () => {
+  const createAddress = async () => {
     setLoading(true)
     let chainType = handleChainType(network, chain)
 
@@ -45,7 +46,7 @@ const ChainSelect: React.FC<ChainSelectProps> = ({
         refetchAccount()
       })
       .catch(err => {
-        toast({
+        errorToast({
           title: "Error",
           description: err.message,
           status: "error",
@@ -94,7 +95,7 @@ const ChainSelect: React.FC<ChainSelectProps> = ({
         />
       )}
       <Flex>
-        <Button onClick={generateAddress} isLoading={loading}>
+        <Button onClick={createAddress} isLoading={loading}>
           Generate {chain} address
         </Button>
       </Flex>
@@ -102,4 +103,4 @@ const ChainSelect: React.FC<ChainSelectProps> = ({
   )
 }
 
-export default ChainSelect
+export default CreateAddress

@@ -7,8 +7,15 @@ use super::{
     icrc::types::IcrcChain,
     types::{AddressMap, Balance, ChainEnum, ChainMap, EcdsaPublicKey, EvmChain, SendResult},
 };
-use crate::{ledger::chain::ChainTrait, types::PendingMap};
-use b3_helper_lib::{raw_keccak256, subaccount::Subaccount, types::CanisterId};
+use crate::{
+    ledger::chain::ChainTrait,
+    types::{PendingReceiveMap, PendingSendMap},
+};
+use b3_helper_lib::{
+    raw_keccak256,
+    subaccount::Subaccount,
+    types::{BlockIndex, CanisterId},
+};
 use bitcoin::{secp256k1, Address, PublicKey};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
@@ -17,6 +24,8 @@ pub struct Ledger {
     pub public_key: Option<EcdsaPublicKey>,
     pub subaccount: Subaccount,
     pub chains: ChainMap,
+    pub pending_sends: PendingSendMap,
+    pub pending_receives: PendingReceiveMap,
 }
 
 impl Default for Ledger {
@@ -25,6 +34,8 @@ impl Default for Ledger {
             public_key: None,
             chains: ChainMap::default(),
             subaccount: Subaccount::default(),
+            pending_receives: PendingReceiveMap::default(),
+            pending_sends: PendingSendMap::default(),
         }
     }
 }
@@ -38,9 +49,11 @@ impl From<Subaccount> for Ledger {
         chains.insert(ChainEnum::ICP, ic_chain);
 
         Ledger {
-            public_key: None,
-            subaccount,
             chains,
+            subaccount,
+            public_key: None,
+            pending_receives: PendingReceiveMap::default(),
+            pending_sends: PendingSendMap::default(),
         }
     }
 }
@@ -93,18 +106,42 @@ impl Ledger {
         addresses
     }
 
-    pub fn pendings(&self) -> PendingMap {
-        let mut pendings = PendingMap::new();
+    pub fn pending_receives(&self) -> &PendingReceiveMap {
+        &self.pending_receives
+    }
 
-        for (chain_type, chain) in &self.chains {
-            if let Some(ckbtc) = chain.ckbtc() {
-                if let Some(pending) = ckbtc.pending.clone() {
-                    pendings.insert(chain_type.clone(), pending);
-                }
-            }
+    pub fn has_pending(&self, btc_network: BtcNetwork) -> bool {
+        self.pending_receives.contains_key(&btc_network)
+    }
+
+    pub fn add_pending_receive(&mut self, btc_network: BtcNetwork, txid: String) {
+        self.pending_receives.insert(btc_network, txid);
+    }
+
+    pub fn remove_pending_receive(&mut self, btc_network: BtcNetwork) {
+        self.pending_receives.remove(&btc_network);
+    }
+
+    pub fn pending_sends(&self) -> &PendingSendMap {
+        &self.pending_sends
+    }
+
+    pub fn add_pending_send(&mut self, btc_network: BtcNetwork, block_index: BlockIndex) {
+        if let Some(block_indexes) = self.pending_sends.get_mut(&btc_network) {
+            block_indexes.push(block_index);
+        } else {
+            self.pending_sends.insert(btc_network, vec![block_index]);
         }
+    }
 
-        pendings
+    pub fn remove_pending_send(&mut self, btc_network: BtcNetwork, block_index: BlockIndex) {
+        if let Some(block_indexes) = self.pending_sends.get_mut(&btc_network) {
+            block_indexes.retain(|&x| x != block_index);
+        }
+    }
+
+    pub fn clear_pending_sends(&mut self) {
+        self.pending_sends.clear();
     }
 
     pub fn public_key(&self) -> Result<&EcdsaPublicKey, LedgerError> {

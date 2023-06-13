@@ -16,7 +16,7 @@ const RestoreAccount: React.FC<RestoreAccountProps> = ({
 }) => {
   const [loading, setLoading] = useState(false)
   const [nonce, setNonce] = useState<bigint>(0n)
-  const { errorToast } = useToastMessage()
+  const errorToast = useToastMessage()
 
   const [environment, setEnvironment] = useState<Environment>(
     IS_LOCAL

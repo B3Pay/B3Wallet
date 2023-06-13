@@ -262,9 +262,9 @@ impl fmt::Display for SubaccountError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             SubaccountError::InvalidSubaccount(e) => write!(f, "InvalidSubaccount: {}", e),
-            SubaccountError::Base32Error(e) => write!(f, "::Subaccount base32 error: {}", e),
-            SubaccountError::SliceError(e) => write!(f, "::Subaccount slice error: {}", e),
-            SubaccountError::HexError(e) => write!(f, "::Subaccount hex error: {}", e),
+            SubaccountError::Base32Error(e) => write!(f, "Subaccount base32 error: {}", e),
+            SubaccountError::SliceError(e) => write!(f, "Subaccount slice error: {}", e),
+            SubaccountError::HexError(e) => write!(f, "Subaccount hex error: {}", e),
         }
     }
 }

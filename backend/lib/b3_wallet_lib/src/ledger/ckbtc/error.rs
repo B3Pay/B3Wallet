@@ -20,13 +20,13 @@ pub enum CkbtcError {
 impl fmt::Display for CkbtcError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            CkbtcError::IcrcError(ref err) => write!(f, "Icrc error: {}", err),
-            CkbtcError::MinterError(ref err) => write!(f, "Minter error: {}", err),
-            CkbtcError::UpdateBalanceError(ref err) => write!(f, "Update balance error: {}", err),
+            CkbtcError::IcrcError(ref err) => write!(f, "Icrc Error::{}", err),
+            CkbtcError::MinterError(ref err) => write!(f, "Minter Error::{}", err),
+            CkbtcError::UpdateBalanceError(ref err) => write!(f, "Update balance Error::{}", err),
             CkbtcError::SendToInvalidAddress(ref address) => write!(f, "Send to invalid address: {}", address),
-            CkbtcError::ICRC1TransferError(ref err) => write!(f, "Transfer error: {}", err),
-            CkbtcError::CkbtcSwapToBtcError(ref msg) => write!(f, "Ckbtc swap to btc error: {}", msg),
-            CkbtcError::CkbtcGetBtcAddressError(ref msg) => write!(f, "Ckbtc get btc address error: {}", msg),
+            CkbtcError::ICRC1TransferError(ref err) => write!(f, "Transfer Error::{}", err),
+            CkbtcError::CkbtcSwapToBtcError(ref msg) => write!(f, "Ckbtc swap to btc Error::{}", msg),
+            CkbtcError::CkbtcGetBtcAddressError(ref msg) => write!(f, "Ckbtc get btc address Error::{}", msg),
         }
     }
 }

@@ -7,7 +7,7 @@ use super::inner::account::*;
 use super::inner::setting::*;
 use super::inner::signer::*;
 use super::result::ExecutionResult;
-use crate::error::RequestError;
+use crate::error::PermitError;
 
 use async_trait::async_trait;
 use b3_wallet_lib::error::WalletError;
@@ -18,7 +18,7 @@ use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 #[enum_dispatch]
 pub trait RequestTrait {
     fn method_name(&self) -> String;
-    fn validate_request(&self) -> Result<(), RequestError>;
+    fn validate_request(&self) -> Result<(), PermitError>;
     async fn execute(self) -> Result<ExecutionResult, WalletError>;
 }
 

@@ -58,5 +58,5 @@ pub async fn b3_canister_status(
 }
 
 pub fn revert<T, E: Display>(err: E) -> T {
-    ic_cdk::trap(&err.to_string());
+    ic_cdk::trap(&format!("Error::{}", err));
 }

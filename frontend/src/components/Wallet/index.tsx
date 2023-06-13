@@ -23,7 +23,7 @@ const Wallet: React.FC<WalletProps> = ({ actor, walletCanisterId }) => {
 
   const [loading, setLoading] = useState(false)
   const [accounts, setAccounts] = useState<WalletAccountView[]>([])
-  const { errorToast } = useToastMessage()
+  const errorToast = useToastMessage()
 
   const fetchAccounts = useCallback(async () => {
     console.log("fetching accounts")

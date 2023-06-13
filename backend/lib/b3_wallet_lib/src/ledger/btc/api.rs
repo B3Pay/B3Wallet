@@ -136,9 +136,9 @@ impl Ledger {
             "CKBtc not initialized!".to_string(),
         ))?;
 
-        if ckbtc.has_pending_swap() {
+        if self.has_pending(btc_network) {
             return Err(BitcoinError::SwapToCkbtc(
-                "CKBtc has pending swap!".to_string(),
+                "There is a pending swap!".to_string(),
             ));
         }
 

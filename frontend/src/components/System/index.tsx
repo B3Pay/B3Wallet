@@ -159,9 +159,9 @@ const System: React.FC<SystemProps> = ({ systemActor, fetchUserActor }) => {
           <FormControl as="fieldset">
             <FormLabel as="label">Select a version:</FormLabel>
             <RadioGroup
-              display="grid"
-              gridTemplateColumns="repeat(2, 1fr)"
-              gap={2}
+              display="flex"
+              flexWrap="wrap"
+              justifyContent="space-between"
               value={selectedVersion}
               onChange={e => setSelectedVersion(e)}
             >

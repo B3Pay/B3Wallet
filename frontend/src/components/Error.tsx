@@ -8,16 +8,18 @@ interface ErrorProps {
 const Error: React.FC<ErrorProps> = ({ error }) => {
   const parsedError = useMemo(
     () =>
-      error.toString().includes("::")
-        ? error.toString().split("::")[1].trim()
-        : error.toString(),
+      error.toString().includes("Error::")
+        ? error.toString().split("Error::")
+        : [error.toString()],
     [error]
   )
 
   return (
     <Alert status="error">
       <AlertIcon />
-      {parsedError}
+      {parsedError.map((err, index) => (
+        <p key={index}>{err}</p>
+      ))}
     </Alert>
   )
 }

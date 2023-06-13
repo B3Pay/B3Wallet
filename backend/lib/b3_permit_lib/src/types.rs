@@ -1,5 +1,5 @@
 use crate::{
-    error::RequestError,
+    error::PermitError,
     pending::new::PendingRequest,
     processed::ProcessedRequest,
     request::request::{Request, RequestTrait},
@@ -69,8 +69,8 @@ pub struct ErrorInfo {
     pub description: String,
 }
 
-impl From<&RequestError> for ConsentMessage {
-    fn from(error: &RequestError) -> Self {
+impl From<&PermitError> for ConsentMessage {
+    fn from(error: &PermitError) -> Self {
         error.into()
     }
 }
