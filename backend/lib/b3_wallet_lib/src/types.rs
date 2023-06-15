@@ -1,8 +1,8 @@
 use crate::{
     account::WalletAccount,
-    ledger::{btc::network::BtcNetwork, types::AddressMap},
+    ledger::types::{AddressMap, PendingMap},
 };
-use b3_helper_lib::{environment::Environment, types::BlockIndex};
+use b3_helper_lib::environment::Environment;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use std::collections::{BTreeMap, HashMap};
 
@@ -12,10 +12,6 @@ pub type WalletAccountMap = BTreeMap<String, WalletAccount>;
 
 pub type Metadata = HashMap<String, String>;
 
-pub type PendingReceiveMap = HashMap<BtcNetwork, String>;
-
-pub type PendingSendMap = HashMap<BtcNetwork, Vec<BlockIndex>>;
-
 #[derive(CandidType, Clone, Deserialize)]
 pub struct WalletAccountView {
     pub id: String,
@@ -24,6 +20,5 @@ pub struct WalletAccountView {
     pub metadata: Metadata,
     pub addresses: AddressMap,
     pub environment: Environment,
-    pub pending_send: PendingSendMap,
-    pub pending_receive: PendingReceiveMap,
+    pub pendings: PendingMap,
 }

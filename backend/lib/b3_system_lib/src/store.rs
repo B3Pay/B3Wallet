@@ -1,10 +1,13 @@
-use b3_helper_lib::types::{SignerId, Version, Wasm, WasmHash};
+use b3_helper_lib::{
+    release::ReleaseName,
+    types::{SignerId, Version, Wasm, WasmHash},
+};
 
 use crate::{
     error::SystemError,
-    types::{Release, Releases, State, UserMap, WalletCanister, WasmMap},
+    types::{Release, ReleaseMap, Releases, State, UserMap, WalletCanister, WasmMap},
 };
-use std::cell::RefCell;
+use std::{cell::RefCell, str::FromStr};
 
 thread_local! {
     static STATE: RefCell<State> = RefCell::new(State::default());
@@ -29,37 +32,63 @@ where
 
 // RELEASE
 
-pub fn with_releases<F, R>(f: F) -> R
+pub fn with_release_map<F, R>(f: F) -> R
 where
-    F: FnOnce(&Releases) -> R,
+    F: FnOnce(&ReleaseMap) -> R,
 {
     with_state(|state| f(&state.releases))
 }
 
-pub fn with_releases_mut<F, R>(f: F) -> R
+pub fn with_release_map_mut<F, R>(f: F) -> R
 where
-    F: FnOnce(&mut Releases) -> R,
+    F: FnOnce(&mut ReleaseMap) -> R,
 {
     with_state_mut(|state| f(&mut state.releases))
 }
 
-pub fn with_release<F, T>(index: usize, f: F) -> Result<T, SystemError>
+pub fn with_releases<F, T>(name: &str, f: F) -> Result<T, SystemError>
 where
-    F: FnOnce(&Release) -> T,
+    F: FnOnce(&Releases) -> T,
 {
-    with_releases(|releases| {
+    let release_name = ReleaseName::from_str(name).map_err(SystemError::HelperError)?;
+
+    with_release_map(|releases| {
         releases
-            .get(index)
-            .ok_or(SystemError::ReleaseNotFound)
+            .get(&release_name)
+            .ok_or(SystemError::ReleaseNameNotFound)
             .map(f)
     })
 }
 
-pub fn with_release_mut<F, T>(index: usize, f: F) -> Result<T, SystemError>
+pub fn with_releases_mut<F, T>(release_name: ReleaseName, f: F) -> T
+where
+    F: FnOnce(&mut Releases) -> T,
+{
+    with_release_map_mut(|releases| {
+        let releases = releases.entry(release_name).or_default();
+        f(releases)
+    })
+}
+
+pub fn with_release<F, T>(name: &str, index: usize, f: F) -> Result<T, SystemError>
+where
+    F: FnOnce(&Release) -> T,
+{
+    with_releases(name, |releases| {
+        releases
+            .get(index)
+            .ok_or(SystemError::ReleaseNotFound)
+            .map(f)
+    })?
+}
+
+pub fn with_release_mut<F, T>(name: &str, index: usize, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&mut Release) -> T,
 {
-    with_releases_mut(|releases| {
+    let release_name = ReleaseName::from_str(name).map_err(SystemError::HelperError)?;
+
+    with_releases_mut(release_name, |releases| {
         releases
             .get_mut(index)
             .ok_or(SystemError::ReleaseNotFound)
@@ -67,24 +96,28 @@ where
     })
 }
 
-pub fn with_version_release<F, T>(version: Version, f: F) -> Result<T, SystemError>
+pub fn with_version_release<F, T>(name: &str, version: Version, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&Release) -> T,
 {
-    with_releases(|releases| {
+    with_releases(name, |releases| {
         releases
             .iter()
             .find(|release| release.version == version)
             .ok_or(SystemError::ReleaseNotFound)
             .map(f)
-    })
+    })?
 }
 
-pub fn with_version_release_mut<F, T>(version: Version, f: F) -> Result<T, SystemError>
+pub fn with_version_release_mut<F, T>(
+    release_name: ReleaseName,
+    version: Version,
+    f: F,
+) -> Result<T, SystemError>
 where
     F: FnOnce(&mut Release) -> T,
 {
-    with_releases_mut(|releases| {
+    with_releases_mut(release_name, |releases| {
         releases
             .iter_mut()
             .find(|release| release.version == version)
@@ -93,24 +126,26 @@ where
     })
 }
 
-pub fn with_hash_release<F, T>(hash: WasmHash, f: F) -> Result<T, SystemError>
+pub fn with_hash_release<F, T>(name: &str, hash: WasmHash, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&Release) -> T,
 {
-    with_releases(|releases| {
+    with_releases(name, |releases| {
         releases
             .iter()
             .find(|release| release.hash == hash)
             .ok_or(SystemError::ReleaseNotFound)
             .map(f)
-    })
+    })?
 }
 
-pub fn with_latest_release<F, T>(f: F) -> Result<T, SystemError>
+pub fn with_latest_release<F, T>(name: &str, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&Release) -> T,
 {
-    with_releases(|releases| releases.last().ok_or(SystemError::ReleaseNotFound).map(f))
+    with_releases(name, |releases| {
+        releases.last().ok_or(SystemError::ReleaseNotFound).map(f)
+    })?
 }
 
 // SIGNER

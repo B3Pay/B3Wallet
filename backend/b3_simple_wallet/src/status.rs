@@ -12,6 +12,7 @@ pub async fn status() -> WalletCanisterStatus {
     let canister_id = ic_cdk::api::id();
 
     let version = version();
+    let name = name();
 
     let canister_status = b3_canister_status(canister_id).await.unwrap_or_else(revert);
 
@@ -20,6 +21,7 @@ pub async fn status() -> WalletCanisterStatus {
 
     WalletCanisterStatus {
         canister_id,
+        name,
         version,
         status_at,
         canister_status,

@@ -77,7 +77,11 @@ function HomePage() {
         {loading && <Loading title="Loading Wallet" />}
         {isAuthenticated ? (
           walletActor ? (
-            <Wallet actor={walletActor} walletCanisterId={walletCanisterId} />
+            <Wallet
+              actor={walletActor}
+              systemActor={systemActor}
+              walletCanisterId={walletCanisterId}
+            />
           ) : systemActor ? (
             <System systemActor={systemActor} fetchUserActor={fetchUserActor} />
           ) : (

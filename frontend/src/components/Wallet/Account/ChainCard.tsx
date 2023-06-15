@@ -61,12 +61,12 @@ const ChainCard: React.FC<AddressProps> = ({
   refetchAccount,
   ...rest
 }) => {
+  const [ckbtcPending, setCkbtcPending] = useState<PendingTranscation>()
+  const toast = useToast()
   const [balance, setBalances] = useState<bigint>()
   const [loading, setLoadings] = useState(false)
-  const [ckbtcPending, setCkbtcPending] = useState<PendingTranscation>()
 
   const errorToast = useToastMessage()
-  const toast = useToast()
 
   const handleBalance = useCallback(() => {
     setLoadings(true)
@@ -179,7 +179,7 @@ const ChainCard: React.FC<AddressProps> = ({
       isClosable: true
     })
   }
-
+  console.log(pendings)
   const updatePending = useCallback(async () => {
     if (!pendings || !pendings.length) {
       return
@@ -189,9 +189,9 @@ const ChainCard: React.FC<AddressProps> = ({
       .then(utxos => {
         console.log(utxos)
 
-        handleBalance()
         setCkbtcPending(undefined)
         toast.closeAll()
+        refetchAccount()
       })
       .catch(err => {
         if (err.message.includes("Current confirmations:")) {

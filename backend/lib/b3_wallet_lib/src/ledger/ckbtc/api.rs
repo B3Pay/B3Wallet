@@ -5,6 +5,7 @@ use crate::{
         chain::ChainTrait,
         error::LedgerError,
         icrc::{error::IcrcError, types::ICRC1TransferArgs},
+        types::Pendings,
     },
 };
 use async_trait::async_trait;
@@ -61,5 +62,9 @@ impl ChainTrait for CkbtcChain {
     ) -> Result<SendResult, LedgerError> {
         // TODO: update the struct if the user want that
         self.send(to, amount).await
+    }
+
+    fn pendings(&self) -> Pendings {
+        self.pending_receive.clone()
     }
 }

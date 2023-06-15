@@ -1,8 +1,6 @@
 use super::{error::BitcoinError, utils::mock_signer};
 use crate::ledger::types::{BtcOutPoint, BtcTransaction, BtcTxOut};
-use bitcoin::{
-    absolute::LockTime, hashes::Hash, Address, PublicKey, Script, Transaction, TxIn, Txid,
-};
+use bitcoin::{absolute::LockTime, hashes::Hash, Address, Script, Transaction, TxIn, Txid};
 use ic_cdk::api::management_canister::bitcoin::{GetUtxosResponse, Utxo};
 
 pub struct BtcUtxos(Vec<Utxo>);
@@ -34,7 +32,6 @@ impl TryFrom<Vec<Utxo>> for BtcUtxos {
 impl BtcUtxos {
     pub fn build_transaction(
         &self,
-        public_key: &PublicKey,
         own_address: &Address,
         recipient: &Address,
         amount: u64,
@@ -46,14 +43,12 @@ impl BtcUtxos {
                 self.build_transaction_with_fee(&own_address, recipient, amount, total_fee)?;
 
             for (_, input) in transaction.input.iter_mut().enumerate() {
-                input.script_sig = mock_signer(&public_key);
+                input.script_sig = mock_signer();
                 input.witness.clear();
             }
 
             let transaction_size = transaction.vsize() as u64;
-            let extra_size = transaction.input.len() as u64;
-            let total_size = transaction_size + extra_size;
-            let fee = (fee_rate * total_size) / 1000;
+            let fee = (fee_rate * transaction_size) / 1000;
 
             // If the fee is correct, we're done.
             if total_fee == fee {
@@ -138,11 +133,11 @@ mod test {
         ledger::{
             btc::{network::BtcNetwork, utxos::BtcUtxos},
             chain::{Chain, ChainTrait},
+            ecdsa::EcdsaPublicKey,
             ledger::Ledger,
             types::{ChainEnum, ChainMap},
         },
         mocks::ic_cdk_id,
-        types::{PendingReceiveMap, PendingSendMap},
     };
 
     use super::*;
@@ -166,12 +161,10 @@ mod test {
 
         chains.insert(ChainEnum::ICP, icp_chain);
 
-        let mut public_keys = Ledger {
-            subaccount,
-            chains,
-            pending_receives: PendingReceiveMap::new(),
-            pending_sends: PendingSendMap::new(),
+        let mut ledger = Ledger {
             public_key: None,
+            subaccount: subaccount.clone(),
+            chains,
         };
 
         let ecdsa = vec![
@@ -179,7 +172,7 @@ mod test {
             153, 192, 65, 30, 59, 177, 153, 39, 80, 76, 185, 200, 51, 255, 218,
         ];
 
-        public_keys.set_ecdsa_public_key(ecdsa).unwrap();
+        ledger.set_ecdsa_public_key(ecdsa.clone()).unwrap();
 
         let utxos = BtcUtxos::try_from(vec![
             Utxo {
@@ -266,16 +259,28 @@ mod test {
             .unwrap()
             .assume_checked();
 
-        let own_address = public_keys
-            .btc_address(BtcNetwork::Mainnet)
-            .unwrap()
-            .clone();
+        let chain = Chain::new_btc_chain(
+            BtcNetwork::Regtest,
+            subaccount,
+            EcdsaPublicKey(ecdsa.clone()),
+        )
+        .unwrap();
 
-        let public_key = public_keys.btc_public_key().unwrap();
+        ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Regtest), chain.clone());
+
+        let btc_chain = ledger.chain(ChainEnum::BTC(BtcNetwork::Regtest)).unwrap();
+
+        let own_address = chain.btc().unwrap().btc_address().unwrap();
+
+        assert_eq!(btc_chain.address(), own_address.to_string());
+
+        let public_key = chain.btc().unwrap().btc_public_key().unwrap();
 
         let tx = utxos
-            .build_transaction(&public_key, &own_address, &recipient, 100_000_000, 2000)
+            .build_transaction(&own_address, &recipient, 100_000_000, 2000)
             .unwrap();
+
+        assert_eq!(public_key, EcdsaPublicKey(ecdsa).btc_public_key().unwrap());
 
         assert_eq!(tx.input.len(), 7);
 

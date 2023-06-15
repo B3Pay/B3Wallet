@@ -1,6 +1,7 @@
 use super::error::CkbtcError;
 use super::minter::Minter;
-use super::types::{RetrieveBtcOk, RetrieveBtcResult, Satoshi, UpdateBalanceResult};
+use super::types::{BtcTxId, RetrieveBtcOk, RetrieveBtcResult, Satoshi, UpdateBalanceResult};
+use crate::ledger::types::Pendings;
 use crate::ledger::{
     btc::network::BtcNetwork,
     icrc::{
@@ -30,7 +31,26 @@ pub struct CkbtcChain {
     pub account: ICRCAccount,
     pub fee: Option<ICRCTokens>,
     pub memo: Option<ICRCMemo>,
+    pub pending_receive: Pendings,
     pub created_at_time: Option<ICRCTimestamp>,
+}
+
+impl CkbtcChain {
+    pub fn has_pending(&self, tx_id: &BtcTxId) -> bool {
+        self.pending_receive.contains(tx_id)
+    }
+
+    pub fn add_pending(&mut self, tx_id: BtcTxId) {
+        self.pending_receive.push(tx_id);
+    }
+
+    pub fn remove_pending(&mut self, tx_id: &BtcTxId) {
+        self.pending_receive.retain(|x| x != tx_id);
+    }
+
+    pub fn clear_pending(&mut self) {
+        self.pending_receive.clear();
+    }
 }
 
 impl CkbtcChain {
@@ -52,9 +72,10 @@ impl CkbtcChain {
             ledger,
             minter,
             account,
-            fee: Some(fee),
             memo: None,
+            fee: Some(fee),
             created_at_time: None,
+            pending_receive: vec![],
         })
     }
 
@@ -79,7 +100,7 @@ impl CkbtcChain {
         Ok(result)
     }
 
-    pub async fn swap_ckbtc_to_btc(
+    pub async fn swap_to_btc(
         &self,
         retrieve_address: String,
         amount: Satoshi,

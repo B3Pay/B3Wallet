@@ -7,6 +7,7 @@ use std::fmt;
 
 #[derive(CandidType, Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub enum HelperError {
+    InvalidReleaseName(String),
     InvalidSubaccount(String),
     ValidateSignerError(String),
     WasmHashError(String),
@@ -25,6 +26,7 @@ pub enum HelperError {
 impl fmt::Display for HelperError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            HelperError::InvalidReleaseName(e) => write!(f, "Invalid release name: {}", e),
             HelperError::InvalidSubaccount(e) => write!(f, "Invalid subaccount: {}", e),
             HelperError::ValidateSignerError(e) => write!(f, "Get owner error: {}", e),
             HelperError::WasmHashError(e) => write!(f, "Wasm hash error: {}", e),

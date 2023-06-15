@@ -13,8 +13,6 @@ pub type ChainId = u64;
 
 pub type Balance = Nat;
 
-pub type EcdsaPublicKey = Vec<u8>;
-
 pub type BtcAddressType = AddressType;
 
 pub type BtcTransaction = Transaction;
@@ -28,6 +26,10 @@ pub type BtcOutPoint = OutPoint;
 pub type ChainMap = BTreeMap<ChainEnum, Chain>;
 
 pub type AddressMap = BTreeMap<ChainEnum, String>;
+
+pub type Pendings = Vec<String>;
+
+pub type PendingMap = BTreeMap<ChainEnum, Pendings>;
 
 #[derive(CandidType, PartialEq, Eq, PartialOrd, Ord, Deserialize, Clone)]
 pub enum ChainEnum {

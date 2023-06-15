@@ -102,3 +102,17 @@ export function extractConfirmations(msg: string): PendingTranscation {
 
   return result
 }
+
+export const compileError = (description: string[]) => {
+  if (description.length > 1) {
+    return {
+      title: description[1],
+      description: description[2]
+    }
+  } else {
+    return {
+      title: "Error",
+      description: description[0]
+    }
+  }
+}

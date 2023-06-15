@@ -1,19 +1,6 @@
 import { ToastProps, useToast } from "@chakra-ui/react"
+import { compileError } from "helpers/utiles"
 import { useCallback } from "react"
-
-const compileError = (description: string[]) => {
-  if (description.length > 1) {
-    return {
-      title: description[1],
-      description: description[2]
-    }
-  } else {
-    return {
-      title: "Error",
-      description: description[0]
-    }
-  }
-}
 
 const useToastMessage = () => {
   const toast = useToast()

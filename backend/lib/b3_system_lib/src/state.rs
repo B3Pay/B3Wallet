@@ -3,8 +3,12 @@ use crate::{
     types::{Controllers, State, WalletCanister, WalletCanisters},
     types::{Release, Users},
 };
-use b3_helper_lib::types::{
-    CanisterId, ControllerId, SignerId, Version, WalletCanisterInitArgs, WalletCanisterInstallArg,
+use b3_helper_lib::{
+    release::ReleaseName,
+    types::{
+        CanisterId, ControllerId, SignerId, Version, WalletCanisterInitArgs,
+        WalletCanisterInstallArg,
+    },
 };
 use ic_cdk::api::management_canister::main::CanisterInstallMode;
 
@@ -80,8 +84,13 @@ impl State {
     }
 
     // release
-    pub fn get_release(&self, version: &str) -> Result<&Release, SystemError> {
-        self.releases
+    pub fn get_release(&self, name: ReleaseName, version: &str) -> Result<&Release, SystemError> {
+        let releases = self
+            .releases
+            .get(&name)
+            .ok_or(SystemError::ReleaseNameNotFound)?;
+
+        releases
             .iter()
             .find(|r| r.version == version)
             .ok_or(SystemError::ReleaseNotFound)
@@ -89,12 +98,13 @@ impl State {
 
     pub fn get_release_install_args(
         &self,
+        name: ReleaseName,
         version: &Version,
         owner: SignerId,
         system: Option<CanisterId>,
         mode: CanisterInstallMode,
     ) -> Result<WalletCanisterInstallArg, SystemError> {
-        let wasm_module = self.get_release(version)?.wasm()?;
+        let wasm_module = self.get_release(name, version)?.wasm()?;
 
         let canister_args = WalletCanisterInitArgs {
             owner_id: owner,
@@ -112,17 +122,22 @@ impl State {
         })
     }
 
-    pub fn latest_release(&self) -> Result<&Release, SystemError> {
-        self.releases.last().ok_or(SystemError::ReleaseNotFound)
+    pub fn latest_release(&self, name: ReleaseName) -> Result<&Release, SystemError> {
+        self.releases
+            .get(&name)
+            .ok_or(SystemError::ReleaseNameNotFound)?
+            .last()
+            .ok_or(SystemError::ReleaseNotFound)
     }
 
     pub fn get_latest_install_args(
         &self,
+        name: ReleaseName,
         owner: SignerId,
         system: Option<CanisterId>,
         mode: CanisterInstallMode,
     ) -> Result<WalletCanisterInstallArg, SystemError> {
-        let wasm_module = self.latest_release()?.wasm()?;
+        let wasm_module = self.latest_release(name)?.wasm()?;
 
         let canister_args = WalletCanisterInitArgs {
             owner_id: owner,

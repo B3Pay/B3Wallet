@@ -9,7 +9,7 @@ use super::{
 };
 use b3_helper_lib::{
     account::ICRCAccount,
-    constants::CKBTC_MINTER_CANISTER_MAINNET,
+    constants::{CKBTC_MINTER_CANISTER_MAINNET, CKBTC_MINTER_CANISTER_TESTNET},
     types::{BlockIndex, CanisterId},
 };
 use ic_cdk::api::call::call;
@@ -22,9 +22,13 @@ use ic_cdk::export::{
 pub struct Minter(pub BtcNetwork);
 
 impl Minter {
+    pub fn new(network: BtcNetwork) -> Self {
+        Self(network)
+    }
+
     pub fn canister_id(&self) -> CanisterId {
         match self.0 {
-            BtcNetwork::Testnet => CanisterId::from_text("ml52i-qqaaa-aaaar-qaaba-cai").unwrap(),
+            BtcNetwork::Testnet => CKBTC_MINTER_CANISTER_TESTNET,
             BtcNetwork::Regtest => CKBTC_MINTER_CANISTER_MAINNET,
             BtcNetwork::Mainnet => CKBTC_MINTER_CANISTER_MAINNET,
         }

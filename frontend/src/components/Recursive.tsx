@@ -1,6 +1,6 @@
 import { Stack, Stat, StatHelpText, StatLabel } from "@chakra-ui/react"
 
-const Child = (value: any) => {
+export const RecursiveChild = (value: any) => {
   return (
     value &&
     (value._isPrincipal ? (
@@ -17,7 +17,7 @@ const Child = (value: any) => {
                 <Stat>{Object.keys(value[0])[0]}</Stat>
               </Stat>
             ) : (
-              <Parent key={key} parent={key} child={value} />
+              <RecursiveParent key={key} parent={key} child={value} />
             )
           )}
         </Stack>
@@ -33,7 +33,7 @@ interface ParentProps {
   child: any
 }
 
-const Parent: React.FC<ParentProps> = ({ parent, child }) => {
+const RecursiveParent: React.FC<ParentProps> = ({ parent, child }) => {
   return parent === "deadline" ? (
     <Stat>
       <StatLabel>{parent}: &nbsp;</StatLabel>
@@ -43,7 +43,7 @@ const Parent: React.FC<ParentProps> = ({ parent, child }) => {
     typeof child === "object" ? (
       <Stat>
         <StatLabel>{parent}: &nbsp;</StatLabel>
-        {Child(child)}
+        {RecursiveChild(child)}
       </Stat>
     ) : (
       <Stat>
@@ -55,4 +55,4 @@ const Parent: React.FC<ParentProps> = ({ parent, child }) => {
     <>{parent.toString()}</>
   )
 }
-export default Parent
+export default RecursiveParent

@@ -10,13 +10,13 @@ const btcNetworks = ["Mainnet", "Testnet", "Regtest"]
 
 interface CreateAddressProps {
   actor: B3Wallet
-  account_id: string
+  accountId: string
   refetchAccount: () => void
 }
 
 const CreateAddress: React.FC<CreateAddressProps> = ({
   actor,
-  account_id,
+  accountId,
   refetchAccount
 }) => {
   const [chain, setChain] = useState<ChainSymbol>()
@@ -40,7 +40,7 @@ const CreateAddress: React.FC<CreateAddressProps> = ({
     let chainType = handleChainType(network, chain)
 
     actor
-      .account_create_address(account_id, chainType)
+      .account_create_address(accountId, chainType)
       .then(() => {
         setLoading(false)
         refetchAccount()

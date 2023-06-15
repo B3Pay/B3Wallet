@@ -5,10 +5,10 @@
 
 IC_VERSION=d6d395a480cd6986b4788f4aafffc5c03a07e46e
 
-CKBTC_ID=mxzaz-hqaaa-aaaar-qaada-cai
 KYY_ID=bkyz2-fmaaa-aaaaa-qaaaq-cai
 MINTER_ID=mqygn-kiaaa-aaaar-qaadq-cai
 
+mkdir -p wasm/kyt/
 curl -o wasm/kyt/kyt.wasm.gz "https://download.dfinity.systems/ic/$IC_VERSION/canisters/ic-ckbtc-kyt.wasm.gz"
 gunzip -f wasm/kyt/kyt.wasm.gz
 curl -o wasm/kyt/kyt.did "https://raw.githubusercontent.com/dfinity/ic/$IC_VERSION/rs/bitcoin/ckbtc/kyt/kyt.did"

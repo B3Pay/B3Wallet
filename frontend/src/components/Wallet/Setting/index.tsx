@@ -1,5 +1,5 @@
 import { Button, CardBody, CardHeader, Stack, Text } from "@chakra-ui/react"
-import { B3Wallet } from "service/actor"
+import { B3System, B3Wallet } from "service/actor"
 import AddSigner from "./AddSigner"
 import Cycles from "./Cycles"
 import RestoreAccount from "./RestoreAccount"
@@ -10,11 +10,13 @@ interface SettingsProps {
   fetchAccounts: () => void
   setLoading: (loading: boolean) => void
   actor: B3Wallet
+  systemActor: B3System
 }
 
 const Settings: React.FC<SettingsProps> = ({
   setLoading,
   actor,
+  systemActor,
   fetchAccounts
 }) => {
   const resetAccount = async () => {
@@ -43,6 +45,7 @@ const Settings: React.FC<SettingsProps> = ({
       <RestoreAccount actor={actor} fetchAccounts={fetchAccounts} />
       <Status actor={actor} />
       <Wasm
+        systemActor={systemActor}
         actor={actor}
         setLoading={setLoading}
         fetchAccounts={fetchAccounts}

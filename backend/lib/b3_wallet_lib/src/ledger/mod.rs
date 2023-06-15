@@ -1,4 +1,3 @@
-pub mod api;
 pub mod btc;
 pub mod chain;
 pub mod ckbtc;
@@ -11,5 +10,6 @@ pub mod ledger;
 pub mod subaccount;
 pub mod types;
 
+pub mod ecdsa;
 #[cfg(test)]
 mod test;

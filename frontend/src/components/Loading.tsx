@@ -1,14 +1,14 @@
 import { Box, CircularProgress, Progress, Stack, Text } from "@chakra-ui/react"
-import React from "react"
+import React, { PropsWithChildren } from "react"
 import LoadingDots from "./LoadingDots"
 
-interface LoadingProps {
+interface LoadingProps extends PropsWithChildren {
   dark?: boolean
   circle?: boolean
   title?: string
 }
 
-const Loading: React.FC<LoadingProps> = ({ dark, circle, title }) => {
+const Loading: React.FC<LoadingProps> = ({ dark, circle, title, children }) => {
   return (
     <Stack
       position="absolute"
@@ -25,7 +25,9 @@ const Loading: React.FC<LoadingProps> = ({ dark, circle, title }) => {
         <LoadingDots title={title} />
       </Text>
       <Box w="20vw">
-        {circle ? (
+        {children ? (
+          children
+        ) : circle ? (
           <CircularProgress isIndeterminate color="green.300" />
         ) : (
           <Progress size="xs" isIndeterminate />

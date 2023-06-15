@@ -1,7 +1,7 @@
 use b3_helper_lib::{
     owner::caller_is_owner,
     revert,
-    types::{WasmHash, WasmSize},
+    types::{WasmDetails, WasmHash, WasmSize},
     wasm::{with_wasm, with_wasm_mut},
 };
 use b3_wallet_lib::error::WalletError;
@@ -10,6 +10,17 @@ use ic_cdk::{
     export::candid::candid_method,
     query, update,
 };
+
+#[candid_method(query)]
+#[query(guard = "caller_is_owner")]
+fn wasm_details() -> WasmDetails {
+    with_wasm(|w| {
+        let hash = w.generate_hash();
+        let size = w.len();
+
+        WasmDetails { hash, size }
+    })
+}
 
 #[candid_method(query)]
 #[query(guard = "caller_is_owner")]

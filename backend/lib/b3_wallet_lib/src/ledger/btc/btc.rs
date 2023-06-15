@@ -1,46 +1,191 @@
-use crate::ledger::{
-    chain::ChainTrait,
-    error::LedgerError,
-    types::{Balance, SendResult},
-};
-use async_trait::async_trait;
+use crate::ledger::ckbtc::minter::Minter;
+use crate::ledger::ckbtc::types::BtcTxId;
+use crate::ledger::ecdsa::EcdsaPublicKey;
+use crate::ledger::subaccount::SubaccountTrait;
+use b3_helper_lib::subaccount::Subaccount;
+use bitcoin::consensus::serialize;
+use bitcoin::secp256k1::ecdsa::Signature;
+use bitcoin::sighash::{EcdsaSighashType, SighashCache};
+use bitcoin::PublicKey;
+use bitcoin::{ecdsa, hashes::Hash, Address, Script, Transaction};
+use ic_cdk::api::management_canister::bitcoin::Satoshi;
+use ic_cdk::api::management_canister::bitcoin::{GetUtxosResponse, UtxoFilter};
+use std::str::FromStr;
+
+use super::error::BitcoinError;
+use super::network::BtcNetwork;
+use super::utxos::BtcUtxos;
+
 use ic_cdk::export::{
     candid::CandidType,
     serde::{Deserialize, Serialize},
 };
 
-use super::network::BtcNetwork;
-
 #[derive(CandidType, Clone, Deserialize, Serialize, PartialEq, Debug)]
 pub struct BtcChain {
-    pub btc_network: BtcNetwork,
     pub address: String,
+    pub subaccount: Subaccount,
+    pub btc_network: BtcNetwork,
+    pub pending: Vec<String>,
+    pub ecdsa_public_key: EcdsaPublicKey,
+    pub min_confirmations: Option<u32>,
 }
 
-#[async_trait]
-impl ChainTrait for BtcChain {
-    fn address(&self) -> String {
-        self.address.clone()
+impl BtcChain {
+    pub fn has_pending(&self, block_index: &String) -> bool {
+        self.pending.contains(block_index)
     }
 
-    async fn balance(&self) -> Result<Balance, LedgerError> {
+    pub fn add_pending(&mut self, block_index: String) {
+        self.pending.push(block_index);
+    }
+
+    pub fn remove_pending(&mut self, block_index: &String) {
+        self.pending.retain(|x| x != block_index);
+    }
+
+    pub fn clear_pending(&mut self) {
+        self.pending.clear();
+    }
+}
+
+impl BtcChain {
+    /// Get the Bitcoin P2WPKH Address based on the public key.
+    /// This is the address that the canister uses to send and receive funds.
+    pub fn btc_address(&self) -> Result<Address, BitcoinError> {
+        let address = self
+            .ecdsa_public_key
+            .btc_address(self.btc_network.into())
+            .map_err(|err| BitcoinError::InvalidAddress(err.to_string()))?;
+
+        Ok(address)
+    }
+
+    /// Get PublicKey from the ecdsa_public_key
+    /// This is the public key that the canister uses to send and receive funds.
+    pub fn btc_public_key(&self) -> Result<PublicKey, BitcoinError> {
+        let public_key = self
+            .ecdsa_public_key
+            .btc_public_key()
+            .map_err(|err| BitcoinError::InvalidPublicKey(err.to_string()))?;
+
+        Ok(public_key)
+    }
+
+    /// Get the UTXOs of the canister's bitcoin wallet.
+    /// This is the list of all the UTXOs that the canister owns.
+    pub async fn get_utxos(
+        &self,
+        filter: Option<UtxoFilter>,
+    ) -> Result<GetUtxosResponse, BitcoinError> {
         self.btc_network
-            .get_balance(self.address.clone(), None)
+            .get_utxos(self.address.clone(), filter)
             .await
-            .map_err(LedgerError::BitcoinError)
     }
 
-    async fn send(&self, _to: String, _amount: u64) -> Result<SendResult, LedgerError> {
-        todo!("implement the async method for BTC...")
+    /// Sends a transaction to the btc_network that transfers the given amount to the
+    /// given destination, where the source of the funds is the canister itself
+    /// at the given derivation path.
+    pub async fn transfer(
+        &self,
+        dst_address: String,
+        amount: Satoshi,
+    ) -> Result<BtcTxId, BitcoinError> {
+        let dst_address = Address::from_str(&dst_address)
+            .map_err(|err| BitcoinError::InvalidAddress(err.to_string()))?
+            .require_network(self.btc_network.into())
+            .map_err(|err| BitcoinError::InvalidNetworkAddress(err.to_string()))?;
+
+        let own_address = self.btc_address()?;
+
+        let utxo_res = self.get_utxos(None).await?;
+
+        let utxo = BtcUtxos::try_from(utxo_res)?;
+
+        let fee_rate = self.btc_network.fee_rate(49).await?;
+
+        let mut tx = utxo.build_transaction(&own_address, &dst_address, amount, fee_rate)?;
+
+        let signed_transaction = self.sign_transaction(&mut tx).await?;
+
+        let signed_transaction_bytes = serialize(&signed_transaction);
+
+        self.btc_network
+            .send_transaction(signed_transaction_bytes)
+            .await?;
+
+        let tx_id = signed_transaction.txid();
+
+        Ok(tx_id.to_string())
     }
 
-    async fn send_mut(
-        &mut self,
-        _to: String,
-        _amount: u64,
-        _fee: Option<u64>,
-        _memo: Option<String>,
-    ) -> Result<SendResult, LedgerError> {
-        todo!("implement the async method for BTC...")
+    /// Signs a message hash with the internet computer threshold signature.
+    /// The message hash is signed with the internet computer threshold signature.
+    async fn sign_btc_transaction(&self, message_hash: Vec<u8>) -> Result<Signature, BitcoinError> {
+        let sig = self
+            .subaccount
+            .sign_with_ecdsa(message_hash)
+            .await
+            .map_err(|err| BitcoinError::Signature(err.to_string()))?;
+
+        let signature = Signature::from_compact(&sig)
+            .map_err(|err| BitcoinError::Signature(err.to_string()))?;
+
+        Ok(signature)
+    }
+
+    /// Signs a bitcoin transaction.
+    /// The transaction is signed with the internet computer threshold signature.
+    async fn sign_transaction(
+        &self,
+        transaction: &mut Transaction,
+    ) -> Result<Transaction, BitcoinError> {
+        let address = self.btc_address()?;
+
+        let public_key = self.btc_public_key()?;
+
+        let sig_cache = SighashCache::new(transaction.clone());
+        for (index, input) in transaction.input.iter_mut().enumerate() {
+            let sign_hash = sig_cache
+                .legacy_signature_hash(
+                    index,
+                    &address.script_pubkey(),
+                    EcdsaSighashType::All.to_u32(),
+                )
+                .map_err(|err| BitcoinError::Signature(err.to_string()))?;
+
+            let message_bytes = sign_hash.to_byte_array().to_vec();
+
+            let signature = self
+                .sign_btc_transaction(message_bytes)
+                .await
+                .map_err(|err| BitcoinError::Signature(err.to_string()))?;
+
+            let sig = ecdsa::Signature::sighash_all(signature);
+
+            let builder = Script::builder().push_slice(sig.serialize());
+
+            input.script_sig = builder.push_key(&public_key).into_script();
+
+            input.witness.clear();
+        }
+
+        Ok(transaction.clone())
+    }
+
+    pub async fn swap_to_ckbtc(&self, amount: Satoshi) -> Result<BtcTxId, BitcoinError> {
+        let minter = Minter::new(self.btc_network.clone());
+
+        let dst_address = minter
+            .get_btc_address(self.subaccount.clone().into())
+            .await
+            .map_err(|err| BitcoinError::SwapToCkbtc(err.to_string()))?;
+
+        let tx_id = self
+            .transfer(dst_address, amount)
+            .await
+            .map_err(|err| BitcoinError::SwapToCkbtc(err.to_string()))?;
+
+        Ok(tx_id)
     }
 }

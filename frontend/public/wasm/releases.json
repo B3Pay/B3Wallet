@@ -9,21 +9,21 @@
   {
     "url": "wasm/b3_wallet/0.0.0-alpha.11/b3_wallet_candid.wasm",
     "name": "b3_wallet",
-    "size": 3472282,
+    "size": 3472211,
     "wasmFile": "b3_wallet_candid.wasm",
     "version": "0.0.0-alpha.11"
   },
   {
     "url": "wasm/b3_simple_wallet/0.0.0-alpha.1/b3_simple_wallet.wasm",
     "name": "b3_simple_wallet",
-    "size": 1977253,
+    "size": 1982038,
     "wasmFile": "b3_simple_wallet.wasm",
     "version": "0.0.0-alpha.1"
   },
   {
     "url": "wasm/b3_simple_wallet/0.0.0-alpha.1/b3_simple_wallet_candid.wasm",
     "name": "b3_simple_wallet",
-    "size": 2260473,
+    "size": 2265923,
     "wasmFile": "b3_simple_wallet_candid.wasm",
     "version": "0.0.0-alpha.1"
   }

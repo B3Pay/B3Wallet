@@ -10,8 +10,12 @@ use crate::{
 use async_trait::async_trait;
 use b3_wallet_lib::{
     error::WalletError,
-    ledger::evm::evm::{get_evm_transaction, EvmSignTrait, EvmTransaction},
-    store::with_ledger,
+    ledger::{
+        evm::evm::{get_evm_transaction, EvmSignTrait, EvmTransaction},
+        subaccount::SubaccountTrait,
+        types::ChainEnum,
+    },
+    store::{with_chain, with_ledger},
 };
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
@@ -33,7 +37,10 @@ impl RequestTrait for EvmSignTranscation {
 
         transaction.unsigned_serialized();
 
-        let signature = ledger.sign_with_ecdsa(transaction.serialized()).await?;
+        let signature = ledger
+            .subaccount
+            .sign_with_ecdsa(transaction.serialized())
+            .await?;
 
         transaction.sign(signature, public_key)?;
 
@@ -42,13 +49,7 @@ impl RequestTrait for EvmSignTranscation {
 
     fn validate_request(&self) -> Result<(), PermitError> {
         // check if the chain id is initialized
-        with_ledger(&self.account_id, |ledger| {
-            if ledger.evm(self.chain_id).is_some() {
-                Ok(())
-            } else {
-                Err(PermitError::ChainIdNotInitialized)
-            }
-        })?
+        with_chain(&self.account_id, ChainEnum::EVM(self.chain_id), |_| Ok(()))?
     }
 
     fn method_name(&self) -> String {
@@ -89,7 +90,10 @@ impl RequestTrait for EvmSignRawTransaction {
 
         transaction.unsigned_serialized();
 
-        let signature = ledger.sign_with_ecdsa(transaction.serialized()).await?;
+        let signature = ledger
+            .subaccount
+            .sign_with_ecdsa(transaction.serialized())
+            .await?;
 
         transaction.sign(signature, public_key)?;
 
@@ -98,13 +102,7 @@ impl RequestTrait for EvmSignRawTransaction {
 
     fn validate_request(&self) -> Result<(), PermitError> {
         // check if the chain id is initialized
-        with_ledger(&self.account_id, |ledger| {
-            if ledger.evm(self.chain_id).is_some() {
-                Ok(())
-            } else {
-                Err(PermitError::ChainIdNotInitialized)
-            }
-        })??;
+        with_chain(&self.account_id, ChainEnum::EVM(self.chain_id), |_| {})?;
 
         // check if the hex_raw_tx is valid
         let transaction = get_evm_transaction(&self.hex_raw_tx, self.chain_id)
@@ -138,20 +136,17 @@ impl RequestTrait for EvmSignMessage {
     async fn execute(self) -> Result<ExecutionResult, WalletError> {
         let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
 
-        let signed = ledger.sign_with_ecdsa(self.message.clone()).await?;
+        let signed = ledger
+            .subaccount
+            .sign_with_ecdsa(self.message.clone())
+            .await?;
 
         Ok(EvmMessageSigned(self, signed).into())
     }
 
     fn validate_request(&self) -> Result<(), PermitError> {
         // check if the chain id is initialized
-        with_ledger(&self.account_id, |ledger| {
-            if ledger.evm(1).is_some() {
-                Ok(())
-            } else {
-                Err(PermitError::ChainIdNotInitialized)
-            }
-        })??;
+        with_chain(&self.account_id, ChainEnum::EVM(self.chain_id), |_| {})?;
 
         // check if the message is not sneaky transaction
         let transaction = get_evm_transaction(&self.message, self.chain_id);

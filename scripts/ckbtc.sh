@@ -6,9 +6,9 @@
 IC_VERSION=d6d395a480cd6986b4788f4aafffc5c03a07e46e
 
 CKBTC_ID=mxzaz-hqaaa-aaaar-qaada-cai
-KYY_ID=bkyz2-fmaaa-aaaaa-qaaaq-cai
 MINTER_ID=mqygn-kiaaa-aaaar-qaadq-cai
 
+mkdir -p wasm/ckbtc/
 curl -o wasm/ckbtc/ledger.wasm.gz "https://download.dfinity.systems/ic/$IC_VERSION/canisters/ic-icrc1-ledger.wasm.gz"
 gunzip -f wasm/ckbtc/ledger.wasm.gz
 curl -o wasm/ckbtc/ledger.did "https://raw.githubusercontent.com/dfinity/ic/$IC_VERSION/rs/rosetta-api/icrc1/ledger/ledger.did"

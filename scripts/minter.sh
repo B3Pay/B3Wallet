@@ -9,6 +9,7 @@ CKBTC_ID=mxzaz-hqaaa-aaaar-qaada-cai
 KYY_ID=bkyz2-fmaaa-aaaaa-qaaaq-cai
 MINTER_ID=mqygn-kiaaa-aaaar-qaadq-cai
 
+mkdir -p wasm/minter/
 curl -o wasm/minter/minter.wasm.gz "https://download.dfinity.systems/ic/$IC_VERSION/canisters/ic-ckbtc-minter.wasm.gz"
 gunzip -f wasm/minter/minter.wasm.gz
 curl -o wasm/minter/minter.did "https://raw.githubusercontent.com/dfinity/ic/$IC_VERSION/rs/bitcoin/ckbtc/minter/ckbtc_minter.did"

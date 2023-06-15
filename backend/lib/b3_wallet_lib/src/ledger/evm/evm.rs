@@ -1,5 +1,6 @@
 use crate::ledger::error::LedgerError;
 use crate::ledger::ledger::Ledger;
+use crate::ledger::subaccount::SubaccountTrait;
 
 use super::berlin::EvmTransaction2930;
 use super::error::EvmError;
@@ -174,7 +175,7 @@ impl Ledger {
             return Err(LedgerError::InvalidMessageLength);
         }
 
-        let signature = self.sign_with_ecdsa(message).await?;
+        let signature = self.subaccount.sign_with_ecdsa(message).await?;
 
         let signed_evm_tx = evm_tx
             .sign(signature, public_key)

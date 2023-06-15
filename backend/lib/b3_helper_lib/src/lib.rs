@@ -5,6 +5,7 @@ pub mod environment;
 pub mod error;
 pub mod identifier;
 pub mod owner;
+pub mod release;
 pub mod subaccount;
 pub mod time;
 pub mod tokens;

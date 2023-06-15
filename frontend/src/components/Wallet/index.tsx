@@ -2,13 +2,14 @@ import { Card } from "@chakra-ui/react"
 import { WalletAccountView } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useEffect, useState } from "react"
-import { B3Wallet } from "service/actor"
+import { B3System, B3Wallet } from "service/actor"
 import Loading from "../Loading"
 import WalletBody from "./WalletBody"
 import WalletHeader from "./WalletHeader"
 
 interface WalletProps {
   actor: B3Wallet
+  systemActor: B3System
   walletCanisterId: string
 }
 
@@ -18,7 +19,11 @@ export enum Mode {
   Accounts
 }
 
-const Wallet: React.FC<WalletProps> = ({ actor, walletCanisterId }) => {
+const Wallet: React.FC<WalletProps> = ({
+  actor,
+  systemActor,
+  walletCanisterId
+}) => {
   const [mode, setMode] = useState<Mode>(Mode.Accounts)
 
   const [loading, setLoading] = useState(false)
@@ -75,6 +80,7 @@ const Wallet: React.FC<WalletProps> = ({ actor, walletCanisterId }) => {
         mode={mode}
         actor={actor}
         accounts={accounts}
+        systemActor={systemActor}
         setAccounts={setAccounts}
         fetchAccounts={fetchAccounts}
       />

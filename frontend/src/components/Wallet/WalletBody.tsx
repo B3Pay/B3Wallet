@@ -9,7 +9,7 @@ import { useCallback, useState } from "react"
 import { Mode } from "."
 import { WalletAccountView } from "../../../declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "../../hooks/useToastMessage"
-import { B3Wallet } from "../../service/actor"
+import { B3System, B3Wallet } from "../../service/actor"
 import Account from "./Account"
 import CreateAccount from "./Account/CreateAccount"
 import ProcessedList from "./ProcessedList"
@@ -22,6 +22,7 @@ interface Loadings {
 interface WalletBodyProps extends StackProps {
   mode: Mode
   actor: B3Wallet
+  systemActor: B3System
   accounts: WalletAccountView[]
   setAccounts: React.Dispatch<React.SetStateAction<WalletAccountView[]>>
   fetchAccounts: () => void
@@ -31,6 +32,7 @@ const WalletBody: React.FC<WalletBodyProps> = ({
   mode,
   actor,
   accounts,
+  systemActor,
   setAccounts,
   fetchAccounts,
   ...rest
@@ -79,6 +81,7 @@ const WalletBody: React.FC<WalletBodyProps> = ({
         <Settings
           actor={actor}
           fetchAccounts={fetchAccounts}
+          systemActor={systemActor}
           setLoading={(global: boolean) =>
             setLoading(prev => ({ ...prev, global }))
           }

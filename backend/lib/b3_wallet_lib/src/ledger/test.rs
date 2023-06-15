@@ -4,15 +4,13 @@ mod tests {
         ledger::{
             btc::network::BtcNetwork,
             chain::{Chain, ChainTrait},
+            ecdsa::EcdsaPublicKey,
             ledger::Ledger,
             types::{ChainEnum, ChainMap},
         },
         mocks::ic_cdk_id,
-        types::{PendingReceiveMap, PendingSendMap},
     };
     use b3_helper_lib::{identifier::AccountIdentifier, subaccount::Subaccount, types::CanisterId};
-
-    use crate::ledger::types::EcdsaPublicKey;
 
     #[test]
     fn test_generate_address1() {
@@ -32,10 +30,8 @@ mod tests {
         chains.insert(ChainEnum::ICP, icp_chain);
 
         let mut ledger = Ledger {
-            pending_sends: PendingSendMap::default(),
-            pending_receives: PendingReceiveMap::default(),
             public_key: None,
-            subaccount,
+            subaccount: subaccount.clone(),
             chains,
         };
 
@@ -44,7 +40,7 @@ mod tests {
             153, 192, 65, 30, 59, 177, 153, 39, 80, 76, 185, 200, 51, 255, 218,
         ];
 
-        ledger.set_ecdsa_public_key(ecdsa).unwrap();
+        ledger.set_ecdsa_public_key(ecdsa.clone()).unwrap();
 
         assert_eq!(
             identifier.to_string(),
@@ -67,39 +63,59 @@ mod tests {
 
         assert_eq!(eth_address.len(), 42);
 
-        let btc_address = ledger.btc_address(BtcNetwork::Regtest).unwrap();
+        let chain = Chain::new_btc_chain(
+            BtcNetwork::Regtest,
+            subaccount.clone(),
+            EcdsaPublicKey(ecdsa.clone()),
+        )
+        .unwrap();
 
-        let chain = Chain::new_btc_chain(BtcNetwork::Regtest, btc_address.to_string());
+        ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Regtest), chain.clone());
 
-        ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Regtest), chain);
+        let btc_chain = ledger.chain(ChainEnum::BTC(BtcNetwork::Regtest)).unwrap();
 
-        let btc_address = ledger.chain(ChainEnum::BTC(BtcNetwork::Regtest)).unwrap();
+        assert_eq!(
+            btc_chain.address(),
+            "bcrt1qus9yjf6s8cv0pyqfp2lxgp57xc356uxzcglff6"
+        );
 
-        assert_eq!(btc_address.address(), "n2JigTXi8Nhqe1qmeAaUCAj3rWsgxRzMe3");
+        assert_eq!(chain.address(), btc_chain.address());
 
-        println!("btc_address: {}", btc_address.address());
+        println!("regtest address: {}", btc_chain.address());
 
-        let btc_address = ledger.btc_address(BtcNetwork::Mainnet).unwrap();
-
-        let chain = Chain::new_btc_chain(BtcNetwork::Mainnet, btc_address.to_string());
+        let chain = Chain::new_btc_chain(
+            BtcNetwork::Mainnet,
+            subaccount.clone(),
+            EcdsaPublicKey(ecdsa.clone()),
+        )
+        .unwrap();
 
         ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Mainnet), chain);
 
         let btc_address = ledger.chain(ChainEnum::BTC(BtcNetwork::Mainnet)).unwrap();
 
-        assert_eq!(btc_address.address(), "1MnmPQSjKMGaruN9vbc6NFWizXGz6SgpdC");
+        assert_eq!(
+            btc_address.address(),
+            "bc1qus9yjf6s8cv0pyqfp2lxgp57xc356uxzs8ah9q"
+        );
 
-        let btc_address = ledger.btc_address(BtcNetwork::Testnet).unwrap();
-
-        let chain = Chain::new_btc_chain(BtcNetwork::Testnet, btc_address.to_string());
+        let chain = Chain::new_btc_chain(
+            BtcNetwork::Testnet,
+            subaccount.clone(),
+            EcdsaPublicKey(ecdsa.clone()),
+        )
+        .unwrap();
 
         ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Testnet), chain);
 
         let btc_address = ledger.chain(ChainEnum::BTC(BtcNetwork::Testnet)).unwrap();
 
-        assert_eq!(btc_address.address(), "n2JigTXi8Nhqe1qmeAaUCAj3rWsgxRzMe3");
+        assert_eq!(
+            btc_address.address(),
+            "tb1qus9yjf6s8cv0pyqfp2lxgp57xc356uxz6pxy7n"
+        );
 
-        assert_eq!(btc_address.address().len(), 34);
+        assert_eq!(btc_address.address().len(), 42);
     }
 
     #[test]
@@ -125,21 +141,19 @@ mod tests {
         chains.insert(ChainEnum::ICP, icp_chain);
 
         let mut ledger = Ledger {
-            pending_sends: PendingSendMap::default(),
-            pending_receives: PendingReceiveMap::default(),
             public_key: None,
-            subaccount,
+            subaccount: subaccount.clone(),
             chains,
         };
 
-        let ecdsa: EcdsaPublicKey = vec![
+        let ecdsa = vec![
             2, 50, 207, 109, 252, 71, 63, 226, 215, 137, 36, 108, 105, 51, 80, 125, 193, 121, 151,
             101, 197, 65, 64, 240, 22, 142, 247, 130, 65, 210, 0, 176, 231,
         ];
 
         assert_eq!(identifier.to_string(), expected_identifier.to_string());
 
-        ledger.set_ecdsa_public_key(ecdsa).unwrap();
+        ledger.set_ecdsa_public_key(ecdsa.clone()).unwrap();
 
         let icp_address = ledger.chain(ChainEnum::ICP).unwrap();
 
@@ -158,24 +172,23 @@ mod tests {
 
         assert_eq!(eth_address.len(), 42);
 
-        let btc_address = ledger.btc_address(BtcNetwork::Mainnet).unwrap();
+        let chain =
+            Chain::new_btc_chain(BtcNetwork::Mainnet, subaccount, EcdsaPublicKey(ecdsa)).unwrap();
 
-        ledger.insert_chain(
-            ChainEnum::BTC(BtcNetwork::Mainnet),
-            Chain::new_btc_chain(BtcNetwork::Mainnet, btc_address.to_string()),
+        ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Mainnet), chain.clone());
+
+        let ledger_chain = ledger.chain(ChainEnum::BTC(BtcNetwork::Mainnet)).unwrap();
+
+        assert_eq!(
+            chain.address(),
+            "bc1q6zkgjwu5w7lzc8sgja6uk24ex7zegwpwq0pet9"
         );
 
-        let chain = ledger.btc(BtcNetwork::Mainnet).unwrap();
+        assert_eq!(ledger_chain.address(), chain.address());
 
-        let btc_address = ledger.btc_address(BtcNetwork::Mainnet).unwrap();
+        println!("mainnet address: {}", chain.address());
 
-        assert_eq!(chain.address(), "1L2NEvApixneBNULQzcC5qysuWXrCNDhhr");
-
-        assert_eq!(btc_address.to_string(), chain.address());
-
-        println!("btc_address: {}", btc_address.to_string());
-
-        assert_eq!(chain.address().len(), 34);
+        assert_eq!(chain.address().len(), 42);
     }
 
     #[test]
@@ -205,19 +218,17 @@ mod tests {
         chains.insert(ChainEnum::ICP, icp_chain);
 
         let mut ledger = Ledger {
-            pending_sends: PendingSendMap::default(),
-            pending_receives: PendingReceiveMap::default(),
             public_key: None,
-            subaccount,
+            subaccount: subaccount.clone(),
             chains,
         };
 
-        let ecdsa: EcdsaPublicKey = vec![
+        let ecdsa = vec![
             2, 62, 198, 199, 5, 110, 183, 99, 191, 29, 195, 92, 118, 155, 254, 120, 1, 161, 5, 168,
             26, 182, 33, 68, 123, 186, 216, 216, 41, 136, 9, 40, 38,
         ];
 
-        ledger.set_ecdsa_public_key(ecdsa).unwrap();
+        ledger.set_ecdsa_public_key(ecdsa.clone()).unwrap();
 
         let icp_address = ledger.chain(ChainEnum::ICP).unwrap();
 
@@ -236,12 +247,20 @@ mod tests {
 
         assert_eq!(eth_address.len(), 42);
 
-        let btc_address = ledger.btc_address(BtcNetwork::Mainnet).unwrap().to_string();
+        let chain =
+            Chain::new_btc_chain(BtcNetwork::Testnet, subaccount, EcdsaPublicKey(ecdsa)).unwrap();
 
-        assert_eq!(btc_address, "18P7514xYnwxHcWuc96Ae7dPqhX2syiS2m");
+        ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Testnet), chain);
 
-        println!("btc_address: {}", btc_address);
+        let btc_address = ledger
+            .chain(ChainEnum::BTC(BtcNetwork::Testnet))
+            .unwrap()
+            .address();
 
-        assert_eq!(btc_address.len(), 34);
+        assert_eq!(btc_address, "tb1q2rm3jzqunjhcw0nsjp8ttjtsqdpeluypsy0p8h");
+
+        println!("testnet address: {}", btc_address);
+
+        assert_eq!(btc_address.len(), 42);
     }
 }

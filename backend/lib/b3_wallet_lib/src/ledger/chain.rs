@@ -1,10 +1,11 @@
 use super::{
     btc::{btc::BtcChain, network::BtcNetwork},
     ckbtc::ckbtc::CkbtcChain,
+    ecdsa::EcdsaPublicKey,
     error::LedgerError,
     icp::icp::IcpChain,
     icrc::types::IcrcChain,
-    types::{Balance, ChainId, EvmChain, SendResult},
+    types::{Balance, ChainId, EvmChain, Pendings, SendResult},
 };
 use async_trait::async_trait;
 use b3_helper_lib::{subaccount::Subaccount, types::CanisterId};
@@ -15,6 +16,7 @@ use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 #[enum_dispatch]
 pub trait ChainTrait {
     fn address(&self) -> String;
+    fn pendings(&self) -> Pendings;
     async fn balance(&self) -> Result<Balance, LedgerError>;
     async fn send(&self, to: String, amount: u64) -> Result<SendResult, LedgerError>;
     async fn send_mut(
@@ -67,11 +69,25 @@ impl Chain {
         Ok(chain)
     }
 
-    pub fn new_btc_chain(btc_network: BtcNetwork, address: String) -> Self {
-        Chain::BtcChain(BtcChain {
+    pub fn new_btc_chain(
+        btc_network: BtcNetwork,
+        subaccount: Subaccount,
+        ecdsa_public_key: EcdsaPublicKey,
+    ) -> Result<Self, LedgerError> {
+        let address = ecdsa_public_key
+            .btc_address(btc_network.into())?
+            .to_string();
+
+        let chain = Chain::BtcChain(BtcChain {
+            min_confirmations: None,
+            pending: Vec::new(),
+            ecdsa_public_key,
             btc_network,
+            subaccount,
             address,
-        })
+        });
+
+        Ok(chain)
     }
 
     pub fn new_evm_chain(chain_id: ChainId, address: String) -> Self {
@@ -82,73 +98,117 @@ impl Chain {
         Chain::IcpChain(IcpChain::new(subaccount))
     }
 
-    pub fn icrc(&self) -> Option<&IcrcChain> {
+    pub fn has_pending_send(&self, txid: &String) -> bool {
+        self.ckbtc()
+            .map(|ckbtc| ckbtc.has_pending(txid))
+            .unwrap_or(false)
+    }
+
+    pub fn has_pending_receive(&self, block_index: &String) -> bool {
+        self.btc()
+            .map(|ckbtc| ckbtc.has_pending(block_index))
+            .unwrap_or(false)
+    }
+
+    pub fn add_pending_receive(&mut self, txid: String) -> Result<(), LedgerError> {
+        let ckbtc = self.ckbtc_mut()?;
+
+        ckbtc.add_pending(txid);
+
+        Ok(())
+    }
+
+    pub fn remove_pending_receive(&mut self, txid: &String) -> Result<(), LedgerError> {
+        let ckbtc = self.ckbtc_mut()?;
+
+        ckbtc.remove_pending(txid);
+
+        Ok(())
+    }
+
+    pub fn add_pending_send(&mut self, block_index: String) -> Result<(), LedgerError> {
+        let btc = self.btc_mut()?;
+
+        btc.add_pending(block_index);
+
+        Ok(())
+    }
+
+    pub fn remove_pending_send(&mut self, block_index: String) -> Result<(), LedgerError> {
+        let btc = self.btc_mut()?;
+
+        btc.remove_pending(&block_index);
+
+        Ok(())
+    }
+
+    pub fn icrc(&self) -> Result<IcrcChain, LedgerError> {
         match self {
-            Chain::IcrcChain(icrc) => Some(icrc),
-            _ => None,
+            Chain::IcrcChain(icrc) => Ok(icrc.clone()),
+            _ => Err(LedgerError::InvalidChain),
         }
     }
 
-    pub fn icrc_mut(&mut self) -> Option<&mut IcrcChain> {
+    pub fn icrc_mut(&mut self) -> Result<&mut IcrcChain, LedgerError> {
         match self {
-            Chain::IcrcChain(icrc) => Some(icrc),
-            _ => None,
+            Chain::IcrcChain(icrc) => Ok(icrc),
+            _ => Err(LedgerError::InvalidChain),
         }
     }
 
-    pub fn ckbtc(&self) -> Option<&CkbtcChain> {
+    pub fn ckbtc(&self) -> Result<CkbtcChain, LedgerError> {
         match self {
-            Chain::CkbtcChain(ckbtc) => Some(ckbtc),
-            _ => None,
+            Chain::CkbtcChain(ckbtc) => Ok(ckbtc.clone()),
+            _ => Err(LedgerError::InvalidChain),
         }
     }
 
-    pub fn ckbtc_mut(&mut self) -> Option<&mut CkbtcChain> {
+    pub fn ckbtc_mut(&mut self) -> Result<&mut CkbtcChain, LedgerError> {
         match self {
-            Chain::CkbtcChain(ckbtc) => Some(ckbtc),
-            _ => None,
+            Chain::CkbtcChain(ckbtc) => Ok(ckbtc),
+            _ => Err(LedgerError::InvalidChain),
         }
     }
 
-    pub fn btc(&self) -> Option<&BtcChain> {
+    pub fn btc(&self) -> Result<BtcChain, LedgerError> {
         match self {
-            Chain::BtcChain(btc) => Some(btc),
-            _ => None,
+            Chain::BtcChain(btc) => Ok(btc.clone()),
+            _ => Err(LedgerError::InvalidChain),
         }
     }
 
-    pub fn btc_mut(&mut self) -> Option<&mut BtcChain> {
+    pub fn btc_mut(&mut self) -> Result<&mut BtcChain, LedgerError> {
         match self {
-            Chain::BtcChain(btc) => Some(btc),
-            _ => None,
+            Chain::BtcChain(btc) => Ok(btc),
+            _ => Err(LedgerError::InvalidChain),
         }
     }
 
-    pub fn evm(&self) -> Option<&EvmChain> {
+    pub fn evm(&self) -> Result<EvmChain, LedgerError> {
         match self {
-            Chain::EvmChain(evm) => Some(evm),
-            _ => None,
+            Chain::EvmChain(evm) => Ok(evm.clone()),
+            _ => Err(LedgerError::InvalidChain),
         }
     }
 
-    pub fn evm_mut(&mut self) -> Option<&mut EvmChain> {
+    pub fn evm_mut(&mut self) -> Result<&mut EvmChain, LedgerError> {
         match self {
-            Chain::EvmChain(evm) => Some(evm),
-            _ => None,
+            Chain::EvmChain(evm) => Ok(evm),
+            _ => Err(LedgerError::InvalidChain),
         }
     }
 
-    pub fn icp(&self) -> Option<&IcpChain> {
+    pub fn icp(&self) -> Result<IcpChain, LedgerError> {
         match self {
-            Chain::IcpChain(icp) => Some(icp),
-            _ => None,
+            Chain::IcpChain(icp) => Ok(icp.clone()),
+            _ => Err(LedgerError::InvalidChain),
         }
     }
 
-    pub fn icp_mut(&mut self) -> Option<&mut IcpChain> {
+    pub fn icp_mut(&mut self) -> Result<&mut IcpChain, LedgerError> {
         match self {
-            Chain::IcpChain(icp) => Some(icp),
-            _ => None,
+            Chain::IcpChain(icp) => Ok(icp),
+            _ => Err(LedgerError::InvalidChain),
         }
     }
 }
@@ -156,7 +216,9 @@ impl Chain {
 #[async_trait]
 impl ChainTrait for EvmChain {
     fn address(&self) -> String {
-        self.address.clone()
+        let address = self.address.clone();
+
+        address
     }
 
     async fn balance(&self) -> Result<Balance, LedgerError> {
@@ -175,5 +237,9 @@ impl ChainTrait for EvmChain {
         _memo: Option<String>,
     ) -> Result<SendResult, LedgerError> {
         todo!("implement the async method for BTC...")
+    }
+
+    fn pendings(&self) -> Pendings {
+        Pendings::new()
     }
 }

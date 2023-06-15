@@ -2,7 +2,7 @@ use super::types::{ICRC1TransferArgs, IcrcChain, TxIndex};
 use crate::ledger::{
     chain::ChainTrait,
     error::LedgerError,
-    types::{Balance, SendResult},
+    types::{Balance, Pendings, SendResult},
 };
 use async_trait::async_trait;
 use b3_helper_lib::account::ICRCAccount;
@@ -60,5 +60,9 @@ impl ChainTrait for IcrcChain {
         // TODO: implement the update of the fee and memo fields if user wants to change them
 
         self.send(to, amount).await
+    }
+
+    fn pendings(&self) -> Pendings {
+        Pendings::default()
     }
 }

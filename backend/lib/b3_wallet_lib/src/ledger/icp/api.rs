@@ -16,7 +16,7 @@ use super::icp::IcpChain;
 use crate::ledger::{
     chain::ChainTrait,
     error::LedgerError,
-    types::{Balance, SendResult},
+    types::{Balance, Pendings, SendResult},
 };
 
 #[async_trait]
@@ -68,5 +68,9 @@ impl ChainTrait for IcpChain {
     ) -> Result<SendResult, LedgerError> {
         // TODO: This is a hack to get around the fact that we can't have mutable self and
         self.send(to, amount).await
+    }
+
+    fn pendings(&self) -> Pendings {
+        Pendings::default()
     }
 }

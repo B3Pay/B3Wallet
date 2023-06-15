@@ -1,4 +1,5 @@
 use b3_helper_lib::{
+    release::ReleaseName,
     time::NanoTimeStamp,
     types::{CanisterId, ControllerId, SignerId, Version, Wasm, WasmHash, WasmSize},
 };
@@ -8,7 +9,10 @@ use std::collections::HashMap;
 pub type WalletCanisters = Vec<WalletCanister>;
 pub type Controllers = Vec<ControllerId>;
 pub type Canisters = Vec<CanisterId>;
+
 pub type Releases = Vec<Release>;
+pub type ReleaseMap = HashMap<ReleaseName, Vec<Release>>;
+
 pub type Features = Vec<String>;
 pub type Users = Vec<SignerId>;
 
@@ -22,10 +26,10 @@ pub struct WalletCanister {
     pub updated_at: NanoTimeStamp,
 }
 
-#[derive(Default, CandidType, Deserialize, Clone)]
+#[derive(CandidType, Deserialize, Clone, Default)]
 pub struct State {
     pub users: UserMap,
-    pub releases: Releases,
+    pub releases: ReleaseMap,
     pub controllers: Controllers,
 }
 

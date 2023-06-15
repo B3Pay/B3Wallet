@@ -79,7 +79,7 @@ export interface IcrcChain {
 }
 export interface Ledger {
   'public_key' : [] | [Uint8Array | number[]],
-  'pending_sends' : Array<[Minter, Array<[bigint, RetrieveBtcStatus]>]>,
+  'pending_sends' : Array<[Minter, BigUint64Array | bigint[]]>,
   'subaccount' : Uint8Array | number[],
   'pending_receives' : Array<[Minter, string]>,
   'chains' : Array<[ChainEnum, Chain]>,
@@ -129,7 +129,7 @@ export interface WalletAccount {
 }
 export interface WalletAccountView {
   'id' : string,
-  'pending_send' : Array<[Minter, Array<[bigint, RetrieveBtcStatus]>]>,
+  'pending_send' : Array<[Minter, BigUint64Array | bigint[]]>,
   'metadata' : Array<[string, string]>,
   'name' : string,
   'hidden' : boolean,
@@ -138,12 +138,14 @@ export interface WalletAccountView {
   'environment' : Environment,
 }
 export interface WalletCanisterStatus {
+  'name' : string,
   'canister_id' : Principal,
   'status_at' : bigint,
   'version' : string,
   'canister_status' : CanisterStatusResponse,
   'account_status' : AccountsNonce,
 }
+export interface WasmDetails { 'hash' : Uint8Array | number[], 'size' : bigint }
 export interface _SERVICE {
   'account_balance' : ActorMethod<[string, ChainEnum], bigint>,
   'account_balance_btc' : ActorMethod<
@@ -217,6 +219,7 @@ export interface _SERVICE {
   'unload_wasm' : ActorMethod<[], bigint>,
   'upgrage_wallet' : ActorMethod<[], undefined>,
   'version' : ActorMethod<[], string>,
+  'wasm_details' : ActorMethod<[], WasmDetails>,
   'wasm_hash' : ActorMethod<[], Uint8Array | number[]>,
   'wasm_hash_string' : ActorMethod<[], string>,
 }

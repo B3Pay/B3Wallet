@@ -60,15 +60,6 @@ export const idlFactory = ({ IDL }) => {
     }),
     'Checked' : Utxo_1,
   });
-  const RetrieveBtcStatus = IDL.Variant({
-    'Signing' : IDL.Null,
-    'Confirmed' : IDL.Record({ 'txid' : IDL.Vec(IDL.Nat8) }),
-    'Sending' : IDL.Record({ 'txid' : IDL.Vec(IDL.Nat8) }),
-    'AmountTooLow' : IDL.Null,
-    'Unknown' : IDL.Null,
-    'Submitted' : IDL.Record({ 'txid' : IDL.Vec(IDL.Nat8) }),
-    'Pending' : IDL.Null,
-  });
   const EvmChain = IDL.Record({ 'chain_id' : IDL.Nat64, 'address' : IDL.Text });
   const BtcChain = IDL.Record({ 'address' : IDL.Text, 'btc_network' : Minter });
   const Timestamp = IDL.Record({ 'timestamp_nanos' : IDL.Nat64 });
@@ -113,9 +104,7 @@ export const idlFactory = ({ IDL }) => {
   });
   const Ledger = IDL.Record({
     'public_key' : IDL.Opt(IDL.Vec(IDL.Nat8)),
-    'pending_sends' : IDL.Vec(
-      IDL.Tuple(Minter, IDL.Vec(IDL.Tuple(IDL.Nat64, RetrieveBtcStatus)))
-    ),
+    'pending_sends' : IDL.Vec(IDL.Tuple(Minter, IDL.Vec(IDL.Nat64))),
     'subaccount' : IDL.Vec(IDL.Nat8),
     'pending_receives' : IDL.Vec(IDL.Tuple(Minter, IDL.Text)),
     'chains' : IDL.Vec(IDL.Tuple(ChainEnum, Chain)),
@@ -134,9 +123,7 @@ export const idlFactory = ({ IDL }) => {
   });
   const WalletAccountView = IDL.Record({
     'id' : IDL.Text,
-    'pending_send' : IDL.Vec(
-      IDL.Tuple(Minter, IDL.Vec(IDL.Tuple(IDL.Nat64, RetrieveBtcStatus)))
-    ),
+    'pending_send' : IDL.Vec(IDL.Tuple(Minter, IDL.Vec(IDL.Nat64))),
     'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
     'name' : IDL.Text,
     'hidden' : IDL.Bool,
@@ -377,6 +364,15 @@ export const idlFactory = ({ IDL }) => {
     'role' : Roles,
     'expires_at' : IDL.Opt(IDL.Nat64),
   });
+  const RetrieveBtcStatus = IDL.Variant({
+    'Signing' : IDL.Null,
+    'Confirmed' : IDL.Record({ 'txid' : IDL.Vec(IDL.Nat8) }),
+    'Sending' : IDL.Record({ 'txid' : IDL.Vec(IDL.Nat8) }),
+    'AmountTooLow' : IDL.Null,
+    'Unknown' : IDL.Null,
+    'Submitted' : IDL.Record({ 'txid' : IDL.Vec(IDL.Nat8) }),
+    'Pending' : IDL.Null,
+  });
   const CanisterStatusType = IDL.Variant({
     'stopped' : IDL.Null,
     'stopping' : IDL.Null,
@@ -397,6 +393,7 @@ export const idlFactory = ({ IDL }) => {
     'module_hash' : IDL.Opt(IDL.Vec(IDL.Nat8)),
   });
   const WalletCanisterStatus = IDL.Record({
+    'name' : IDL.Text,
     'canister_id' : IDL.Principal,
     'status_at' : IDL.Nat64,
     'version' : IDL.Text,

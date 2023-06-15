@@ -1,4 +1,4 @@
-use bitcoin::{PublicKey, Script, ScriptBuf};
+use bitcoin::{Script, ScriptBuf};
 
 /// The length of the transaction signature.
 pub const MAX_ENCODED_SIGNATURE_LEN: usize = 73;
@@ -13,11 +13,16 @@ const MOCK_SIG: [u8; MAX_ENCODED_SIGNATURE_LEN] = [
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
 ];
 
-pub fn mock_signer(public_key: &PublicKey) -> ScriptBuf {
+const MOCK_PUBKEY: [u8; PUBKEY_LEN] = [
+    0x02, 0x00, 0x8f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x8f, 0x00, 0x00, 0x00, 0x00, 0x8f, 0x00, 0x00,
+    0x00, 0x00, 0x8f, 0x00, 0x00, 0x00, 0x00, 0x8f, 0x00, 0x00, 0x00, 0x00, 0x8f, 0x00, 0x00, 0x00,
+];
+
+pub fn mock_signer() -> ScriptBuf {
     // Add signature and public key to script
     let script = Script::builder()
         .push_slice(&MOCK_SIG)
-        .push_key(&public_key)
+        .push_slice(&MOCK_PUBKEY)
         .into_script();
 
     script

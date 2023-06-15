@@ -1,13 +1,24 @@
+use super::error::LedgerError;
+use super::types::{
+    ECDSAPublicKeyArgs, ECDSAPublicKeyResponse, SignWithECDSAArgs, SignWithECDSAResponse,
+};
 use super::{config::EcdsaConfig, types::EcdsaKeyId};
+use async_trait::async_trait;
+use b3_helper_lib::constants::MANAGMENT_CANISTER_ID;
 use b3_helper_lib::subaccount::Subaccount;
+use ic_cdk::api::call::{call, call_with_payment};
 
+#[async_trait]
 pub trait SubaccountTrait {
     fn derivation_path(&self) -> Vec<Vec<u8>>;
     fn config(&self) -> EcdsaConfig;
     fn key_id(&self) -> EcdsaKeyId;
     fn key_id_with_cycles_and_path(&self) -> (EcdsaKeyId, u64, Vec<Vec<u8>>);
+    async fn ecdsa_public_key(&self) -> Result<Vec<u8>, LedgerError>;
+    async fn sign_with_ecdsa(&self, message_hash: Vec<u8>) -> Result<Vec<u8>, LedgerError>;
 }
 
+#[async_trait]
 impl SubaccountTrait for Subaccount {
     fn derivation_path(&self) -> Vec<Vec<u8>> {
         vec![self.0.to_vec()]
@@ -29,6 +40,42 @@ impl SubaccountTrait for Subaccount {
             config.sign_cycles(),
             self.derivation_path(),
         )
+    }
+
+    async fn ecdsa_public_key(&self) -> Result<Vec<u8>, LedgerError> {
+        let key_id = self.key_id();
+
+        let derivation_path = self.derivation_path();
+
+        let request = ECDSAPublicKeyArgs {
+            canister_id: None,
+            derivation_path,
+            key_id,
+        };
+
+        let (res,): (ECDSAPublicKeyResponse,) =
+            call(MANAGMENT_CANISTER_ID, "ecdsa_public_key", (request,))
+                .await
+                .map_err(|e| LedgerError::CallError(e.1))?;
+
+        Ok(res.public_key)
+    }
+
+    async fn sign_with_ecdsa(&self, message_hash: Vec<u8>) -> Result<Vec<u8>, LedgerError> {
+        let (key_id, cycles, derivation_path) = self.key_id_with_cycles_and_path();
+
+        let request = SignWithECDSAArgs {
+            derivation_path,
+            message_hash,
+            key_id,
+        };
+
+        let (res,): (SignWithECDSAResponse,) =
+            call_with_payment(MANAGMENT_CANISTER_ID, "sign_with_ecdsa", (request,), cycles)
+                .await
+                .map_err(|e| LedgerError::CallError(e.1))?;
+
+        Ok(res.signature)
     }
 }
 

@@ -56,6 +56,10 @@ impl Release {
         with_wasm(&self.version, |wasm| wasm.is_loaded(self.size)).unwrap_or(false)
     }
 
+    pub fn is_same_hash(&self, hash: &WasmHash) -> bool {
+        self.hash == *hash
+    }
+
     pub fn wasm(&self) -> Result<WasmModule, SystemError> {
         let wasm = with_wasm(&self.version, |wasm| wasm.0.clone())?;
 

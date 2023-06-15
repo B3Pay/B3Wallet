@@ -4,7 +4,9 @@ use crate::{
     request::{request::RequestTrait, result::BtcTransfered},
 };
 use async_trait::async_trait;
-use b3_wallet_lib::{error::WalletError, ledger::btc::network::BtcNetwork, store::with_ledger};
+use b3_wallet_lib::ledger::types::ChainEnum;
+use b3_wallet_lib::ledger::{chain::ChainTrait, types::SendResult};
+use b3_wallet_lib::{error::WalletError, ledger::btc::network::BtcNetwork, store::with_chain};
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
@@ -18,15 +20,16 @@ pub struct BtcTransfer {
 #[async_trait]
 impl RequestTrait for BtcTransfer {
     async fn execute(self) -> Result<ExecutionResult, WalletError> {
-        let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
+        let chain = with_chain(&self.account_id, ChainEnum::BTC(self.network), |chain| {
+            chain.clone()
+        })?;
 
-        let result = ledger
-            .bitcoin_transfer(self.network, &self.to, self.amount)
-            .await;
+        let result = chain.send(self.to.clone(), self.amount).await;
 
         match result {
+            Ok(SendResult::BTC(txid)) => Ok(BtcTransfered(self, txid).into()),
             Err(err) => return Err(WalletError::ExecutionError(err.to_string())),
-            Ok(tx_id) => Ok(BtcTransfered(self, tx_id).into()),
+            _ => return Err(WalletError::UnknownError),
         }
     }
 
@@ -35,13 +38,7 @@ impl RequestTrait for BtcTransfer {
             return Err(PermitError::InvalidAmount);
         }
 
-        with_ledger(&self.account_id, |ledger| {
-            if ledger.btc(self.network).is_some() {
-                Ok(())
-            } else {
-                Err(PermitError::ChainIdNotInitialized)
-            }
-        })?
+        with_chain(&self.account_id, ChainEnum::BTC(self.network), |_| Ok(()))?
     }
 
     fn method_name(&self) -> String {

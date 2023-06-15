@@ -88,7 +88,7 @@ mod tests {
     use b3_wallet_lib::ledger::types::*;
     use b3_wallet_lib::types::*;
 
-    use ic_cdk::api::management_canister::bitcoin::{GetUtxosResponse, Satoshi, UtxoFilter};
+    use ic_cdk::api::management_canister::bitcoin::Satoshi;
     use ic_cdk::export::candid::export_service;
 
     #[test]

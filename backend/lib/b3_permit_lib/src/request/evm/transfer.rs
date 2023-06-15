@@ -7,8 +7,12 @@ use crate::{
 use async_trait::async_trait;
 use b3_wallet_lib::{
     error::WalletError,
-    ledger::evm::{evm::EvmSignTrait, london::EvmTransaction1559, utils::get_transfer_data},
-    store::with_ledger,
+    ledger::{
+        evm::{evm::EvmSignTrait, london::EvmTransaction1559, utils::get_transfer_data},
+        subaccount::SubaccountTrait,
+        types::ChainEnum,
+    },
+    store::{with_chain, with_ledger},
 };
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
@@ -54,7 +58,7 @@ impl RequestTrait for EvmTransfer {
 
         let raw_tx = transaction.unsigned_serialized();
 
-        let _signed = ledger.sign_with_ecdsa(raw_tx).await?;
+        let _signed = ledger.subaccount.sign_with_ecdsa(raw_tx).await?;
 
         transaction.sign(_signed, public_key)?;
 
@@ -63,13 +67,7 @@ impl RequestTrait for EvmTransfer {
 
     fn validate_request(&self) -> Result<(), PermitError> {
         // check if the chain id is initialized
-        with_ledger(&self.account_id, |ledger| {
-            if ledger.evm(self.chain_id).is_some() {
-                Ok(())
-            } else {
-                Err(PermitError::ChainIdNotInitialized)
-            }
-        })?
+        with_chain(&self.account_id, ChainEnum::EVM(self.chain_id), |_| Ok(()))?
     }
 
     fn method_name(&self) -> String {
@@ -122,7 +120,7 @@ impl RequestTrait for EvmTransferErc20 {
 
         let raw_tx = transaction.unsigned_serialized();
 
-        let signature = ledger.sign_with_ecdsa(raw_tx).await?;
+        let signature = ledger.subaccount.sign_with_ecdsa(raw_tx).await?;
 
         transaction.sign(signature, public_key)?;
 
@@ -131,13 +129,7 @@ impl RequestTrait for EvmTransferErc20 {
 
     fn validate_request(&self) -> Result<(), PermitError> {
         // check if the chain id is initialized
-        with_ledger(&self.account_id, |ledger| {
-            if ledger.evm(self.chain_id).is_some() {
-                Ok(())
-            } else {
-                Err(PermitError::ChainIdNotInitialized)
-            }
-        })?
+        with_chain(&self.account_id, ChainEnum::EVM(self.chain_id), |_| Ok(()))?
     }
 
     fn method_name(&self) -> String {

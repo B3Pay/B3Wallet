@@ -216,10 +216,7 @@ type IcrcChain = record {
 };
 type Ledger = record {
   public_key : opt vec nat8;
-  pending_sends : vec record {
-    Minter;
-    vec record { nat64; RetrieveBtcStatus };
-  };
+  pending_sends : vec record { Minter; vec nat64 };
   subaccount : vec nat8;
   pending_receives : vec record { Minter; text };
   chains : vec record { ChainEnum; Chain };
@@ -320,7 +317,7 @@ type WalletAccount = record {
 };
 type WalletAccountView = record {
   id : text;
-  pending_send : vec record { Minter; vec record { nat64; RetrieveBtcStatus } };
+  pending_send : vec record { Minter; vec nat64 };
   metadata : vec record { text; text };
   name : text;
   hidden : bool;
@@ -329,6 +326,7 @@ type WalletAccountView = record {
   environment : Environment;
 };
 type WalletCanisterStatus = record {
+  name : text;
   canister_id : principal;
   status_at : nat64;
   version : text;

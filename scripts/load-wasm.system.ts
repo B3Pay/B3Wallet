@@ -19,7 +19,7 @@ const loadRelease = async (
   }
 
   for await (const chunks of chunkGenerator(wasmModule)) {
-    const result = await actor.load_release(chunks, release)
+    const result = await actor.load_release(wallet, chunks, release)
 
     console.log(`Chunks :`, result)
   }
@@ -43,16 +43,14 @@ export const load = async (
 
   const versionName = version + (candid ? "-candid" : "")
 
-  if (reload) {
-    console.log(`Reloading wasm code v${versionName} in System.`)
+  console.log(`Loading ${wallet} wasm code v${versionName} in SystemCanister.`)
 
+  if (reload) {
     try {
-      await actor.remove_release(versionName)
-    } catch (_) {
+      await actor.remove_release(wallet, versionName)
+    } catch (e) {
       console.error(`Error removing release:`, wallet, versionName)
     }
-  } else {
-    console.log(`Loading wasm code v${versionName} in System.`)
   }
 
   await loadRelease(actor, wallet, wasmModule, versionName)

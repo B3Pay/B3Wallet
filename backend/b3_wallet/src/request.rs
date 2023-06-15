@@ -19,6 +19,7 @@ use b3_permit_lib::{
     store::{with_permit, with_permit_mut},
     types::PendingRequestList,
 };
+use b3_wallet_lib::ledger::subaccount::SubaccountTrait;
 use b3_wallet_lib::store::with_ledger;
 use ic_cdk::{export::candid::candid_method, query, update};
 
@@ -207,6 +208,7 @@ pub async fn request_sign_message(account_id: String, message_hash: Vec<u8>) -> 
     let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
     ledger
+        .subaccount
         .sign_with_ecdsa(message_hash)
         .await
         .unwrap_or_else(revert)

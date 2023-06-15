@@ -1,15 +1,19 @@
+use b3_helper_lib::error::HelperError;
 use ic_cdk::export::candid::{CandidType, Deserialize};
 
 #[rustfmt::skip]
 #[derive(CandidType, Deserialize)]
 pub enum SystemError {
+    HelperError(HelperError),
     ValidateSignerError(String),
     UpdateCanisterControllersError(String),
     VersionError(String),
     RateLimitExceeded,
+    InvalidReleaseName,
     InvalidWalletCanister,
     InvalidAccountIdentifier,
     ReleaseNotFound,
+    ReleaseNameNotFound,
     ReleaseAlreadyExists,
     WasmNotFound,
     WasmAlreadyLoaded,
@@ -39,6 +43,7 @@ use std::fmt;
 impl fmt::Display for SystemError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            SystemError::HelperError(e) => write!(f, "{}", e),
             SystemError::ValidateSignerError(e) => write!(f, "Validate signer error: {}", e),
             SystemError::UpdateCanisterControllersError(e) => write!(f, "Update canister controllers error: {}", e),
             SystemError::VersionError(e) => write!(f, "Version error: {}", e),
@@ -48,8 +53,10 @@ impl fmt::Display for SystemError {
             SystemError::InstallArgError(e) => write!(f, "Install arg error: {}", e),
             SystemError::UpdateControllersError(e) => write!(f, "Update controllers error: {}", e),
             SystemError::WasmInstallError(e) => write!(f, "Wasm install error: {}", e),
+            SystemError::InvalidReleaseName => write!(f, "Invalid release name!"),
             SystemError::InvalidAccountIdentifier => write!(f, "Invalid account identifier!"),
             SystemError::ReleaseNotFound => write!(f, "Release not found!"),
+            SystemError::ReleaseNameNotFound => write!(f, "Release name not found!"),
             SystemError::UserAlreadyExists => write!(f, "User already exists!"),
             SystemError::UserNotFound => write!(f, "User not found!"),
             SystemError::NoCanisterAvailable => write!(f, "No canister available!"),

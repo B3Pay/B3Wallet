@@ -40,6 +40,12 @@ pub type WasmHash = [u8; 32];
 pub type WasmHashString = String;
 pub type WasmVersion = String;
 
+#[derive(CandidType, Deserialize, Serialize, Clone)]
+pub struct WasmDetails {
+    pub hash: WasmHash,
+    pub size: WasmSize,
+}
+
 pub struct WalletCanisterInstallArg {
     pub arg: Vec<u8>,
     pub wasm_module: WasmModule,
@@ -82,6 +88,7 @@ pub struct AccountsNonce {
 
 #[derive(CandidType, Deserialize, Serialize)]
 pub struct WalletCanisterStatus {
+    pub name: String,
     pub version: String,
     pub status_at: NanoTimeStamp,
     pub canister_id: CanisterId,
