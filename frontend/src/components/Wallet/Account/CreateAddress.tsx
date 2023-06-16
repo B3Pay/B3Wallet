@@ -96,7 +96,7 @@ const CreateAddress: React.FC<CreateAddressProps> = ({
       )}
       <Flex>
         <Button onClick={createAddress} isLoading={loading}>
-          Generate {chain} address
+          Create {chain} address
         </Button>
       </Flex>
     </Stack>

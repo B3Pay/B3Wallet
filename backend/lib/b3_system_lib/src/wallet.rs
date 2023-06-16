@@ -1,6 +1,10 @@
-use crate::{error::SystemError, types::WalletCanister};
+use crate::{
+    error::SystemError,
+    types::{Controllers, WalletCanister},
+};
 use b3_helper_lib::{
     constants::RATE_LIMIT,
+    ic_canister_status,
     time::NanoTimeStamp,
     types::{
         CanisterId, ControllerId, SignerId, Version, WalletCanisterInstallArg,
@@ -117,15 +121,16 @@ impl WalletCanister {
         controllers: Vec<ControllerId>,
         cycles: u128,
     ) -> Result<CanisterId, SystemError> {
-        let settings = Some(CanisterSettings {
-            controllers: Some(controllers.clone()),
-            compute_allocation: None,
-            memory_allocation: None,
-            freezing_threshold: None,
-        });
+        let args = CreateCanisterArgument {
+            settings: Some(CanisterSettings {
+                controllers: Some(controllers.clone()),
+                compute_allocation: None,
+                memory_allocation: None,
+                freezing_threshold: None,
+            }),
+        };
 
-        let result =
-            create_canister_with_extra_cycles(CreateCanisterArgument { settings }, cycles).await;
+        let result = create_canister_with_extra_cycles(args, cycles).await;
 
         match result {
             Ok(result) => {
@@ -142,18 +147,14 @@ impl WalletCanister {
     /// Install the code for the canister.
     pub async fn install_code(
         &mut self,
-        WalletCanisterInstallArg {
-            arg,
-            mode,
-            wasm_module,
-        }: WalletCanisterInstallArg,
+        args: WalletCanisterInstallArg,
     ) -> Result<(), SystemError> {
         let canister_id = self.canister_id()?;
 
         let install_args = InstallCodeArgument {
-            arg,
-            mode,
-            wasm_module,
+            arg: args.arg,
+            mode: args.mode,
+            wasm_module: args.wasm_module,
             canister_id,
         };
 
@@ -165,14 +166,24 @@ impl WalletCanister {
     /// Update the controllers of the canister.
     /// The caller must be a controller of the canister.
     /// Default controllers are the owner and the signer itself.
-    pub async fn update_controllers(
-        &self,
-        mut controllers: Vec<ControllerId>,
-    ) -> Result<(), SystemError> {
+    pub async fn add_controllers(&self, mut controllers: Controllers) -> Result<(), SystemError> {
         let canister_id = self.canister_id()?;
+
+        let canister_status = ic_canister_status(canister_id)
+            .await
+            .map_err(|err| SystemError::CanisterStatusError(err.to_string()))?;
 
         if !controllers.contains(&canister_id) {
             controllers.push(canister_id);
+            canister_status
+                .settings
+                .controllers
+                .iter()
+                .for_each(|controller| {
+                    if !controllers.contains(controller) {
+                        controllers.push(controller.clone());
+                    }
+                });
         }
 
         let arg = UpdateSettingsArgument {

@@ -1,11 +1,11 @@
-use super::ckbtc::CkbtcChain;
+use super::{ckbtc::CkbtcChain, error::CkbtcError, types::RetrieveBtcStatus};
 use crate::{
     ledger::types::{Balance, SendResult},
     ledger::{
         chain::ChainTrait,
         error::LedgerError,
         icrc::{error::IcrcError, types::ICRC1TransferArgs},
-        types::Pendings,
+        types::{CkbtcPending, PendingEnum},
     },
 };
 use async_trait::async_trait;
@@ -64,7 +64,47 @@ impl ChainTrait for CkbtcChain {
         self.send(to, amount).await
     }
 
-    fn pendings(&self) -> Pendings {
-        self.pending_receive.clone()
+    async fn check_pending(&self, pending_index: usize) -> Result<(), LedgerError> {
+        let CkbtcPending {
+            block_index,
+            txid: _,
+        } = self
+            .pendings
+            .get(pending_index)
+            .ok_or(LedgerError::PendingIndexError(pending_index))?;
+
+        let result = self
+            .minter
+            .retrieve_btc_status(block_index.clone())
+            .await
+            .map_err(|err| LedgerError::CkbtcError(CkbtcError::MinterError(err)))?;
+
+        match result {
+            RetrieveBtcStatus::Confirmed { txid: _ } => Ok(()),
+            _ => Err(LedgerError::CkbtcError(CkbtcError::RetrieveBtcStatus(
+                result,
+            ))),
+        }
+    }
+
+    fn pendings(&self) -> Vec<PendingEnum> {
+        self.pendings
+            .iter()
+            .map(|pending| PendingEnum::CkbtcPending(pending.clone()))
+            .collect()
+    }
+
+    fn add_pending(&mut self, pending: PendingEnum) {
+        if let PendingEnum::CkbtcPending(p) = pending {
+            self.pendings.push(p);
+        }
+    }
+
+    fn remove_pending(&mut self, pending_index: usize) {
+        self.pendings.remove(pending_index);
+    }
+
+    fn clear_pending(&mut self) {
+        self.pendings.clear();
     }
 }

@@ -27,7 +27,7 @@
     "load-wasm:system": "ts-node ./scripts/load-wasm.system.ts",
     "copy-wasm": "yarn build:wallet && yarn build:simple-wallet && ts-node ./scripts/copy-wasm.ts",
     "ic:dev": "DFX_NETWORK=ic yarn dev",
-    "dev": "cd frontend && npm run dev",
+    "dev": "DFX_NETWORK=local cd frontend && npm run dev",
     "build": "cd frontend && npm run build"
   },
   "devDependencies": {

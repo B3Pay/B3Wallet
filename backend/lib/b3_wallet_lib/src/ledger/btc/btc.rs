@@ -2,6 +2,8 @@ use crate::ledger::ckbtc::minter::Minter;
 use crate::ledger::ckbtc::types::BtcTxId;
 use crate::ledger::ecdsa::EcdsaPublicKey;
 use crate::ledger::subaccount::SubaccountTrait;
+use crate::ledger::types::BtcPending;
+use b3_helper_lib::account::ICRCAccount;
 use b3_helper_lib::subaccount::Subaccount;
 use bitcoin::consensus::serialize;
 use bitcoin::secp256k1::ecdsa::Signature;
@@ -26,27 +28,9 @@ pub struct BtcChain {
     pub address: String,
     pub subaccount: Subaccount,
     pub btc_network: BtcNetwork,
-    pub pending: Vec<String>,
+    pub pendings: Vec<BtcPending>,
     pub ecdsa_public_key: EcdsaPublicKey,
     pub min_confirmations: Option<u32>,
-}
-
-impl BtcChain {
-    pub fn has_pending(&self, block_index: &String) -> bool {
-        self.pending.contains(block_index)
-    }
-
-    pub fn add_pending(&mut self, block_index: String) {
-        self.pending.push(block_index);
-    }
-
-    pub fn remove_pending(&mut self, block_index: &String) {
-        self.pending.retain(|x| x != block_index);
-    }
-
-    pub fn clear_pending(&mut self) {
-        self.pending.clear();
-    }
 }
 
 impl BtcChain {
@@ -114,9 +98,9 @@ impl BtcChain {
             .send_transaction(signed_transaction_bytes)
             .await?;
 
-        let tx_id = signed_transaction.txid();
+        let txid = signed_transaction.txid();
 
-        Ok(tx_id.to_string())
+        Ok(txid.to_string())
     }
 
     /// Signs a message hash with the internet computer threshold signature.
@@ -173,19 +157,26 @@ impl BtcChain {
         Ok(transaction.clone())
     }
 
-    pub async fn swap_to_ckbtc(&self, amount: Satoshi) -> Result<BtcTxId, BitcoinError> {
+    pub async fn swap_to_ckbtc(&self, amount: Satoshi) -> Result<BtcPending, BitcoinError> {
         let minter = Minter::new(self.btc_network.clone());
 
+        let account = ICRCAccount::from(self.subaccount.clone());
+
         let dst_address = minter
-            .get_btc_address(self.subaccount.clone().into())
+            .get_btc_address(account.clone())
             .await
             .map_err(|err| BitcoinError::SwapToCkbtc(err.to_string()))?;
 
-        let tx_id = self
+        let txid = self
             .transfer(dst_address, amount)
             .await
             .map_err(|err| BitcoinError::SwapToCkbtc(err.to_string()))?;
 
-        Ok(tx_id)
+        let pending = BtcPending {
+            txid,
+            account: account.to_string(),
+        };
+
+        Ok(pending)
     }
 }

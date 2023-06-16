@@ -100,18 +100,12 @@ impl State {
         &self,
         name: ReleaseName,
         version: &Version,
-        owner: SignerId,
-        system: Option<CanisterId>,
         mode: CanisterInstallMode,
+        init_args: WalletCanisterInitArgs,
     ) -> Result<WalletCanisterInstallArg, SystemError> {
         let wasm_module = self.get_release(name, version)?.wasm()?;
 
-        let canister_args = WalletCanisterInitArgs {
-            owner_id: owner,
-            system_id: system,
-        };
-
-        let arg = canister_args
+        let arg = init_args
             .encode()
             .map_err(|e| SystemError::InstallArgError(e.to_string()))?;
 
@@ -133,18 +127,12 @@ impl State {
     pub fn get_latest_install_args(
         &self,
         name: ReleaseName,
-        owner: SignerId,
-        system: Option<CanisterId>,
         mode: CanisterInstallMode,
+        init_args: WalletCanisterInitArgs,
     ) -> Result<WalletCanisterInstallArg, SystemError> {
         let wasm_module = self.latest_release(name)?.wasm()?;
 
-        let canister_args = WalletCanisterInitArgs {
-            owner_id: owner,
-            system_id: system,
-        };
-
-        let arg = canister_args
+        let arg = init_args
             .encode()
             .map_err(|e| SystemError::InstallArgError(e.to_string()))?;
 

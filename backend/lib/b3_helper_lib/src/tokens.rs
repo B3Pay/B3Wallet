@@ -5,7 +5,7 @@ use ic_cdk::export::{
 use std::fmt;
 use std::ops::{Add, AddAssign, Sub, SubAssign};
 
-#[derive(CandidType, Deserialize, Serialize, Clone, Debug, PartialEq)]
+#[derive(CandidType, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Tokens {
     pub e8s: u64,
 }

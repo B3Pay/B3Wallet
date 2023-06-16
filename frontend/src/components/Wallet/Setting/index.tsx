@@ -1,14 +1,25 @@
-import { Button, CardBody, CardHeader, Stack, Text } from "@chakra-ui/react"
+import {
+  Button,
+  CardBody,
+  CardHeader,
+  Stack,
+  Text,
+  useToast
+} from "@chakra-ui/react"
+import { WalletSetting } from "declarations/b3_wallet/b3_wallet.did"
 import { B3System, B3Wallet } from "service/actor"
 import AddSigner from "./AddSigner"
+import Controllers from "./Controllers"
 import Cycles from "./Cycles"
 import RestoreAccount from "./RestoreAccount"
 import Status from "./Status"
 import Wasm from "./Wasm"
 
 interface SettingsProps {
+  refreshWallet: () => void
   fetchAccounts: () => void
   setLoading: (loading: boolean) => void
+  setting: WalletSetting
   actor: B3Wallet
   systemActor: B3System
 }
@@ -16,9 +27,13 @@ interface SettingsProps {
 const Settings: React.FC<SettingsProps> = ({
   setLoading,
   actor,
+  setting,
   systemActor,
-  fetchAccounts
+  fetchAccounts,
+  refreshWallet
 }) => {
+  const toast = useToast()
+
   const resetAccount = async () => {
     if (!actor) {
       return
@@ -28,7 +43,13 @@ const Settings: React.FC<SettingsProps> = ({
 
     const result = await actor.reset_wallet()
 
-    console.log(result)
+    toast({
+      title: "Account Reset",
+      description: result,
+      status: "success",
+      duration: 5000,
+      isClosable: true
+    })
 
     fetchAccounts()
 
@@ -44,11 +65,12 @@ const Settings: React.FC<SettingsProps> = ({
       <AddSigner actor={actor} />
       <RestoreAccount actor={actor} fetchAccounts={fetchAccounts} />
       <Status actor={actor} />
+      <Controllers actor={actor} {...setting} />
       <Wasm
+        refreshWallet={refreshWallet}
         systemActor={systemActor}
         actor={actor}
         setLoading={setLoading}
-        fetchAccounts={fetchAccounts}
       />
       <Stack
         direction="column"

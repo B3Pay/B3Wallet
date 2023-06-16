@@ -1,9 +1,14 @@
 import { Card } from "@chakra-ui/react"
-import { WalletAccountView } from "declarations/b3_wallet/b3_wallet.did"
+import {
+  WalletAccountView,
+  WalletSettingsAndSigners
+} from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
+import { useRouter } from "next/router"
 import { useCallback, useEffect, useState } from "react"
 import { B3System, B3Wallet } from "service/actor"
 import Loading from "../Loading"
+import InitialSetup from "./InitialSetup"
 import WalletBody from "./WalletBody"
 import WalletHeader from "./WalletHeader"
 
@@ -16,7 +21,8 @@ interface WalletProps {
 export enum Mode {
   Processed,
   Settings,
-  Accounts
+  Accounts,
+  Initial
 }
 
 const Wallet: React.FC<WalletProps> = ({
@@ -24,13 +30,17 @@ const Wallet: React.FC<WalletProps> = ({
   systemActor,
   walletCanisterId
 }) => {
-  const [mode, setMode] = useState<Mode>(Mode.Accounts)
+  const [mode, setMode] = useState<Mode>(Mode.Initial)
 
   const [loading, setLoading] = useState(false)
   const [accounts, setAccounts] = useState<WalletAccountView[]>([])
-  const errorToast = useToastMessage()
+  const [settingAndSigners, setSttingAndSigners] =
+    useState<WalletSettingsAndSigners>()
 
-  const fetchAccounts = useCallback(async () => {
+  const errorToast = useToastMessage()
+  const router = useRouter()
+
+  const fetchAccounts = useCallback(() => {
     console.log("fetching accounts")
     setLoading(true)
 
@@ -54,9 +64,39 @@ const Wallet: React.FC<WalletProps> = ({
       })
   }, [actor])
 
+  const fetchSettings = useCallback(() => {
+    console.log("fetching settings")
+    setLoading(true)
+
+    actor
+      .setting_and_signer()
+      .then(setting => {
+        console.log(setting)
+        setSttingAndSigners(setting)
+        setLoading(false)
+      })
+      .catch(e => {
+        console.log(e)
+        errorToast({
+          title: "Error",
+          description: e.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+
+        setLoading(false)
+      })
+  }, [actor])
+
+  const refreshWallet = async () => {
+    router.push(router.asPath)
+  }
+
   useEffect(() => {
+    fetchSettings()
     fetchAccounts()
-  }, [fetchAccounts])
+  }, [])
 
   return (
     <Card
@@ -67,23 +107,33 @@ const Wallet: React.FC<WalletProps> = ({
       justify="space-between"
     >
       {loading && <Loading title="Loading Wallet" />}
-      <WalletHeader
-        flex={1}
-        mode={mode}
-        actor={actor}
-        walletCanisterId={walletCanisterId}
-        fetchAccounts={fetchAccounts}
-        toggleMode={Mode => setMode(Mode)}
-      />
-      <WalletBody
-        flex={11}
-        mode={mode}
-        actor={actor}
-        accounts={accounts}
-        systemActor={systemActor}
-        setAccounts={setAccounts}
-        fetchAccounts={fetchAccounts}
-      />
+      {accounts.length === 0 ? (
+        <InitialSetup actor={actor} {...settingAndSigners} />
+      ) : (
+        <>
+          <WalletHeader
+            flex={1}
+            mode={mode}
+            actor={actor}
+            refreshWallet={refreshWallet}
+            walletCanisterId={walletCanisterId}
+            fetchAccounts={fetchAccounts}
+            toggleMode={Mode => setMode(Mode)}
+          />
+          <WalletBody
+            flex={11}
+            mode={mode}
+            actor={actor}
+            setting={settingAndSigners}
+            accounts={accounts}
+            systemActor={systemActor}
+            setAccounts={setAccounts}
+            refreshWallet={refreshWallet}
+            fetchAccounts={fetchAccounts}
+            walletCanisterId={walletCanisterId}
+          />
+        </>
+      )}
     </Card>
   )
 }

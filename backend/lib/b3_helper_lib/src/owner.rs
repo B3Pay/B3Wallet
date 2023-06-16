@@ -33,7 +33,7 @@ pub fn caller_is_owner() -> Result<(), String> {
         if caller_id == *owner_id {
             Ok(())
         } else {
-            Err("Caller is not owner!".to_string())
+            Err("Error::Caller is not owner!".to_string())
         }
     })
 }

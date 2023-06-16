@@ -1,3 +1,4 @@
+pub mod api;
 pub mod berlin;
 pub mod error;
 pub mod evm;

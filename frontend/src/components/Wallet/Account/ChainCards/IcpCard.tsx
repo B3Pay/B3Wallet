@@ -13,7 +13,7 @@ import Address from "components/Wallet/Address"
 import Balance from "components/Wallet/Balance"
 import { ChainEnum } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { B3Wallet } from "service/actor"
 import { AddressesWithChain } from "."
 import TopUpForm from "../TopUpForm"
@@ -51,6 +51,8 @@ const IcpCard: React.FC<IcpCardProps> = ({
   const errorToast = useToastMessage()
   const [loadings, setLoadings] = useState(false)
 
+  useEffect(() => handleBalance(chain), [actor, accountId])
+
   const handleTopUp = useCallback(
     async (to: string, amount: bigint) => {
       console.log(`Toping up ${amount} ICP from ${accountId} to ${to}`)
@@ -71,7 +73,7 @@ const IcpCard: React.FC<IcpCardProps> = ({
       const canister = Principal.fromText(to)
 
       await actor
-        .account_top_up_and_notify(accountId, tokens, [canister], [])
+        .account_top_up_and_notify(accountId, tokens, [canister])
         .then(res => {
           console.log(res)
 

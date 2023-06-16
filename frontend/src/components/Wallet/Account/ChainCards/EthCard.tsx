@@ -13,7 +13,7 @@ import Balance from "components/Wallet/Balance"
 import { ChainEnum } from "declarations/b3_wallet/b3_wallet.did"
 import { ethers, providers } from "ethers"
 import useToastMessage from "hooks/useToastMessage"
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { B3Wallet } from "service/actor"
 import { AddressesWithChain } from "."
 import TransferForm from "../TransferForm"
@@ -54,6 +54,8 @@ const EthCard: React.FC<EthCardProps> = ({
 }) => {
   const errorToast = useToastMessage()
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => handleBalance(chain), [actor, accountId])
 
   const handleEthTransfer = useCallback(
     async (from: string, to: string, amount: bigint) => {

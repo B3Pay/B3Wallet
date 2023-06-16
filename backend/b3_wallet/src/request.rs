@@ -1,6 +1,6 @@
 use crate::{
     permit::{caller_is_admin, caller_is_signer},
-    status::version,
+    wallet::version,
 };
 use b3_helper_lib::{revert, time::NanoTimeStamp, types::RequestId};
 use b3_permit_lib::{
@@ -15,7 +15,7 @@ use b3_permit_lib::{
         },
         request::{Request, RequestTrait},
     },
-    signer::Roles,
+    signer::roles::Roles,
     store::{with_permit, with_permit_mut},
     types::PendingRequestList,
 };

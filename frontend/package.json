@@ -14,7 +14,7 @@
     "dfx:start": "scripts/create-canisters.sh",
     "dfx:deploy": "scripts/deploy-canisters.sh",
     "dfx:stop": "dfx stop",
-    "dev": "next dev",
+    "dev": "DFX_NETWORK=local next dev",
     "ic:dev": "DFX_NETWORK=ic next dev",
     "build:wallet": "./scripts/b3_wallet.sh",
     "build": "next build",

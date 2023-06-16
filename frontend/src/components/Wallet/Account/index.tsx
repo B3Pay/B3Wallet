@@ -13,7 +13,6 @@ import ChainCards, { Addresses } from "./ChainCards"
 interface AccountProps extends WalletAccountView {
   actor: B3Wallet
   loading: boolean
-  isExpanded: boolean
   refetchAccount: () => void
 }
 
@@ -37,12 +36,13 @@ const Account: React.FC<AccountProps> = ({
   id,
   name,
   loading,
-  pending_receive,
+  pendings,
   addresses,
-  isExpanded,
   environment,
   refetchAccount
 }) => {
+  console.log({ pendings })
+
   const addressesWithChain: Addresses = useMemo(() => {
     const addressMap: Addresses = {}
 
@@ -75,8 +75,6 @@ const Account: React.FC<AccountProps> = ({
         addressMap[symbol] = [addressItem]
       }
     })
-
-    console.log(addressMap)
 
     return addressMap
   }, [addresses])

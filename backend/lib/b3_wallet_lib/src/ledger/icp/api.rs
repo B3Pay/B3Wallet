@@ -1,10 +1,6 @@
 use async_trait::async_trait;
-use b3_helper_lib::{
-    constants::{CANISTER_TRANSFER_MEMO, IC_TRANSACTION_FEE_ICP, LEDGER_CANISTER_ID},
-    identifier::AccountIdentifier,
-    tokens::Tokens,
-    types::{AccountBalanceArgs, TransferArgs, TransferResult},
-};
+use b3_helper_lib::{identifier::AccountIdentifier, tokens::Tokens, types::NotifyTopUpResult};
+use candid::Principal;
 use std::str::FromStr;
 
 #[cfg(test)]
@@ -12,11 +8,11 @@ use crate::mocks::ic_cdk_id;
 #[cfg(not(test))]
 use ic_cdk::api::id as ic_cdk_id;
 
-use super::icp::IcpChain;
+use super::{error::IcpError, icp::IcpChain};
 use crate::ledger::{
     chain::ChainTrait,
     error::LedgerError,
-    types::{Balance, Pendings, SendResult},
+    types::{Balance, IcpPending, PendingEnum, SendResult},
 };
 
 #[async_trait]
@@ -30,11 +26,10 @@ impl ChainTrait for IcpChain {
 
         let account = self.subaccount.account_identifier(canister_id);
 
-        let args = AccountBalanceArgs { account };
-
-        let (res,): (Tokens,) = ic_cdk::call(LEDGER_CANISTER_ID, "account_balance", (args,))
+        let res = self
+            .account_balance(account)
             .await
-            .map_err(|e| LedgerError::CallError(e.1))?;
+            .map_err(|e| LedgerError::CallError(e.to_string()))?;
 
         Ok(res.e8s().into())
     }
@@ -43,18 +38,12 @@ impl ChainTrait for IcpChain {
         let to =
             AccountIdentifier::from_str(&to).map_err(|e| LedgerError::CallError(e.to_string()))?;
 
-        let args = TransferArgs {
-            memo: CANISTER_TRANSFER_MEMO,
-            fee: IC_TRANSACTION_FEE_ICP,
-            amount: Tokens::from_e8s(amount),
-            to,
-            from_subaccount: Some(self.subaccount.clone()),
-            created_at_time: None,
-        };
+        let amount = Tokens::from_e8s(amount);
 
-        let (res,): (TransferResult,) = ic_cdk::call(LEDGER_CANISTER_ID, "transfer", (args,))
+        let res = self
+            .transfer(to, amount, None, None)
             .await
-            .map_err(|e| LedgerError::CallError(e.1))?;
+            .map_err(|e| LedgerError::CallError(e.to_string()))?;
 
         Ok(SendResult::ICP(res))
     }
@@ -70,7 +59,47 @@ impl ChainTrait for IcpChain {
         self.send(to, amount).await
     }
 
-    fn pendings(&self) -> Pendings {
-        Pendings::default()
+    async fn check_pending(&self, pending_index: usize) -> Result<(), LedgerError> {
+        let IcpPending {
+            block_index,
+            canister_id,
+        } = self
+            .pendings
+            .get(pending_index)
+            .ok_or(LedgerError::PendingIndexError(pending_index))?;
+
+        let canister_id = Principal::from_text(canister_id.clone())
+            .map_err(|e| LedgerError::CallError(e.to_string()))?;
+
+        let res = self
+            .notify_top_up(canister_id, block_index.clone())
+            .await
+            .map_err(|e| LedgerError::CallError(e.to_string()))?;
+
+        match res {
+            NotifyTopUpResult::Ok(_) => Ok(()),
+            NotifyTopUpResult::Err(err) => Err(LedgerError::IcpError(IcpError::NotifyError(err))),
+        }
+    }
+
+    fn pendings(&self) -> Vec<PendingEnum> {
+        self.pendings
+            .iter()
+            .map(|pending| PendingEnum::IcpPending(pending.clone()))
+            .collect()
+    }
+
+    fn add_pending(&mut self, pending: PendingEnum) {
+        if let PendingEnum::IcpPending(p) = pending {
+            self.pendings.push(p);
+        }
+    }
+
+    fn remove_pending(&mut self, pending_index: usize) {
+        self.pendings.remove(pending_index);
+    }
+
+    fn clear_pending(&mut self) {
+        self.pendings.clear();
     }
 }

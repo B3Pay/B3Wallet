@@ -7,7 +7,10 @@ import {
 } from "@chakra-ui/react"
 import { useCallback, useState } from "react"
 import { Mode } from "."
-import { WalletAccountView } from "../../../declarations/b3_wallet/b3_wallet.did"
+import {
+  WalletAccountView,
+  WalletSettingsAndSigners
+} from "../../../declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "../../hooks/useToastMessage"
 import { B3System, B3Wallet } from "../../service/actor"
 import Account from "./Account"
@@ -22,19 +25,25 @@ interface Loadings {
 interface WalletBodyProps extends StackProps {
   mode: Mode
   actor: B3Wallet
+  walletCanisterId: string
+  setting: WalletSettingsAndSigners
   systemActor: B3System
   accounts: WalletAccountView[]
   setAccounts: React.Dispatch<React.SetStateAction<WalletAccountView[]>>
+  refreshWallet: () => void
   fetchAccounts: () => void
 }
 
 const WalletBody: React.FC<WalletBodyProps> = ({
   mode,
   actor,
+  setting,
   accounts,
   systemActor,
   setAccounts,
   fetchAccounts,
+  refreshWallet,
+  walletCanisterId,
   ...rest
 }) => {
   const [loading, setLoading] = useState<Loadings>({})
@@ -80,6 +89,8 @@ const WalletBody: React.FC<WalletBodyProps> = ({
       {mode === Mode.Settings ? (
         <Settings
           actor={actor}
+          setting={setting}
+          refreshWallet={refreshWallet}
           fetchAccounts={fetchAccounts}
           systemActor={systemActor}
           setLoading={(global: boolean) =>
@@ -94,28 +105,25 @@ const WalletBody: React.FC<WalletBodyProps> = ({
           }
         />
       ) : (
-        <Accordion allowMultiple>
-          <Stack spacing={4}>
-            <Text fontSize="xl" fontWeight="bold">
-              Accounts
-            </Text>
-            <CreateAccount actor={actor} fetchAccounts={fetchAccounts} />
+        <Stack spacing={4}>
+          <Text fontSize="xl" fontWeight="bold">
+            Accounts
+          </Text>
+          <CreateAccount actor={actor} fetchAccounts={fetchAccounts} />
+          <Accordion allowMultiple>
             {accounts.map((account, index) => (
               <AccordionItem key={index} py={1} border="none">
-                {({ isExpanded }) => (
-                  <Account
-                    key={index}
-                    actor={actor}
-                    isExpanded={isExpanded}
-                    loading={loading[account.id]}
-                    refetchAccount={() => refetchAccount(account.id)}
-                    {...account}
-                  />
-                )}
+                <Account
+                  key={index}
+                  actor={actor}
+                  loading={loading[account.id]}
+                  refetchAccount={() => refetchAccount(account.id)}
+                  {...account}
+                />
               </AccordionItem>
             ))}
-          </Stack>
-        </Accordion>
+          </Accordion>
+        </Stack>
       )}
     </Stack>
   )

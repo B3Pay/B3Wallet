@@ -3,7 +3,7 @@ use std::fmt;
 use super::btc::transfer::BtcTransfer;
 use super::evm::sign::{EvmSignMessage, EvmSignRawTransaction, EvmSignTranscation};
 use super::evm::transfer::{EvmTransfer, EvmTransferErc20};
-use super::icp::transfer::{IcpTransfer, TopUpCanister};
+use super::icp::transfer::{IcpTransfer, NotifyTopUp, TopUpTransfer};
 use super::inner::account::{
     CreateAccount, HideAccount, RemoveAccount, RenameAccount, UnhideAccount,
 };
@@ -25,6 +25,7 @@ pub enum ExecutionResult {
     IcpTransfered(IcpTransfered),
     EvmTransfered(EvmTransfered),
     EvmErc20Transfered(EvmErc20Transfered),
+    TopUpTransfered(TopUpTransfered),
     CanisterTopUped(CanisterTopUped),
     BtcTransfered(BtcTransfered),
     SignerAdded(AddSigner),
@@ -46,21 +47,12 @@ pub enum ExecutionResult {
 impl fmt::Display for ExecutionResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ExecutionResult::IcpTransfered(IcpTransfered(args, block_index)) => {
-                write!(f, "IcpTransfered: from {} to {} at block {}", args.account_id, args.to, block_index)
-            }
-            ExecutionResult::EvmTransfered(EvmTransfered(args, tx_hash)) => {
-                write!(f, "EvmTransfered: from {} to {} at tx {}", args.account_id, args.to, tx_hash)
-            },
-            ExecutionResult::EvmErc20Transfered(EvmErc20Transfered(args, tx_hash)) => {
-                write!(f, "EvmErc20Transfered: from {} to {} at tx {}", args.account_id, args.to, tx_hash)
-            },
-            ExecutionResult::BtcTransfered(BtcTransfered(args, tx_id)) => {
-                write!(f, "BtcTransfered: from {} to {} at tx {}", args.account_id, args.to, tx_id)
-            },
-            ExecutionResult::CanisterTopUped(CanisterTopUped(args, cycles)) => {
-                write!(f, "CanisterTopUped: from {} top up {} cycles for {}", args.account_id, cycles, args.canister_id)
-            },
+            ExecutionResult::IcpTransfered(IcpTransfered(args, block_index)) => write!(f, "IcpTransfered: from {} to {} at block {}", args.account_id, args.to, block_index),
+            ExecutionResult::EvmTransfered(EvmTransfered(args, tx_hash)) => write!(f, "EvmTransfered: from {} to {} at tx {}", args.account_id, args.to, tx_hash),
+            ExecutionResult::EvmErc20Transfered(EvmErc20Transfered(args, tx_hash)) => write!(f, "EvmErc20Transfered: from {} to {} at tx {}", args.account_id, args.to, tx_hash),
+            ExecutionResult::BtcTransfered(BtcTransfered(args, tx_id)) => write!(f, "BtcTransfered: from {} to {} at tx {}", args.account_id, args.to, tx_id),
+            ExecutionResult::TopUpTransfered(TopUpTransfered(args, block_index)) => write!(f, "TopUpTransfered: from {} to {} at block {}", args.account_id, args.canister_id, block_index),
+            ExecutionResult::CanisterTopUped(CanisterTopUped(args, cycles)) => write!(f, "CanisterTopUped: from {} top up {} cycles for {}", args.account_id, cycles, args.canister_id),
             ExecutionResult::SignerAdded(_) => write!(f, "SignerAdded"),
             ExecutionResult::SignerRemoved(_) => write!(f, "SignerRemoved"),
             ExecutionResult::SignerThresholdUpdated(_) => write!(f, "SignerThresholdUpdated"),
@@ -89,7 +81,10 @@ pub struct EvmTransfered(pub EvmTransfer, pub String);
 pub struct EvmErc20Transfered(pub EvmTransferErc20, pub String);
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
-pub struct CanisterTopUped(pub TopUpCanister, pub Cycles);
+pub struct TopUpTransfered(pub TopUpTransfer, pub BlockIndex);
+
+#[derive(CandidType, Clone, Deserialize, Debug)]
+pub struct CanisterTopUped(pub NotifyTopUp, pub Cycles);
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
 pub struct BtcTransfered(pub BtcTransfer, pub BtcTxId);

@@ -43,7 +43,7 @@ impl fmt::Display for HelperError {
     }
 }
 
-#[derive(CandidType, Deserialize, Serialize, Debug)]
+#[derive(CandidType, Clone, Deserialize, Serialize, PartialEq, Debug)]
 pub enum TransferError {
     BadFee { expected_fee: Tokens },
     InsufficientFunds { balance: Tokens },
@@ -66,7 +66,7 @@ impl fmt::Display for TransferError {
 }
 
 #[rustfmt::skip]
-#[derive(CandidType, Deserialize, Serialize, Debug)]
+#[derive(CandidType, Clone, Debug, Deserialize,Serialize, PartialEq, Eq)]
 pub enum NotifyError {
     BadFee { expected_fee: Tokens },
     InsufficientFunds { balance: Tokens },

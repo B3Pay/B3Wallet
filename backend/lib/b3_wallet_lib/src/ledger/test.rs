@@ -74,10 +74,7 @@ mod tests {
 
         let btc_chain = ledger.chain(ChainEnum::BTC(BtcNetwork::Regtest)).unwrap();
 
-        assert_eq!(
-            btc_chain.address(),
-            "bcrt1qus9yjf6s8cv0pyqfp2lxgp57xc356uxzcglff6"
-        );
+        assert_eq!(btc_chain.address(), "n2JigTXi8Nhqe1qmeAaUCAj3rWsgxRzMe3");
 
         assert_eq!(chain.address(), btc_chain.address());
 
@@ -94,10 +91,7 @@ mod tests {
 
         let btc_address = ledger.chain(ChainEnum::BTC(BtcNetwork::Mainnet)).unwrap();
 
-        assert_eq!(
-            btc_address.address(),
-            "bc1qus9yjf6s8cv0pyqfp2lxgp57xc356uxzs8ah9q"
-        );
+        assert_eq!(btc_address.address(), "1MnmPQSjKMGaruN9vbc6NFWizXGz6SgpdC");
 
         let chain = Chain::new_btc_chain(
             BtcNetwork::Testnet,
@@ -110,12 +104,9 @@ mod tests {
 
         let btc_address = ledger.chain(ChainEnum::BTC(BtcNetwork::Testnet)).unwrap();
 
-        assert_eq!(
-            btc_address.address(),
-            "tb1qus9yjf6s8cv0pyqfp2lxgp57xc356uxz6pxy7n"
-        );
+        assert_eq!(btc_address.address(), "n2JigTXi8Nhqe1qmeAaUCAj3rWsgxRzMe3");
 
-        assert_eq!(btc_address.address().len(), 42);
+        assert_eq!(btc_address.address().len(), 34);
     }
 
     #[test]
@@ -179,16 +170,13 @@ mod tests {
 
         let ledger_chain = ledger.chain(ChainEnum::BTC(BtcNetwork::Mainnet)).unwrap();
 
-        assert_eq!(
-            chain.address(),
-            "bc1q6zkgjwu5w7lzc8sgja6uk24ex7zegwpwq0pet9"
-        );
+        assert_eq!(chain.address(), "1L2NEvApixneBNULQzcC5qysuWXrCNDhhr");
 
         assert_eq!(ledger_chain.address(), chain.address());
 
         println!("mainnet address: {}", chain.address());
 
-        assert_eq!(chain.address().len(), 42);
+        assert_eq!(chain.address().len(), 34);
     }
 
     #[test]
@@ -257,10 +245,10 @@ mod tests {
             .unwrap()
             .address();
 
-        assert_eq!(btc_address, "tb1q2rm3jzqunjhcw0nsjp8ttjtsqdpeluypsy0p8h");
+        assert_eq!(btc_address, "mnu4N49wMpPD4izXKi4YU2qihh7jnmNtjt");
 
         println!("testnet address: {}", btc_address);
 
-        assert_eq!(btc_address.len(), 42);
+        assert_eq!(btc_address.len(), 34);
     }
 }

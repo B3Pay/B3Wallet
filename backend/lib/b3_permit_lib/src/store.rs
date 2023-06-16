@@ -1,8 +1,8 @@
 use crate::{
     error::PermitError,
     pending::new::PendingRequest,
-    processed::ProcessedRequest,
-    signer::{Roles, Signer},
+    processed::processed::ProcessedRequest,
+    signer::{roles::Roles, signer::Signer},
     state::PrmitState,
     types::ProcessedRequestMap,
 };

@@ -2,51 +2,65 @@ mod account;
 mod permit;
 mod processed;
 mod request;
-mod status;
+mod setting;
+mod wallet;
 mod wasm;
 
-use b3_helper_lib::{types::WalletCanisterInitArgs, wasm::with_wasm_mut};
+use b3_helper_lib::{
+    types::{Controller, WalletCanisterInitArgs},
+    wasm::with_wasm_mut,
+};
 use b3_permit_lib::{
-    signer::{Roles, Signer},
+    signer::{roles::Roles, signer::Signer},
     state::PrmitState,
     store::{with_permit, with_permit_mut},
+    types::SignerMap,
 };
 use b3_wallet_lib::{
     state::WalletState,
-    store::{with_wallet, with_wallet_mut},
+    store::{with_setting_mut, with_wallet, with_wallet_mut},
 };
 use ic_cdk::{api::call::arg_data, export::candid::candid_method, init, post_upgrade, pre_upgrade};
 
 #[init]
 #[candid_method(init)]
 pub fn init() {
+    // when the canister is created by another canister (e.g. the system canister)
+    // this function is called with the arguments passed to the canister constructor.
     let (call_arg,) = arg_data::<(Option<WalletCanisterInitArgs>,)>();
 
-    let owner = Signer::from(Roles::Admin);
+    let mut signers = SignerMap::new();
 
-    match call_arg {
-        Some(args) => {
-            with_permit_mut(|permit| {
-                permit.signers.insert(args.owner_id, owner);
-
-                if let Some(system_id) = args.system_id {
-                    let name = "system".to_owned();
-                    let system = Signer::new(Roles::Canister, Some(name), None);
-
-                    permit.signers.insert(system_id, system);
-                }
-            });
+    let owner_id = match call_arg {
+        Some(WalletCanisterInitArgs {
+            owner_id,
+            system_id,
+        }) => {
+            // if the canister is created by the system canister, the system canister
+            // is added as trusted Canister
+            signers.insert(
+                system_id,
+                Signer::new(Roles::Canister, "system".to_owned(), None),
+            );
+            owner_id
         }
-        None => {
-            let owner_id = ic_cdk::caller();
-
-            with_permit_mut(|permit| {
-                permit.signers.insert(owner_id, owner);
-            });
-        }
+        None => ic_cdk::caller(),
     };
 
-    with_wallet_mut(|state| state.init_wallet());
+    signers.insert(
+        owner_id,
+        Signer::new(Roles::Admin, "owner".to_owned(), None),
+    );
+
+    with_permit_mut(|p| p.signers = signers);
+    // set initial controllers
+    with_setting_mut(|s| {
+        s.controllers
+            .insert(ic_cdk::id(), Controller::new("self".to_owned(), None));
+
+        s.controllers
+            .insert(owner_id, Controller::new("owner".to_owned(), None));
+    });
 }
 
 #[pre_upgrade]
@@ -75,12 +89,12 @@ mod tests {
     use b3_helper_lib::time::NanoTimeStamp;
     use b3_helper_lib::tokens::Tokens;
     use b3_helper_lib::types::*;
-    use b3_permit_lib::processed::ProcessedRequest;
+    use b3_permit_lib::processed::processed::ProcessedRequest;
     use b3_permit_lib::request::{
         btc::transfer::*, icp::transfer::*, inner::account::*, inner::setting::*, inner::signer::*,
         request::Request,
     };
-    use b3_permit_lib::signer::Roles;
+    use b3_permit_lib::signer::roles::Roles;
     use b3_permit_lib::types::*;
     use b3_wallet_lib::account::WalletAccount;
     use b3_wallet_lib::ledger::btc::network::BtcNetwork;

@@ -1,8 +1,8 @@
 use crate::{
     error::PermitError,
-    processed::{ProcessedRequest, RequestStatus},
+    processed::processed::{ProcessedRequest, RequestStatus},
     request::request::{Request, RequestTrait},
-    signer::Roles,
+    signer::roles::Roles,
     types::{ConsentMessage, Response, ResponseMap},
 };
 use b3_helper_lib::{

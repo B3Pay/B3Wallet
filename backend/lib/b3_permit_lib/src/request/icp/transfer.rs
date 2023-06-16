@@ -3,12 +3,14 @@ use crate::request::request::RequestTrait;
 use crate::request::result::CanisterTopUped;
 use crate::request::result::ExecutionResult;
 use crate::request::result::IcpTransfered;
+use crate::request::result::TopUpTransfered;
 use async_trait::async_trait;
 use b3_helper_lib::identifier::AccountIdentifier;
 use b3_helper_lib::tokens::Tokens;
 use b3_helper_lib::types::{CanisterId, Memo, NotifyTopUpResult, TransferResult};
 use b3_wallet_lib::error::WalletError;
-use b3_wallet_lib::store::with_ledger;
+use b3_wallet_lib::ledger::types::ChainEnum;
+use b3_wallet_lib::store::with_chain;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 // TRANSFER ICP
@@ -24,9 +26,9 @@ pub struct IcpTransfer {
 #[async_trait]
 impl RequestTrait for IcpTransfer {
     async fn execute(self) -> Result<ExecutionResult, WalletError> {
-        let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
+        let icp = with_chain(&self.account_id, ChainEnum::ICP, |chain| chain.icp())??;
 
-        let result = ledger
+        let result = icp
             .transfer(
                 self.to.clone(),
                 self.amount.clone(),
@@ -60,7 +62,7 @@ impl RequestTrait for IcpTransfer {
 
 // TOP UP CANISTER
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
-pub struct TopUpCanister {
+pub struct TopUpTransfer {
     pub account_id: String,
     pub canister_id: CanisterId,
     pub amount: Tokens,
@@ -68,18 +70,13 @@ pub struct TopUpCanister {
 }
 
 #[async_trait]
-impl RequestTrait for TopUpCanister {
+impl RequestTrait for TopUpTransfer {
     async fn execute(self) -> Result<ExecutionResult, WalletError> {
-        let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
+        let icp = with_chain(&self.account_id, ChainEnum::ICP, |chain| chain.icp())??;
 
-        let result = ledger
-            .topup_and_notify_top_up(self.canister_id, self.amount.clone(), self.fee.clone())
-            .await?;
+        let block_index = icp.top_up(self.canister_id, self.amount.clone()).await?;
 
-        match result {
-            NotifyTopUpResult::Ok(cycles) => Ok(CanisterTopUped(self, cycles).into()),
-            NotifyTopUpResult::Err(err) => Err(WalletError::NotifyTopUpError(err.to_string())),
-        }
+        Ok(TopUpTransfered(self, block_index).into())
     }
 
     fn validate_request(&self) -> Result<(), PermitError> {
@@ -91,6 +88,38 @@ impl RequestTrait for TopUpCanister {
             return Err(PermitError::FeeIsZero);
         }
 
+        Ok(())
+    }
+
+    fn method_name(&self) -> String {
+        "top_up_canister".to_string()
+    }
+}
+
+// TOP UP CANISTER
+#[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
+pub struct NotifyTopUp {
+    pub account_id: String,
+    pub canister_id: CanisterId,
+    pub block_index: u64,
+}
+
+#[async_trait]
+impl RequestTrait for NotifyTopUp {
+    async fn execute(self) -> Result<ExecutionResult, WalletError> {
+        let icp = with_chain(&self.account_id, ChainEnum::ICP, |chain| chain.icp())??;
+
+        let result = icp
+            .notify_top_up(self.canister_id, self.block_index)
+            .await?;
+
+        match result {
+            NotifyTopUpResult::Ok(cycles) => Ok(CanisterTopUped(self, cycles).into()),
+            NotifyTopUpResult::Err(err) => Err(WalletError::NotifyTopUpError(err.to_string())),
+        }
+    }
+
+    fn validate_request(&self) -> Result<(), PermitError> {
         Ok(())
     }
 

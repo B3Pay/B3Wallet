@@ -2,7 +2,7 @@ use super::{
     chain::Chain,
     ecdsa::EcdsaPublicKey,
     error::LedgerError,
-    types::{AddressMap, Balance, ChainEnum, ChainMap, PendingMap, SendResult},
+    types::{AddressMap, Balance, ChainEnum, ChainMap, PendingEnum, SendResult},
 };
 use crate::ledger::chain::ChainTrait;
 use b3_helper_lib::{raw_keccak256, subaccount::Subaccount};
@@ -90,16 +90,11 @@ impl Ledger {
         addresses
     }
 
-    pub fn pending_map(&self) -> PendingMap {
-        let mut pendings = PendingMap::new();
-
-        for (chain_type, chain) in &self.chains {
-            let pending = chain.pendings();
-
-            pendings.insert(chain_type.clone(), pending);
-        }
-
-        pendings
+    pub fn pendings(&self) -> Vec<PendingEnum> {
+        self.chains
+            .iter()
+            .flat_map(|(_, chain)| chain.pendings())
+            .collect()
     }
 
     pub fn public_key(&self) -> Result<&EcdsaPublicKey, LedgerError> {

@@ -1,8 +1,11 @@
-use super::types::{ICRC1TransferArgs, IcrcChain, TxIndex};
+use super::{
+    icrc::IcrcChain,
+    types::{ICRC1TransferArgs, TxIndex},
+};
 use crate::ledger::{
     chain::ChainTrait,
     error::LedgerError,
-    types::{Balance, Pendings, SendResult},
+    types::{Balance, PendingEnum, SendResult},
 };
 use async_trait::async_trait;
 use b3_helper_lib::account::ICRCAccount;
@@ -62,7 +65,28 @@ impl ChainTrait for IcrcChain {
         self.send(to, amount).await
     }
 
-    fn pendings(&self) -> Pendings {
-        Pendings::default()
+    async fn check_pending(&self, _pending_index: usize) -> Result<(), LedgerError> {
+        Ok(())
+    }
+
+    fn pendings(&self) -> Vec<PendingEnum> {
+        self.pendings
+            .iter()
+            .map(|pending| PendingEnum::IcrcPending(pending.clone()))
+            .collect()
+    }
+
+    fn add_pending(&mut self, pending: PendingEnum) {
+        if let PendingEnum::IcrcPending(p) = pending {
+            self.pendings.push(p);
+        }
+    }
+
+    fn remove_pending(&mut self, pending_index: usize) {
+        self.pendings.remove(pending_index);
+    }
+
+    fn clear_pending(&mut self) {
+        self.pendings.clear();
     }
 }

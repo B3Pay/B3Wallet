@@ -1,7 +1,7 @@
 use crate::guard::caller_is_controller;
 use b3_helper_lib::revert;
 use b3_helper_lib::time::NanoTimeStamp;
-use b3_helper_lib::{b3_canister_status, types::SystemCanisterStatus};
+use b3_helper_lib::{ic_canister_status, types::SystemCanisterStatus};
 use b3_system_lib::store::with_state;
 use ic_cdk::{
     export::candid::candid_method,
@@ -15,7 +15,7 @@ pub async fn status() -> SystemCanisterStatus {
 
     let version = version();
 
-    let canister_status = b3_canister_status(canister_id).await.unwrap_or_else(revert);
+    let canister_status = ic_canister_status(canister_id).await.unwrap_or_else(revert);
 
     let user_status = with_state(|s| s.number_of_users());
     let status_at = NanoTimeStamp::now();

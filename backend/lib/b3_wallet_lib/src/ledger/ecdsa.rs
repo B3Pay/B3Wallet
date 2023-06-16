@@ -32,13 +32,12 @@ impl EcdsaPublicKey {
         PublicKey::from_slice(&self.0).map_err(|err| LedgerError::PublicKeyError(err.to_string()))
     }
 
-    /// Get the Bitcoin P2WPKH Address based on the public key.
+    /// Get the Bitcoin P2PKH Address based on the public key.
     /// This is the address that the canister uses to send and receive funds.
     pub fn btc_address(&self, network: Network) -> Result<Address, LedgerError> {
         let public_key = self.btc_public_key()?;
 
-        let address = Address::p2wpkh(&public_key, network)
-            .map_err(|err| LedgerError::PublicKeyError(err.to_string()))?;
+        let address = Address::p2pkh(&public_key, network);
 
         Ok(address)
     }

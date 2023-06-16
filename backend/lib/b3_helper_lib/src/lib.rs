@@ -48,7 +48,7 @@ pub fn sha2_sha256_wasm_hash_string(data: &[u8]) -> String {
     hash.to_hex_string()
 }
 
-pub async fn b3_canister_status(
+pub async fn ic_canister_status(
     canister_id: CanisterId,
 ) -> Result<CanisterStatusResponse, HelperError> {
     let (status,) = canister_status(CanisterIdRecord { canister_id })

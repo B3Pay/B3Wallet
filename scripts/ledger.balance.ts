@@ -2,6 +2,7 @@ import { IcrcLedgerCanister } from "@dfinity/ledger"
 import { ICPToken, TokenAmount } from "@dfinity/nns"
 import { Principal } from "@dfinity/principal"
 import { icAgent, localAgent } from "./actor"
+import { NNS_LEDGER } from "./env"
 import { accountIdentifier } from "./ledger.utils"
 import { initIdentity } from "./utils"
 
@@ -14,11 +15,7 @@ const getBalance = async (
 
   const ledger = IcrcLedgerCanister.create({
     agent,
-    canisterId: Principal.fromText(
-      mainnet
-        ? process.env.LEDGER_CANISTER_ID_MAINNET!
-        : process.env.LEDGER_CANISTER_ID_LOCAL!
-    )
+    canisterId: Principal.fromText(NNS_LEDGER)
   })
 
   let owner: any

@@ -1,13 +1,18 @@
 use crate::{
     error::PermitError,
     pending::new::PendingRequest,
-    processed::ProcessedRequest,
+    processed::processed::ProcessedRequest,
     request::request::{Request, RequestTrait},
-    signer::Signer,
+    signer::signer::Signer,
 };
 use b3_helper_lib::types::{RequestId, SignerId};
+use b3_wallet_lib::setting::WalletSettings;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use std::collections::{BTreeMap, HashMap};
+
+pub type Signers = Vec<Signer>;
+
+pub type SignerIds = Vec<SignerId>;
 
 pub type SignerMap = HashMap<SignerId, Signer>;
 
@@ -20,6 +25,12 @@ pub type ResponseMap = BTreeMap<SignerId, Response>;
 pub type PendingRequestMap = BTreeMap<RequestId, PendingRequest>;
 
 pub type ProcessedRequestMap = BTreeMap<RequestId, ProcessedRequest>;
+
+#[derive(CandidType, Deserialize, Clone)]
+pub struct WalletSettingsAndSigners {
+    pub signers: SignerMap,
+    pub settings: WalletSettings,
+}
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
 pub enum Response {

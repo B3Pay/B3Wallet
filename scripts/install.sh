@@ -11,5 +11,3 @@ if [[ $* == *--enable-bitcoin* ]]; then
     sh scripts/minter.sh
     sh scripts/index.sh
 fi
-
-dfx identity use default

@@ -2,6 +2,7 @@ use crate::{
     account::WalletAccount,
     error::WalletError,
     ledger::{chain::Chain, ledger::Ledger, types::ChainEnum},
+    setting::WalletSettings,
     state::WalletState,
     types::AccountId,
 };
@@ -37,6 +38,26 @@ where
 
         callback(&mut state)
     })
+}
+
+// SETTINGS ----------------------------------------------------------------------
+
+/// Retrieve Setting.
+/// This accepts a callback function that will be called with a reference to the setting data.
+pub fn with_setting<T, F>(callback: F) -> T
+where
+    F: FnOnce(&WalletSettings) -> T,
+{
+    with_wallet(|states| callback(&states.settings))
+}
+
+/// Retrieve Setting mutably.
+/// This accepts a callback function that will be called with a mutable reference to the setting data.
+pub fn with_setting_mut<T, F>(callback: F) -> T
+where
+    F: FnOnce(&mut WalletSettings) -> T,
+{
+    with_wallet_mut(|states| callback(&mut states.settings))
 }
 
 // ACCOUNTS ----------------------------------------------------------------------

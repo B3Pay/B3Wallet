@@ -1,15 +1,12 @@
 use crate::ledger::types::Balance;
-use b3_helper_lib::{account::ICRCAccount, subaccount::Subaccount, types::CanisterId};
+use b3_helper_lib::{account::ICRCAccount, subaccount::Subaccount};
 use ic_cdk::export::{
     candid::{CandidType, Int, Nat},
     serde::{Deserialize, Serialize},
 };
 use serde_bytes::ByteBuf;
 
-use super::{
-    error::{ICRC1TransferError, IcrcError},
-    icrc1::ICRC1,
-};
+use super::error::ICRC1TransferError;
 
 pub type TxIndex = Nat;
 
@@ -40,33 +37,4 @@ pub enum ICRC1MetadataValue {
     Int(Int),
     Text(String),
     Blob(ByteBuf),
-}
-
-#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
-pub struct IcrcChain {
-    pub canister_id: CanisterId,
-    pub subaccount: Subaccount,
-    pub metadata: ICRCMetadata,
-    pub fee: Option<ICRCTokens>,
-    pub memo: Option<ICRCMemo>,
-    pub created_at_time: Option<ICRCTimestamp>,
-}
-
-impl IcrcChain {
-    pub async fn new(canister_id: CanisterId, subaccount: Subaccount) -> Result<Self, IcrcError> {
-        let icrc1 = ICRC1(canister_id.clone());
-
-        let metadata = icrc1.metadata().await?;
-
-        let fee = icrc1.fee().await?;
-
-        Ok(IcrcChain {
-            canister_id,
-            subaccount,
-            metadata,
-            memo: None,
-            fee: Some(fee),
-            created_at_time: None,
-        })
-    }
 }

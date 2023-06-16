@@ -1,5 +1,6 @@
 mod account;
-mod status;
+mod setting;
+mod wallet;
 mod wasm;
 
 use b3_helper_lib::{
@@ -23,8 +24,6 @@ pub fn init() {
     } else {
         with_owner_mut(|owner| *owner = ic_cdk::caller());
     }
-
-    with_wallet_mut(|state| state.init_wallet());
 }
 
 #[pre_upgrade]
@@ -56,8 +55,8 @@ mod tests {
     use b3_wallet_lib::ledger::btc::network::BtcNetwork;
     use b3_wallet_lib::ledger::ckbtc::types::*;
     use b3_wallet_lib::ledger::types::*;
+    use b3_wallet_lib::setting::WalletSettings;
     use b3_wallet_lib::types::*;
-
     use ic_cdk::api::management_canister::bitcoin::Satoshi;
     use ic_cdk::export::candid::export_service;
 

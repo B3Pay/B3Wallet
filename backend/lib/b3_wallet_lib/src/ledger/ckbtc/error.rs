@@ -3,6 +3,8 @@ use enum_dispatch::enum_dispatch;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use std::fmt;
 
+use super::types::RetrieveBtcStatus;
+
 #[rustfmt::skip]
 #[enum_dispatch]
 #[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq)]
@@ -14,6 +16,7 @@ pub enum CkbtcError {
     SendToInvalidAddress(String),
     CkbtcSwapToBtcError(String),
     CkbtcGetBtcAddressError(String),
+    RetrieveBtcStatus,
 }
 
 #[rustfmt::skip]
@@ -27,6 +30,7 @@ impl fmt::Display for CkbtcError {
             CkbtcError::ICRC1TransferError(ref err) => write!(f, "Transfer Error::{}", err),
             CkbtcError::CkbtcSwapToBtcError(ref msg) => write!(f, "Ckbtc swap to btc Error::{}", msg),
             CkbtcError::CkbtcGetBtcAddressError(ref msg) => write!(f, "Ckbtc get btc address Error::{}", msg),
+            CkbtcError::RetrieveBtcStatus(ref status) => write!(f, "Retrieve btc status Error::{:?}", status),
         }
     }
 }
@@ -40,7 +44,7 @@ pub enum MinterError {
     CallError(String),
     GetBtcAddressError(String),
     GetWithdrawalAccountError(String),
-    RetrieveBtcStatusError(String),
+    RetrieveBtcStatus,
 }
 
 #[rustfmt::skip]
@@ -52,7 +56,7 @@ impl fmt::Display for MinterError {
             MinterError::GetWithdrawalAccountError(ref msg) => write!(f, "Get withdrawal account error: {}", msg),
             MinterError::UpdateBalanceError(ref msg) => write!(f, "Update balance error: {}", msg),
             MinterError::RetrieveBtcError(ref msg) => write!(f, "Retrieve btc error: {}", msg),
-            MinterError::RetrieveBtcStatusError(ref msg) => write!(f, "Retrieve btc status error: {}", msg),
+            MinterError::RetrieveBtcStatus(ref msg) => write!(f, "Retrieve btc status error: {}", msg),
         }
     }
 }

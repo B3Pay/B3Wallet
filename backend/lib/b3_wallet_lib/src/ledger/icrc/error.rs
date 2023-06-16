@@ -1,4 +1,5 @@
 use super::types::ICRCTimestamp;
+use crate::ledger::ckbtc::error::UpdateBalanceError;
 use enum_dispatch::enum_dispatch;
 use ic_cdk::export::{
     candid::{CandidType, Nat},
@@ -11,14 +12,16 @@ use std::fmt;
 #[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq)]
 pub enum IcrcError {
     ICRC1TransferError,
+    UpdateBalanceError,
     CallError(String),
 }
 
 impl fmt::Display for IcrcError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            IcrcError::ICRC1TransferError(ref err) => write!(f, "ICRC1 transfer error: {}", err),
-            IcrcError::CallError(ref msg) => write!(f, "Call error: {}", msg),
+            IcrcError::UpdateBalanceError(ref err) => write!(f, "Update balance Error::{}", err),
+            IcrcError::ICRC1TransferError(ref err) => write!(f, "ICRC1 transfer Error::{}", err),
+            IcrcError::CallError(ref msg) => write!(f, "Call Error::{}", msg),
         }
     }
 }

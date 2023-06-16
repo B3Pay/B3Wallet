@@ -11,6 +11,7 @@ interface WalletHeaderProps extends StackProps {
   mode: Mode
   toggleMode: (mode: Mode) => void
   fetchAccounts: () => void
+  refreshWallet: () => void
 }
 
 const WalletHeader: React.FC<WalletHeaderProps> = ({
@@ -19,6 +20,7 @@ const WalletHeader: React.FC<WalletHeaderProps> = ({
   mode,
   toggleMode,
   fetchAccounts,
+  refreshWallet,
   ...rest
 }) => {
   return (
@@ -61,7 +63,11 @@ const WalletHeader: React.FC<WalletHeaderProps> = ({
         }
       />
       <Address flex={1} address={walletCanisterId} overflow="hidden" />
-      <ConfirmationModal actor={actor} fetchAccounts={fetchAccounts} />
+      <ConfirmationModal
+        actor={actor}
+        fetchAccounts={fetchAccounts}
+        refreshWallet={refreshWallet}
+      />
       <IconButton
         variant={mode === Mode.Processed ? "solid" : "outline"}
         colorScheme="blue"

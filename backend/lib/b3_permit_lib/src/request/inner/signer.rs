@@ -1,11 +1,10 @@
 use crate::error::PermitError;
 use crate::request::request::RequestTrait;
 use crate::request::result::ExecutionResult;
+use crate::signer::roles::Roles;
+use crate::signer::signer::Signer;
 use crate::store::with_permit;
-use crate::{
-    signer::{Roles, Signer},
-    store::with_permit_mut,
-};
+use crate::store::with_permit_mut;
 use async_trait::async_trait;
 use b3_helper_lib::types::{Metadata, SignerId};
 use b3_wallet_lib::error::WalletError;
@@ -14,7 +13,7 @@ use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 // ADD SIGNER
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub struct AddSigner {
-    pub name: Option<String>,
+    pub name: String,
     pub role: Roles,
     pub signer_id: SignerId,
     pub expires_at: Option<u64>,

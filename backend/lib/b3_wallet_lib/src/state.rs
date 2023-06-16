@@ -1,6 +1,7 @@
 use crate::error::WalletError;
 use crate::ledger::ledger::Ledger;
 use crate::nonces::NonceTrait;
+use crate::setting::WalletSettings;
 use crate::types::{WalletAccountMap, WalletAccountView};
 use crate::{account::WalletAccount, types::AccountId};
 use b3_helper_lib::environment::Environment;
@@ -12,20 +13,37 @@ use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 pub struct WalletState {
     pub accounts: WalletAccountMap,
     pub nonces: AccountsNonce,
+    pub settings: WalletSettings,
 }
 
 impl Default for WalletState {
     fn default() -> Self {
         WalletState {
-            accounts: WalletAccountMap::default(),
             nonces: AccountsNonce::default(),
+            settings: WalletSettings::default(),
+            accounts: WalletAccountMap::default(),
         }
     }
 }
 
 impl WalletState {
     // Init Functions
-    pub fn init_wallet(&mut self) {
+    pub fn init_wallet(&mut self, setting: WalletSettings) {
+        self.init_accounts();
+        self.init_setting(setting);
+    }
+
+    pub fn init_setting(&mut self, setting: WalletSettings) {
+        if self.settings.initialised {
+            return;
+        }
+
+        self.settings.initialised = true;
+        self.settings.metadata = setting.metadata;
+        self.settings.controllers = setting.controllers;
+    }
+
+    pub fn init_accounts(&mut self) {
         if self.accounts_len() > 0 {
             return;
         }
@@ -38,6 +56,16 @@ impl WalletState {
 
         self.nonces.increment(Environment::Production);
     }
+
+    pub fn is_initialised(&self) -> bool {
+        self.settings.initialised
+    }
+
+    pub fn set_setting(&mut self, setting: WalletSettings) {
+        self.settings = setting;
+    }
+
+    // Account Functions
 
     pub fn new_subaccount(&self, opt_env: Option<Environment>) -> Subaccount {
         let env = opt_env.unwrap_or(Environment::Production);
@@ -135,11 +163,11 @@ impl WalletState {
         Ok(())
     }
 
-    pub fn reset(&mut self) {
+    pub fn reset_accounts(&mut self) {
         self.accounts.clear();
         self.nonces.reset();
 
-        self.init_wallet();
+        self.init_accounts();
     }
 }
 
@@ -152,7 +180,7 @@ mod test {
     fn test_init_wallet() {
         let mut state = WalletState::default();
 
-        state.init_wallet();
+        state.init_accounts();
 
         assert_eq!(state.accounts_len(), 1);
 
@@ -294,7 +322,7 @@ mod test {
 
         assert_eq!(nonce, 0);
 
-        state.init_wallet();
+        state.init_accounts();
 
         let nonce = state.account_nonce(&Environment::Production);
 

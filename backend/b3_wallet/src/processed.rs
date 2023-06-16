@@ -1,7 +1,7 @@
 use crate::permit::caller_is_signer;
 use b3_helper_lib::{revert, types::RequestId};
 use b3_permit_lib::{
-    processed::ProcessedRequest,
+    processed::processed::ProcessedRequest,
     store::{
         with_pending_mut, with_permit, with_permit_mut, with_processed_request,
         with_signer_ids_by_role,

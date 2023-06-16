@@ -4,6 +4,7 @@ use ic_cdk::export::{
     candid::CandidType,
     serde::{Deserialize, Serialize},
 };
+use std::fmt;
 
 pub type BtcTxId = String;
 
@@ -88,4 +89,18 @@ pub enum RetrieveBtcStatus {
     Sending { txid: BtcTxHash },
     Submitted { txid: BtcTxHash },
     Confirmed { txid: BtcTxHash },
+}
+
+impl fmt::Display for RetrieveBtcStatus {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            RetrieveBtcStatus::Unknown => write!(f, "Unknown"),
+            RetrieveBtcStatus::Pending => write!(f, "Pending"),
+            RetrieveBtcStatus::Signing => write!(f, "Signing"),
+            RetrieveBtcStatus::AmountTooLow => write!(f, "AmountTooLow"),
+            RetrieveBtcStatus::Sending { txid } => write!(f, "Sending {}", hex::encode(txid)),
+            RetrieveBtcStatus::Submitted { txid } => write!(f, "Submitted {}", hex::encode(txid)),
+            RetrieveBtcStatus::Confirmed { txid } => write!(f, "Confirmed {}", hex::encode(txid)),
+        }
+    }
 }

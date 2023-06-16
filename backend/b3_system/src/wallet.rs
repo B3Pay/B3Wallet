@@ -1,11 +1,11 @@
-use std::str::FromStr;
+use std::{str::FromStr, vec};
 
 use crate::guard::caller_is_controller;
 use b3_helper_lib::{
     constants::CREATE_SIGNER_CANISTER_CYCLES,
     release::ReleaseName,
     revert,
-    types::{CanisterId, SignerId, Version},
+    types::{CanisterId, SignerId, Version, WalletCanisterInitArgs},
 };
 use b3_system_lib::{
     error::SystemError,
@@ -63,27 +63,27 @@ async fn get_canister_version_by_user(user_id: SignerId) -> Version {
 #[update]
 #[candid_method(update)]
 async fn create_wallet_canister(name: String) -> Result<WalletCanister, String> {
-    let user_id = ic_cdk::caller();
+    let owner_id = ic_cdk::caller();
     let system_id = ic_cdk::id();
 
     let release_name = ReleaseName::from_str(&name).unwrap_or_else(revert);
 
-    let mut wallet_canister = with_state_mut(|s| s.init_user(user_id)).unwrap_or_else(revert);
+    let mut wallet_canister = with_state_mut(|s| s.init_user(owner_id)).unwrap_or_else(revert);
 
     wallet_canister
-        .create_with_cycles(vec![user_id, system_id], CREATE_SIGNER_CANISTER_CYCLES)
+        .create_with_cycles(vec![owner_id, system_id], CREATE_SIGNER_CANISTER_CYCLES)
         .await
         .unwrap_or_else(revert);
 
-    with_state_mut(|s| s.add_user(user_id, wallet_canister.clone()));
+    with_state_mut(|s| s.add_user(owner_id, wallet_canister.clone()));
+
+    let init_args = WalletCanisterInitArgs {
+        owner_id,
+        system_id,
+    };
 
     let install_arg_result = with_state_mut(|s| {
-        s.get_latest_install_args(
-            release_name,
-            user_id,
-            Some(system_id),
-            CanisterInstallMode::Install,
-        )
+        s.get_latest_install_args(release_name, CanisterInstallMode::Install, init_args)
     });
 
     match install_arg_result {
@@ -91,9 +91,9 @@ async fn create_wallet_canister(name: String) -> Result<WalletCanister, String> 
             // Install the code.
             let install_result = wallet_canister.install_code(install_arg).await;
 
-            // Update the controllers, and remove this canister as a controller.
-            // and get full control of the canister to the user.
-            let update_result = wallet_canister.update_controllers(vec![user_id]).await;
+            // Update the controllers, and add canister id as controller of itself.
+            // this enables the canister to update itself.
+            let update_result = wallet_canister.add_controllers(vec![]).await;
 
             match (install_result, update_result) {
                 (Ok(_), Ok(_)) => Ok(wallet_canister),
@@ -112,20 +112,20 @@ async fn install_wallet_canister(
     canister_id: Option<CanisterId>,
 ) -> Result<WalletCanister, String> {
     let system_id = ic_cdk::id();
-    let user_id = ic_cdk::caller();
+    let owner_id = ic_cdk::caller();
 
     let release_name = ReleaseName::from_str(&name).unwrap_or_else(revert);
 
     let mut wallet_canister =
-        with_state_mut(|s| s.get_or_init_user(user_id, canister_id)).unwrap_or_else(revert);
+        with_state_mut(|s| s.get_or_init_user(owner_id, canister_id)).unwrap_or_else(revert);
+
+    let init_args = WalletCanisterInitArgs {
+        owner_id,
+        system_id,
+    };
 
     let install_arg_result = with_state_mut(|s| {
-        s.get_latest_install_args(
-            release_name,
-            user_id,
-            Some(system_id),
-            CanisterInstallMode::Install,
-        )
+        s.get_latest_install_args(release_name, CanisterInstallMode::Install, init_args)
     });
 
     match install_arg_result {
@@ -139,9 +139,9 @@ async fn install_wallet_canister(
             // Install the code.
             let install_result = wallet_canister.install_code(install_arg).await;
 
-            // Update the controllers, and remove this canister as a controller.
-            // and get full control of the canister to the user.
-            let update_result = wallet_canister.update_controllers(vec![user_id]).await;
+            // Update the controllers, and add the user and canister id as controller of itself.
+            // this enables the canister to update itself.
+            let update_result = wallet_canister.add_controllers(vec![owner_id]).await;
 
             match (install_result, update_result) {
                 (Ok(_), Ok(_)) => Ok(wallet_canister),
@@ -165,10 +165,10 @@ async fn add_wallet_canister(canister_id: CanisterId) {
         .await
         .unwrap_or_else(revert);
 
-    if !is_valid {
-        revert(SystemError::InvalidWalletCanister)
-    } else {
+    if is_valid {
         with_state_mut(|s| s.get_or_init_user(user_id, Some(canister_id))).unwrap_or_else(revert);
+    } else {
+        revert(SystemError::InvalidWalletCanister)
     }
 }
 

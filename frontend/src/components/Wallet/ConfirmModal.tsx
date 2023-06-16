@@ -20,11 +20,13 @@ import Parent from "../Recursive"
 interface ConfirmationModalProps {
   actor: B3Wallet
   fetchAccounts: () => void
+  refreshWallet: () => void
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   actor,
-  fetchAccounts
+  fetchAccounts,
+  refreshWallet
 }) => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [requests, setRequests] = useState<PendingRequest[]>([])
@@ -68,7 +70,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         variant={"ghost"}
         aria-label="Refresh"
         icon={<RepeatIcon />}
-        onClick={fetchAccounts}
+        onClick={refreshWallet}
       />
       <IconButton
         colorScheme="red"

@@ -1,9 +1,13 @@
+use std::str::FromStr;
+
 use crate::ledger::{
     chain::ChainTrait,
+    ckbtc::minter::Minter,
     error::LedgerError,
-    types::{Balance, SendResult},
+    types::{Balance, BtcPending, PendingEnum, SendResult},
 };
 use async_trait::async_trait;
+use b3_helper_lib::account::ICRCAccount;
 
 use super::btc::BtcChain;
 
@@ -41,7 +45,41 @@ impl ChainTrait for BtcChain {
         todo!("implement the async method for BTC...")
     }
 
-    fn pendings(&self) -> Vec<String> {
-        self.pending.clone()
+    async fn check_pending(&self, pending_index: usize) -> Result<(), LedgerError> {
+        let BtcPending { account, txid: _ } = self
+            .pendings
+            .get(pending_index)
+            .ok_or(LedgerError::PendingIndexError(pending_index))?;
+
+        let account =
+            ICRCAccount::from_str(account).map_err(|e| LedgerError::ICRCAccountError(e))?;
+
+        let result = Minter(self.btc_network).update_balance(account).await;
+
+        match result {
+            Ok(_) => Ok(()),
+            Err(err) => Err(LedgerError::CallError(err.to_string())),
+        }
+    }
+
+    fn pendings(&self) -> Vec<PendingEnum> {
+        self.pendings
+            .iter()
+            .map(|pending| PendingEnum::BtcPending(pending.clone()))
+            .collect()
+    }
+
+    fn add_pending(&mut self, pending: PendingEnum) {
+        if let PendingEnum::BtcPending(p) = pending {
+            self.pendings.push(p);
+        }
+    }
+
+    fn remove_pending(&mut self, pending_index: usize) {
+        self.pendings.remove(pending_index);
+    }
+
+    fn clear_pending(&mut self) {
+        self.pendings.clear();
     }
 }

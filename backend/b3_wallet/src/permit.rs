@@ -1,6 +1,6 @@
 use b3_helper_lib::types::SignerId;
 use b3_permit_lib::{
-    signer::{Roles, Signer},
+    signer::{roles::Roles, signer::Signer},
     store::{with_permit, with_permit_mut, with_signer_check},
     types::SignerMap,
 };

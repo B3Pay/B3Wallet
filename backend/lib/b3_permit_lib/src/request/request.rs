@@ -36,7 +36,7 @@ pub enum Request {
     BtcTransfer,
     // ICP
     IcpTransfer,
-    TopUpCanister,
+    TopUpTransfer,
     // INNER
     AddSigner,
     RemoveSigner,

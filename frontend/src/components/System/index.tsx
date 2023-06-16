@@ -1,5 +1,4 @@
 import {
-  Badge,
   Button,
   Card,
   FormControl,
@@ -8,14 +7,8 @@ import {
   Input,
   InputGroup,
   Link,
-  Radio,
-  RadioGroup,
+  Select,
   Stack,
-  Tab,
-  TabList,
-  TabPanel,
-  TabPanels,
-  Tabs,
   Text
 } from "@chakra-ui/react"
 import { Principal } from "@dfinity/principal"
@@ -38,7 +31,6 @@ const System: React.FC<SystemProps> = ({ systemActor, fetchUserActor }) => {
   const [releaseMap, setReleaseMap] = useState<ReleaseMap>([])
 
   const [selectedWallet, setSelectedWallet] = useState<string>("")
-  const [selectedVersion, setSelectedVersion] = useState<string>("")
 
   const [error, setError] = useState<string>()
   const [loading, setLoading] = useState<boolean>()
@@ -53,6 +45,11 @@ const System: React.FC<SystemProps> = ({ systemActor, fetchUserActor }) => {
       .release_map()
       .then(releases => {
         setReleaseMap(releases)
+
+        if (releases.length > 0) {
+          const walletName = Object.keys(releases[0][0])[0]
+          setSelectedWallet(walletName)
+        }
 
         setLoading(false)
       })
@@ -87,6 +84,10 @@ const System: React.FC<SystemProps> = ({ systemActor, fetchUserActor }) => {
   const installCanister = useCallback(
     async (canisterId: string) => {
       setError(undefined)
+      if (!selectedWallet) {
+        return setError("Please select a wallet")
+      }
+
       setLoading(true)
 
       const canisterPrincipal = Principal.fromText(canisterId)
@@ -138,6 +139,10 @@ const System: React.FC<SystemProps> = ({ systemActor, fetchUserActor }) => {
 
   const createCanister = useCallback(async () => {
     setError(undefined)
+    if (!selectedWallet) {
+      return setError("Please select a wallet")
+    }
+
     setLoading(true)
 
     systemActor
@@ -166,73 +171,21 @@ const System: React.FC<SystemProps> = ({ systemActor, fetchUserActor }) => {
         {error && <Error error={error} />}
         {loading && <Loading />}
         <FormControl as="fieldset">
-          <FormLabel as="label">Select a version:</FormLabel>
-          <Tabs>
-            <TabList>
-              {releaseMap.map(([releaseName, releases]) => {
-                const walletName = Object.keys(releaseName)[0]
-
-                return (
-                  <Tab
-                    key={walletName}
-                    value={walletName}
-                    onClick={() => {
-                      setSelectedWallet(walletName)
-
-                      if (releases.length > 0) {
-                        releases.forEach(release => {
-                          if (!release.deprecated) {
-                            setSelectedVersion(release.version)
-                          }
-                        })
-                      }
-                    }}
-                  >
-                    {walletName}
-                  </Tab>
-                )
-              })}
-            </TabList>
-            <TabPanels>
-              {releaseMap.length > 0 &&
-                releaseMap.map(([, releases]) => (
-                  <TabPanel key={releases[0].version}>
-                    <RadioGroup
-                      onChange={value => setSelectedVersion(value)}
-                      display="flex"
-                      flexDir={{ base: "column", md: "row" }}
-                      flexWrap="wrap"
-                      justifyContent="space-between"
-                      alignItems="flex-start"
-                      value={selectedVersion}
-                    >
-                      {releases.map(release => (
-                        <Radio
-                          flex={6}
-                          key={release.version}
-                          value={release.version}
-                          isDisabled={release.deprecated}
-                        >
-                          <Text as="span" fontWeight="semibold" mr={2}>
-                            {release.version}
-                          </Text>
-                          {release.deprecated && (
-                            <Badge colorScheme="red">Deprecated</Badge>
-                          )}
-                        </Radio>
-                      ))}
-                    </RadioGroup>
-                  </TabPanel>
-                ))}
-            </TabPanels>
-          </Tabs>
-          <FormHelperText>
-            &nbsp;For candid interface select &quot;-candid&quot; version
-          </FormHelperText>
+          <FormLabel as="label">Select a Wallet:</FormLabel>
+          <Select onChange={e => setSelectedWallet(e.target.value)} size="lg">
+            {releaseMap.map(([releaseName]) => {
+              const walletName = Object.keys(releaseName)[0]
+              return (
+                <option key={walletName} value={walletName}>
+                  {walletName}
+                </option>
+              )
+            })}
+          </Select>
         </FormControl>
         <FormLabel as="label">
-          Install {selectedWallet}({selectedVersion}) on a canister by entering
-          its id or create a new one:
+          Install {selectedWallet} on a canister by entering its id or create a
+          new one:
         </FormLabel>
         <Text fontSize="sm">
           You can create a canister id on the&nbsp;

@@ -12,7 +12,7 @@ import Address from "components/Wallet/Address"
 import Balance from "components/Wallet/Balance"
 import { BtcNetwork, ChainEnum } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { B3Wallet } from "service/actor"
 import { AddressesWithChain } from "."
 import SwapForm from "../SwapForm"
@@ -50,6 +50,8 @@ const BtcCard: React.FC<BtcCardProps> = ({
 }) => {
   const errorToast = useToastMessage()
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => handleBalance(chain), [actor, accountId])
 
   const swapBtcToCkbtc = useCallback(
     async (network: BtcNetwork, to: string, amount: bigint) => {

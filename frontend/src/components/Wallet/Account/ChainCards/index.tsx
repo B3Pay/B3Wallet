@@ -6,6 +6,7 @@ import { useCallback, useState } from "react"
 import { B3Wallet } from "service/actor"
 import CreateAddress from "../CreateAddress"
 import BtcCard from "./BtcCard"
+import CkbtcCard from "./CkbtcCard"
 import EthCard from "./EthCard"
 import IcpCard from "./IcpCard"
 
@@ -179,6 +180,20 @@ const ChainCards: React.FC<ChainCardsProps> = ({
           actor={actor}
           refetchAccount={refetchAccount}
         />
+        {addresses.CKBTC?.map(addressProps => (
+          <CkbtcCard
+            key={addressProps.address}
+            handleAddressRemove={handleAddressRemove}
+            balance={balances.CKBTC}
+            balanceLoading={balanceLoadings.CKBTC}
+            transferLoading={transferLoadings.CKBTC}
+            handleBalance={handleBalance}
+            handleTransfer={handleTransfer}
+            actor={actor}
+            accountId={accountId}
+            {...addressProps}
+          />
+        ))}
         {addresses.BTC?.map(addressProps => (
           <BtcCard
             key={addressProps.address}

@@ -1,3 +1,4 @@
+use b3_helper_lib::error::HelperError;
 use ic_cdk::export::candid::{CandidType, Deserialize};
 use std::fmt;
 
@@ -15,6 +16,7 @@ pub enum WalletError {
     EvmError(EvmError),
     IcpError(IcpError),
     LedgerError(LedgerError),
+    HelperError(HelperError),
     UnknownError,
     WasmNotLoaded,
     ExecutionError(String),
@@ -24,8 +26,13 @@ pub enum WalletError {
     NotifyTopUpError(String),
     CannotRemoveDefaultAccount,
     WalletAccountNotExists,
+    WalletAlreadyInitialized,
     WalletAccountAlreadyExists,
     WalletAccountCounterMismatch,
+    TooManyControllers,
+    ControllerAlreadyExists,
+    CannotRemoveSelf,
+    UpdateCanisterControllersError(String),
 }
 
 #[rustfmt::skip]
@@ -38,17 +45,23 @@ impl fmt::Display for WalletError {
             WalletError::IcrcError(ref err) => write!(f, "ICRC Error::{}", err),
             WalletError::IcpError(ref err) => write!(f, "ICP Error::{}", err),
             WalletError::LedgerError(ref err) => write!(f, "Ledger Error::{}", err),
+            WalletError::HelperError(ref err) => write!(f, "Helper Error::{}", err),
             WalletError::ExecutionError(ref msg) => write!(f, "Execution Error::{}", msg),
             WalletError::NotifyTopUpError(ref msg) => write!(f, "Notify top up Error::{}", msg),
             WalletError::UpdateSettingsError(ref msg) => write!(f, "Update settings Error::{}", msg),
-            WalletError::UnknownError => write!(f, "Unknown Error!"),
-            WalletError::WasmNotLoaded => write!(f, "Wasm not loaded!"),
-            WalletError::SignerAlreadyExists(ref msg) => write!(f, "Signer ({}) already exists!", msg),
-            WalletError::SignerDoesNotExist(ref msg) => write!(f, "Signer ({}) does not exist!", msg),
-            WalletError::CannotRemoveDefaultAccount => write!(f, "Cannot remove default account!"),
-            WalletError::WalletAccountNotExists => write!(f, "Wallet account does not exist!"),
-            WalletError::WalletAccountAlreadyExists => write!(f, "Wallet account already exists!"),
-            WalletError::WalletAccountCounterMismatch => write!(f, "Wallet account counter mismatch!"),
+            WalletError::UnknownError => write!(f, " Error::Unknown Error!"),
+            WalletError::WasmNotLoaded => write!(f, " Error::Wasm not loaded!"),
+            WalletError::SignerAlreadyExists(ref msg) => write!(f, " Error::Signer ({}) already exists!", msg),
+            WalletError::SignerDoesNotExist(ref msg) => write!(f, " Error::Signer ({}) does not exist!", msg),
+            WalletError::CannotRemoveDefaultAccount => write!(f, " Error::Cannot remove default account!"),
+            WalletError::WalletAlreadyInitialized => write!(f, " Error::Wallet already initialized!"),
+            WalletError::WalletAccountNotExists => write!(f, " Error::Wallet account does not exist!"),
+            WalletError::WalletAccountAlreadyExists => write!(f, " Error::Wallet account already exists!"),
+            WalletError::WalletAccountCounterMismatch => write!(f, " Error::Wallet account counter mismatch!"),
+            WalletError::ControllerAlreadyExists => write!(f, " Error::Controller already exists!"),
+            WalletError::TooManyControllers => write!(f, " Error::Too many controllers!"),
+            WalletError::CannotRemoveSelf => write!(f, " Error::Cannot remove self!"),
+            WalletError::UpdateCanisterControllersError(ref msg) => write!(f, " Error::Update canister controllers Error::{}", msg),
         }
     }
 }

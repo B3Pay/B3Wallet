@@ -3,9 +3,10 @@ use super::{
     ckbtc::ckbtc::CkbtcChain,
     ecdsa::EcdsaPublicKey,
     error::LedgerError,
+    evm::api::EvmChain,
     icp::icp::IcpChain,
-    icrc::types::IcrcChain,
-    types::{Balance, ChainId, EvmChain, Pendings, SendResult},
+    icrc::icrc::IcrcChain,
+    types::{Balance, ChainId, PendingEnum, SendResult},
 };
 use async_trait::async_trait;
 use b3_helper_lib::{subaccount::Subaccount, types::CanisterId};
@@ -16,7 +17,7 @@ use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 #[enum_dispatch]
 pub trait ChainTrait {
     fn address(&self) -> String;
-    fn pendings(&self) -> Pendings;
+    fn pendings(&self) -> Vec<PendingEnum>;
     async fn balance(&self) -> Result<Balance, LedgerError>;
     async fn send(&self, to: String, amount: u64) -> Result<SendResult, LedgerError>;
     async fn send_mut(
@@ -26,6 +27,10 @@ pub trait ChainTrait {
         fee: Option<u64>,
         memo: Option<String>,
     ) -> Result<SendResult, LedgerError>;
+    async fn check_pending(&self, pending_index: usize) -> Result<(), LedgerError>;
+    fn add_pending(&mut self, pending: PendingEnum);
+    fn remove_pending(&mut self, pending_index: usize);
+    fn clear_pending(&mut self);
 }
 
 #[enum_dispatch(ChainTrait)]
@@ -80,7 +85,7 @@ impl Chain {
 
         let chain = Chain::BtcChain(BtcChain {
             min_confirmations: None,
-            pending: Vec::new(),
+            pendings: Vec::new(),
             ecdsa_public_key,
             btc_network,
             subaccount,
@@ -91,55 +96,15 @@ impl Chain {
     }
 
     pub fn new_evm_chain(chain_id: ChainId, address: String) -> Self {
-        Chain::EvmChain(EvmChain { chain_id, address })
+        Chain::EvmChain(EvmChain {
+            chain_id,
+            address,
+            pendings: Vec::new(),
+        })
     }
 
     pub fn new_icp_chain(subaccount: Subaccount) -> Self {
         Chain::IcpChain(IcpChain::new(subaccount))
-    }
-
-    pub fn has_pending_send(&self, txid: &String) -> bool {
-        self.ckbtc()
-            .map(|ckbtc| ckbtc.has_pending(txid))
-            .unwrap_or(false)
-    }
-
-    pub fn has_pending_receive(&self, block_index: &String) -> bool {
-        self.btc()
-            .map(|ckbtc| ckbtc.has_pending(block_index))
-            .unwrap_or(false)
-    }
-
-    pub fn add_pending_receive(&mut self, txid: String) -> Result<(), LedgerError> {
-        let ckbtc = self.ckbtc_mut()?;
-
-        ckbtc.add_pending(txid);
-
-        Ok(())
-    }
-
-    pub fn remove_pending_receive(&mut self, txid: &String) -> Result<(), LedgerError> {
-        let ckbtc = self.ckbtc_mut()?;
-
-        ckbtc.remove_pending(txid);
-
-        Ok(())
-    }
-
-    pub fn add_pending_send(&mut self, block_index: String) -> Result<(), LedgerError> {
-        let btc = self.btc_mut()?;
-
-        btc.add_pending(block_index);
-
-        Ok(())
-    }
-
-    pub fn remove_pending_send(&mut self, block_index: String) -> Result<(), LedgerError> {
-        let btc = self.btc_mut()?;
-
-        btc.remove_pending(&block_index);
-
-        Ok(())
     }
 
     pub fn icrc(&self) -> Result<IcrcChain, LedgerError> {
@@ -210,36 +175,5 @@ impl Chain {
             Chain::IcpChain(icp) => Ok(icp),
             _ => Err(LedgerError::InvalidChain),
         }
-    }
-}
-
-#[async_trait]
-impl ChainTrait for EvmChain {
-    fn address(&self) -> String {
-        let address = self.address.clone();
-
-        address
-    }
-
-    async fn balance(&self) -> Result<Balance, LedgerError> {
-        todo!("implement the async method for EVM...")
-    }
-
-    async fn send(&self, _to: String, _amount: u64) -> Result<SendResult, LedgerError> {
-        todo!("implement the async method for EVM...")
-    }
-
-    async fn send_mut(
-        &mut self,
-        _to: String,
-        _amount: u64,
-        _fee: Option<u64>,
-        _memo: Option<String>,
-    ) -> Result<SendResult, LedgerError> {
-        todo!("implement the async method for BTC...")
-    }
-
-    fn pendings(&self) -> Pendings {
-        Pendings::new()
     }
 }

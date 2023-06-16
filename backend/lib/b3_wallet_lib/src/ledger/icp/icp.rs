@@ -1,3 +1,6 @@
+use crate::ledger::types::IcpPending;
+
+use super::error::IcpError;
 use b3_helper_lib::{
     constants::{
         CANISTER_TOP_UP_MEMO, CANISTER_TRANSFER_MEMO, CYCLES_MINTING_CANISTER_ID,
@@ -7,25 +10,19 @@ use b3_helper_lib::{
     subaccount::Subaccount,
     tokens::Tokens,
     types::{
-        CanisterId, Memo, NotifyTopUpResult, NotifyTopupArgs, Timestamp, TransferArgs,
-        TransferResult,
+        AccountBalanceArgs, BlockIndex, CanisterId, Memo, NotifyTopUpResult, NotifyTopupArgs,
+        Timestamp, TransferArgs, TransferResult,
     },
 };
-use ic_cdk::export::{
-    candid::CandidType,
-    serde::{Deserialize, Serialize},
-};
+use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
-use crate::ledger::ledger::Ledger;
-
-use super::error::IcpError;
-
-#[derive(CandidType, Clone, Deserialize, Serialize, PartialEq, Debug)]
+#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub struct IcpChain {
     pub subaccount: Subaccount,
     pub memo: Memo,
     pub fee: Tokens,
     pub created_at_time: Option<Timestamp>,
+    pub pendings: Vec<IcpPending>,
 }
 
 impl IcpChain {
@@ -35,11 +32,22 @@ impl IcpChain {
             memo: CANISTER_TRANSFER_MEMO,
             fee: IC_TRANSACTION_FEE_ICP,
             created_at_time: None,
+            pendings: Vec::new(),
         }
     }
 }
 
-impl Ledger {
+impl IcpChain {
+    pub async fn account_balance(&self, account: AccountIdentifier) -> Result<Tokens, IcpError> {
+        let args = AccountBalanceArgs { account };
+
+        let (res,): (Tokens,) = ic_cdk::call(LEDGER_CANISTER_ID, "account_balance", (args,))
+            .await
+            .map_err(|e| IcpError::CallError(e.1))?;
+
+        Ok(res)
+    }
+
     pub async fn transfer(
         &self,
         to: AccountIdentifier,
@@ -48,8 +56,8 @@ impl Ledger {
         memo: Option<Memo>,
     ) -> Result<TransferResult, IcpError> {
         let args = TransferArgs {
-            memo: memo.unwrap_or(CANISTER_TRANSFER_MEMO),
-            fee: fee.unwrap_or(IC_TRANSACTION_FEE_ICP),
+            memo: memo.unwrap_or(self.memo.clone()),
+            fee: fee.unwrap_or(self.fee.clone()),
             amount,
             to,
             from_subaccount: Some(self.subaccount.clone()),
@@ -63,21 +71,28 @@ impl Ledger {
         Ok(res)
     }
 
-    pub async fn topup_and_notify_top_up(
+    pub async fn top_up(
         &self,
         canister_id: CanisterId,
         amount: Tokens,
-        fee: Option<Tokens>,
-    ) -> Result<NotifyTopUpResult, IcpError> {
+    ) -> Result<BlockIndex, IcpError> {
         let canister_subaccount = Subaccount::from(canister_id);
 
         let to = AccountIdentifier::new(CYCLES_MINTING_CANISTER_ID, canister_subaccount);
 
         let block_index = self
-            .transfer(to, amount, fee, Some(CANISTER_TOP_UP_MEMO))
+            .transfer(to, amount, None, Some(CANISTER_TOP_UP_MEMO))
             .await?
-            .map_err(|e| IcpError::CallError(e.to_string()))?;
+            .map_err(IcpError::TransferError)?;
 
+        Ok(block_index)
+    }
+
+    pub async fn notify_top_up(
+        &self,
+        canister_id: CanisterId,
+        block_index: BlockIndex,
+    ) -> Result<NotifyTopUpResult, IcpError> {
         let args = NotifyTopupArgs {
             block_index,
             canister_id,

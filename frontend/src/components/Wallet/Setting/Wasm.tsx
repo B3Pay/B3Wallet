@@ -10,7 +10,7 @@ import {
   Text
 } from "@chakra-ui/react"
 import Loading from "components/Loading"
-import { Release, ReleaseName } from "declarations/b3_system/b3_system.did"
+import { Release } from "declarations/b3_system/b3_system.did"
 import useLoadRelease from "hooks/useLoadRelease"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useEffect, useState } from "react"
@@ -37,7 +37,7 @@ interface OnlineRelease {
 interface WasmProps {
   actor: B3Wallet
   systemActor: B3System
-  fetchAccounts: () => void
+  refreshWallet: () => void
   setLoading: (loading: boolean) => void
 }
 
@@ -62,19 +62,20 @@ const Wasm: React.FC<WasmProps> = ({
   actor,
   systemActor,
   setLoading,
-  fetchAccounts
+  refreshWallet
 }) => {
   const [error, setError] = useState<string>()
   const [releases, setReleases] = useState<OnlineRelease[]>()
   const [selectedRelease, setSelectedRelease] = useState("")
-  const [version, setVersion] = useState<string>()
+  const [currentVersion, setCurrentVersion] = useState<string>()
+  const [upgrading, setUpgrading] = useState(false)
 
   const [loadedRelease, setLoadedRelease] = useState<Release | UnknownRelease>()
 
   const errorToast = useToastMessage()
   const { uploader, progress, wasmLoading } = useLoadRelease(actor)
 
-  const updateVersion = async () => actor.version().then(setVersion)
+  const updateVersion = async () => actor.version().then(setCurrentVersion)
 
   const updateWasmVersion = async () => {
     await actor
@@ -83,10 +84,9 @@ const Wasm: React.FC<WasmProps> = ({
         console.log("Wasm details", hash, size)
         try {
           let walletName = await actor.name()
-          const releaseName = { [walletName]: null } as ReleaseName
 
           const release = await systemActor.get_release_by_hash_string(
-            releaseName,
+            walletName,
             hash
           )
           console.log("Release", release)
@@ -107,11 +107,11 @@ const Wasm: React.FC<WasmProps> = ({
 
   useEffect(() => {
     const fetchReleases = async () => {
-      let walletName = await actor.name()
       const response = await fetch("wasm/releases.json")
 
       const releases = (await response.json()) as JsonFile[]
 
+      let walletName = await actor.name()
       const releaseMap = releases.reduce((acc, release) => {
         if (release.name !== walletName) {
           return acc
@@ -154,12 +154,18 @@ const Wasm: React.FC<WasmProps> = ({
 
   const upgradeCanister = async () => {
     setError(undefined)
-    if (!loadedRelease.version || loadedRelease.version === version) {
-      console.log("Canister already At this version")
+    if (!loadedRelease.version || loadedRelease.version === currentVersion) {
+      errorToast({
+        title: "Error",
+        description: "Canister is already upgraded",
+        status: "error",
+        duration: 5000
+      })
+
       return
     }
 
-    setLoading(true)
+    setUpgrading(true)
 
     try {
       await actor.upgrage_wallet()
@@ -177,6 +183,7 @@ const Wasm: React.FC<WasmProps> = ({
           duration: 5000,
           isClosable: true
         })
+        refreshWallet()
       } else {
         errorToast({
           title: "Error",
@@ -186,9 +193,9 @@ const Wasm: React.FC<WasmProps> = ({
           isClosable: true
         })
       }
+
       updateWasmVersion()
-      fetchAccounts()
-      setLoading(false)
+      setUpgrading(false)
     })
   }
 
@@ -222,13 +229,14 @@ const Wasm: React.FC<WasmProps> = ({
       borderRadius="lg"
       overflow="hidden"
     >
+      {upgrading && <Loading title="Upgrading canister" />}
       <CardHeader pb={2}>
         <Stack direction="row" justify="space-between" align="center">
           <Text fontSize="md" fontWeight="bold">
             Wallet Wasm
           </Text>
           <Text fontSize="sm" fontWeight="bold" color="gray.600">
-            {version}
+            {currentVersion}
           </Text>
         </Stack>
       </CardHeader>
@@ -300,7 +308,7 @@ const Wasm: React.FC<WasmProps> = ({
                       {(loadedRelease.size / 1000n).toLocaleString()} kb
                     </Text>
                   </Stack>
-                  {loadedRelease.date && (
+                  {"date" in loadedRelease && (
                     <Stack
                       direction="row"
                       justify="space-between"
@@ -336,8 +344,14 @@ const Wasm: React.FC<WasmProps> = ({
               </CardBody>
             </Stack>
           ) : (
-            <Text fontSize="sm" fontWeight="semibold">
-              No wasm loaded
+            <Text
+              mt={2}
+              fontSize="sm"
+              fontWeight="semibold"
+              color="gray.600"
+              textAlign="center"
+            >
+              No wasm loaded on the canister
             </Text>
           )}
         </Stack>

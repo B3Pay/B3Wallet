@@ -12,10 +12,12 @@ import { useMemo } from "react"
 
 interface AddressWithCopyProps extends FlexProps {
   address: string
+  noIcon?: boolean
 }
 
 const Address: React.FC<AddressWithCopyProps> = ({
   address,
+  noIcon,
   overflow,
   ...rest
 }) => {
@@ -39,13 +41,15 @@ const Address: React.FC<AddressWithCopyProps> = ({
         <Text overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
           {truncatedAddress}
         </Text>
-        <IconButton
-          colorScheme="blue"
-          onClick={onCopy}
-          aria-label="Copy to clipboard"
-          variant="ghost"
-          icon={hasCopied ? <CheckIcon /> : <CopyIcon />}
-        />
+        {noIcon ? null : (
+          <IconButton
+            colorScheme="blue"
+            onClick={onCopy}
+            aria-label="Copy to clipboard"
+            variant="ghost"
+            icon={hasCopied ? <CheckIcon /> : <CopyIcon />}
+          />
+        )}
       </Flex>
     </Tooltip>
   )

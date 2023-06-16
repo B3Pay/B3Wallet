@@ -1,5 +1,5 @@
 use crate::{
-    error::{HelperError, NotifyError},
+    error::{HelperError, NotifyError, TransferError},
     identifier::AccountIdentifier,
     subaccount::Subaccount,
     time::NanoTimeStamp,
@@ -13,12 +13,12 @@ use ic_cdk::{
         Principal,
     },
 };
+
 use serde_bytes::ByteBuf;
 use std::collections::HashMap;
 
 pub type Metadata = HashMap<String, String>;
 
-pub type ControllerId = Principal;
 pub type CanisterId = Principal;
 pub type SignerId = Principal;
 
@@ -52,10 +52,36 @@ pub struct WalletCanisterInstallArg {
     pub mode: CanisterInstallMode,
 }
 
+#[derive(CandidType, Deserialize, Clone, Debug)]
+pub struct Controller {
+    pub name: String,
+    pub metadata: Metadata,
+}
+
+impl Controller {
+    pub fn new(name: String, metadata: Option<Metadata>) -> Self {
+        Self {
+            name,
+            metadata: metadata.unwrap_or_default(),
+        }
+    }
+}
+
+pub type ControllerId = Principal;
+pub type ControllerIds = Vec<ControllerId>;
+
+pub type ControllerMap = HashMap<ControllerId, Controller>;
+
+#[derive(CandidType, Clone, Deserialize)]
+pub struct InititializeWalletArgs {
+    pub controllers: ControllerMap,
+    pub metadata: Option<Metadata>,
+}
+
 #[derive(CandidType, Deserialize, Serialize)]
 pub struct WalletCanisterInitArgs {
     pub owner_id: SignerId,
-    pub system_id: Option<CanisterId>,
+    pub system_id: CanisterId,
 }
 
 impl WalletCanisterInitArgs {
@@ -137,7 +163,7 @@ pub struct TransferArgs {
     pub created_at_time: Option<Timestamp>,
 }
 
-pub type TransferResult = Result<BlockIndex, HelperError>;
+pub type TransferResult = Result<BlockIndex, TransferError>;
 
 #[derive(CandidType, Deserialize, Serialize)]
 pub enum NotifyTopUpResult {
