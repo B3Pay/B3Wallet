@@ -201,7 +201,29 @@ const Wasm: React.FC<WasmProps> = ({
       console.log(e)
     }
 
-    window.location.reload()
+    actor.version().then(version => {
+      console.log("Canister upgraded", loadedRelease.version, version)
+      if (loadedRelease.version === version) {
+        errorToast({
+          title: "Success",
+          description: `Canister upgraded to version ${version}`,
+          status: "success",
+          duration: 5000,
+          isClosable: true
+        })
+        refreshWallet()
+      } else {
+        errorToast({
+          description: "Canister upgrade failed",
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+      }
+
+      updateWasmVersion()
+      setUpgrading(false)
+    })
   }
 
   return (

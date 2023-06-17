@@ -1,12 +1,12 @@
 import { Accordion, AccordionItem, Stack, Text } from "@chakra-ui/react"
 import { ProcessedRequest } from "declarations/b3_wallet/b3_wallet.did"
 import { useEffect, useState } from "react"
-import { B3BasicWallet, B3Wallet } from "service/actor"
+import { B3Wallet } from "service/actor"
 import Processed from "./Processed"
 
 interface ProcessedProps {
   setLoading: (loading: boolean) => void
-  actor: B3Wallet | B3BasicWallet
+  actor: B3Wallet
 }
 
 const ProcessedList: React.FC<ProcessedProps> = ({ setLoading, actor }) => {
@@ -37,9 +37,9 @@ const ProcessedList: React.FC<ProcessedProps> = ({ setLoading, actor }) => {
       </Text>
       <Accordion allowToggle>
         {processedList.map((request, i) => (
-          <AccordionItem border="none" _focus={{ boxShadow: "none" }}>
+          <AccordionItem key={i} border="none" _focus={{ boxShadow: "none" }}>
             {({ isExpanded }) => (
-              <Processed key={i} {...request} isExpanded={isExpanded} />
+              <Processed {...request} isExpanded={isExpanded} />
             )}
           </AccordionItem>
         ))}

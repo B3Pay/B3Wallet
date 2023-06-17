@@ -1,9 +1,13 @@
 import { RepeatIcon } from "@chakra-ui/icons"
 import {
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
   Box,
   Button,
   CardBody,
-  CardHeader,
   CloseButton,
   FormControl,
   IconButton,
@@ -25,14 +29,15 @@ import Loading from "components/Loading"
 import { Roles, Signer } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useState } from "react"
-import { B3BasicWallet, B3Wallet } from "service/actor"
+import { B3Wallet } from "service/actor"
 import Address from "../Address"
 
 export type SignerMap = Array<[Principal, Signer]>
 
 interface SignerProps extends StackProps {
-  actor: B3Wallet | B3BasicWallet
+  actor: B3Wallet
   signers: SignerMap
+  isInitialPage?: boolean
   refetch: () => void
 }
 
@@ -48,6 +53,7 @@ const Signers: React.FC<SignerProps> = ({
   actor,
   signers,
   refetch,
+  isInitialPage,
   ...rest
 }) => {
   const [loading, setLoading] = useState(false)
@@ -160,89 +166,112 @@ const Signers: React.FC<SignerProps> = ({
       {...rest}
     >
       {(!signers || loading) && <Loading title="Loading signers" />}
-      <CardHeader pb={2}>
-        <Stack direction="row" justify="space-between" align="center">
-          <Text fontSize="md" fontWeight="bold">
-            Signers
-          </Text>
-          <Stack fontSize="sm" fontWeight="semibold">
-            <Stack direction="row" align="center">
-              <IconButton
-                aria-label="Refresh"
-                icon={<RepeatIcon />}
-                onClick={refetch}
-                size="xs"
-              />
-            </Stack>
-          </Stack>
-        </Stack>
-      </CardHeader>
-      <CardBody borderTop="1px" borderColor="gray.200" m={0} p={0}>
-        <TableContainer minH={75}>
-          <Table size="sm">
-            <Thead>
-              <Tr>
-                <Th>Signer ID</Th>
-                <Th>Role</Th>
-                <Th></Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {signers?.map(([userId, { role }], index) => (
-                <Tr key={index}>
-                  <Td>
-                    <Address address={userId.toString()} noIcon />
-                  </Td>
-                  <Td>{Object.keys(role)[0]}</Td>
-                  <Td>
-                    <CloseButton
-                      color="red"
-                      onClick={() => removeSigner(userId)}
-                    />
-                  </Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </TableContainer>
-        <Box
-          as="form"
-          onSubmit={handleSubmit}
-          p={2}
-          borderTop="1px"
-          borderColor="gray.200"
-        >
-          <Stack alignItems="center" justify="space-between" direction="row">
-            <FormControl isRequired flex={5}>
-              <Input
-                value={principal}
-                onChange={e => setPrincipal(e.target.value)}
-                placeholder="Principal"
-              />
-            </FormControl>
-            <FormControl isRequired flex={4}>
-              <Select
-                value={role}
-                onChange={e => {
-                  const role = e.target.value as Role
-
-                  setRole(role)
-                }}
+      <Accordion allowToggle defaultIndex={isInitialPage ? [0] : undefined}>
+        <AccordionItem border="none" _focus={{ boxShadow: "none" }}>
+          {({ isExpanded }) => (
+            <Box>
+              <Stack
+                direction="row"
+                justify="space-between"
+                align="center"
+                px={4}
+                py={2}
               >
-                <option value={"select"}>Select Role</option>
-                {Object.keys(RoleEnum).map((role, i) => (
-                  <option key={i} value={role}>
-                    {role}
-                  </option>
-                ))}
-              </Select>
-            </FormControl>
-            <Button colorScheme="orange" type="submit" flex={3}>
-              Add Signer
-            </Button>
-          </Stack>
-        </Box>
-      </CardBody>
+                <Text fontSize="md" fontWeight="bold">
+                  Signers
+                </Text>
+                <Stack fontSize="sm" fontWeight="semibold">
+                  <Stack direction="row" align="center">
+                    {isExpanded && (
+                      <IconButton
+                        aria-label="Refresh"
+                        icon={<RepeatIcon />}
+                        onClick={refetch}
+                        size="xs"
+                      />
+                    )}
+                    <AccordionButton borderRadius="lg">
+                      <AccordionIcon />
+                    </AccordionButton>
+                  </Stack>
+                </Stack>
+              </Stack>
+              <AccordionPanel>
+                <CardBody borderTop="1px" borderColor="gray.200" m={0} p={0}>
+                  <TableContainer minH={75}>
+                    <Table size="sm">
+                      <Thead>
+                        <Tr>
+                          <Th>Signer ID</Th>
+                          <Th>Role</Th>
+                          <Th></Th>
+                        </Tr>
+                      </Thead>
+                      <Tbody>
+                        {signers?.map(([userId, { role }], index) => (
+                          <Tr key={index}>
+                            <Td>
+                              <Address address={userId.toString()} noIcon />
+                            </Td>
+                            <Td>{Object.keys(role)[0]}</Td>
+                            <Td>
+                              <CloseButton
+                                color="red"
+                                onClick={() => removeSigner(userId)}
+                              />
+                            </Td>
+                          </Tr>
+                        ))}
+                      </Tbody>
+                    </Table>
+                  </TableContainer>
+                  <Box
+                    as="form"
+                    onSubmit={handleSubmit}
+                    p={2}
+                    borderTop="1px"
+                    borderColor="gray.200"
+                  >
+                    <Stack
+                      alignItems="center"
+                      justify="space-between"
+                      direction="row"
+                    >
+                      <FormControl isRequired flex={5}>
+                        <Input
+                          value={principal}
+                          onChange={e => setPrincipal(e.target.value)}
+                          placeholder="Principal"
+                        />
+                      </FormControl>
+                      <FormControl isRequired flex={4}>
+                        <Select
+                          value={role}
+                          onChange={e => {
+                            const role = e.target.value as Role
+
+                            setRole(role)
+                          }}
+                        >
+                          <option value={"select"}>Select Role</option>
+                          {Object.keys(RoleEnum).map((role, i) => (
+                            <option key={i} value={role}>
+                              {role}
+                            </option>
+                          ))}
+                        </Select>
+                      </FormControl>
+                      <Button colorScheme="orange" type="submit" flex={3}>
+                        Add Signer
+                      </Button>
+                    </Stack>
+                  </Box>
+                </CardBody>
+              </AccordionPanel>
+            </Box>
+          )}
+        </AccordionItem>
+      </Accordion>
     </Stack>
   )
 }

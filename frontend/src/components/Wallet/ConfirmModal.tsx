@@ -1,25 +1,27 @@
-import { InfoOutlineIcon } from "@chakra-ui/icons"
+import {
+  ArrowBackIcon,
+  ArrowForwardIcon,
+  InfoOutlineIcon
+} from "@chakra-ui/icons"
 import {
   Box,
   Button,
   IconButton,
   Modal,
-  ModalBody,
   ModalCloseButton,
   ModalContent,
   ModalHeader,
   ModalOverlay,
   Stack,
-  Stat,
-  StatHelpText,
-  StatLabel,
-  Text,
-  useDisclosure
+  useDisclosure,
+  useInterval
 } from "@chakra-ui/react"
-import { useMemo, useState } from "react"
+import Loading from "components/Loading"
+import useToastMessage from "hooks/useToastMessage"
+import { useState } from "react"
 import { PendingRequest } from "../../../declarations/b3_wallet/b3_wallet.did"
 import { B3Wallet } from "../../service/actor"
-import Parent from "../Recursive"
+import RequestItem from "./RequestItem"
 
 interface ConfirmationModalProps {
   actor: B3Wallet
@@ -34,6 +36,11 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 }) => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [requests, setRequests] = useState<PendingRequest[]>([])
+  const [index, setIndex] = useState(0)
+
+  const [loading, setLoading] = useState(false)
+
+  const errorToast = useToastMessage()
 
   const fetchRequests = async () =>
     actor.get_pending_list().then(newRequests => {
@@ -49,35 +56,59 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   }
 
   const confirmHandler = async (request_id: bigint) => {
-    actor.response(request_id, { Confirm: null }).then(async () => {
+    setLoading(true)
+    try {
+      await actor.response(request_id, { Confirm: null })
       onClose()
       await fetchRequests()
+
       fetchAccounts()
-    })
+    } catch (e) {
+      console.log(e)
+      errorToast({
+        title: "Error",
+        description: e.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true
+      })
+    }
+
+    setLoading(false)
+    refreshWallet()
   }
 
   const rejectHandler = async (request_id: bigint) => {
-    actor.response(request_id, { Reject: null }).then(() => {
+    setLoading(true)
+    try {
+      await actor.response(request_id, { Reject: null })
       onClose()
-      fetchRequests()
-    })
+      await fetchRequests()
+
+      fetchAccounts()
+    } catch (e) {
+      console.log(e)
+      errorToast({
+        title: "Error",
+        description: e.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true
+      })
+    }
+
+    setLoading(false)
   }
 
   console.log({ requests })
 
-  // useInterval(async () => {
-  //   fetchRequests()
-  // }, 10000)
-
-  const date = useMemo(() => {
-    if (!requests[0]) return new Date()
-
-    const time = requests[0].deadline / BigInt(1e6)
-    return new Date(Number(time))
-  }, [requests[0]])
+  useInterval(async () => {
+    fetchRequests()
+  }, 10000)
 
   return (
     <Box>
+      {loading && <Loading title="Loading Wallet" />}
       <IconButton
         colorScheme="red"
         variant={requests.length > 0 ? "solid" : "ghost"}
@@ -87,57 +118,51 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       />
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
-        {requests.length > 0 && (
-          <ModalContent>
-            <ModalHeader>{requests[0].consent_message.message}</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              {Object.entries(requests[0].consent_message).map(
-                ([key, value]) => (
-                  <Parent key={key} parent={key} child={value} />
-                )
-              )}
-              <Stat>
-                <StatLabel>Deadline: &nbsp;</StatLabel>
-                <StatHelpText>
-                  {date.toLocaleDateString()} {date.toLocaleTimeString()}
-                </StatHelpText>
-              </Stat>
-              <Stat>
-                <StatLabel>Role: &nbsp;</StatLabel>
-                <StatHelpText>{Object.keys(requests[0].role)[0]}</StatHelpText>
-              </Stat>
-              <Stat>
-                <StatLabel>Responses: &nbsp;</StatLabel>
-                <StatHelpText>
-                  {requests[0].responses.length} / {}{" "}
-                </StatHelpText>
-              </Stat>
-              {Object.entries(requests[0].request).map(([key, value]) => (
-                <Parent key={key} parent={key} child={value} />
-              ))}
-            </ModalBody>
-            <Stack direction="row" p={4} align="center" justify="space-between">
-              <Text flex={2} fontSize="xs">
-                {requests[0].version}
-              </Text>
+        <ModalContent>
+          <ModalHeader>Pending Requests ({requests.length})</ModalHeader>
+          <ModalCloseButton />
+          {requests.length > 1 && (
+            <Stack direction="row" spacing={4} align="center" mx={2}>
               <Button
-                flex={3}
-                colorScheme="red"
-                onClick={() => rejectHandler(requests[0].id)}
-              >
-                Reject
-              </Button>
+                width="100%"
+                aria-label="Previous"
+                variant="outline"
+                onClick={() =>
+                  setIndex(prev => {
+                    if (prev > 0) {
+                      return prev - 1
+                    }
+                    return prev
+                  })
+                }
+                children={<ArrowBackIcon />}
+                disabled={index === 0}
+              />
               <Button
-                colorScheme="blue"
-                flex={3}
-                onClick={() => confirmHandler(requests[0].id)}
-              >
-                Confirm
-              </Button>
+                width="100%"
+                variant="outline"
+                aria-label="Next"
+                children={<ArrowForwardIcon />}
+                onClick={() =>
+                  setIndex(prev => {
+                    if (prev + 1 < requests.length) {
+                      return prev + 1
+                    }
+                    return prev
+                  })
+                }
+                disabled={index === requests.length - 1}
+              />
             </Stack>
-          </ModalContent>
-        )}
+          )}
+          {requests[index] && (
+            <RequestItem
+              {...requests[index]}
+              rejectHandler={rejectHandler}
+              confirmHandler={confirmHandler}
+            />
+          )}
+        </ModalContent>
       </Modal>
     </Box>
   )

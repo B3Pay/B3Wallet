@@ -269,11 +269,13 @@ export interface PendingRequest {
   'id' : bigint,
   'status' : RequestStatus,
   'responses' : Array<[Principal, Response]>,
+  'allowed_signers' : Array<Principal>,
   'request' : Request,
   'role' : Roles,
   'deadline' : bigint,
   'consent_message' : ConsentMessage,
   'created_at' : bigint,
+  'created_by' : Principal,
   'version' : string,
 }
 export interface ProcessedRequest {
@@ -325,8 +327,7 @@ export type RetrieveBtcStatus = { 'Signing' : null } |
   { 'Pending' : null };
 export type Roles = { 'User' : null } |
   { 'Canister' : null } |
-  { 'Admin' : null } |
-  { 'Threshold' : null };
+  { 'Admin' : null };
 export type SendResult = { 'BTC' : string } |
   { 'EVM' : null } |
   { 'ICP' : Result } |

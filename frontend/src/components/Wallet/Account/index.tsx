@@ -67,6 +67,7 @@ const Account: React.FC<AccountProps> = ({
           : Object.keys(network)[0]
 
       const addressItem = {
+        id: `${symbol}-${networkDetail}-${address}`,
         address,
         symbol,
         network,

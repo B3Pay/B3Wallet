@@ -50,7 +50,7 @@ impl RequestTrait for AddSigner {
     }
 
     fn validate_request(&self) -> Result<(), PermitError> {
-        if self.threshold.is_some() && self.role != Roles::Threshold {
+        if self.threshold.is_some() {
             return Err(PermitError::InvalidThreshold);
         }
 

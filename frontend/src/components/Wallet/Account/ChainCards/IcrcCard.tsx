@@ -21,8 +21,8 @@ interface IcrcCardProps extends AddressesWithChain {
   balance: bigint
   accountId: string
   balanceLoading: boolean
-  transferLoading: boolean
-  handleBalance: (chain: ChainEnum) => void
+
+  handleBalance: (id: string, chain: ChainEnum) => void
   handleTransfer: (
     chain: ChainEnum,
     to: string,
@@ -32,6 +32,7 @@ interface IcrcCardProps extends AddressesWithChain {
 }
 
 const IcrcCard: React.FC<IcrcCardProps> = ({
+  id,
   actor,
   chain,
   symbol,
@@ -39,13 +40,15 @@ const IcrcCard: React.FC<IcrcCardProps> = ({
   balance,
   accountId,
   balanceLoading,
-  transferLoading,
+
   networkDetail,
   handleBalance,
   handleTransfer,
   handleAddressRemove
 }) => {
-  useEffect(() => handleBalance(chain), [actor, accountId])
+  useEffect(() => {
+    handleBalance(id, chain)
+  }, [actor, accountId])
 
   return (
     <Stack
@@ -67,7 +70,7 @@ const IcrcCard: React.FC<IcrcCardProps> = ({
               aria-label="Refresh"
               icon={<RepeatIcon />}
               color="green"
-              onClick={() => handleBalance(chain)}
+              onClick={() => handleBalance(id, chain)}
             />
             <IconButton
               aria-label="Remove"
@@ -90,7 +93,6 @@ const IcrcCard: React.FC<IcrcCardProps> = ({
           </Stack>
           <TransferForm
             chain={chain}
-            loading={transferLoading}
             title={`Send ${symbol}`}
             handleTransfer={handleTransfer}
           />

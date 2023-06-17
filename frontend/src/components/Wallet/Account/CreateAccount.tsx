@@ -27,7 +27,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({
           Development: null
         }
       : {
-          Production: null
+          Staging: null
         }
   )
 
@@ -65,7 +65,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({
               setEnvironment({ [env]: null } as Environment)
             }}
           >
-            <option value="Development">Development</option>
+            {IS_LOCAL && <option value="Development">Development</option>}
             <option value="Production">Production</option>
             <option value="Staging">Staging</option>
           </Select>

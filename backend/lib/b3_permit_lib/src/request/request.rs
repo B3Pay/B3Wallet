@@ -1,3 +1,5 @@
+use std::fmt;
+
 use super::btc::transfer::*;
 use super::evm::other::*;
 use super::evm::sign::*;
@@ -51,4 +53,66 @@ pub enum Request {
     UpgradeCanister,
     UpdateSignerThreshold,
     UpdateCanisterSettings,
+}
+
+impl fmt::Display for Request {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Request::SendToken(SendToken {
+                to,
+                amount,
+                account_id,
+                chain,
+            }) => write!(
+                f,
+                "SendToken {{ to: {}, amount: {}, account_id: {}, chain: {} }}",
+                to, amount, account_id, chain
+            ),
+            Request::TopUpTransfer(TopUpTransfer {
+                amount,
+                account_id,
+                canister_id,
+                fee: _,
+            }) => write!(
+                f,
+                "TopUpTransfer {{ amount: {}, account_id: {}, canister_id: {} }}",
+                amount, account_id, canister_id
+            ),
+            Request::AddSigner(AddSigner {
+                name,
+                role,
+                signer_id,
+                expires_at: _,
+                threshold: _,
+            }) => write!(
+                f,
+                "AddSigner {{ name: {}, role: {}, signer_id: {} }}",
+                name, role, signer_id
+            ),
+            Request::RemoveSigner(RemoveSigner { signer_id }) => {
+                write!(f, "RemoveSigner {{ signer_id: {} }}", signer_id)
+            }
+            Request::UpgradeCanister(UpgradeCanister {
+                wasm_hash_string,
+                wasm_version,
+            }) => {
+                write!(
+                    f,
+                    "UpgradeCanister {{ wasm_hash_string: {}, wasm_version: {} }}",
+                    wasm_hash_string, wasm_version
+                )
+            }
+            Request::UpdateCanisterSettings(UpdateCanisterSettings {
+                settings,
+                canister_id,
+            }) => {
+                write!(
+                    f,
+                    "UpdateCanisterSettings {{ settings: {:?}, canister_id: {} }}",
+                    settings, canister_id
+                )
+            }
+            _ => write!(f, "Not Implemented yet"),
+        }
+    }
 }

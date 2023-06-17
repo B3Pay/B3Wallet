@@ -1,13 +1,13 @@
-use b3_helper_lib::types::RequestId;
+use b3_helper_lib::types::{RequestId, SignerId};
 
 use super::new::{PendingRequest, RequestArgs};
 use crate::{error::PermitError, state::PrmitState, types::PendingRequestList};
 
 impl PrmitState {
-    pub fn new_request(&self, args: RequestArgs) -> PendingRequest {
+    pub fn new_request(&self, signer_id: SignerId, args: RequestArgs) -> PendingRequest {
         let id = self.request_counter();
 
-        PendingRequest::new(id, args)
+        PendingRequest::new(id, signer_id, args)
     }
 
     pub fn insert_new_request(&mut self, sign_request: PendingRequest) -> RequestId {

@@ -86,7 +86,7 @@ dependencies = [
 
 [[package]]
 name = "b3_system"
-version = "0.0.1"
+version = "0.0.10"
 dependencies = [
  "b3_helper_lib",
  "b3_system_lib",
@@ -106,7 +106,7 @@ dependencies = [
 
 [[package]]
 name = "b3_wallet"
-version = "0.0.0-alpha.20"
+version = "0.0.0-alpha.23"
 dependencies = [
  "b3_helper_lib",
  "b3_permit_lib",

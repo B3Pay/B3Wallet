@@ -257,11 +257,13 @@ type PendingRequest = record {
   id : nat64;
   status : RequestStatus;
   responses : vec record { principal; Response };
+  allowed_signers : vec principal;
   request : Request;
   role : Roles;
   deadline : nat64;
   consent_message : ConsentMessage;
   created_at : nat64;
+  created_by : principal;
   version : text;
 };
 type ProcessedRequest = record {
@@ -309,7 +311,7 @@ type RetrieveBtcStatus = variant {
   Submitted : record { txid : vec nat8 };
   Pending;
 };
-type Roles = variant { User; Canister; Admin; Threshold };
+type Roles = variant { User; Canister; Admin };
 type SendResult = variant {
   BTC : text;
   EVM;

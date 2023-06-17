@@ -91,7 +91,8 @@ const InitialSetup: React.FC<InitialSetupProps> = ({
           </Stack>
           <Signers
             signers={signers}
-            actor={actor}
+            actor={actor as B3Wallet}
+            isInitialPage
             refetch={fetchSettingsAndSigners}
             pt={2}
           />
@@ -110,6 +111,7 @@ const InitialSetup: React.FC<InitialSetupProps> = ({
           </Text>
         </Stack>
         <Controllers
+          isInitialPage
           actor={actor}
           controllers={settings?.controllers}
           refetch={fetchSettingsAndSigners}

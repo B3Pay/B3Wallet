@@ -2,10 +2,7 @@ use crate::permit::caller_is_signer;
 use b3_helper_lib::{revert, types::RequestId};
 use b3_permit_lib::{
     processed::processed::ProcessedRequest,
-    store::{
-        with_pending_mut, with_permit, with_permit_mut, with_processed_request,
-        with_signer_ids_by_role,
-    },
+    store::{with_pending_mut, with_permit, with_permit_mut, with_processed_request},
     types::{ProcessedRequestList, Response},
 };
 use ic_cdk::{export::candid::candid_method, query, update};
@@ -46,13 +43,7 @@ pub async fn response(request_id: RequestId, answer: Response) -> ProcessedReque
         return processed;
     }
 
-    let is_succeed = with_signer_ids_by_role(request.role, |signer_ids| {
-        signer_ids
-            .iter()
-            .all(|signer_id| request.is_signed(signer_id))
-    });
-
-    if is_succeed {
+    if request.is_confirmed() {
         let processed = request.execute().await;
 
         with_permit_mut(|s| s.insert_processed(request_id, processed.clone()))

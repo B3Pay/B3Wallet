@@ -64,7 +64,7 @@ pub struct ConsentMessage {
 impl ConsentMessage {
     pub fn new(request: &Request, reason: String) -> Self {
         let method = request.method_name();
-        let message = format!("You are about to call {}", method);
+        let message = request.to_string();
 
         ConsentMessage {
             message,

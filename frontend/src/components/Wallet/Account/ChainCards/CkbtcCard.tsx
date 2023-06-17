@@ -1,16 +1,27 @@
-import { DeleteIcon, RepeatClockIcon, RepeatIcon } from "@chakra-ui/icons"
 import {
+  DeleteIcon,
+  InfoOutlineIcon,
+  RepeatClockIcon,
+  RepeatIcon
+} from "@chakra-ui/icons"
+import {
+  Box,
+  Button,
   CardBody,
   CardHeader,
   Flex,
   Heading,
   IconButton,
+  Link,
   Stack,
-  Text
+  Text,
+  keyframes,
+  useToast
 } from "@chakra-ui/react"
 import Address from "components/Wallet/Address"
 import Balance from "components/Wallet/Balance"
 import { BtcNetwork, ChainEnum } from "declarations/b3_wallet/b3_wallet.did"
+import { PendingTranscation, extractConfirmations } from "helpers/utiles"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useEffect, useState } from "react"
 import { B3BasicWallet, B3Wallet } from "service/actor"
@@ -18,13 +29,19 @@ import { AddressesWithChain } from "."
 import SwapForm from "../SwapForm"
 import TransferForm from "../TransferForm"
 
+const pulse = keyframes`
+  0% { transform: scale(1); color: orange; }
+  50% { transform: scale(1.1); color: purple; }
+  100% { transform: scale(1);  color: orange; }
+`
+
 interface CkbtcCardProps extends AddressesWithChain {
   actor: B3Wallet | B3BasicWallet
   balance: bigint
   accountId: string
   balanceLoading: boolean
-  transferLoading: boolean
-  handleBalance: (chain: ChainEnum) => void
+
+  handleBalance: (id: string, chain: ChainEnum) => void
   handleTransfer: (
     chain: ChainEnum,
     to: string,
@@ -34,6 +51,7 @@ interface CkbtcCardProps extends AddressesWithChain {
 }
 
 const CkbtcCard: React.FC<CkbtcCardProps> = ({
+  id,
   actor,
   chain,
   symbol,
@@ -43,7 +61,7 @@ const CkbtcCard: React.FC<CkbtcCardProps> = ({
   network,
   accountId,
   balanceLoading,
-  transferLoading,
+
   networkDetail,
   handleBalance,
   handleTransfer,
@@ -51,8 +69,13 @@ const CkbtcCard: React.FC<CkbtcCardProps> = ({
 }) => {
   const errorToast = useToastMessage()
   const [loading, setLoading] = useState(false)
+  const [ckbtcPending, setCkbtcPending] = useState<PendingTranscation>()
 
-  useEffect(() => handleBalance(chain), [actor, accountId])
+  const toast = useToast()
+
+  useEffect(() => {
+    handleBalance(id, chain)
+  }, [actor, accountId])
 
   const swapCkbtcToBtc = useCallback(
     async (network: BtcNetwork, to: string, amount: bigint) => {
@@ -88,21 +111,80 @@ const CkbtcCard: React.FC<CkbtcCardProps> = ({
       .account_update_balance(accountId, network as BtcNetwork)
       .then(() => {
         setLoading(false)
-        handleBalance(chain)
+        handleBalance(id, chain)
       })
-      .catch(e => {
-        console.log(e)
-        errorToast({
-          title: "Error",
-          description: e.message,
-          status: "error",
-          duration: 5000,
-          isClosable: true
-        })
+      .catch(err => {
+        console.log(err)
+        if (err.message.includes("Current confirmations:")) {
+          let pending = extractConfirmations(err.message)
 
-        setLoading(false)
+          console.log(pending)
+
+          if (pending.currentConfirmations > 0) {
+            setCkbtcPending(pending)
+          } else {
+            setCkbtcPending(undefined)
+          }
+
+          setLoading(false)
+          return
+        }
       })
   }, [handleBalance, network])
+
+  const showPendingToast = (index: bigint) => {
+    if (!ckbtcPending) return
+    toast({
+      id: "ckbtc-pending",
+      title: "ckBTC is being minted. Please wait for confirmations.",
+      description: (
+        <Box>
+          <Text fontSize="sm">
+            ckBTC({networkDetail}) has {ckbtcPending.currentConfirmations}{" "}
+            confirmations. Please wait for {ckbtcPending.requiredConfirmations}{" "}
+            confirmations before you can use it.
+          </Text>
+          <Stack direction="row" align="center">
+            <Link
+              variant="link"
+              href={`https://blockstream.info/tx/${pending}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              View on Blockstream
+            </Link>
+            <Button
+              onClick={() =>
+                actor
+                  .account_remove_pending(accountId, chain, index)
+                  .then(() => {
+                    toast.closeAll()
+                    handleBalance(id, chain)
+                  })
+              }
+            >
+              Cancel
+            </Button>
+          </Stack>
+        </Box>
+      ),
+      status: "loading",
+      duration: 10000,
+      isClosable: true
+    })
+  }
+
+  useEffect(() => {
+    if (!ckbtcPending) {
+      return
+    }
+
+    const interval = setInterval(() => {
+      updateBalance()
+    }, 60_000)
+
+    return () => clearInterval(interval)
+  }, [ckbtcPending, updateBalance])
 
   return (
     <Stack
@@ -120,6 +202,16 @@ const CkbtcCard: React.FC<CkbtcCardProps> = ({
             <Text>{networkDetail}</Text>
           </Flex>
           <Stack direction="row" justify="end" align="center" flex={2}>
+            {ckbtcPending && (
+              <IconButton
+                aria-label="btc-pending"
+                icon={<InfoOutlineIcon />}
+                colorScheme="orange"
+                animation={`${pulse} 1s infinite`}
+                variant="ghost"
+                onClick={() => showPendingToast(0n)}
+              />
+            )}
             <IconButton
               aria-label="update-balance"
               icon={<RepeatClockIcon />}
@@ -131,7 +223,7 @@ const CkbtcCard: React.FC<CkbtcCardProps> = ({
               aria-label="Refresh"
               icon={<RepeatIcon />}
               color="green"
-              onClick={() => handleBalance(chain)}
+              onClick={() => handleBalance(id, chain)}
             />
             <IconButton
               aria-label="Remove"
@@ -154,14 +246,12 @@ const CkbtcCard: React.FC<CkbtcCardProps> = ({
           </Stack>
           <TransferForm
             chain={chain}
-            loading={transferLoading}
             title={`Send ${symbol}`}
             handleTransfer={handleTransfer}
           />
           <SwapForm
             network={network as BtcNetwork}
-            loading={loading}
-            title="Swap ckBTC to BTC"
+            title="Swap to BTC"
             handleSwap={swapCkbtcToBtc}
           />
         </Stack>

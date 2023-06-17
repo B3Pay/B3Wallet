@@ -1,9 +1,13 @@
 import { RepeatIcon } from "@chakra-ui/icons"
 import {
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
   Box,
   Button,
   CardBody,
-  CardHeader,
   CloseButton,
   FormControl,
   IconButton,
@@ -32,6 +36,7 @@ export type ControllerMap = Array<[Principal, Controller]>
 interface ControllersProps extends StackProps {
   actor: B3Wallet | B3BasicWallet
   refetch: () => void
+  isInitialPage?: boolean
   controllers?: ControllerMap
   isInitializing?: boolean
   handleInitialize?: (controllers: ControllerMap) => Promise<void>
@@ -41,6 +46,7 @@ const Controllers: React.FC<ControllersProps> = ({
   actor,
   refetch,
   controllers,
+  isInitialPage,
   isInitializing,
   handleInitialize,
   ...rest
@@ -162,110 +168,140 @@ const Controllers: React.FC<ControllersProps> = ({
         {(!controllerMap || loading || isInitializing) && (
           <Loading title="Loading controllers" />
         )}
-        <CardHeader pb={2}>
-          <Stack direction="row" justify="space-between" align="center">
-            <Text fontSize="md" fontWeight="bold">
-              Controllers
-            </Text>
-            <Stack fontSize="sm" fontWeight="semibold">
-              <Stack direction="row" align="center">
-                <IconButton
-                  aria-label="Refresh"
-                  icon={<RepeatIcon />}
-                  onClick={handleRefreshControllers}
-                  size="xs"
-                />
-              </Stack>
-            </Stack>
-          </Stack>
-        </CardHeader>
-        <CardBody borderTop="1px" borderColor="gray.200" m={0} p={0}>
-          <TableContainer minH={75}>
-            <Table size="sm">
-              <Thead>
-                <Tr>
-                  <Th>Controller ID</Th>
-                  <Th>Name</Th>
-                  <Th></Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {controllerMap?.map(([controller, { name }], index) => (
-                  <Tr key={index}>
-                    <Td>
-                      <Address address={controller.toString()} noIcon />
-                    </Td>
-                    <Td>{name}</Td>
-                    <Td>
-                      <CloseButton
-                        color="red"
-                        onClick={() => removeController(index, name)}
-                      />
-                    </Td>
-                  </Tr>
-                ))}
-              </Tbody>
-            </Table>
-          </TableContainer>
-          <Box
-            as="form"
-            onSubmit={handleSubmit}
-            p={2}
-            borderTop="1px"
-            borderColor="gray.200"
-          >
-            <Stack alignItems="center" justify="space-between" direction="row">
-              <FormControl isRequired flex={5}>
-                <Input
-                  value={principal}
-                  onChange={e => setPrincipal(e.target.value)}
-                  placeholder="Principal"
-                />
-              </FormControl>
-              <FormControl isRequired flex={4}>
-                <Input
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  placeholder="Name"
-                />
-              </FormControl>
-              <Button colorScheme="orange" type="submit" flex={3}>
-                Add
-              </Button>
-            </Stack>
-            {!!!handleInitialize && edited && (
-              <Stack direction="row" justify="space-between" mt={4}>
-                <Button
-                  onClick={refetch}
-                  isLoading={loading}
-                  colorScheme="red"
-                  flex={4}
+        <Accordion allowToggle defaultIndex={isInitialPage ? [0] : undefined}>
+          <AccordionItem border="none" _focus={{ boxShadow: "none" }}>
+            {({ isExpanded }) => (
+              <Box>
+                <Stack
+                  direction="row"
+                  justify="space-between"
+                  align="center"
+                  px={4}
+                  py={2}
                 >
-                  Cancel
-                </Button>
-                <Button
-                  flex={8}
-                  onClick={handleUpdateController}
-                  isLoading={loading}
-                  colorScheme="blue"
-                >
-                  Update
-                </Button>
-              </Stack>
+                  <Text fontSize="md" fontWeight="bold">
+                    Controllers
+                  </Text>
+                  <Stack fontSize="sm" fontWeight="semibold">
+                    <Stack direction="row" align="center">
+                      {isExpanded && (
+                        <IconButton
+                          aria-label="Refresh"
+                          icon={<RepeatIcon />}
+                          onClick={handleRefreshControllers}
+                          size="xs"
+                        />
+                      )}
+                      <AccordionButton borderRadius="lg">
+                        <AccordionIcon />
+                      </AccordionButton>
+                    </Stack>
+                  </Stack>
+                </Stack>
+                <AccordionPanel>
+                  <CardBody borderTop="1px" borderColor="gray.200" m={0} p={0}>
+                    <TableContainer minH={75}>
+                      <Table size="sm">
+                        <Thead>
+                          <Tr>
+                            <Th>Controller ID</Th>
+                            <Th>Name</Th>
+                            <Th></Th>
+                          </Tr>
+                        </Thead>
+                        <Tbody>
+                          {controllerMap?.map(
+                            ([controller, { name }], index) => (
+                              <Tr key={index}>
+                                <Td>
+                                  <Address
+                                    address={controller.toString()}
+                                    noIcon
+                                  />
+                                </Td>
+                                <Td>{name}</Td>
+                                <Td>
+                                  <CloseButton
+                                    color="red"
+                                    onClick={() =>
+                                      removeController(index, name)
+                                    }
+                                  />
+                                </Td>
+                              </Tr>
+                            )
+                          )}
+                        </Tbody>
+                      </Table>
+                    </TableContainer>
+                    <Box
+                      as="form"
+                      onSubmit={handleSubmit}
+                      p={2}
+                      borderTop="1px"
+                      borderColor="gray.200"
+                    >
+                      <Stack
+                        alignItems="center"
+                        justify="space-between"
+                        direction="row"
+                      >
+                        <FormControl isRequired flex={5}>
+                          <Input
+                            value={principal}
+                            onChange={e => setPrincipal(e.target.value)}
+                            placeholder="Principal"
+                          />
+                        </FormControl>
+                        <FormControl isRequired flex={4}>
+                          <Input
+                            value={name}
+                            onChange={e => setName(e.target.value)}
+                            placeholder="Name"
+                          />
+                        </FormControl>
+                        <Button colorScheme="orange" type="submit" flex={3}>
+                          Add
+                        </Button>
+                      </Stack>
+                      {!isInitialPage && edited && (
+                        <Stack direction="row" justify="space-between" mt={4}>
+                          <Button
+                            onClick={refetch}
+                            isLoading={loading}
+                            colorScheme="red"
+                            flex={4}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            flex={8}
+                            onClick={handleUpdateController}
+                            isLoading={loading}
+                            colorScheme="blue"
+                          >
+                            Update
+                          </Button>
+                        </Stack>
+                      )}
+                    </Box>
+                  </CardBody>
+                </AccordionPanel>
+              </Box>
             )}
-          </Box>
-        </CardBody>
+          </AccordionItem>
+        </Accordion>
+        {isInitialPage && (
+          <Button
+            onClick={() => handleInitialize(controllerMap)}
+            isLoading={isInitializing}
+            mt={4}
+            colorScheme="blue"
+          >
+            Initialize
+          </Button>
+        )}
       </Stack>
-      {!!handleInitialize && (
-        <Button
-          onClick={() => handleInitialize(controllerMap)}
-          isLoading={isInitializing}
-          mt={4}
-          colorScheme="blue"
-        >
-          Initialize
-        </Button>
-      )}
     </Stack>
   )
 }

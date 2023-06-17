@@ -3,7 +3,7 @@ use crate::{
     processed::processed::{ProcessedRequest, RequestStatus},
     request::request::{Request, RequestTrait},
     signer::roles::Roles,
-    types::{ConsentMessage, Response, ResponseMap},
+    types::{ConsentMessage, Response, ResponseMap, SignerIds},
 };
 use b3_helper_lib::{
     time::NanoTimeStamp,
@@ -20,6 +20,8 @@ pub struct PendingRequest {
     pub responses: ResponseMap,
     pub deadline: NanoTimeStamp,
     pub created_at: NanoTimeStamp,
+    pub created_by: SignerId,
+    pub allowed_signers: SignerIds,
     pub consent_message: ConsentMessage,
     pub version: Version,
 }
@@ -30,11 +32,12 @@ pub struct RequestArgs {
     pub request: Request,
     pub reason: String,
     pub version: Version,
+    pub allowed_signers: SignerIds,
     pub deadline: Option<NanoTimeStamp>,
 }
 
 impl PendingRequest {
-    pub fn new(id: RequestId, args: RequestArgs) -> Self {
+    pub fn new(id: RequestId, created_by: SignerId, args: RequestArgs) -> PendingRequest {
         let deadline = if let Some(deadline) = args.deadline {
             deadline
         } else {
@@ -44,37 +47,18 @@ impl PendingRequest {
         let consent_message = ConsentMessage::new(&args.request, args.reason);
 
         PendingRequest {
+            id,
+            created_by,
             responses: ResponseMap::new(),
+            allowed_signers: args.allowed_signers,
             request: args.request,
             role: args.role,
-            id,
             status: RequestStatus::Pending,
             deadline,
             created_at: NanoTimeStamp::now(),
             consent_message,
             version: args.version,
         }
-    }
-
-    /// Add a response to the request
-    pub fn add_response(&mut self, signer_id: SignerId, response: Response) {
-        self.responses.insert(signer_id, response); // Assuming `ResponseMap::insert` exists and `Response` can be inserted
-        self.check_status();
-    }
-
-    /// Check if the request status needs to be updated
-    pub fn check_status(&mut self) {
-        if NanoTimeStamp::now() > self.deadline {
-            self.status = RequestStatus::Expired;
-        } else if self.responses.len() == self.role.get_num_signers() {
-            // Assuming `Role::get_num_signers()` exists and returns the number of signers
-            self.status = RequestStatus::Success;
-        }
-    }
-
-    /// Get the current status of the request
-    pub fn get_status(&self) -> RequestStatus {
-        self.status.clone() // Assuming `RequestStatus` implements `Clone`
     }
 
     pub async fn execute(self) -> ProcessedRequest {
@@ -96,6 +80,10 @@ impl PendingRequest {
         &self.responses
     }
 
+    pub fn is_allowed(&self, signer_id: &SignerId) -> bool {
+        self.allowed_signers.iter().any(|id| id == signer_id)
+    }
+
     pub fn is_expired(&self) -> bool {
         self.deadline.has_passed()
     }
@@ -106,6 +94,19 @@ impl PendingRequest {
 
     pub fn is_rejected(&self) -> bool {
         self.responses.values().any(|response| response.is_reject())
+    }
+
+    pub fn is_confirmed(&self) -> bool {
+        let total_signers = self.allowed_signers.len();
+        let confirmed_responses = self
+            .responses
+            .iter()
+            .filter(|(signer, response)| {
+                self.allowed_signers.contains(signer) && response.is_confirm()
+            })
+            .count();
+
+        confirmed_responses * 2 > total_signers
     }
 
     pub fn get_error(&self) -> Option<String> {
@@ -123,6 +124,10 @@ impl PendingRequest {
     pub fn response(&mut self, signer: SignerId, response: Response) -> Result<(), PermitError> {
         if self.is_signed(&signer) {
             return Err(PermitError::RequestAlreadySigned(signer.to_string()));
+        }
+
+        if !self.is_allowed(&signer) {
+            return Err(PermitError::SignerNotAllowed(signer.to_string()));
         }
 
         self.responses.insert(signer, response);

@@ -38,7 +38,7 @@ const Cycles: React.FC<CyclesProps> = ({ actor }) => {
   }, [])
 
   const { statusColor, percent } = useMemo(() => {
-    let cyclePercent = (cycleBalance / TERILION_CYCLES) * 100n
+    let cyclePercent = (cycleBalance * 100n) / TERILION_CYCLES
 
     let percent = convertBigIntToNumber(cyclePercent)
 

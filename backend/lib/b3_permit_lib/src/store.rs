@@ -4,7 +4,7 @@ use crate::{
     processed::processed::ProcessedRequest,
     signer::{roles::Roles, signer::Signer},
     state::PrmitState,
-    types::ProcessedRequestMap,
+    types::{ProcessedRequestMap, SignerIds},
 };
 use b3_helper_lib::types::{RequestId, SignerId};
 use std::cell::RefCell;
@@ -117,10 +117,10 @@ where
 /// Get all permit with a role, admins is always included.
 pub fn with_signer_ids_by_role<T, F>(role: Roles, callback: F) -> T
 where
-    F: FnOnce(&Vec<SignerId>) -> T,
+    F: FnOnce(&SignerIds) -> T,
 {
     with_permit(|permit| {
-        let filtered_signers: Vec<SignerId> = permit
+        let filtered_signers: SignerIds = permit
             .signers
             .iter()
             .filter(|(_, signer)| signer.has_role(role))

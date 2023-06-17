@@ -23,8 +23,8 @@ interface IcpCardProps extends AddressesWithChain {
   balance: bigint
   accountId: string
   balanceLoading: boolean
-  transferLoading: boolean
-  handleBalance: (chain: ChainEnum) => void
+
+  handleBalance: (id: string, chain: ChainEnum) => void
   handleTransfer: (
     chain: ChainEnum,
     to: string,
@@ -34,6 +34,7 @@ interface IcpCardProps extends AddressesWithChain {
 }
 
 const IcpCard: React.FC<IcpCardProps> = ({
+  id,
   actor,
   chain,
   symbol,
@@ -41,7 +42,7 @@ const IcpCard: React.FC<IcpCardProps> = ({
   balance,
   accountId,
   balanceLoading,
-  transferLoading,
+
   networkDetail,
   handleBalance,
   handleTransfer,
@@ -50,7 +51,9 @@ const IcpCard: React.FC<IcpCardProps> = ({
   const errorToast = useToastMessage()
   const [loadings, setLoadings] = useState(false)
 
-  useEffect(() => handleBalance(chain), [actor, accountId])
+  useEffect(() => {
+    handleBalance(id, chain)
+  }, [actor, accountId])
 
   const handleTopUp = useCallback(
     async (to: string, amount: bigint) => {
@@ -118,7 +121,7 @@ const IcpCard: React.FC<IcpCardProps> = ({
               aria-label="Refresh"
               icon={<RepeatIcon />}
               color="green"
-              onClick={() => handleBalance(chain)}
+              onClick={() => handleBalance(id, chain)}
             />
             <IconButton
               aria-label="Remove"
@@ -141,11 +144,10 @@ const IcpCard: React.FC<IcpCardProps> = ({
           </Stack>
           <TransferForm
             chain={chain}
-            loading={transferLoading}
             title={`Send ${symbol}`}
             handleTransfer={handleTransfer}
           />
-          <TopUpForm loading={loadings} handleTopUp={handleTopUp} />
+          <TopUpForm handleTopUp={handleTopUp} />
         </Stack>
       </CardBody>
     </Stack>

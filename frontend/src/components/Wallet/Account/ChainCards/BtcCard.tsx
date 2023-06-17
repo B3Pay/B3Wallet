@@ -1,7 +1,5 @@
 import { DeleteIcon, InfoOutlineIcon, RepeatIcon } from "@chakra-ui/icons"
 import {
-  Box,
-  Button,
   CardBody,
   CardHeader,
   Flex,
@@ -16,7 +14,6 @@ import {
 import Address from "components/Wallet/Address"
 import Balance from "components/Wallet/Balance"
 import { BtcNetwork, ChainEnum } from "declarations/b3_wallet/b3_wallet.did"
-import { PendingTranscation, extractConfirmations } from "helpers/utiles"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useEffect, useState } from "react"
 import { B3BasicWallet, B3Wallet } from "service/actor"
@@ -35,8 +32,9 @@ interface BtcCardProps extends AddressesWithChain {
   balance: bigint
   accountId: string
   balanceLoading: boolean
-  transferLoading: boolean
-  handleBalance: (chain: ChainEnum) => void
+
+  refetchAccount: () => void
+  handleBalance: (id: string, chain: ChainEnum) => void
   handleTransfer: (
     chain: ChainEnum,
     to: string,
@@ -46,6 +44,7 @@ interface BtcCardProps extends AddressesWithChain {
 }
 
 const BtcCard: React.FC<BtcCardProps> = ({
+  id,
   actor,
   chain,
   symbol,
@@ -55,16 +54,19 @@ const BtcCard: React.FC<BtcCardProps> = ({
   network,
   accountId,
   balanceLoading,
-  transferLoading,
+
   networkDetail,
   handleBalance,
   handleTransfer,
+  refetchAccount,
   handleAddressRemove
 }) => {
   const errorToast = useToastMessage()
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => handleBalance(chain), [actor, accountId])
+  useEffect(() => {
+    handleBalance(id, chain)
+  }, [actor, accountId])
 
   const swapBtcToCkbtc = useCallback(
     async (network: BtcNetwork, to: string, amount: bigint) => {
@@ -76,6 +78,7 @@ const BtcCard: React.FC<BtcCardProps> = ({
         .account_swap_btc_to_ckbtc(accountId, network, amount)
         .then(() => {
           setLoading(false)
+          refetchAccount()
         })
         .catch(e => {
           console.log(e)
@@ -93,96 +96,33 @@ const BtcCard: React.FC<BtcCardProps> = ({
     [actor]
   )
 
-  const [ckbtcPending, setCkbtcPending] = useState<PendingTranscation>()
-
   const toast = useToast()
 
-  const showPendingToast = (index: bigint) => {
-    if (!ckbtcPending) return
-    toast({
-      id: "ckbtc-pending",
-      title: "ckBTC is being minted. Please wait for confirmations.",
-      description: (
-        <Box>
-          <Text fontSize="sm">
-            ckBTC({networkDetail}) has {ckbtcPending.currentConfirmations}{" "}
-            confirmations. Please wait for {ckbtcPending.requiredConfirmations}{" "}
-            confirmations before you can use it.
-          </Text>
-          <Stack direction="row" align="center">
+  const showPendingToast = useCallback(
+    (amount: bigint) => {
+      toast({
+        title: "Pending",
+        description: (
+          <Text>
+            You have {amount.toLocaleString()} BTC pending confirmation \nPlease
+            wait for the transaction to be confirmed, txId:
             <Link
               variant="link"
-              href={`https://blockstream.info/tx/${pending[0][1]}`}
+              href={`https://blockstream.info/tx/${pending}`}
               target="_blank"
               rel="noreferrer"
             >
               View on Blockstream
             </Link>
-            <Button
-              onClick={() =>
-                actor
-                  .account_remove_pending(accountId, chain, index)
-                  .then(() => {
-                    toast.closeAll()
-                    handleBalance(chain)
-                  })
-              }
-            >
-              Cancel
-            </Button>
-          </Stack>
-        </Box>
-      ),
-      status: "loading",
-      duration: 10000,
-      isClosable: true
-    })
-  }
-
-  const updatePending = useCallback(
-    async (index: bigint) => {
-      console.log("Updating pending", pending)
-      actor
-        .account_check_pending(accountId, chain, index)
-        .then(utxos => {
-          console.log(utxos)
-
-          handleBalance(chain)
-          setCkbtcPending(undefined)
-          toast.closeAll()
-        })
-        .catch(err => {
-          console.log(err)
-          if (err.message.includes("Current confirmations:")) {
-            let pending = extractConfirmations(err.message)
-
-            console.log(pending)
-
-            if (pending.currentConfirmations === null) {
-              setCkbtcPending(undefined)
-            } else {
-              setCkbtcPending(pending)
-            }
-            return
-          }
-        })
+          </Text>
+        ),
+        status: "warning",
+        duration: 5000,
+        isClosable: true
+      })
     },
-    [pending, chain]
+    [toast]
   )
-
-  useEffect(() => {
-    if (!pending.length) {
-      return
-    }
-
-    updatePending(0n)
-
-    const interval = setInterval(() => {
-      updatePending(0n)
-    }, 60_000)
-
-    return () => clearInterval(interval)
-  }, [updatePending])
 
   return (
     <Stack
@@ -214,7 +154,7 @@ const BtcCard: React.FC<BtcCardProps> = ({
               aria-label="Refresh"
               icon={<RepeatIcon />}
               color="green"
-              onClick={() => handleBalance(chain)}
+              onClick={() => handleBalance(id, chain)}
             />
             <IconButton
               aria-label="Remove"
@@ -237,14 +177,12 @@ const BtcCard: React.FC<BtcCardProps> = ({
           </Stack>
           <TransferForm
             chain={chain}
-            loading={transferLoading}
             title={`Send ${symbol}`}
             handleTransfer={handleTransfer}
           />
           <SwapForm
             network={network as BtcNetwork}
-            loading={loading}
-            title="Swap BTC to ckBTC"
+            title="Swap to ckBTC"
             handleSwap={swapBtcToCkbtc}
             noAddressInput
           />

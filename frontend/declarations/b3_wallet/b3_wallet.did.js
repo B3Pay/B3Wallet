@@ -181,7 +181,6 @@ export const idlFactory = ({ IDL }) => {
     'User' : IDL.Null,
     'Canister' : IDL.Null,
     'Admin' : IDL.Null,
-    'Threshold' : IDL.Null,
   });
   const AddSigner = IDL.Record({
     'threshold' : IDL.Opt(IDL.Nat8),
@@ -353,11 +352,13 @@ export const idlFactory = ({ IDL }) => {
     'id' : IDL.Nat64,
     'status' : RequestStatus,
     'responses' : IDL.Vec(IDL.Tuple(IDL.Principal, Response)),
+    'allowed_signers' : IDL.Vec(IDL.Principal),
     'request' : Request,
     'role' : Roles,
     'deadline' : IDL.Nat64,
     'consent_message' : ConsentMessage,
     'created_at' : IDL.Nat64,
+    'created_by' : IDL.Principal,
     'version' : IDL.Text,
   });
   const NotifyTopUp = IDL.Record({

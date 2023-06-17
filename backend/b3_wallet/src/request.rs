@@ -17,7 +17,7 @@ use b3_permit_lib::{
         request::{Request, RequestTrait},
     },
     signer::roles::Roles,
-    store::{with_permit, with_permit_mut},
+    store::{with_permit, with_permit_mut, with_signer_ids_by_role},
     types::PendingRequestList,
 };
 use b3_wallet_lib::ledger::subaccount::SubaccountTrait;
@@ -40,8 +40,14 @@ pub fn request_maker(
     reason: String,
     deadline: Option<NanoTimeStamp>,
 ) -> RequestId {
+    let caller = ic_cdk::caller();
+
+    let role = Roles::Admin;
+    let allowed_signers = with_signer_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+
     let request_args = RequestArgs {
-        role: Roles::Admin,
+        allowed_signers,
+        role,
         request: request.into(),
         version: version(),
         reason,
@@ -49,7 +55,7 @@ pub fn request_maker(
     };
 
     with_permit_mut(|s| {
-        let new_request = s.new_request(request_args);
+        let new_request = s.new_request(caller, request_args);
         s.insert_new_request(new_request)
     })
 }
@@ -61,8 +67,14 @@ pub fn request_add_signer(
     reason: String,
     deadline: Option<NanoTimeStamp>,
 ) -> RequestId {
+    let caller = ic_cdk::caller();
+
+    let role = Roles::Admin;
+    let allowed_signers = with_signer_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+
     let request_args = RequestArgs {
-        role: Roles::Admin,
+        allowed_signers,
+        role,
         request: request.into(),
         version: version(),
         reason,
@@ -70,7 +82,7 @@ pub fn request_add_signer(
     };
 
     with_permit_mut(|s| {
-        let new_request = s.new_request(request_args);
+        let new_request = s.new_request(caller, request_args);
         s.insert_new_request(new_request)
     })
 }
@@ -82,10 +94,16 @@ pub fn request_update_settings(
     reason: String,
     deadline: Option<NanoTimeStamp>,
 ) -> RequestId {
+    let caller = ic_cdk::caller();
+
     request.validate_request().unwrap_or_else(revert);
 
+    let role = Roles::Admin;
+    let allowed_signers = with_signer_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+
     let request_args = RequestArgs {
-        role: Roles::Admin,
+        allowed_signers,
+        role,
         request: request.into(),
         version: version(),
         reason,
@@ -93,7 +111,7 @@ pub fn request_update_settings(
     };
 
     with_permit_mut(|s| {
-        let new_request = s.new_request(request_args);
+        let new_request = s.new_request(caller, request_args);
         s.insert_new_request(new_request)
     })
 }
@@ -105,8 +123,14 @@ pub fn request_account_rename(
     reason: String,
     deadline: Option<NanoTimeStamp>,
 ) -> RequestId {
+    let caller = ic_cdk::caller();
+
+    let role = Roles::Admin;
+    let allowed_signers = with_signer_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+
     let request_args = RequestArgs {
-        role: Roles::Admin,
+        allowed_signers,
+        role,
         request: request.into(),
         version: version(),
         reason,
@@ -114,7 +138,7 @@ pub fn request_account_rename(
     };
 
     with_permit_mut(|s| {
-        let new_request = s.new_request(request_args);
+        let new_request = s.new_request(caller, request_args);
         s.insert_new_request(new_request)
     })
 }
@@ -126,8 +150,14 @@ pub fn request_create_account(
     reason: String,
     deadline: Option<NanoTimeStamp>,
 ) -> RequestId {
+    let caller = ic_cdk::caller();
+
+    let role = Roles::Admin;
+    let allowed_signers = with_signer_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+
     let request_args = RequestArgs {
-        role: Roles::Admin,
+        allowed_signers,
+        role,
         request: request.into(),
         version: version(),
         reason,
@@ -135,7 +165,7 @@ pub fn request_create_account(
     };
 
     with_permit_mut(|s| {
-        let new_request = s.new_request(request_args);
+        let new_request = s.new_request(caller, request_args);
         s.insert_new_request(new_request)
     })
 }
@@ -147,8 +177,14 @@ pub fn request_delete_account(
     reason: String,
     deadline: Option<NanoTimeStamp>,
 ) -> RequestId {
+    let caller = ic_cdk::caller();
+
+    let role = Roles::Admin;
+    let allowed_signers = with_signer_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+
     let request_args = RequestArgs {
-        role: Roles::Admin,
+        allowed_signers,
+        role,
         request: request.into(),
         version: version(),
         reason,
@@ -156,7 +192,7 @@ pub fn request_delete_account(
     };
 
     with_permit_mut(|s| {
-        let new_request = s.new_request(request_args);
+        let new_request = s.new_request(caller, request_args);
         s.insert_new_request(new_request)
     })
 }
@@ -168,8 +204,14 @@ pub fn request_transfer_icp(
     reason: String,
     deadline: Option<NanoTimeStamp>,
 ) -> RequestId {
+    let caller = ic_cdk::caller();
+
+    let role = Roles::Admin;
+    let allowed_signers = with_signer_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+
     let request_args = RequestArgs {
-        role: Roles::Admin,
+        allowed_signers,
+        role,
         request: request.into(),
         version: version(),
         reason,
@@ -177,7 +219,7 @@ pub fn request_transfer_icp(
     };
 
     with_permit_mut(|s| {
-        let new_request = s.new_request(request_args);
+        let new_request = s.new_request(caller, request_args);
         s.insert_new_request(new_request)
     })
 }
@@ -189,8 +231,14 @@ pub fn request_transfer_btc(
     reason: String,
     deadline: Option<NanoTimeStamp>,
 ) -> RequestId {
+    let caller = ic_cdk::caller();
+
+    let role = Roles::Admin;
+    let allowed_signers = with_signer_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+
     let request_args = RequestArgs {
-        role: Roles::Admin,
+        allowed_signers,
+        role,
         request: request.into(),
         version: version(),
         reason,
@@ -198,7 +246,7 @@ pub fn request_transfer_btc(
     };
 
     with_permit_mut(|s| {
-        let new_request = s.new_request(request_args);
+        let new_request = s.new_request(caller, request_args);
         s.insert_new_request(new_request)
     })
 }
@@ -210,8 +258,14 @@ pub fn request_send(
     reason: String,
     deadline: Option<NanoTimeStamp>,
 ) -> RequestId {
+    let caller = ic_cdk::caller();
+
+    let role = Roles::Admin;
+    let allowed_signers = with_signer_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+
     let request_args = RequestArgs {
-        role: Roles::Admin,
+        allowed_signers,
+        role,
         request: request.into(),
         version: version(),
         reason,
@@ -219,7 +273,7 @@ pub fn request_send(
     };
 
     with_permit_mut(|s| {
-        let new_request = s.new_request(request_args);
+        let new_request = s.new_request(caller, request_args);
         s.insert_new_request(new_request)
     })
 }

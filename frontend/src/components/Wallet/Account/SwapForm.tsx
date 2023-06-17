@@ -4,7 +4,6 @@ import React, { useCallback, useState } from "react"
 
 interface SwapFormProps {
   network: BtcNetwork
-  loading: boolean
   title: string
   toAddress?: string
   noAddressInput?: boolean
@@ -13,19 +12,21 @@ interface SwapFormProps {
 
 const SwapForm: React.FC<SwapFormProps> = ({
   network,
-  loading,
   title,
   toAddress,
   noAddressInput,
   handleSwap
 }) => {
-  const [amount, setAmount] = useState<string>("")
   const [to, setTo] = useState<string>("")
+  const [amount, setAmount] = useState<string>("")
+  const [loading, setLoading] = useState(false)
 
   const transferHandler = useCallback(async () => {
     const decimals = 8
 
     const bigintAmount = BigInt(Math.floor(Number(amount) * 10 ** decimals))
+
+    setLoading(true)
 
     handleSwap(network, to, bigintAmount)
       .then(() => {
@@ -33,6 +34,9 @@ const SwapForm: React.FC<SwapFormProps> = ({
       })
       .catch(e => {
         console.log(e)
+      })
+      .finally(() => {
+        setLoading(false)
       })
   }, [network, amount, handleSwap])
 

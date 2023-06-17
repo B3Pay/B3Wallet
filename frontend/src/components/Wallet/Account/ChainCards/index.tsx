@@ -17,6 +17,7 @@ import IcpCard from "./IcpCard"
 import IcrcCard from "./IcrcCard"
 
 export interface AddressesWithChain {
+  id: string
   symbol: ChainSymbol
   pending: Array<PendingEnum>
   networkDetail: string
@@ -63,44 +64,23 @@ const ChainCards: React.FC<ChainCardsProps> = ({
   addresses,
   actor
 }) => {
-  const [balances, setBalances] = useState<Balances>({
-    EVM: BigInt(0),
-    BTC: BigInt(0),
-    ICP: BigInt(0),
-    ICRC: BigInt(0),
-    CKBTC: BigInt(0)
-  })
-  const [balanceLoadings, setBalanceLoadings] = useState<Loadings>({
-    EVM: false,
-    BTC: false,
-    ICP: false,
-    ICRC: false,
-    CKBTC: false
-  })
-  const [transferLoadings, setTransferLoadings] = useState<Loadings>({
-    EVM: false,
-    BTC: false,
-    ICP: false,
-    ICRC: false,
-    CKBTC: false
-  })
+  const [balances, setBalances] = useState({})
+  const [balanceLoadings, setBalanceLoadings] = useState({})
   const [removeLoading, setRemoveLoading] = useState(false)
 
   const errorToast = useToastMessage()
 
   const handleBalance = useCallback(
-    (chain: ChainEnum) => {
-      let symbol = Object.keys(chain)[0]
-
-      setBalanceLoadings(prev => ({ ...prev, [symbol]: true }))
+    async (id: string, chain: ChainEnum) => {
+      setBalanceLoadings(prev => ({ ...prev, [id]: true }))
 
       actor
         .account_balance(accountId, chain)
         .then(res => {
           console.log(res)
 
-          setBalances(prev => ({ ...prev, [symbol]: res }))
-          setBalanceLoadings(prev => ({ ...prev, [symbol]: false }))
+          setBalances(prev => ({ ...prev, [id]: res }))
+          setBalanceLoadings(prev => ({ ...prev, [id]: false }))
         })
         .catch(err => {
           errorToast({
@@ -111,7 +91,7 @@ const ChainCards: React.FC<ChainCardsProps> = ({
             isClosable: true
           })
 
-          setBalanceLoadings(prev => ({ ...prev, [symbol]: false }))
+          setBalanceLoadings(prev => ({ ...prev, [id]: false }))
         })
     },
     [actor, accountId]
@@ -134,8 +114,6 @@ const ChainCards: React.FC<ChainCardsProps> = ({
         isClosable: true
       })
 
-      setTransferLoadings(prev => ({ ...prev, [symbol]: true }))
-
       let sendArgs: SendToken = {
         account_id: accountId,
         chain,
@@ -145,18 +123,20 @@ const ChainCards: React.FC<ChainCardsProps> = ({
 
       try {
         let result
+        let message: string
         if ("request_send" in actor) {
+          message = "Transfer Requested"
           result = await actor.request_send(sendArgs, "Sending Test", [])
         } else {
+          message = "Transfered"
           result = await actor.account_send(accountId, chain, to, amount)
         }
 
         console.log(result)
-        setTransferLoadings(prev => ({ ...prev, [symbol]: false }))
-        handleBalance(chain)
+
         errorToast({
           title: "Success",
-          description: `Transfered ${amount} ${symbol} from ${
+          description: `${message} ${amountInDecimal} ${symbol} from ${
             Object.keys(chain)[0]
           } to ${to}`,
           status: "success",
@@ -171,8 +151,6 @@ const ChainCards: React.FC<ChainCardsProps> = ({
           duration: 5000,
           isClosable: true
         })
-      } finally {
-        setTransferLoadings(prev => ({ ...prev, [symbol]: false }))
       }
     },
     [actor, handleBalance, accountId]
@@ -210,13 +188,13 @@ const ChainCards: React.FC<ChainCardsProps> = ({
       />
       {isExpanded ? (
         <Stack pt={2}>
-          {addresses.CKBTC?.map(addressProps => (
+          {addresses.CKBTC?.map(({ id, ...addressProps }) => (
             <CkbtcCard
-              key={addressProps.address}
+              id={id}
+              key={id}
               handleAddressRemove={handleAddressRemove}
-              balance={balances.CKBTC}
-              balanceLoading={balanceLoadings.CKBTC}
-              transferLoading={transferLoadings.CKBTC}
+              balance={balances[id]}
+              balanceLoading={balanceLoadings[id]}
               handleBalance={handleBalance}
               handleTransfer={handleTransfer}
               actor={actor}
@@ -224,13 +202,14 @@ const ChainCards: React.FC<ChainCardsProps> = ({
               {...addressProps}
             />
           ))}
-          {addresses.BTC?.map(addressProps => (
+          {addresses.BTC?.map(({ id, ...addressProps }) => (
             <BtcCard
-              key={addressProps.address}
+              id={id}
+              key={id}
+              refetchAccount={refetchAccount}
               handleAddressRemove={handleAddressRemove}
-              balance={balances.BTC}
-              balanceLoading={balanceLoadings.BTC}
-              transferLoading={transferLoadings.BTC}
+              balance={balances[id]}
+              balanceLoading={balanceLoadings[id]}
               handleBalance={handleBalance}
               handleTransfer={handleTransfer}
               actor={actor}
@@ -238,13 +217,13 @@ const ChainCards: React.FC<ChainCardsProps> = ({
               {...addressProps}
             />
           ))}
-          {addresses.EVM?.map(addressProps => (
+          {addresses.EVM?.map(({ id, ...addressProps }) => (
             <EthCard
-              key={addressProps.networkDetail}
+              id={id}
+              key={id}
               handleAddressRemove={handleAddressRemove}
-              balance={balances.EVM}
-              balanceLoading={balanceLoadings.EVM}
-              transferLoading={transferLoadings.EVM}
+              balance={balances[id]}
+              balanceLoading={balanceLoadings[id]}
               handleBalance={handleBalance}
               handleTransfer={handleTransfer}
               actor={actor}
@@ -252,13 +231,13 @@ const ChainCards: React.FC<ChainCardsProps> = ({
               {...addressProps}
             />
           ))}
-          {addresses.ICRC?.map(addressProps => (
+          {addresses.ICRC?.map(({ id, ...addressProps }) => (
             <IcrcCard
-              key={addressProps.address}
+              id={id}
+              key={id}
               handleAddressRemove={handleAddressRemove}
-              balance={balances.ICRC}
-              balanceLoading={balanceLoadings.ICRC}
-              transferLoading={transferLoadings.ICRC}
+              balance={balances[id]}
+              balanceLoading={balanceLoadings[id]}
               handleBalance={handleBalance}
               handleTransfer={handleTransfer}
               actor={actor}
@@ -266,13 +245,13 @@ const ChainCards: React.FC<ChainCardsProps> = ({
               {...addressProps}
             />
           ))}
-          {addresses.ICP?.map(addressProps => (
+          {addresses.ICP?.map(({ id, ...addressProps }) => (
             <IcpCard
-              key={addressProps.address}
+              id={id}
+              key={id}
               handleAddressRemove={handleAddressRemove}
-              balance={balances.ICP}
-              balanceLoading={balanceLoadings.ICP}
-              transferLoading={transferLoadings.ICP}
+              balance={balances[id]}
+              balanceLoading={balanceLoadings[id]}
               handleBalance={handleBalance}
               handleTransfer={handleTransfer}
               actor={actor}

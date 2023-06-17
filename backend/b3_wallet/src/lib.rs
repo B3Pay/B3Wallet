@@ -40,7 +40,7 @@ pub fn init() {
             // is added as trusted Canister
             signers.insert(
                 system_id,
-                Signer::new(Roles::Canister, "system".to_owned(), None),
+                Signer::new(Roles::Canister, "System".to_owned(), None),
             );
             owner_id
         }
@@ -49,17 +49,17 @@ pub fn init() {
 
     signers.insert(
         owner_id,
-        Signer::new(Roles::Admin, "owner".to_owned(), None),
+        Signer::new(Roles::Admin, "Owner".to_owned(), None),
     );
 
     with_permit_mut(|p| p.signers = signers);
     // set initial controllers
     with_setting_mut(|s| {
         s.controllers
-            .insert(ic_cdk::id(), Controller::new("self".to_owned(), None));
+            .insert(ic_cdk::id(), Controller::new("Self".to_owned(), None));
 
         s.controllers
-            .insert(owner_id, Controller::new("owner".to_owned(), None));
+            .insert(owner_id, Controller::new("Owner".to_owned(), None));
     });
 }
 

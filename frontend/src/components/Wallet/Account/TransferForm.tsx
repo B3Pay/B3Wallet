@@ -4,7 +4,6 @@ import React, { useCallback, useState } from "react"
 
 interface TransferFormProps {
   chain: ChainEnum
-  loading: boolean
   title: string
   handleTransfer: (
     chain: ChainEnum,
@@ -15,25 +14,30 @@ interface TransferFormProps {
 
 const TransferForm: React.FC<TransferFormProps> = ({
   chain,
-  loading,
   title,
   handleTransfer: handleTransfer
 }) => {
   const [to, setTo] = useState<string>("")
   const [amount, setAmount] = useState<string>("")
+  const [loading, setLoading] = useState(false)
 
   const transferHandler = useCallback(async () => {
     const decimals = 8
 
-    const bigintAmount = BigInt(Number(amount) * 10 ** decimals)
+    const bigintAmount = BigInt(Math.floor(Number(amount) * 10 ** decimals))
 
-    handleTransfer(chain, to, bigintAmount)
+    setLoading(true)
+
+    await handleTransfer(chain, to, bigintAmount)
       .then(() => {
         setTo("")
         setAmount("")
       })
       .catch(e => {
         console.log(e)
+      })
+      .finally(() => {
+        setLoading(false)
       })
   }, [chain, amount, handleTransfer, to])
 
@@ -44,9 +48,7 @@ const TransferForm: React.FC<TransferFormProps> = ({
         alt="To"
         type="text"
         placeholder="To"
-        style={{
-          flex: 5
-        }}
+        flex={5}
         value={to}
         onChange={e => setTo(e.target.value)}
       />
@@ -54,20 +56,12 @@ const TransferForm: React.FC<TransferFormProps> = ({
         id="amount"
         alt="Amount"
         placeholder="Amount"
-        style={{
-          flex: 4
-        }}
+        flex={4}
         type="text"
         value={amount}
         onChange={e => setAmount(e.target.value)}
       />
-      <Button
-        style={{
-          flex: 3
-        }}
-        onClick={transferHandler}
-        isLoading={loading}
-      >
+      <Button flex={3} onClick={transferHandler} isLoading={loading}>
         {title}
       </Button>
     </Stack>

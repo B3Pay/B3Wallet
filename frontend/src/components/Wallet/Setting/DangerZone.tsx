@@ -1,13 +1,15 @@
 import {
+  Box,
   Button,
   CardBody,
   CardHeader,
+  Link,
   Stack,
   Text,
   useToast
 } from "@chakra-ui/react"
 import Loading from "components/Loading"
-import { B3_SYSTEM_CANISTER_ID } from "helpers/config"
+import { B3_SYSTEM_CANISTER_ID, IS_LOCAL } from "helpers/config"
 import { useState } from "react"
 import { B3BasicWallet, B3Wallet } from "service/actor"
 import Address from "../Address"
@@ -58,9 +60,7 @@ const DangerZone: React.FC<DangerZoneProps> = ({
       })
     } finally {
       setLoadingTitle("")
-      setTimeout(() => {
-        window.location.reload()
-      }, 5000)
+      window.location.reload()
     }
   }
 
@@ -82,19 +82,31 @@ const DangerZone: React.FC<DangerZoneProps> = ({
         </Stack>
       </CardHeader>
       <CardBody borderTop="1px" borderColor="gray.200">
+        <Box color="red.500" pb={3}>
+          For uninstalling wallet, please make sure have your{" "}
+          <Link
+            color="blue.500"
+            isExternal
+            target="_blank"
+            rel="noopener noreferrer"
+            href={
+              IS_LOCAL
+                ? "http://qsgjb-riaaa-aaaaa-aaaga-cai.localhost:8080/"
+                : "https://nns.ic0.app/"
+            }
+          >
+            NNS Dapp
+          </Link>{" "}
+          Principal or System Principal{" "}
+          <Address
+            address={B3_SYSTEM_CANISTER_ID}
+            display="inline-flex"
+            color="blue.500"
+          />
+          as controller, or atleast have another way to reinstall code to your
+          canister.
+        </Box>
         <Stack direction="row" spacing={2}>
-          <Text fontSize="sm">
-            Reset your account or uninstall your wallet.
-          </Text>
-          <Text fontSize="sm" color="red.500">
-            This action is irreversible.
-          </Text>
-          <Text fontSize="sm" color="red.500">
-            For uninstalling wallet, please make sure you have NNS pricipal or
-            System Principal&apos;s (
-            <Address address={B3_SYSTEM_CANISTER_ID} />) as controller, or
-            atleast have another way to reinstall code to your canister.
-          </Text>
           <Button
             flex={1}
             colorScheme="red"

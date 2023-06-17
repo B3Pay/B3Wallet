@@ -27,8 +27,8 @@ interface EthCardProps extends AddressesWithChain {
   balance: bigint
   accountId: string
   balanceLoading: boolean
-  transferLoading: boolean
-  handleBalance: (chain: ChainEnum) => void
+
+  handleBalance: (id: string, chain: ChainEnum) => void
   handleTransfer: (
     chain: ChainEnum,
     to: string,
@@ -38,6 +38,7 @@ interface EthCardProps extends AddressesWithChain {
 }
 
 const EthCard: React.FC<EthCardProps> = ({
+  id,
   actor,
   chain,
   symbol,
@@ -46,7 +47,7 @@ const EthCard: React.FC<EthCardProps> = ({
   network,
   accountId,
   balanceLoading,
-  transferLoading,
+
   networkDetail,
   handleBalance,
   handleTransfer,
@@ -55,7 +56,9 @@ const EthCard: React.FC<EthCardProps> = ({
   const errorToast = useToastMessage()
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => handleBalance(chain), [actor, accountId])
+  useEffect(() => {
+    handleBalance(id, chain)
+  }, [actor, accountId])
 
   const handleEthTransfer = useCallback(
     async (from: string, to: string, amount: bigint) => {
@@ -128,7 +131,7 @@ const EthCard: React.FC<EthCardProps> = ({
               aria-label="Refresh"
               icon={<RepeatIcon />}
               color="green"
-              onClick={() => handleBalance(chain)}
+              onClick={() => handleBalance(id, chain)}
             />
             <IconButton
               aria-label="Remove"
@@ -151,7 +154,6 @@ const EthCard: React.FC<EthCardProps> = ({
           </Stack>
           <TransferForm
             chain={chain}
-            loading={transferLoading}
             title={`Send ${symbol}`}
             handleTransfer={handleTransfer}
           />
