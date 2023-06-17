@@ -35,7 +35,11 @@ const Settings: React.FC<SettingsProps> = ({
       </Text>
       <Cycles actor={actor} />
       {signers && (
-        <Signers actor={actor} refetch={refreshWallet} signers={signers} />
+        <Signers
+          actor={actor as B3Wallet}
+          refetch={refreshWallet}
+          signers={signers}
+        />
       )}
       <Stack position="relative" spacing={4}>
         <Controllers

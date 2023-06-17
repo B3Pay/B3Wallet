@@ -2,7 +2,7 @@ import { Accordion, AccordionItem, Stack, Text } from "@chakra-ui/react"
 import { ProcessedRequest } from "declarations/b3_wallet/b3_wallet.did"
 import { useEffect, useState } from "react"
 import { B3Wallet } from "service/actor"
-import Processed from "./Processed"
+import Processed from "./ProcessedItem"
 
 interface ProcessedProps {
   setLoading: (loading: boolean) => void

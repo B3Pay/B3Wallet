@@ -12,7 +12,7 @@ import {
   WalletSettingsAndSigners
 } from "../../../declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "../../hooks/useToastMessage"
-import { B3System, B3Wallet } from "../../service/actor"
+import { B3BasicWallet, B3System, B3Wallet } from "../../service/actor"
 import Account from "./Account"
 import CreateAccount from "./Account/CreateAccount"
 import ProcessedList from "./ProcessedList"
@@ -97,7 +97,7 @@ const WalletBody: React.FC<WalletBodyProps> = ({
             setLoading(prev => ({ ...prev, global }))
           }
         />
-      ) : mode === Mode.Processed ? (
+      ) : mode === Mode.Processed && "get_processed" in actor ? (
         <ProcessedList
           actor={actor}
           setLoading={(global: boolean) =>

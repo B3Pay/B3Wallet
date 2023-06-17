@@ -17,11 +17,11 @@ import { ProcessedRequest } from "declarations/b3_wallet/b3_wallet.did"
 import { useMemo } from "react"
 import Parent from "../Recursive"
 
-interface ProcessedRequestProps extends ProcessedRequest {
+interface ProcessedItemRequestProps extends ProcessedRequest {
   isExpanded: boolean
 }
 
-const Processed: React.FC<ProcessedRequestProps> = ({
+const ProcessedItem: React.FC<ProcessedItemRequestProps> = ({
   request,
   result,
   timestamp,
@@ -116,4 +116,4 @@ const Processed: React.FC<ProcessedRequestProps> = ({
   )
 }
 
-export default Processed
+export default ProcessedItem

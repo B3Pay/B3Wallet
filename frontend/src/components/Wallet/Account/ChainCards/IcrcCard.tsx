@@ -40,7 +40,6 @@ const IcrcCard: React.FC<IcrcCardProps> = ({
   balance,
   accountId,
   balanceLoading,
-
   networkDetail,
   handleBalance,
   handleTransfer,

@@ -100,8 +100,6 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     setLoading(false)
   }
 
-  console.log({ requests })
-
   useInterval(async () => {
     fetchRequests()
   }, 10000)

@@ -1,11 +1,14 @@
 import { AccordionPanel, Skeleton, Stack } from "@chakra-ui/react"
 import Loading from "components/Loading"
 import {
+  BtcPending,
   ChainEnum,
+  CkbtcPending,
+  IcpPending,
   PendingEnum,
   SendToken
 } from "declarations/b3_wallet/b3_wallet.did"
-import { ChainNetwork, ChainSymbol } from "helpers/utiles"
+import { ChainNetwork, ChainSymbol, extractConfirmations } from "helpers/utiles"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useState } from "react"
 import { B3BasicWallet, B3Wallet } from "service/actor"
@@ -19,7 +22,7 @@ import IcrcCard from "./IcrcCard"
 export interface AddressesWithChain {
   id: string
   symbol: ChainSymbol
-  pending: Array<PendingEnum>
+  pending: BtcPending[] | CkbtcPending[] | IcpPending[]
   networkDetail: string
   address: string
   network: ChainNetwork
@@ -103,6 +106,28 @@ const ChainCards: React.FC<ChainCardsProps> = ({
 
       const amountInDecimal = Number(amount) / 10 ** 8
 
+      if (amount <= 0) {
+        errorToast({
+          title: "Error",
+          description: "Amount must be greater than 0",
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+        return
+      }
+
+      if (to === "") {
+        errorToast({
+          title: "Error",
+          description: "Please enter a valid address",
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+        return
+      }
+
       console.log(
         `Transfering ${amountInDecimal} ${symbol} from ${accountId} to ${to}`
       )
@@ -178,6 +203,39 @@ const ChainCards: React.FC<ChainCardsProps> = ({
       })
   }
 
+  const checkPending = useCallback(
+    (id: string, chain: ChainEnum, index: bigint) => {
+      setBalanceLoadings(prev => ({ ...prev, [id]: true }))
+      actor
+        .account_check_pending(accountId, chain, index)
+        .then(() => {
+          setBalanceLoadings(prev => ({ ...prev, [id]: false }))
+          handleBalance(id, chain)
+          refetchAccount()
+        })
+        .catch(err => {
+          console.log(err)
+          setBalanceLoadings(prev => ({ ...prev, [id]: false }))
+          if (err.message.includes("Current confirmations:")) {
+            let pending = extractConfirmations(err.message)
+
+            console.log(pending)
+
+            if (pending) {
+              errorToast({
+                title: "Error",
+                description: `Transaction is still pending. Current confirmations: ${pending}`,
+                status: "error",
+                duration: 5000,
+                isClosable: true
+              })
+            }
+          }
+        })
+    },
+    [handleBalance]
+  )
+
   return (
     <AccordionPanel p={0} fontSize="14" position="relative">
       {removeLoading && <Loading title="Removing address" />}
@@ -206,6 +264,7 @@ const ChainCards: React.FC<ChainCardsProps> = ({
             <BtcCard
               id={id}
               key={id}
+              checkPending={checkPending}
               refetchAccount={refetchAccount}
               handleAddressRemove={handleAddressRemove}
               balance={balances[id]}

@@ -20,7 +20,7 @@ const Error: React.FC<ErrorProps> = ({ error, ...rest }) => {
         : [error.toString()]
       : ["Unknown error"]
 
-    return compileError(errors)
+    return compileError(errors, "Error")
   }, [error])
 
   return (

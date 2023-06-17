@@ -57,6 +57,28 @@ const IcpCard: React.FC<IcpCardProps> = ({
 
   const handleTopUp = useCallback(
     async (to: string, amount: bigint) => {
+      if (amount <= 0) {
+        errorToast({
+          title: "Error",
+          description: "Amount must be greater than 0",
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+        return
+      }
+
+      if (to === "") {
+        errorToast({
+          title: "Error",
+          description: "Please enter a valid address",
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+        return
+      }
+
       console.log(`Toping up ${amount} ICP from ${accountId} to ${to}`)
       errorToast({
         title: "Toping up ICP",

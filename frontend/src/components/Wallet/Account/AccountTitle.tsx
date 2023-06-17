@@ -20,13 +20,14 @@ import {
 } from "@chakra-ui/react"
 import { Environment } from "declarations/b3_wallet/b3_wallet.did"
 import React, { useState } from "react"
+import { B3BasicWallet, B3Wallet } from "service/actor"
 import { Loadings } from "."
 
 interface AccountTitleProps {
   name: string
   environment: Environment
   id: string
-  actor
+  actor: B3Wallet | B3BasicWallet
   setLoadings: React.Dispatch<React.SetStateAction<Loadings>>
   refetchAccount: () => void
 }
@@ -87,13 +88,9 @@ const AccountTitle: React.FC<AccountTitleProps> = ({
           icon={editMode ? <CheckIcon /> : <EditIcon />}
           onClick={async () => {
             if (editMode) {
-              const renameArgs = {
-                account_id: id,
-                new_name: newName
-              }
+              await actor.account_rename(id, newName)
 
-              await actor.request_account_rename(renameArgs, [])
-              setNewName(newName)
+              refetchAccount()
               setEditMode(false)
             } else setEditMode(true)
           }}
@@ -113,12 +110,14 @@ const AccountTitle: React.FC<AccountTitleProps> = ({
       </Flex>
       <Stack direction="row" flex="2" justify="end">
         <IconButton
+          size="xs"
           colorScheme="blue"
           aria-label="refetchAccount account"
           icon={<RepeatIcon />}
           onClick={refetchAccount}
         />
         <IconButton
+          size="xs"
           aria-label="Remove account"
           colorScheme="red"
           icon={<DeleteIcon />}
