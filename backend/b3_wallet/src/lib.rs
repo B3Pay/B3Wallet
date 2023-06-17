@@ -91,11 +91,12 @@ mod tests {
     use b3_helper_lib::types::*;
     use b3_permit_lib::processed::processed::ProcessedRequest;
     use b3_permit_lib::request::{
-        btc::transfer::*, icp::transfer::*, inner::account::*, inner::setting::*, inner::signer::*,
-        request::Request,
+        btc::transfer::*, global::*, icp::transfer::*, inner::account::*, inner::setting::*,
+        inner::signer::*, request::Request,
     };
     use b3_permit_lib::signer::roles::Roles;
     use b3_permit_lib::types::*;
+
     use b3_wallet_lib::account::WalletAccount;
     use b3_wallet_lib::ledger::btc::network::BtcNetwork;
     use b3_wallet_lib::ledger::ckbtc::types::*;

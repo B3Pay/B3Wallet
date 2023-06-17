@@ -7,6 +7,7 @@ use b3_permit_lib::{
     pending::new::RequestArgs,
     request::{
         btc::transfer::BtcTransfer,
+        global::SendToken,
         icp::transfer::IcpTransfer,
         inner::{
             account::{CreateAccount, RemoveAccount, RenameAccount},
@@ -185,6 +186,27 @@ pub fn request_transfer_icp(
 #[update(guard = "caller_is_admin")]
 pub fn request_transfer_btc(
     request: BtcTransfer,
+    reason: String,
+    deadline: Option<NanoTimeStamp>,
+) -> RequestId {
+    let request_args = RequestArgs {
+        role: Roles::Admin,
+        request: request.into(),
+        version: version(),
+        reason,
+        deadline,
+    };
+
+    with_permit_mut(|s| {
+        let new_request = s.new_request(request_args);
+        s.insert_new_request(new_request)
+    })
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_admin")]
+pub fn request_send(
+    request: SendToken,
     reason: String,
     deadline: Option<NanoTimeStamp>,
 ) -> RequestId {

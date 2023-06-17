@@ -1,6 +1,6 @@
 [package]
 name = "b3_helper_lib"
-version = "0.0.1"
+version = "0.2.1"
 edition = "2021"
 description = "This is shared library for B3Pay project"
 license = "Apache-2.0"

@@ -1,40 +1,270 @@
-import { Box, Stack, Text } from "@chakra-ui/react"
-import { WalletSetting } from "declarations/b3_wallet/b3_wallet.did"
+import { RepeatIcon } from "@chakra-ui/icons"
+import {
+  Box,
+  Button,
+  CardBody,
+  CardHeader,
+  CloseButton,
+  FormControl,
+  IconButton,
+  Input,
+  Stack,
+  StackProps,
+  Table,
+  TableContainer,
+  Tbody,
+  Td,
+  Text,
+  Th,
+  Thead,
+  Tr
+} from "@chakra-ui/react"
+import { Principal } from "@dfinity/principal"
+import Loading from "components/Loading"
+import { Controller } from "declarations/b3_wallet/b3_wallet.did"
+import useToastMessage from "hooks/useToastMessage"
+import { useEffect, useState } from "react"
 import { B3Wallet } from "service/actor"
 import Address from "../Address"
 
-interface ControllersProps extends WalletSetting {
+export type ControllerMap = Array<[Principal, Controller]>
+
+interface ControllersProps extends StackProps {
   actor: B3Wallet
+  refetch: () => void
+  controllers?: ControllerMap
+  isInitializing?: boolean
+  handleInitialize?: (controllers: ControllerMap) => Promise<void>
 }
 
-const Controllers: React.FC<ControllersProps> = ({ metadata, controllers }) => {
+const Controllers: React.FC<ControllersProps> = ({
+  actor,
+  refetch,
+  controllers,
+  isInitializing,
+  handleInitialize,
+  ...rest
+}) => {
+  const [controllerMap, setControllerMap] = useState<ControllerMap>()
+
+  const [loading, setLoading] = useState(false)
+
+  const [principal, setPrincipal] = useState("")
+  const [name, setName] = useState("")
+
+  const errorToast = useToastMessage()
+
+  useEffect(() => {
+    if (controllers) {
+      setControllerMap(controllers)
+    }
+  }, [controllers])
+
+  const removeController = (index: number, name: string) => {
+    if (name === "self") {
+      errorToast({
+        description: "Cannot remove self.",
+        status: "error",
+        duration: 9000,
+        isClosable: true
+      })
+
+      return
+    }
+
+    setControllerMap(prev => {
+      const newControllers = [...prev]
+      newControllers.splice(index, 1)
+      return newControllers
+    })
+  }
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    let signerId: Principal
+
+    try {
+      signerId = Principal.fromText(principal)
+    } catch (e) {
+      return errorToast({
+        title: "Invalid Principal",
+        description: e.message,
+        status: "error",
+        duration: 9000,
+        isClosable: true
+      })
+    }
+
+    const newController: Controller = {
+      name,
+      metadata: []
+    }
+
+    setControllerMap(prev => [...prev, [signerId, newController]])
+    setPrincipal("")
+    setName("")
+  }
+
+  const handleUpdateController = async () => {
+    setLoading(true)
+
+    try {
+      let result = await actor.update_controller(controllerMap)
+
+      setControllerMap(result)
+    } catch (err) {
+      console.error(err)
+      errorToast({
+        title: "Error",
+        description: err.message,
+        status: "error",
+        duration: 9000,
+        isClosable: true
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleRefreshControllers = async () => {
+    setLoading(true)
+
+    try {
+      await actor.refresh_settings()
+
+      refetch()
+      setLoading(false)
+    } catch (e) {
+      errorToast({
+        title: "Error",
+        description: e.message,
+        status: "error",
+        duration: 9000,
+        isClosable: true
+      })
+
+      setLoading(false)
+    }
+  }
+
+  const edited = JSON.stringify(controllerMap) !== JSON.stringify(controllers)
+
   return (
-    <Stack spacing={4}>
-      <Box bg="gray.100" p={4} borderRadius="md">
-        <Text fontSize="lg" fontWeight="bold">
-          Metadata
-        </Text>
-      </Box>
-      {Object.entries(metadata).map((controller, index) => (
-        <Box key={index} bg="gray.100" p={4} borderRadius="md">
-          <Address address={controller.toString()} noIcon />
-          <Text fontSize="sm">{controller[1]}</Text>
-        </Box>
-      ))}
-      <Box bg="gray.100" p={4} borderRadius="md">
-        <Text fontSize="lg" fontWeight="bold">
-          Controllers
-        </Text>
-      </Box>
-      {controllers.map((controller, index) => (
-        <Box key={index} bg="gray.100" p={4} borderRadius="md">
-          <Text fontSize="lg" fontWeight="bold">
-            {controller.name}
-          </Text>
-          <Text fontSize="sm">{controller.address}</Text>
-          <Text fontSize="sm">{controller.public_key}</Text>
-        </Box>
-      ))}
+    <Stack {...rest} position="relative">
+      {(!controllerMap || loading || isInitializing) && (
+        <Loading title="Loading controllers" />
+      )}
+      <Stack
+        direction="column"
+        borderWidth="1px"
+        borderRadius="lg"
+        overflow="hidden"
+      >
+        <CardHeader pb={2}>
+          <Stack direction="row" justify="space-between" align="center">
+            <Text fontSize="md" fontWeight="bold">
+              Controllers
+            </Text>
+            <Stack fontSize="sm" fontWeight="semibold">
+              <Stack direction="row" align="center">
+                <IconButton
+                  aria-label="Refresh"
+                  icon={<RepeatIcon />}
+                  onClick={handleRefreshControllers}
+                  size="xs"
+                />
+              </Stack>
+            </Stack>
+          </Stack>
+        </CardHeader>
+        <CardBody borderTop="1px" borderColor="gray.200" m={0} p={0}>
+          <TableContainer minH={75}>
+            <Table size="sm">
+              <Thead>
+                <Tr>
+                  <Th>Controller</Th>
+                  <Th>Name</Th>
+                  <Th></Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {controllerMap?.map(([controller, { name }], index) => (
+                  <Tr key={index}>
+                    <Td>
+                      <Address address={controller.toString()} noIcon />
+                    </Td>
+                    <Td>{name}</Td>
+                    <Td>
+                      <CloseButton
+                        color="red"
+                        onClick={() => removeController(index, name)}
+                      />
+                    </Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+          </TableContainer>
+          <Box
+            as="form"
+            onSubmit={handleSubmit}
+            p={2}
+            borderTop="1px"
+            borderColor="gray.200"
+          >
+            <Stack alignItems="center" justify="space-between" direction="row">
+              <FormControl isRequired flex={5}>
+                <Input
+                  value={principal}
+                  onChange={e => setPrincipal(e.target.value)}
+                  placeholder="Principal"
+                />
+              </FormControl>
+              <FormControl isRequired flex={4}>
+                <Input
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  placeholder="Name"
+                />
+              </FormControl>
+              <Button colorScheme="orange" type="submit" flex={3}>
+                Add
+              </Button>
+            </Stack>
+            {!!!handleInitialize && edited && (
+              <Stack direction="row" justify="space-between" mt={4}>
+                <Button
+                  onClick={refetch}
+                  isLoading={loading}
+                  colorScheme="red"
+                  flex={4}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  flex={8}
+                  onClick={handleUpdateController}
+                  isLoading={loading}
+                  colorScheme="blue"
+                >
+                  Update
+                </Button>
+              </Stack>
+            )}
+          </Box>
+        </CardBody>
+      </Stack>
+      {!!handleInitialize && (
+        <Button
+          onClick={() => handleInitialize(controllerMap)}
+          isLoading={isInitializing}
+          mt={4}
+          colorScheme="blue"
+        >
+          Initialize
+        </Button>
+      )}
     </Stack>
   )
 }

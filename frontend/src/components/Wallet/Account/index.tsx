@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { Box } from "@chakra-ui/react"
+import { Stack } from "@chakra-ui/react"
 
 import { Principal } from "@dfinity/principal"
 import { WalletAccountView } from "declarations/b3_wallet/b3_wallet.did"
@@ -13,6 +13,7 @@ import ChainCards, { Addresses } from "./ChainCards"
 interface AccountProps extends WalletAccountView {
   actor: B3Wallet
   loading: boolean
+  isExpanded: boolean
   refetchAccount: () => void
 }
 
@@ -38,6 +39,7 @@ const Account: React.FC<AccountProps> = ({
   loading,
   pendings,
   addresses,
+  isExpanded,
   environment,
   refetchAccount
 }) => {
@@ -80,7 +82,7 @@ const Account: React.FC<AccountProps> = ({
   }, [addresses])
 
   return (
-    <Box position="relative">
+    <Stack position="relative">
       {loading && <Loading />}
       <AccountTitle
         id={id}
@@ -91,12 +93,14 @@ const Account: React.FC<AccountProps> = ({
         refetchAccount={refetchAccount}
       />
       <ChainCards
-        addresses={addressesWithChain}
         actor={actor}
         accountId={id}
+        isExpanded={isExpanded}
+        addresses={addressesWithChain}
         refetchAccount={refetchAccount}
+        numberOfAddresses={addresses.length}
       />
-    </Box>
+    </Stack>
   )
 }
 

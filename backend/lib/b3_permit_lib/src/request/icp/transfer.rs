@@ -26,7 +26,7 @@ pub struct IcpTransfer {
 #[async_trait]
 impl RequestTrait for IcpTransfer {
     async fn execute(self) -> Result<ExecutionResult, WalletError> {
-        let icp = with_chain(&self.account_id, ChainEnum::ICP, |chain| chain.icp())??;
+        let icp = with_chain(&self.account_id, &ChainEnum::ICP, |chain| chain.icp())??;
 
         let result = icp
             .transfer(
@@ -72,7 +72,7 @@ pub struct TopUpTransfer {
 #[async_trait]
 impl RequestTrait for TopUpTransfer {
     async fn execute(self) -> Result<ExecutionResult, WalletError> {
-        let icp = with_chain(&self.account_id, ChainEnum::ICP, |chain| chain.icp())??;
+        let icp = with_chain(&self.account_id, &ChainEnum::ICP, |chain| chain.icp())??;
 
         let block_index = icp.top_up(self.canister_id, self.amount.clone()).await?;
 
@@ -107,7 +107,7 @@ pub struct NotifyTopUp {
 #[async_trait]
 impl RequestTrait for NotifyTopUp {
     async fn execute(self) -> Result<ExecutionResult, WalletError> {
-        let icp = with_chain(&self.account_id, ChainEnum::ICP, |chain| chain.icp())??;
+        let icp = with_chain(&self.account_id, &ChainEnum::ICP, |chain| chain.icp())??;
 
         let result = icp
             .notify_top_up(self.canister_id, self.block_index)

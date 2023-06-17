@@ -55,7 +55,7 @@ mod tests {
 
         ledger.insert_chain(ChainEnum::EVM(1), eth);
 
-        let eth_address = ledger.chain(ChainEnum::EVM(1)).unwrap().address();
+        let eth_address = ledger.chain(&ChainEnum::EVM(1)).unwrap().address();
 
         assert_eq!(eth_address, "0x7e87f653ec3e9c6cde261e0e2e3e9c14bbe86802");
 
@@ -72,7 +72,7 @@ mod tests {
 
         ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Regtest), chain.clone());
 
-        let btc_chain = ledger.chain(ChainEnum::BTC(BtcNetwork::Regtest)).unwrap();
+        let btc_chain = ledger.chain(&ChainEnum::BTC(BtcNetwork::Regtest)).unwrap();
 
         assert_eq!(btc_chain.address(), "n2JigTXi8Nhqe1qmeAaUCAj3rWsgxRzMe3");
 
@@ -89,7 +89,7 @@ mod tests {
 
         ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Mainnet), chain);
 
-        let btc_address = ledger.chain(ChainEnum::BTC(BtcNetwork::Mainnet)).unwrap();
+        let btc_address = ledger.chain(&ChainEnum::BTC(BtcNetwork::Mainnet)).unwrap();
 
         assert_eq!(btc_address.address(), "1MnmPQSjKMGaruN9vbc6NFWizXGz6SgpdC");
 
@@ -102,7 +102,7 @@ mod tests {
 
         ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Testnet), chain);
 
-        let btc_address = ledger.chain(ChainEnum::BTC(BtcNetwork::Testnet)).unwrap();
+        let btc_address = ledger.chain(&ChainEnum::BTC(BtcNetwork::Testnet)).unwrap();
 
         assert_eq!(btc_address.address(), "n2JigTXi8Nhqe1qmeAaUCAj3rWsgxRzMe3");
 
@@ -146,7 +146,7 @@ mod tests {
 
         ledger.set_ecdsa_public_key(ecdsa.clone()).unwrap();
 
-        let icp_address = ledger.chain(ChainEnum::ICP).unwrap();
+        let icp_address = ledger.chain(&ChainEnum::ICP).unwrap();
 
         assert_eq!(
             icp_address.address(),
@@ -168,7 +168,7 @@ mod tests {
 
         ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Mainnet), chain.clone());
 
-        let ledger_chain = ledger.chain(ChainEnum::BTC(BtcNetwork::Mainnet)).unwrap();
+        let ledger_chain = ledger.chain(&ChainEnum::BTC(BtcNetwork::Mainnet)).unwrap();
 
         assert_eq!(chain.address(), "1L2NEvApixneBNULQzcC5qysuWXrCNDhhr");
 
@@ -218,7 +218,7 @@ mod tests {
 
         ledger.set_ecdsa_public_key(ecdsa.clone()).unwrap();
 
-        let icp_address = ledger.chain(ChainEnum::ICP).unwrap();
+        let icp_address = ledger.chain(&ChainEnum::ICP).unwrap();
 
         assert_eq!(
             icp_address.address(),
@@ -241,7 +241,7 @@ mod tests {
         ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Testnet), chain);
 
         let btc_address = ledger
-            .chain(ChainEnum::BTC(BtcNetwork::Testnet))
+            .chain(&ChainEnum::BTC(BtcNetwork::Testnet))
             .unwrap()
             .address();
 

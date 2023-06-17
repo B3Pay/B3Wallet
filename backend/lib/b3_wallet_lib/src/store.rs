@@ -115,7 +115,7 @@ where
 /// This will retrieve the chain from the account's ledger.
 pub fn with_chain<T, F>(
     account_id: &AccountId,
-    chain_type: ChainEnum,
+    chain_type: &ChainEnum,
     callback: F,
 ) -> Result<T, WalletError>
 where

@@ -25,7 +25,11 @@ const Address: React.FC<AddressWithCopyProps> = ({
   const [isLargerThan500] = useMediaQuery(["(min-width: 568px)"])
 
   const truncatedAddress = useMemo(() => {
-    if (overflow || (isLargerThan500 && address.length <= 42)) {
+    if (
+      overflow ||
+      address.length <= 20 ||
+      (isLargerThan500 && address.length <= 42)
+    ) {
       return address
     }
 

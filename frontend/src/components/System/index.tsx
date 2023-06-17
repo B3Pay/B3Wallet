@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Card,
   FormControl,
@@ -7,12 +8,21 @@ import {
   Input,
   InputGroup,
   Link,
+  ListItem,
   Select,
   Stack,
-  Text
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+  Text,
+  UnorderedList
 } from "@chakra-ui/react"
 import { Principal } from "@dfinity/principal"
+import Address from "components/Wallet/Address"
 import { Release, ReleaseName } from "declarations/b3_system/b3_system.did"
+import { B3_SYSTEM_CANISTER_ID } from "helpers/config"
 import { useCallback, useEffect, useState } from "react"
 import { B3System } from "../../service/actor"
 import Disclaimer from "../Disclaimer"
@@ -23,11 +33,10 @@ type ReleaseMap = [ReleaseName, Array<Release>][]
 
 interface SystemProps {
   systemActor: B3System
-  fetchUserActor: (walletCanisterId: string) => void
+  fetchUserActor: (walletCanisterId: string) => Promise<void>
 }
 
 const System: React.FC<SystemProps> = ({ systemActor, fetchUserActor }) => {
-  const [input, setInput] = useState<string>("")
   const [releaseMap, setReleaseMap] = useState<ReleaseMap>([])
 
   const [selectedWallet, setSelectedWallet] = useState<string>("")
@@ -36,6 +45,7 @@ const System: React.FC<SystemProps> = ({ systemActor, fetchUserActor }) => {
   const [loading, setLoading] = useState<boolean>()
 
   const [canisterId, setCanisterId] = useState<string>("")
+  const [anonymousCanisterId, setAnonymousCanisterId] = useState<string>("")
 
   const fetchCanisterId = useCallback(async () => {
     setError(undefined)
@@ -90,7 +100,16 @@ const System: React.FC<SystemProps> = ({ systemActor, fetchUserActor }) => {
 
       setLoading(true)
 
-      const canisterPrincipal = Principal.fromText(canisterId)
+      let canisterPrincipal: Principal
+
+      try {
+        canisterPrincipal = Principal.fromText(canisterId)
+      } catch (e) {
+        console.log(e)
+
+        setLoading(false)
+        return setError("Invalid canister id!")
+      }
 
       systemActor
         .install_wallet_canister(selectedWallet, [canisterPrincipal])
@@ -119,7 +138,16 @@ const System: React.FC<SystemProps> = ({ systemActor, fetchUserActor }) => {
       setError(undefined)
       setLoading(true)
 
-      const canisterPrincipal = Principal.fromText(canisterId)
+      let canisterPrincipal: Principal
+
+      try {
+        canisterPrincipal = Principal.fromText(canisterId)
+      } catch (e) {
+        console.log(e)
+
+        setLoading(false)
+        return setError("Invalid canister id!")
+      }
 
       systemActor
         .add_wallet_canister(canisterPrincipal)
@@ -165,97 +193,184 @@ const System: React.FC<SystemProps> = ({ systemActor, fetchUserActor }) => {
       })
   }, [systemActor, selectedWallet, fetchUserActor])
 
+  const anonymouslyRun = useCallback(
+    async (canisterId: string) => {
+      setError(undefined)
+      setLoading(true)
+
+      let canisterPrincipal: Principal
+      console.log(canisterId)
+      try {
+        canisterPrincipal = Principal.fromText(canisterId)
+      } catch (e) {
+        console.log(e)
+
+        setLoading(false)
+        return setError("Invalid canister id!")
+      }
+
+      localStorage.setItem("canisterId", canisterId)
+
+      await fetchUserActor(canisterId)
+
+      setLoading(false)
+    },
+    [fetchUserActor]
+  )
+
   return (
-    <Card>
-      <Stack borderBottom="1px solid #e2e8f0" spacing="8" p={3}>
-        {error && <Error error={error} />}
-        {loading && <Loading />}
-        <FormControl as="fieldset">
-          <FormLabel as="label">Select a Wallet:</FormLabel>
-          <Select onChange={e => setSelectedWallet(e.target.value)} size="lg">
-            {releaseMap.map(([releaseName]) => {
-              const walletName = Object.keys(releaseName)[0]
-              return (
-                <option key={walletName} value={walletName}>
-                  {walletName}
-                </option>
-              )
-            })}
-          </Select>
-        </FormControl>
-        <FormLabel as="label">
-          Install {selectedWallet} on a canister by entering its id or create a
-          new one:
-        </FormLabel>
-        <Text fontSize="sm">
-          You can create a canister id on the&nbsp;
-          <Link
-            color="blue.500"
-            isExternal
-            target="_blank"
-            rel="noopener noreferrer"
-            href="https://nns.ic0.app/"
-          >
-            NNS Dapp
-          </Link>
-          . and add this canister as controller to your canister then click on
-          the button below.
-        </Text>
-        <FormControl as="fieldset">
-          <InputGroup>
-            <Input
-              flex={8}
-              type="text"
-              placeholder="Enter Canister id"
-              value={canisterId}
-              onChange={e => setCanisterId(e.target.value)}
-            />
-            <Button flex={4} onClick={() => installCanister(canisterId)}>
-              Install Wallet
-            </Button>
-          </InputGroup>
-          <FormHelperText fontSize="xs">
-            Note: This will install the wallet canister on your canister then
-            remove the controller, so you have full control over your wallet.
-          </FormHelperText>
-        </FormControl>
-        <Stack>
-          <FormLabel as="label">
-            Create a canister and install the wallet canister on it.
-          </FormLabel>
-          <Button onClick={createCanister}>Create Canister & Install</Button>
-          <FormControl as="fieldset">
-            <FormHelperText fontSize="xs">
-              Note: This will create a canister and install the wallet canister
-              on it, then remove the controller, so you have full control over
-              your wallet.
-            </FormHelperText>
-          </FormControl>
-        </Stack>
-        <Stack>
-          <FormLabel as="label">Add a canister to your wallet.</FormLabel>
-          <FormControl>
-            <InputGroup>
-              <Input
-                flex={8}
-                type="text"
-                placeholder="Enter Canister id"
-                value={input}
-                onChange={e => setInput(e.target.value)}
-              />
-              <Button flex={4} onClick={() => addCanister(canisterId)}>
-                Add Canister
-              </Button>
-            </InputGroup>
-            <FormHelperText fontSize="xs">
-              Note: This will add the canister to your own if you are one of the
-              signer.
-            </FormHelperText>
-          </FormControl>
-        </Stack>
-        <Disclaimer />
-      </Stack>
-    </Card>
+    <Box position="relative">
+      {error && (
+        <Error error={error} mb={1} borderRadius="base" shadow="base" />
+      )}
+      {loading && <Loading />}
+      <Card>
+        <Tabs isFitted variant="enclosed">
+          <TabList mb="1em">
+            <Tab>Install</Tab>
+            <Tab>Anonymously</Tab>
+          </TabList>
+          <Stack spacing={2} px={4}>
+            <FormLabel as="label">Select a Wallet:</FormLabel>
+            <Select onChange={e => setSelectedWallet(e.target.value)} size="lg">
+              {releaseMap.map(([releaseName]) => {
+                const walletName = Object.keys(releaseName)[0]
+                return (
+                  <option key={walletName} value={walletName}>
+                    {walletName}
+                  </option>
+                )
+              })}
+            </Select>
+          </Stack>
+          <TabPanels>
+            <TabPanel>
+              <FormControl as="fieldset">
+                <Stack spacing={2} mt={4}>
+                  <FormLabel as="label">
+                    Install {selectedWallet} on a canister by entering its id
+                    below:
+                  </FormLabel>
+                  <UnorderedList fontSize="sm">
+                    <ListItem>
+                      Create a canister id on the&nbsp;
+                      <Link
+                        color="blue.500"
+                        isExternal
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        href="https://nns.ic0.app/"
+                      >
+                        NNS Dapp
+                      </Link>
+                      .
+                    </ListItem>
+                    <ListItem>
+                      Add this system canister as controller
+                      <Address
+                        address={B3_SYSTEM_CANISTER_ID}
+                        overflow="break-word"
+                      />
+                    </ListItem>
+                    <ListItem>
+                      Copy the canister id and paste it in the input below.
+                    </ListItem>
+                    <ListItem>
+                      Click on the button below to install the wallet canister
+                      on your
+                    </ListItem>
+                  </UnorderedList>
+                  <InputGroup>
+                    <Input
+                      flex={8}
+                      type="text"
+                      placeholder="Enter Canister id"
+                      value={canisterId}
+                      onChange={e => setCanisterId(e.target.value)}
+                    />
+                    <Button
+                      flex={4}
+                      onClick={() => installCanister(canisterId)}
+                    >
+                      Install Wallet
+                    </Button>
+                  </InputGroup>
+                  <FormHelperText fontSize="xs">
+                    Note: This will install the wallet canister on your canister
+                    then remove the controller, so you have full control over
+                    your wallet.
+                  </FormHelperText>
+                </Stack>
+                <Stack spacing={2} mt={4}>
+                  <FormLabel as="label" mt={4}>
+                    Or Create a canister and install the wallet canister on it.
+                  </FormLabel>
+                  <Button onClick={createCanister}>
+                    Create Canister & Install
+                  </Button>
+                  <FormHelperText fontSize="xs">
+                    Note: This will create a canister and install the wallet
+                    canister on it, then remove the controller, so you have full
+                    control over your wallet.
+                  </FormHelperText>
+                </Stack>
+                <Stack spacing={2} my={4}>
+                  <FormLabel as="label" mt={4}>
+                    Or Add a canister to your wallet.
+                  </FormLabel>
+                  <InputGroup>
+                    <Input
+                      flex={8}
+                      type="text"
+                      placeholder="Enter Canister id"
+                      value={anonymousCanisterId}
+                      onChange={e => setAnonymousCanisterId(e.target.value)}
+                    />
+                    <Button flex={4} onClick={() => addCanister(canisterId)}>
+                      Add Canister
+                    </Button>
+                  </InputGroup>
+                  <FormHelperText fontSize="xs">
+                    Note: This will add the canister to your own if you are one
+                    of the signer.
+                  </FormHelperText>
+                </Stack>
+              </FormControl>
+              <Disclaimer />
+            </TabPanel>
+            <TabPanel>
+              <FormControl as="fieldset">
+                <FormLabel as="label">
+                  Anonymously use the user interface
+                </FormLabel>
+                <Text fontSize="sm" mb={4}>
+                  no canister will be installed or connected to your wallet.
+                </Text>
+                <InputGroup>
+                  <Input
+                    flex={8}
+                    type="text"
+                    placeholder="Enter Canister id"
+                    value={anonymousCanisterId}
+                    onChange={e => setAnonymousCanisterId(e.target.value)}
+                  />
+                  <Button
+                    flex={4}
+                    onClick={() => anonymouslyRun(anonymousCanisterId)}
+                  >
+                    Go
+                  </Button>
+                </InputGroup>
+                <FormHelperText fontSize="xs">
+                  Note: This will save on the local storage the canister id, so
+                  you can use it later.
+                </FormHelperText>
+              </FormControl>
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
+      </Card>
+    </Box>
   )
 }
 

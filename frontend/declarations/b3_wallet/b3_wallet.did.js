@@ -78,200 +78,6 @@ export const idlFactory = ({ IDL }) => {
     'CKBTC' : IDL.Nat,
   });
   const Result_1 = IDL.Variant({ 'Ok' : IDL.Nat, 'Err' : IDL.Text });
-  const HelperError = IDL.Variant({
-    'CreateCanisterError' : IDL.Text,
-    'UpdateCanisterControllersError' : IDL.Text,
-    'ValidateSignerError' : IDL.Text,
-    'InvalidSubaccount' : IDL.Text,
-    'EncodeError' : IDL.Text,
-    'InvalidAccountIdentifier' : IDL.Null,
-    'RateLimitExceeded' : IDL.Null,
-    'WasmHashError' : IDL.Text,
-    'VersionError' : IDL.Text,
-    'SignerNotAvailable' : IDL.Null,
-    'InstallCodeError' : IDL.Text,
-    'CanisterStatusError' : IDL.Text,
-    'InvalidReleaseName' : IDL.Text,
-  });
-  const EvmError = IDL.Variant({
-    'InvalidMessage' : IDL.Text,
-    'InvalidAddress' : IDL.Text,
-    'InvalidSignature' : IDL.Text,
-    'InvalidPublicKey' : IDL.Text,
-    'InvalidRecoveryId' : IDL.Text,
-    'InvalidTransactionType' : IDL.Null,
-    'NotSignedTransaction' : IDL.Null,
-  });
-  const NotifyError = IDL.Variant({
-    'TxTooOld' : IDL.Record({ 'allowed_window_nanos' : IDL.Nat64 }),
-    'Refunded' : IDL.Record({
-      'block_index' : IDL.Opt(IDL.Nat64),
-      'reason' : IDL.Text,
-    }),
-    'InvalidTransaction' : IDL.Text,
-    'BadFee' : IDL.Record({ 'expected_fee' : Tokens }),
-    'TxDuplicate' : IDL.Record({ 'duplicate_of' : IDL.Nat64 }),
-    'Other' : IDL.Record({
-      'error_message' : IDL.Text,
-      'error_code' : IDL.Nat64,
-    }),
-    'Processing' : IDL.Null,
-    'TxCreatedInFuture' : IDL.Null,
-    'TransactionTooOld' : IDL.Nat64,
-    'InsufficientFunds' : IDL.Record({ 'balance' : Tokens }),
-  });
-  const IcpError = IDL.Variant({
-    'TransferError' : TransferError,
-    'TopUpPending' : IDL.Text,
-    'CallError' : IDL.Text,
-    'NotifyError' : NotifyError,
-  });
-  const BitcoinError = IDL.Variant({
-    'InvalidAddress' : IDL.Text,
-    'PublicKeyError' : IDL.Text,
-    'NoUtxos' : IDL.Null,
-    'InsufficientBalance' : IDL.Tuple(IDL.Nat64, IDL.Nat64),
-    'InvalidFeePercentile' : IDL.Text,
-    'GetBalance' : IDL.Text,
-    'FeeTooHigh' : IDL.Tuple(IDL.Nat64, IDL.Nat64),
-    'InvalidPublicKey' : IDL.Text,
-    'GetFeeRate' : IDL.Text,
-    'GetCurrentFeePercentiles' : IDL.Text,
-    'InvalidChain' : IDL.Text,
-    'Signature' : IDL.Text,
-    'InvalidNetworkAddress' : IDL.Text,
-    'GetUtxos' : IDL.Text,
-    'SendRawTransaction' : IDL.Text,
-    'SendTransaction' : IDL.Text,
-    'SwapToCkbtc' : IDL.Text,
-  });
-  const UpdateBalanceError = IDL.Variant({
-    'GenericError' : IDL.Record({
-      'error_message' : IDL.Text,
-      'error_code' : IDL.Nat64,
-    }),
-    'TemporarilyUnavailable' : IDL.Text,
-    'AlreadyProcessing' : IDL.Null,
-    'NoNewUtxos' : IDL.Record({
-      'required_confirmations' : IDL.Nat32,
-      'current_confirmations' : IDL.Opt(IDL.Nat32),
-    }),
-  });
-  const ICRC1TransferError = IDL.Variant({
-    'GenericError' : IDL.Record({
-      'message' : IDL.Text,
-      'error_code' : IDL.Nat,
-    }),
-    'TemporarilyUnavailable' : IDL.Null,
-    'BadBurn' : IDL.Record({ 'min_burn_amount' : IDL.Nat }),
-    'Duplicate' : IDL.Record({ 'duplicate_of' : IDL.Nat }),
-    'BadFee' : IDL.Record({ 'expected_fee' : IDL.Nat }),
-    'CreatedInFuture' : IDL.Record({ 'ledger_time' : IDL.Nat64 }),
-    'TooOld' : IDL.Null,
-    'InsufficientFunds' : IDL.Record({ 'balance' : IDL.Nat }),
-  });
-  const IcrcError = IDL.Variant({
-    'UpdateBalanceError' : UpdateBalanceError,
-    'CallError' : IDL.Text,
-    'ICRC1TransferError' : ICRC1TransferError,
-  });
-  const ICRCAccountError = IDL.Variant({
-    'BadChecksum' : IDL.Null,
-    'InvalidFormat' : IDL.Null,
-    'InvalidSubaccount' : IDL.Text,
-    'InvalidPrincipal' : IDL.Text,
-    'Malformed' : IDL.Text,
-    'NotCanonical' : IDL.Null,
-    'HexDecode' : IDL.Text,
-  });
-  const RetrieveBtcStatus = IDL.Variant({
-    'Signing' : IDL.Null,
-    'Confirmed' : IDL.Record({ 'txid' : IDL.Vec(IDL.Nat8) }),
-    'Sending' : IDL.Record({ 'txid' : IDL.Vec(IDL.Nat8) }),
-    'AmountTooLow' : IDL.Null,
-    'Unknown' : IDL.Null,
-    'Submitted' : IDL.Record({ 'txid' : IDL.Vec(IDL.Nat8) }),
-    'Pending' : IDL.Null,
-  });
-  const RetrieveBtcError = IDL.Variant({
-    'MalformedAddress' : IDL.Text,
-    'GenericError' : IDL.Record({
-      'error_message' : IDL.Text,
-      'error_code' : IDL.Nat64,
-    }),
-    'TemporarilyUnavailable' : IDL.Text,
-    'AlreadyProcessing' : IDL.Null,
-    'AmountTooLow' : IDL.Nat64,
-    'InsufficientFunds' : IDL.Record({ 'balance' : IDL.Nat64 }),
-  });
-  const MinterError = IDL.Variant({
-    'RetrieveBtcStatus' : RetrieveBtcStatus,
-    'UpdateBalanceError' : UpdateBalanceError,
-    'CallError' : IDL.Text,
-    'RetrieveBtcError' : RetrieveBtcError,
-    'GetWithdrawalAccountError' : IDL.Text,
-    'GetBtcAddressError' : IDL.Text,
-  });
-  const CkbtcError = IDL.Variant({
-    'RetrieveBtcStatus' : RetrieveBtcStatus,
-    'MinterError' : MinterError,
-    'SendToInvalidAddress' : IDL.Text,
-    'UpdateBalanceError' : UpdateBalanceError,
-    'IcrcError' : IcrcError,
-    'CkbtcGetBtcAddressError' : IDL.Text,
-    'CkbtcSwapToBtcError' : IDL.Text,
-    'ICRC1TransferError' : ICRC1TransferError,
-  });
-  const LedgerError = IDL.Variant({
-    'InvalidMessageLength' : IDL.Null,
-    'SignatureError' : IDL.Text,
-    'ICRCAccountError' : ICRCAccountError,
-    'EvmError' : EvmError,
-    'IcpError' : IcpError,
-    'PublicKeyError' : IDL.Text,
-    'UpdateBalanceError' : IDL.Text,
-    'InvalidEcdsaPublicKey' : IDL.Null,
-    'BitcoinError' : BitcoinError,
-    'GenerateError' : IDL.Text,
-    'IcrcError' : IcrcError,
-    'MissingEcdsaPublicKey' : IDL.Null,
-    'PendingIndexError' : IDL.Nat64,
-    'MissingAddress' : IDL.Null,
-    'BtcTxIdError' : IDL.Text,
-    'CallError' : IDL.Text,
-    'InvalidChain' : IDL.Null,
-    'EcdsaPublicKeyError' : IDL.Text,
-    'CkbtcError' : CkbtcError,
-    'EcdsaPublicKeyAlreadySet' : IDL.Null,
-  });
-  const WalletError = IDL.Variant({
-    'CannotRemoveDefaultAccount' : IDL.Null,
-    'UpdateCanisterControllersError' : IDL.Text,
-    'WalletAccountNotExists' : IDL.Null,
-    'HelperError' : HelperError,
-    'WalletAlreadyInitialized' : IDL.Null,
-    'EvmError' : EvmError,
-    'IcpError' : IcpError,
-    'UnknownError' : IDL.Null,
-    'BitcoinError' : BitcoinError,
-    'IcrcError' : IcrcError,
-    'NotifyTopUpError' : IDL.Text,
-    'ControllerAlreadyExists' : IDL.Null,
-    'SignerAlreadyExists' : IDL.Text,
-    'WalletAccountAlreadyExists' : IDL.Null,
-    'SignerDoesNotExist' : IDL.Text,
-    'LedgerError' : LedgerError,
-    'UpdateSettingsError' : IDL.Text,
-    'WalletAccountCounterMismatch' : IDL.Null,
-    'TooManyControllers' : IDL.Null,
-    'CkbtcError' : CkbtcError,
-    'WasmNotLoaded' : IDL.Null,
-    'ExecutionError' : IDL.Text,
-  });
-  const Result_2 = IDL.Variant({
-    'Ok' : IDL.Vec(IDL.Principal),
-    'Err' : WalletError,
-  });
   const EvmChain = IDL.Record({
     'pendings' : IDL.Vec(EvmPending),
     'chain_id' : IDL.Nat64,
@@ -379,7 +185,7 @@ export const idlFactory = ({ IDL }) => {
   });
   const AddSigner = IDL.Record({
     'threshold' : IDL.Opt(IDL.Nat8),
-    'name' : IDL.Opt(IDL.Text),
+    'name' : IDL.Text,
     'role' : Roles,
     'signer_id' : IDL.Principal,
     'expires_at' : IDL.Opt(IDL.Nat64),
@@ -475,6 +281,12 @@ export const idlFactory = ({ IDL }) => {
     'gas_limit' : IDL.Opt(IDL.Nat64),
     'contract_address' : IDL.Text,
   });
+  const SendToken = IDL.Record({
+    'to' : IDL.Text,
+    'account_id' : IDL.Text,
+    'chain' : ChainEnum,
+    'amount' : IDL.Nat64,
+  });
   const UpgradeCanister = IDL.Record({
     'wasm_hash_string' : IDL.Text,
     'wasm_version' : IDL.Text,
@@ -521,6 +333,7 @@ export const idlFactory = ({ IDL }) => {
     'RenameAccount' : RenameAccount,
     'EvmSignTranscation' : EvmSignTranscation,
     'EvmTransferErc20' : EvmTransferErc20,
+    'SendToken' : SendToken,
     'HideAccount' : HideAccount,
     'UpgradeCanister' : UpgradeCanister,
     'TopUpTransfer' : TopUpTransfer,
@@ -561,6 +374,7 @@ export const idlFactory = ({ IDL }) => {
     'CanisterTopUped' : IDL.Tuple(NotifyTopUp, IDL.Nat),
     'BtcTransfered' : IDL.Tuple(BtcTransfer, IDL.Text),
     'IcpTransfered' : IDL.Tuple(IcpTransfer, IDL.Nat64),
+    'TokenSent' : IDL.Tuple(SendToken, SendResult),
     'AccountRenamed' : RenameAccount,
     'EvmContractDeployed' : EvmContractDeployed,
     'EvmErc20Transfered' : IDL.Tuple(EvmTransferErc20, IDL.Text),
@@ -589,14 +403,34 @@ export const idlFactory = ({ IDL }) => {
   const Signer = IDL.Record({
     'threshold' : IDL.Opt(IDL.Nat8),
     'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
-    'name' : IDL.Opt(IDL.Text),
+    'name' : IDL.Text,
     'role' : Roles,
     'expires_at' : IDL.Opt(IDL.Nat64),
   });
+  const Controller = IDL.Record({
+    'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
+    'name' : IDL.Text,
+  });
+  const InititializeWalletArgs = IDL.Record({
+    'controllers' : IDL.Vec(IDL.Tuple(IDL.Principal, Controller)),
+    'metadata' : IDL.Opt(IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text))),
+  });
+  const RetrieveBtcStatus = IDL.Variant({
+    'Signing' : IDL.Null,
+    'Confirmed' : IDL.Record({ 'txid' : IDL.Vec(IDL.Nat8) }),
+    'Sending' : IDL.Record({ 'txid' : IDL.Vec(IDL.Nat8) }),
+    'AmountTooLow' : IDL.Null,
+    'Unknown' : IDL.Null,
+    'Submitted' : IDL.Record({ 'txid' : IDL.Vec(IDL.Nat8) }),
+    'Pending' : IDL.Null,
+  });
   const WalletSettings = IDL.Record({
-    'controllers' : IDL.Vec(IDL.Principal),
+    'freezing_threshold' : IDL.Opt(IDL.Nat),
+    'controllers' : IDL.Vec(IDL.Tuple(IDL.Principal, Controller)),
     'initialised' : IDL.Bool,
     'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
+    'memory_allocation' : IDL.Opt(IDL.Nat),
+    'compute_allocation' : IDL.Opt(IDL.Nat),
   });
   const WalletSettingsAndSigners = IDL.Record({
     'signers' : IDL.Vec(IDL.Tuple(IDL.Principal, Signer)),
@@ -682,8 +516,16 @@ export const idlFactory = ({ IDL }) => {
         [Result_1],
         [],
       ),
-    'add_controllers' : IDL.Func([IDL.Principal], [Result_2], []),
-    'add_setting' : IDL.Func([IDL.Text, IDL.Text], [], []),
+    'add_controller_and_update' : IDL.Func(
+        [
+          IDL.Principal,
+          IDL.Text,
+          IDL.Opt(IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text))),
+        ],
+        [],
+        [],
+      ),
+    'add_setting_metadata' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'canister_cycle_balance' : IDL.Func([], [IDL.Nat], ['query']),
     'canister_version' : IDL.Func([], [IDL.Nat64], ['query']),
     'get_account' : IDL.Func([IDL.Text], [WalletAccount], ['query']),
@@ -704,18 +546,11 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(IDL.Tuple(IDL.Principal, Signer))],
         ['query'],
       ),
-    'init_wallet' : IDL.Func(
-        [
-          IDL.Vec(IDL.Principal),
-          IDL.Vec(IDL.Principal),
-          IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
-        ],
-        [],
-        [],
-      ),
+    'init_wallet' : IDL.Func([InititializeWalletArgs], [], []),
     'load_wasm' : IDL.Func([IDL.Vec(IDL.Nat8)], [IDL.Nat64], []),
     'name' : IDL.Func([], [IDL.Text], ['query']),
-    'remove_setting' : IDL.Func([IDL.Text], [], []),
+    'refresh_settings' : IDL.Func([], [], []),
+    'remove_setting_metadata' : IDL.Func([IDL.Text], [], []),
     'request_account_rename' : IDL.Func(
         [RenameAccount, IDL.Text, IDL.Opt(IDL.Nat64)],
         [IDL.Nat64],
@@ -738,6 +573,11 @@ export const idlFactory = ({ IDL }) => {
       ),
     'request_maker' : IDL.Func(
         [Request, IDL.Text, IDL.Opt(IDL.Nat64)],
+        [IDL.Nat64],
+        [],
+      ),
+    'request_send' : IDL.Func(
+        [SendToken, IDL.Text, IDL.Opt(IDL.Nat64)],
         [IDL.Nat64],
         [],
       ),
@@ -786,7 +626,12 @@ export const idlFactory = ({ IDL }) => {
       ),
     'status' : IDL.Func([], [WalletCanisterStatus], []),
     'unload_wasm' : IDL.Func([], [IDL.Nat64], []),
-    'update_controllers' : IDL.Func([IDL.Vec(IDL.Principal)], [Result_2], []),
+    'update_controller' : IDL.Func(
+        [IDL.Vec(IDL.Tuple(IDL.Principal, Controller))],
+        [IDL.Vec(IDL.Tuple(IDL.Principal, Controller))],
+        [],
+      ),
+    'update_settings' : IDL.Func([], [], []),
     'upgrage_wallet' : IDL.Func([], [], []),
     'validate_signer' : IDL.Func([IDL.Principal], [IDL.Bool], ['query']),
     'version' : IDL.Func([], [IDL.Text], ['query']),

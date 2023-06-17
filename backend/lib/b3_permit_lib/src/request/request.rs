@@ -8,9 +8,11 @@ use super::inner::setting::*;
 use super::inner::signer::*;
 use super::result::ExecutionResult;
 use crate::error::PermitError;
+use crate::request::global::SendToken;
 
 use async_trait::async_trait;
 use b3_wallet_lib::error::WalletError;
+
 use enum_dispatch::enum_dispatch;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
@@ -25,6 +27,7 @@ pub trait RequestTrait {
 #[enum_dispatch(RequestTrait)]
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub enum Request {
+    SendToken,
     // EVM
     EvmTransfer,
     EvmSignMessage,

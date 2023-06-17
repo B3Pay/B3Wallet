@@ -1,5 +1,4 @@
 use super::{btc::network::BtcNetwork, chain::Chain, ckbtc::types::BtcTxId, icrc::types::TxIndex};
-
 use b3_helper_lib::types::{BlockIndex, CanisterId, TransferResult};
 use bitcoin::{AddressType, OutPoint, Transaction, TxIn, TxOut};
 use candid::Nat;
@@ -9,6 +8,7 @@ use ic_cdk::export::{
     serde::{Deserialize, Serialize},
 };
 use std::collections::BTreeMap;
+use std::fmt;
 
 pub type ChainId = u64;
 
@@ -100,13 +100,25 @@ impl PendingEnum {
 #[enum_dispatch]
 pub trait PendingTrait {}
 
-#[derive(CandidType, PartialEq, Eq, PartialOrd, Ord, Deserialize, Clone)]
+#[derive(CandidType, PartialEq, Eq, Debug, PartialOrd, Ord, Deserialize, Clone)]
 pub enum ChainEnum {
     CKBTC(BtcNetwork),
     ICRC(CanisterId),
     BTC(BtcNetwork),
     EVM(ChainId),
     ICP,
+}
+
+impl fmt::Display for ChainEnum {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ChainEnum::CKBTC(network) => write!(f, "CKBTC({})", network),
+            ChainEnum::ICRC(canister_id) => write!(f, "ICRC({})", canister_id),
+            ChainEnum::BTC(network) => write!(f, "BTC({})", network),
+            ChainEnum::EVM(chain_id) => write!(f, "EVM({})", chain_id),
+            ChainEnum::ICP => write!(f, "ICP"),
+        }
+    }
 }
 
 impl ChainEnum {
@@ -138,6 +150,18 @@ pub enum SendResult {
     ICRC(TxIndex),
     BTC(BtcTxId),
     EVM,
+}
+
+impl fmt::Display for SendResult {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            SendResult::ICP(result) => write!(f, "ICP({:?})", result),
+            SendResult::CKBTC(tx_index) => write!(f, "CKBTC({})", tx_index),
+            SendResult::ICRC(tx_index) => write!(f, "ICRC({})", tx_index),
+            SendResult::BTC(txid) => write!(f, "BTC({})", txid),
+            SendResult::EVM => write!(f, "EVM"),
+        }
+    }
 }
 
 #[derive(CandidType, Serialize)]

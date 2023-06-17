@@ -49,7 +49,7 @@ impl RequestTrait for EvmSignTranscation {
 
     fn validate_request(&self) -> Result<(), PermitError> {
         // check if the chain id is initialized
-        with_chain(&self.account_id, ChainEnum::EVM(self.chain_id), |_| Ok(()))?
+        with_chain(&self.account_id, &ChainEnum::EVM(self.chain_id), |_| Ok(()))?
     }
 
     fn method_name(&self) -> String {
@@ -102,7 +102,7 @@ impl RequestTrait for EvmSignRawTransaction {
 
     fn validate_request(&self) -> Result<(), PermitError> {
         // check if the chain id is initialized
-        with_chain(&self.account_id, ChainEnum::EVM(self.chain_id), |_| {})?;
+        with_chain(&self.account_id, &ChainEnum::EVM(self.chain_id), |_| {})?;
 
         // check if the hex_raw_tx is valid
         let transaction = get_evm_transaction(&self.hex_raw_tx, self.chain_id)
@@ -146,7 +146,7 @@ impl RequestTrait for EvmSignMessage {
 
     fn validate_request(&self) -> Result<(), PermitError> {
         // check if the chain id is initialized
-        with_chain(&self.account_id, ChainEnum::EVM(self.chain_id), |_| {})?;
+        with_chain(&self.account_id, &ChainEnum::EVM(self.chain_id), |_| {})?;
 
         // check if the message is not sneaky transaction
         let transaction = get_evm_transaction(&self.message, self.chain_id);

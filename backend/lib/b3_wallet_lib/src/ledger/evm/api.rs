@@ -23,7 +23,7 @@ impl ChainTrait for EvmChain {
     }
 
     async fn balance(&self) -> Result<Balance, LedgerError> {
-        todo!("implement the async method for EVM...")
+        Ok(Balance::from(0))
     }
 
     async fn send(&self, _to: String, _amount: u64) -> Result<SendResult, LedgerError> {

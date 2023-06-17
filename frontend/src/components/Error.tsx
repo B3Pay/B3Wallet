@@ -1,12 +1,18 @@
-import { Alert, AlertIcon, Text } from "@chakra-ui/react"
+import {
+  Alert,
+  AlertDescription,
+  AlertIcon,
+  AlertProps,
+  AlertTitle
+} from "@chakra-ui/react"
 import { compileError } from "helpers/utiles"
 import { useMemo } from "react"
 
-interface ErrorProps {
+interface ErrorProps extends AlertProps {
   error: string
 }
 
-const Error: React.FC<ErrorProps> = ({ error }) => {
+const Error: React.FC<ErrorProps> = ({ error, ...rest }) => {
   const { title, description } = useMemo(() => {
     const errors = error
       ? error.toString().includes("Error::")
@@ -18,10 +24,10 @@ const Error: React.FC<ErrorProps> = ({ error }) => {
   }, [error])
 
   return (
-    <Alert status="error">
+    <Alert status="error" {...rest}>
       <AlertIcon />
-      <Text fontWeight="bold">{title}</Text>
-      <Text>{description}</Text>
+      <AlertTitle>{title}</AlertTitle>
+      <AlertDescription>{description}</AlertDescription>
     </Alert>
   )
 }

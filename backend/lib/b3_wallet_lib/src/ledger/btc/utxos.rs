@@ -268,7 +268,7 @@ mod test {
 
         ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Regtest), chain.clone());
 
-        let btc_chain = ledger.chain(ChainEnum::BTC(BtcNetwork::Regtest)).unwrap();
+        let btc_chain = ledger.chain(&ChainEnum::BTC(BtcNetwork::Regtest)).unwrap();
 
         let own_address = chain.btc().unwrap().btc_address().unwrap();
 

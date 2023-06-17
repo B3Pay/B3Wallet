@@ -20,7 +20,7 @@ pub struct BtcTransfer {
 #[async_trait]
 impl RequestTrait for BtcTransfer {
     async fn execute(self) -> Result<ExecutionResult, WalletError> {
-        let chain = with_chain(&self.account_id, ChainEnum::BTC(self.network), |chain| {
+        let chain = with_chain(&self.account_id, &ChainEnum::BTC(self.network), |chain| {
             chain.clone()
         })?;
 
@@ -38,7 +38,7 @@ impl RequestTrait for BtcTransfer {
             return Err(PermitError::InvalidAmount);
         }
 
-        with_chain(&self.account_id, ChainEnum::BTC(self.network), |_| Ok(()))?
+        with_chain(&self.account_id, &ChainEnum::BTC(self.network), |_| Ok(()))?
     }
 
     fn method_name(&self) -> String {

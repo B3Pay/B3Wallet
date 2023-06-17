@@ -5,7 +5,7 @@ type AccountsNonce = record {
 };
 type AddSigner = record {
   threshold : opt nat8;
-  name : opt text;
+  name : text;
   role : Roles;
   signer_id : principal;
   expires_at : opt nat64;
@@ -66,7 +66,7 @@ type CkbtcChain = record {
 };
 type CkbtcPending = record { block_index : nat64; txid : opt nat };
 type ConsentMessage = record { title : text; message : text; reason : text };
-type Controller = record { id : principal; name : text };
+type Controller = record { metadata : vec record { text; text }; name : text };
 type CreateAccount = record { env : opt Environment; name : opt text };
 type DefiniteCanisterSettings = record {
   freezing_threshold : nat;
@@ -179,6 +179,7 @@ type ExecutionResult = variant {
   CanisterTopUped : record { NotifyTopUp; nat };
   BtcTransfered : record { BtcTransfer; text };
   IcpTransfered : record { IcpTransfer; nat64 };
+  TokenSent : record { SendToken; SendResult };
   AccountRenamed : RenameAccount;
   EvmContractDeployed : EvmContractDeployed;
   EvmErc20Transfered : record { EvmTransferErc20; text };
@@ -229,6 +230,10 @@ type IcrcChain = record {
   created_at_time : opt nat64;
 };
 type IcrcPending = record { tx_index : nat; block_index : nat64 };
+type InititializeWalletArgs = record {
+  controllers : vec record { principal; Controller };
+  metadata : opt vec record { text; text };
+};
 type Ledger = record {
   public_key : opt vec nat8;
   subaccount : vec nat8;
@@ -280,6 +285,7 @@ type Request = variant {
   RenameAccount : RenameAccount;
   EvmSignTranscation : EvmSignTranscation;
   EvmTransferErc20 : EvmTransferErc20;
+  SendToken : SendToken;
   HideAccount : HideAccount;
   UpgradeCanister : UpgradeCanister;
   TopUpTransfer : TopUpTransfer;
@@ -311,10 +317,16 @@ type SendResult = variant {
   ICRC : nat;
   CKBTC : nat;
 };
+type SendToken = record {
+  to : text;
+  account_id : text;
+  chain : ChainEnum;
+  amount : nat64;
+};
 type Signer = record {
   threshold : opt nat8;
   metadata : vec record { text; text };
-  name : opt text;
+  name : text;
   role : Roles;
   expires_at : opt nat64;
 };
@@ -371,9 +383,12 @@ type WalletCanisterStatus = record {
   account_status : AccountsNonce;
 };
 type WalletSettings = record {
-  controllers : vec Controller;
+  freezing_threshold : opt nat;
+  controllers : vec record { principal; Controller };
   initialised : bool;
   metadata : vec record { text; text };
+  memory_allocation : opt nat;
+  compute_allocation : opt nat;
 };
 type WalletSettingsAndSigners = record {
   signers : vec record { principal; Signer };
@@ -397,8 +412,12 @@ service : () -> {
   account_swap_btc_to_ckbtc : (text, BtcNetwork, nat64) -> (BtcPending);
   account_swap_ckbtc_to_btc : (text, BtcNetwork, text, nat64) -> (nat64);
   account_top_up_and_notify : (text, Tokens, opt principal) -> (Result_1);
-  add_controllers : (principal) -> (vec principal);
-  add_setting : (text, text) -> ();
+  add_controller_and_update : (
+      principal,
+      text,
+      opt vec record { text; text },
+    ) -> ();
+  add_setting_metadata : (text, text) -> ();
   canister_cycle_balance : () -> (nat) query;
   canister_version : () -> (nat64) query;
   get_account : (text) -> (WalletAccount) query;
@@ -411,15 +430,17 @@ service : () -> {
   get_processed : (nat64) -> (ProcessedRequest) query;
   get_processed_list : () -> (vec ProcessedRequest) query;
   get_signers : () -> (vec record { principal; Signer }) query;
-  init_wallet : (vec principal, vec principal, vec record { text; text }) -> ();
+  init_wallet : (InititializeWalletArgs) -> ();
   load_wasm : (vec nat8) -> (nat64);
   name : () -> (text) query;
-  remove_setting : (text) -> ();
+  refresh_settings : () -> ();
+  remove_setting_metadata : (text) -> ();
   request_account_rename : (RenameAccount, text, opt nat64) -> (nat64);
   request_add_signer : (AddSigner, text, opt nat64) -> (nat64);
   request_create_account : (CreateAccount, text, opt nat64) -> (nat64);
   request_delete_account : (HideAccount, text, opt nat64) -> (nat64);
   request_maker : (Request, text, opt nat64) -> (nat64);
+  request_send : (SendToken, text, opt nat64) -> (nat64);
   request_sign_message : (text, vec nat8) -> (vec nat8);
   request_sign_transaction : (text, vec nat8, nat64) -> (vec nat8);
   request_transfer_btc : (BtcTransfer, text, opt nat64) -> (nat64);
@@ -435,7 +456,10 @@ service : () -> {
   signer_remove : (principal) -> (vec record { principal; Signer });
   status : () -> (WalletCanisterStatus);
   unload_wasm : () -> (nat64);
-  update_controllers : (vec principal) -> (vec principal);
+  update_controller : (vec record { principal; Controller }) -> (
+      vec record { principal; Controller },
+    );
+  update_settings : () -> ();
   upgrage_wallet : () -> ();
   validate_signer : (principal) -> (bool) query;
   version : () -> (text) query;

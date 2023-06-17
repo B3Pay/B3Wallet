@@ -5,8 +5,7 @@ import {
   Flex,
   Heading,
   IconButton,
-  Stack,
-  Text
+  Stack
 } from "@chakra-ui/react"
 import { Principal } from "@dfinity/principal"
 import Address from "components/Wallet/Address"
@@ -106,9 +105,6 @@ const IcpCard: React.FC<IcpCardProps> = ({
         <Stack direction="row" justify="space-between" align="center">
           <Flex flex={5}>
             <Heading size="xs">{symbol}</Heading>
-          </Flex>
-          <Flex flex={5}>
-            <Text>{networkDetail}</Text>
           </Flex>
           <Stack direction="row" justify="end" align="center" flex={2}>
             <IconButton

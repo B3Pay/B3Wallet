@@ -1,5 +1,6 @@
-import { AccordionPanel, Stack } from "@chakra-ui/react"
-import { ChainEnum } from "declarations/b3_wallet/b3_wallet.did"
+import { AccordionPanel, Skeleton, Stack } from "@chakra-ui/react"
+import Loading from "components/Loading"
+import { ChainEnum, SendToken } from "declarations/b3_wallet/b3_wallet.did"
 import { ChainNetwork, ChainSymbol } from "helpers/utiles"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useState } from "react"
@@ -9,6 +10,7 @@ import BtcCard from "./BtcCard"
 import CkbtcCard from "./CkbtcCard"
 import EthCard from "./EthCard"
 import IcpCard from "./IcpCard"
+import IcrcCard from "./IcrcCard"
 
 export interface AddressesWithChain {
   symbol: ChainSymbol
@@ -42,14 +44,18 @@ interface ChainCardsProps {
   addresses: Addresses
   actor: B3Wallet
   accountId: string
+  isExpanded: boolean
+  numberOfAddresses: number
   refetchAccount: () => void
 }
 
 const ChainCards: React.FC<ChainCardsProps> = ({
-  actor,
+  numberOfAddresses,
   refetchAccount,
+  isExpanded,
   accountId,
-  addresses
+  addresses,
+  actor
 }) => {
   const [balances, setBalances] = useState<Balances>({
     EVM: BigInt(0),
@@ -72,7 +78,7 @@ const ChainCards: React.FC<ChainCardsProps> = ({
     ICRC: false,
     CKBTC: false
   })
-  const [globalLoading, setGlobalLoading] = useState(false)
+  const [removeLoading, setRemoveLoading] = useState(false)
 
   const errorToast = useToastMessage()
 
@@ -120,8 +126,15 @@ const ChainCards: React.FC<ChainCardsProps> = ({
 
       setTransferLoadings(prev => ({ ...prev, [symbol]: true }))
 
+      let sendArgs: SendToken = {
+        account_id: accountId,
+        chain,
+        to,
+        amount
+      }
+
       await actor
-        .account_send(accountId, chain, to, amount)
+        .request_send(sendArgs, "Sending Test", [])
         .then(res => {
           console.log(res)
 
@@ -146,17 +159,19 @@ const ChainCards: React.FC<ChainCardsProps> = ({
 
           setTransferLoadings(prev => ({ ...prev, [symbol]: false }))
         })
+
+      setTransferLoadings(prev => ({ ...prev, [symbol]: false }))
     },
     [actor, handleBalance, accountId]
   )
 
   const handleAddressRemove = async (chain: ChainEnum) => {
-    setGlobalLoading(true)
+    setRemoveLoading(true)
 
     actor
       .account_remove_address(accountId, chain)
       .then(() => {
-        setGlobalLoading(false)
+        setRemoveLoading(false)
         refetchAccount()
       })
       .catch(e => {
@@ -168,89 +183,98 @@ const ChainCards: React.FC<ChainCardsProps> = ({
           isClosable: true
         })
 
-        setGlobalLoading(false)
+        setRemoveLoading(false)
       })
   }
 
   return (
-    <AccordionPanel px={0} fontSize="14">
-      <Stack>
-        <CreateAddress
-          accountId={accountId}
-          actor={actor}
-          refetchAccount={refetchAccount}
-        />
-        {addresses.CKBTC?.map(addressProps => (
-          <CkbtcCard
-            key={addressProps.address}
-            handleAddressRemove={handleAddressRemove}
-            balance={balances.CKBTC}
-            balanceLoading={balanceLoadings.CKBTC}
-            transferLoading={transferLoadings.CKBTC}
-            handleBalance={handleBalance}
-            handleTransfer={handleTransfer}
-            actor={actor}
-            accountId={accountId}
-            {...addressProps}
-          />
-        ))}
-        {addresses.BTC?.map(addressProps => (
-          <BtcCard
-            key={addressProps.address}
-            handleAddressRemove={handleAddressRemove}
-            balance={balances.BTC}
-            balanceLoading={balanceLoadings.BTC}
-            transferLoading={transferLoadings.BTC}
-            handleBalance={handleBalance}
-            handleTransfer={handleTransfer}
-            actor={actor}
-            accountId={accountId}
-            {...addressProps}
-          />
-        ))}
-        {addresses.EVM?.map(addressProps => (
-          <EthCard
-            key={addressProps.address}
-            handleAddressRemove={handleAddressRemove}
-            balance={balances.EVM}
-            balanceLoading={balanceLoadings.EVM}
-            transferLoading={transferLoadings.EVM}
-            handleBalance={handleBalance}
-            handleTransfer={handleTransfer}
-            actor={actor}
-            accountId={accountId}
-            {...addressProps}
-          />
-        ))}
-        {addresses.ICP?.map(addressProps => (
-          <IcpCard
-            key={addressProps.address}
-            handleAddressRemove={handleAddressRemove}
-            balance={balances.ICP}
-            balanceLoading={balanceLoadings.ICP}
-            transferLoading={transferLoadings.ICP}
-            handleBalance={handleBalance}
-            handleTransfer={handleTransfer}
-            actor={actor}
-            accountId={accountId}
-            {...addressProps}
-          />
-        ))}
-        {addresses.ICRC?.map(addressProps => (
-          <IcpCard
-            key={addressProps.address}
-            handleAddressRemove={handleAddressRemove}
-            balance={balances.ICRC}
-            balanceLoading={balanceLoadings.ICRC}
-            transferLoading={transferLoadings.ICRC}
-            handleBalance={handleBalance}
-            handleTransfer={handleTransfer}
-            actor={actor}
-            accountId={accountId}
-            {...addressProps}
-          />
-        ))}
-      </Stack>
+    <AccordionPanel p={0} fontSize="14" position="relative">
+      {removeLoading && <Loading title="Removing address" />}
+      <CreateAddress
+        accountId={accountId}
+        actor={actor}
+        refetchAccount={refetchAccount}
+      />
+      {isExpanded ? (
+        <Stack pt={2}>
+          {addresses.CKBTC?.map(addressProps => (
+            <CkbtcCard
+              key={addressProps.address}
+              handleAddressRemove={handleAddressRemove}
+              balance={balances.CKBTC}
+              balanceLoading={balanceLoadings.CKBTC}
+              transferLoading={transferLoadings.CKBTC}
+              handleBalance={handleBalance}
+              handleTransfer={handleTransfer}
+              actor={actor}
+              accountId={accountId}
+              {...addressProps}
+            />
+          ))}
+          {addresses.BTC?.map(addressProps => (
+            <BtcCard
+              key={addressProps.address}
+              handleAddressRemove={handleAddressRemove}
+              balance={balances.BTC}
+              balanceLoading={balanceLoadings.BTC}
+              transferLoading={transferLoadings.BTC}
+              handleBalance={handleBalance}
+              handleTransfer={handleTransfer}
+              actor={actor}
+              accountId={accountId}
+              {...addressProps}
+            />
+          ))}
+          {addresses.EVM?.map(addressProps => (
+            <EthCard
+              key={addressProps.networkDetail}
+              handleAddressRemove={handleAddressRemove}
+              balance={balances.EVM}
+              balanceLoading={balanceLoadings.EVM}
+              transferLoading={transferLoadings.EVM}
+              handleBalance={handleBalance}
+              handleTransfer={handleTransfer}
+              actor={actor}
+              accountId={accountId}
+              {...addressProps}
+            />
+          ))}
+          {addresses.ICRC?.map(addressProps => (
+            <IcrcCard
+              key={addressProps.address}
+              handleAddressRemove={handleAddressRemove}
+              balance={balances.ICRC}
+              balanceLoading={balanceLoadings.ICRC}
+              transferLoading={transferLoadings.ICRC}
+              handleBalance={handleBalance}
+              handleTransfer={handleTransfer}
+              actor={actor}
+              accountId={accountId}
+              {...addressProps}
+            />
+          ))}
+          {addresses.ICP?.map(addressProps => (
+            <IcpCard
+              key={addressProps.address}
+              handleAddressRemove={handleAddressRemove}
+              balance={balances.ICP}
+              balanceLoading={balanceLoadings.ICP}
+              transferLoading={transferLoadings.ICP}
+              handleBalance={handleBalance}
+              handleTransfer={handleTransfer}
+              actor={actor}
+              accountId={accountId}
+              {...addressProps}
+            />
+          ))}
+        </Stack>
+      ) : (
+        <Stack pt={2}>
+          {Array.from({ length: numberOfAddresses }).map((_, i) => (
+            <Skeleton key={i} height="220px" borderRadius="lg" />
+          ))}
+        </Stack>
+      )}
     </AccordionPanel>
   )
 }

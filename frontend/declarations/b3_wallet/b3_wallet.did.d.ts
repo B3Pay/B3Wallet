@@ -8,28 +8,11 @@ export interface AccountsNonce {
 }
 export interface AddSigner {
   'threshold' : [] | [number],
-  'name' : [] | [string],
+  'name' : string,
   'role' : Roles,
   'signer_id' : Principal,
   'expires_at' : [] | [bigint],
 }
-export type BitcoinError = { 'InvalidAddress' : string } |
-  { 'PublicKeyError' : string } |
-  { 'NoUtxos' : null } |
-  { 'InsufficientBalance' : [bigint, bigint] } |
-  { 'InvalidFeePercentile' : string } |
-  { 'GetBalance' : string } |
-  { 'FeeTooHigh' : [bigint, bigint] } |
-  { 'InvalidPublicKey' : string } |
-  { 'GetFeeRate' : string } |
-  { 'GetCurrentFeePercentiles' : string } |
-  { 'InvalidChain' : string } |
-  { 'Signature' : string } |
-  { 'InvalidNetworkAddress' : string } |
-  { 'GetUtxos' : string } |
-  { 'SendRawTransaction' : string } |
-  { 'SendTransaction' : string } |
-  { 'SwapToCkbtc' : string };
 export interface BtcChain {
   'pendings' : Array<BtcPending>,
   'subaccount' : Uint8Array | number[],
@@ -84,19 +67,15 @@ export interface CkbtcChain {
   'account' : ICRCAccount,
   'created_at_time' : [] | [bigint],
 }
-export type CkbtcError = { 'RetrieveBtcStatus' : RetrieveBtcStatus } |
-  { 'MinterError' : MinterError } |
-  { 'SendToInvalidAddress' : string } |
-  { 'UpdateBalanceError' : UpdateBalanceError } |
-  { 'IcrcError' : IcrcError } |
-  { 'CkbtcGetBtcAddressError' : string } |
-  { 'CkbtcSwapToBtcError' : string } |
-  { 'ICRC1TransferError' : ICRC1TransferError };
 export interface CkbtcPending { 'block_index' : bigint, 'txid' : [] | [bigint] }
 export interface ConsentMessage {
   'title' : string,
   'message' : string,
   'reason' : string,
+}
+export interface Controller {
+  'metadata' : Array<[string, string]>,
+  'name' : string,
 }
 export interface CreateAccount {
   'env' : [] | [Environment],
@@ -129,13 +108,6 @@ export interface EvmDeployContract {
   'nonce' : bigint,
   'gas_limit' : [] | [bigint],
 }
-export type EvmError = { 'InvalidMessage' : string } |
-  { 'InvalidAddress' : string } |
-  { 'InvalidSignature' : string } |
-  { 'InvalidPublicKey' : string } |
-  { 'InvalidRecoveryId' : string } |
-  { 'InvalidTransactionType' : null } |
-  { 'NotSignedTransaction' : null };
 export interface EvmPending { 'block_index' : bigint }
 export interface EvmSignMessage {
   'account_id' : string,
@@ -219,6 +191,7 @@ export type ExecutionResult = { 'AccountCreated' : CreateAccount } |
   { 'CanisterTopUped' : [NotifyTopUp, bigint] } |
   { 'BtcTransfered' : [BtcTransfer, string] } |
   { 'IcpTransfered' : [IcpTransfer, bigint] } |
+  { 'TokenSent' : [SendToken, SendResult] } |
   { 'AccountRenamed' : RenameAccount } |
   { 'EvmContractDeployed' : EvmContractDeployed } |
   { 'EvmErc20Transfered' : [EvmTransferErc20, string] } |
@@ -235,45 +208,15 @@ export type ExecutionResult = { 'AccountCreated' : CreateAccount } |
   { 'EvmTransactionSigned' : [EvmSignTranscation, string] } |
   { 'AccountUnhidden' : HideAccount } |
   { 'AccountRemoved' : HideAccount };
-export type HelperError = { 'CreateCanisterError' : string } |
-  { 'UpdateCanisterControllersError' : string } |
-  { 'ValidateSignerError' : string } |
-  { 'InvalidSubaccount' : string } |
-  { 'EncodeError' : string } |
-  { 'InvalidAccountIdentifier' : null } |
-  { 'RateLimitExceeded' : null } |
-  { 'WasmHashError' : string } |
-  { 'VersionError' : string } |
-  { 'SignerNotAvailable' : null } |
-  { 'InstallCodeError' : string } |
-  { 'CanisterStatusError' : string } |
-  { 'InvalidReleaseName' : string };
 export interface HideAccount { 'account_id' : string }
 export type ICRC1MetadataValue = { 'Int' : bigint } |
   { 'Nat' : bigint } |
   { 'Blob' : Uint8Array | number[] } |
   { 'Text' : string };
-export type ICRC1TransferError = {
-    'GenericError' : { 'message' : string, 'error_code' : bigint }
-  } |
-  { 'TemporarilyUnavailable' : null } |
-  { 'BadBurn' : { 'min_burn_amount' : bigint } } |
-  { 'Duplicate' : { 'duplicate_of' : bigint } } |
-  { 'BadFee' : { 'expected_fee' : bigint } } |
-  { 'CreatedInFuture' : { 'ledger_time' : bigint } } |
-  { 'TooOld' : null } |
-  { 'InsufficientFunds' : { 'balance' : bigint } };
 export interface ICRCAccount {
   'owner' : Principal,
   'subaccount' : [] | [Uint8Array | number[]],
 }
-export type ICRCAccountError = { 'BadChecksum' : null } |
-  { 'InvalidFormat' : null } |
-  { 'InvalidSubaccount' : string } |
-  { 'InvalidPrincipal' : string } |
-  { 'Malformed' : string } |
-  { 'NotCanonical' : null } |
-  { 'HexDecode' : string };
 export interface IcpChain {
   'fee' : Tokens,
   'pendings' : Array<IcpPending>,
@@ -281,10 +224,6 @@ export interface IcpChain {
   'subaccount' : Uint8Array | number[],
   'created_at_time' : [] | [Timestamp],
 }
-export type IcpError = { 'TransferError' : TransferError } |
-  { 'TopUpPending' : string } |
-  { 'CallError' : string } |
-  { 'NotifyError' : NotifyError };
 export interface IcpPending { 'block_index' : bigint, 'canister_id' : string }
 export interface IcpTransfer {
   'to' : Uint8Array | number[],
@@ -302,54 +241,19 @@ export interface IcrcChain {
   'subaccount' : Uint8Array | number[],
   'created_at_time' : [] | [bigint],
 }
-export type IcrcError = { 'UpdateBalanceError' : UpdateBalanceError } |
-  { 'CallError' : string } |
-  { 'ICRC1TransferError' : ICRC1TransferError };
 export interface IcrcPending { 'tx_index' : bigint, 'block_index' : bigint }
+export interface InititializeWalletArgs {
+  'controllers' : Array<[Principal, Controller]>,
+  'metadata' : [] | [Array<[string, string]>],
+}
 export interface Ledger {
   'public_key' : [] | [Uint8Array | number[]],
   'subaccount' : Uint8Array | number[],
   'chains' : Array<[ChainEnum, Chain]>,
 }
-export type LedgerError = { 'InvalidMessageLength' : null } |
-  { 'SignatureError' : string } |
-  { 'ICRCAccountError' : ICRCAccountError } |
-  { 'EvmError' : EvmError } |
-  { 'IcpError' : IcpError } |
-  { 'PublicKeyError' : string } |
-  { 'UpdateBalanceError' : string } |
-  { 'InvalidEcdsaPublicKey' : null } |
-  { 'BitcoinError' : BitcoinError } |
-  { 'GenerateError' : string } |
-  { 'IcrcError' : IcrcError } |
-  { 'MissingEcdsaPublicKey' : null } |
-  { 'PendingIndexError' : bigint } |
-  { 'MissingAddress' : null } |
-  { 'BtcTxIdError' : string } |
-  { 'CallError' : string } |
-  { 'InvalidChain' : null } |
-  { 'EcdsaPublicKeyError' : string } |
-  { 'CkbtcError' : CkbtcError } |
-  { 'EcdsaPublicKeyAlreadySet' : null };
 export type Minter = { 'Mainnet' : null } |
   { 'Regtest' : null } |
   { 'Testnet' : null };
-export type MinterError = { 'RetrieveBtcStatus' : RetrieveBtcStatus } |
-  { 'UpdateBalanceError' : UpdateBalanceError } |
-  { 'CallError' : string } |
-  { 'RetrieveBtcError' : RetrieveBtcError } |
-  { 'GetWithdrawalAccountError' : string } |
-  { 'GetBtcAddressError' : string };
-export type NotifyError = { 'TxTooOld' : { 'allowed_window_nanos' : bigint } } |
-  { 'Refunded' : { 'block_index' : [] | [bigint], 'reason' : string } } |
-  { 'InvalidTransaction' : string } |
-  { 'BadFee' : { 'expected_fee' : Tokens } } |
-  { 'TxDuplicate' : { 'duplicate_of' : bigint } } |
-  { 'Other' : { 'error_message' : string, 'error_code' : bigint } } |
-  { 'Processing' : null } |
-  { 'TxCreatedInFuture' : null } |
-  { 'TransactionTooOld' : bigint } |
-  { 'InsufficientFunds' : { 'balance' : Tokens } };
 export interface NotifyTopUp {
   'account_id' : string,
   'block_index' : bigint,
@@ -392,6 +296,7 @@ export type Request = { 'UnhideAccount' : HideAccount } |
   { 'RenameAccount' : RenameAccount } |
   { 'EvmSignTranscation' : EvmSignTranscation } |
   { 'EvmTransferErc20' : EvmTransferErc20 } |
+  { 'SendToken' : SendToken } |
   { 'HideAccount' : HideAccount } |
   { 'UpgradeCanister' : UpgradeCanister } |
   { 'TopUpTransfer' : TopUpTransfer } |
@@ -411,14 +316,6 @@ export type Result = { 'Ok' : bigint } |
   { 'Err' : TransferError };
 export type Result_1 = { 'Ok' : bigint } |
   { 'Err' : string };
-export type Result_2 = { 'Ok' : Array<Principal> } |
-  { 'Err' : WalletError };
-export type RetrieveBtcError = { 'MalformedAddress' : string } |
-  { 'GenericError' : { 'error_message' : string, 'error_code' : bigint } } |
-  { 'TemporarilyUnavailable' : string } |
-  { 'AlreadyProcessing' : null } |
-  { 'AmountTooLow' : bigint } |
-  { 'InsufficientFunds' : { 'balance' : bigint } };
 export type RetrieveBtcStatus = { 'Signing' : null } |
   { 'Confirmed' : { 'txid' : Uint8Array | number[] } } |
   { 'Sending' : { 'txid' : Uint8Array | number[] } } |
@@ -435,10 +332,16 @@ export type SendResult = { 'BTC' : string } |
   { 'ICP' : Result } |
   { 'ICRC' : bigint } |
   { 'CKBTC' : bigint };
+export interface SendToken {
+  'to' : string,
+  'account_id' : string,
+  'chain' : ChainEnum,
+  'amount' : bigint,
+}
 export interface Signer {
   'threshold' : [] | [number],
   'metadata' : Array<[string, string]>,
-  'name' : [] | [string],
+  'name' : string,
   'role' : Roles,
   'expires_at' : [] | [bigint],
 }
@@ -457,17 +360,6 @@ export type TransferError = {
   { 'TxDuplicate' : { 'duplicate_of' : bigint } } |
   { 'TxCreatedInFuture' : null } |
   { 'InsufficientFunds' : { 'balance' : Tokens } };
-export type UpdateBalanceError = {
-    'GenericError' : { 'error_message' : string, 'error_code' : bigint }
-  } |
-  { 'TemporarilyUnavailable' : string } |
-  { 'AlreadyProcessing' : null } |
-  {
-    'NoNewUtxos' : {
-      'required_confirmations' : number,
-      'current_confirmations' : [] | [number],
-    }
-  };
 export interface UpdateCanisterSettings {
   'canister_id' : Principal,
   'settings' : CanisterSettings,
@@ -519,32 +411,13 @@ export interface WalletCanisterStatus {
   'canister_status' : CanisterStatusResponse,
   'account_status' : AccountsNonce,
 }
-export type WalletError = { 'CannotRemoveDefaultAccount' : null } |
-  { 'UpdateCanisterControllersError' : string } |
-  { 'WalletAccountNotExists' : null } |
-  { 'HelperError' : HelperError } |
-  { 'WalletAlreadyInitialized' : null } |
-  { 'EvmError' : EvmError } |
-  { 'IcpError' : IcpError } |
-  { 'UnknownError' : null } |
-  { 'BitcoinError' : BitcoinError } |
-  { 'IcrcError' : IcrcError } |
-  { 'NotifyTopUpError' : string } |
-  { 'ControllerAlreadyExists' : null } |
-  { 'SignerAlreadyExists' : string } |
-  { 'WalletAccountAlreadyExists' : null } |
-  { 'SignerDoesNotExist' : string } |
-  { 'LedgerError' : LedgerError } |
-  { 'UpdateSettingsError' : string } |
-  { 'WalletAccountCounterMismatch' : null } |
-  { 'TooManyControllers' : null } |
-  { 'CkbtcError' : CkbtcError } |
-  { 'WasmNotLoaded' : null } |
-  { 'ExecutionError' : string };
 export interface WalletSettings {
-  'controllers' : Array<Principal>,
+  'freezing_threshold' : [] | [bigint],
+  'controllers' : Array<[Principal, Controller]>,
   'initialised' : boolean,
   'metadata' : Array<[string, string]>,
+  'memory_allocation' : [] | [bigint],
+  'compute_allocation' : [] | [bigint],
 }
 export interface WalletSettingsAndSigners {
   'signers' : Array<[Principal, Signer]>,
@@ -589,8 +462,11 @@ export interface _SERVICE {
     [string, Tokens, [] | [Principal]],
     Result_1
   >,
-  'add_controllers' : ActorMethod<[Principal], Result_2>,
-  'add_setting' : ActorMethod<[string, string], undefined>,
+  'add_controller_and_update' : ActorMethod<
+    [Principal, string, [] | [Array<[string, string]>]],
+    undefined
+  >,
+  'add_setting_metadata' : ActorMethod<[string, string], undefined>,
   'canister_cycle_balance' : ActorMethod<[], bigint>,
   'canister_version' : ActorMethod<[], bigint>,
   'get_account' : ActorMethod<[string], WalletAccount>,
@@ -603,13 +479,11 @@ export interface _SERVICE {
   'get_processed' : ActorMethod<[bigint], ProcessedRequest>,
   'get_processed_list' : ActorMethod<[], Array<ProcessedRequest>>,
   'get_signers' : ActorMethod<[], Array<[Principal, Signer]>>,
-  'init_wallet' : ActorMethod<
-    [Array<Principal>, Array<Principal>, Array<[string, string]>],
-    undefined
-  >,
+  'init_wallet' : ActorMethod<[InititializeWalletArgs], undefined>,
   'load_wasm' : ActorMethod<[Uint8Array | number[]], bigint>,
   'name' : ActorMethod<[], string>,
-  'remove_setting' : ActorMethod<[string], undefined>,
+  'refresh_settings' : ActorMethod<[], undefined>,
+  'remove_setting_metadata' : ActorMethod<[string], undefined>,
   'request_account_rename' : ActorMethod<
     [RenameAccount, string, [] | [bigint]],
     bigint
@@ -627,6 +501,7 @@ export interface _SERVICE {
     bigint
   >,
   'request_maker' : ActorMethod<[Request, string, [] | [bigint]], bigint>,
+  'request_send' : ActorMethod<[SendToken, string, [] | [bigint]], bigint>,
   'request_sign_message' : ActorMethod<
     [string, Uint8Array | number[]],
     Uint8Array | number[]
@@ -655,7 +530,11 @@ export interface _SERVICE {
   'signer_remove' : ActorMethod<[Principal], Array<[Principal, Signer]>>,
   'status' : ActorMethod<[], WalletCanisterStatus>,
   'unload_wasm' : ActorMethod<[], bigint>,
-  'update_controllers' : ActorMethod<[Array<Principal>], Result_2>,
+  'update_controller' : ActorMethod<
+    [Array<[Principal, Controller]>],
+    Array<[Principal, Controller]>
+  >,
+  'update_settings' : ActorMethod<[], undefined>,
   'upgrage_wallet' : ActorMethod<[], undefined>,
   'validate_signer' : ActorMethod<[Principal], boolean>,
   'version' : ActorMethod<[], string>,

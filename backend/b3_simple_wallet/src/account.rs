@@ -152,7 +152,7 @@ pub async fn account_send(
 ) -> SendResult {
     let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
-    ledger.send(chain, to, amount).await.unwrap_or_else(revert)
+    ledger.send(&chain, to, amount).await.unwrap_or_else(revert)
 }
 
 #[candid_method(update)]
@@ -162,7 +162,7 @@ pub async fn account_check_pending(
     chain: ChainEnum,
     pending_index: usize,
 ) -> Vec<UtxoStatus> {
-    let ckbtc = with_chain(&account_id, chain.clone(), |chain| chain.ckbtc())
+    let ckbtc = with_chain(&account_id, &chain, |chain| chain.ckbtc())
         .unwrap_or_else(revert)
         .unwrap_or_else(revert);
 
@@ -203,7 +203,7 @@ pub async fn account_swap_btc_to_ckbtc(
     network: BtcNetwork,
     amount: Satoshi,
 ) -> BtcPending {
-    let btc = with_chain(&account_id, ChainEnum::BTC(network), |chain| chain.btc())
+    let btc = with_chain(&account_id, &ChainEnum::BTC(network), |chain| chain.btc())
         .unwrap_or_else(revert)
         .unwrap_or_else(revert);
 
@@ -230,7 +230,7 @@ pub async fn account_swap_ckbtc_to_btc(
     retrieve_address: String,
     amount: Satoshi,
 ) -> BlockIndex {
-    let ckbtc = with_chain(&account_id, ChainEnum::CKBTC(network), |chain| {
+    let ckbtc = with_chain(&account_id, &ChainEnum::CKBTC(network), |chain| {
         chain.ckbtc()
     })
     .unwrap_or_else(revert)
@@ -262,7 +262,7 @@ pub async fn account_top_up_and_notify(
     amount: Tokens,
     canister_id: Option<CanisterId>,
 ) -> Result<Cycles, String> {
-    let icp = with_chain(&account_id, ChainEnum::ICP, |chain| chain.icp())
+    let icp = with_chain(&account_id, &ChainEnum::ICP, |chain| chain.icp())
         .unwrap_or_else(revert)
         .unwrap_or_else(revert);
 

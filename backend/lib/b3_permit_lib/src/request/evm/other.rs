@@ -76,7 +76,7 @@ impl RequestTrait for EvmDeployContract {
     }
 
     fn validate_request(&self) -> Result<(), PermitError> {
-        with_chain(&self.account_id, ChainEnum::EVM(self.chain_id), |_| Ok(()))?
+        with_chain(&self.account_id, &ChainEnum::EVM(self.chain_id), |_| Ok(()))?
     }
 
     fn method_name(&self) -> String {

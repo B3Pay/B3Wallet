@@ -67,7 +67,7 @@ impl RequestTrait for EvmTransfer {
 
     fn validate_request(&self) -> Result<(), PermitError> {
         // check if the chain id is initialized
-        with_chain(&self.account_id, ChainEnum::EVM(self.chain_id), |_| Ok(()))?
+        with_chain(&self.account_id, &ChainEnum::EVM(self.chain_id), |_| Ok(()))?
     }
 
     fn method_name(&self) -> String {
@@ -129,7 +129,7 @@ impl RequestTrait for EvmTransferErc20 {
 
     fn validate_request(&self) -> Result<(), PermitError> {
         // check if the chain id is initialized
-        with_chain(&self.account_id, ChainEnum::EVM(self.chain_id), |_| Ok(()))?
+        with_chain(&self.account_id, &ChainEnum::EVM(self.chain_id), |_| Ok(()))?
     }
 
     fn method_name(&self) -> String {

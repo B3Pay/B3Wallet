@@ -26,7 +26,7 @@ interface WalletBodyProps extends StackProps {
   mode: Mode
   actor: B3Wallet
   walletCanisterId: string
-  setting: WalletSettingsAndSigners
+  settingsAndSigners: WalletSettingsAndSigners
   systemActor: B3System
   accounts: WalletAccountView[]
   setAccounts: React.Dispatch<React.SetStateAction<WalletAccountView[]>>
@@ -37,13 +37,13 @@ interface WalletBodyProps extends StackProps {
 const WalletBody: React.FC<WalletBodyProps> = ({
   mode,
   actor,
-  setting,
   accounts,
   systemActor,
   setAccounts,
   fetchAccounts,
   refreshWallet,
   walletCanisterId,
+  settingsAndSigners,
   ...rest
 }) => {
   const [loading, setLoading] = useState<Loadings>({})
@@ -89,10 +89,10 @@ const WalletBody: React.FC<WalletBodyProps> = ({
       {mode === Mode.Settings ? (
         <Settings
           actor={actor}
-          setting={setting}
           refreshWallet={refreshWallet}
           fetchAccounts={fetchAccounts}
           systemActor={systemActor}
+          {...settingsAndSigners}
           setLoading={(global: boolean) =>
             setLoading(prev => ({ ...prev, global }))
           }
@@ -113,13 +113,16 @@ const WalletBody: React.FC<WalletBodyProps> = ({
           <Accordion allowMultiple>
             {accounts.map((account, index) => (
               <AccordionItem key={index} py={1} border="none">
-                <Account
-                  key={index}
-                  actor={actor}
-                  loading={loading[account.id]}
-                  refetchAccount={() => refetchAccount(account.id)}
-                  {...account}
-                />
+                {({ isExpanded }) => (
+                  <Account
+                    key={index}
+                    actor={actor}
+                    loading={loading[account.id]}
+                    isExpanded={isExpanded}
+                    refetchAccount={() => refetchAccount(account.id)}
+                    {...account}
+                  />
+                )}
               </AccordionItem>
             ))}
           </Accordion>

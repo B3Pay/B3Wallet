@@ -1,7 +1,6 @@
 import {
   AccordionButton,
   AccordionIcon,
-  AccordionItem,
   AccordionPanel,
   Box,
   Stack,
@@ -11,12 +10,15 @@ import { ProcessedRequest } from "declarations/b3_wallet/b3_wallet.did"
 import { useMemo } from "react"
 import Parent from "../Recursive"
 
-interface ProcessedRequestProps extends ProcessedRequest {}
+interface ProcessedRequestProps extends ProcessedRequest {
+  isExpanded: boolean
+}
 
 const Processed: React.FC<ProcessedRequestProps> = ({
   request,
   result,
   timestamp,
+  isExpanded,
   status
 }) => {
   const date = useMemo(() => {
@@ -24,49 +26,61 @@ const Processed: React.FC<ProcessedRequestProps> = ({
     return new Date(Number(time))
   }, [timestamp])
 
-  console.log(result)
+  console.log({ result })
 
   const stt = Object.keys(status)[0]
   return (
-    <AccordionItem
-      bgColor={stt === "Success" ? "green.100" : "red.100"}
-      border="none"
-      _focus={{ boxShadow: "none" }}
+    <Box
+      borderWidth="1px"
+      borderRadius={isExpanded ? "lg" : "none"}
+      overflow="hidden"
+      my={isExpanded ? 2 : 0}
     >
-      <h2>
-        <AccordionButton>
-          <Stack
-            flex="12"
-            textAlign="left"
-            direction="row"
-            justify="space-between"
-          >
-            <Box flex="8" textAlign="left">
-              {request.consent_message.title}
+      <AccordionButton>
+        <Stack
+          flex="12"
+          textAlign="left"
+          direction="row"
+          justify="space-between"
+        >
+          {stt === "Success" ? (
+            <Box flex="1" textAlign="left" color="green.500">
+              Executed
             </Box>
-            <Box flex="4" textAlign="left">
-              {date.toLocaleDateString()} {date.toLocaleTimeString()}
+          ) : (
+            <Box flex="1" textAlign="left" color="red.500">
+              Failed
             </Box>
-          </Stack>
-          <AccordionIcon />
-        </AccordionButton>
-      </h2>
+          )}
+          <Box flex="8" textAlign="left">
+            {request.consent_message.title}
+          </Box>
+          <Box flex="4" textAlign="left">
+            {date.toLocaleDateString()} {date.toLocaleTimeString()}
+          </Box>
+        </Stack>
+        <AccordionIcon />
+      </AccordionButton>
       <AccordionPanel pb={4}>
-        <Text>
-          <strong>Status:</strong> {stt}
-        </Text>
         <Text>
           <strong>Message:</strong> {request.consent_message.message}
         </Text>
         <Text>
           <strong>Role:</strong> {Object.keys(request.role)[0]}
         </Text>
-        <strong>Args:</strong>
-        {Object.entries(request.consent_message).map(([key, value]) => (
-          <Parent key={key} parent={key} child={value} />
+        <strong>Result:</strong>
+        {Object.entries(result[0]).map(([key, value]) => (
+          <>
+            <Parent key={key} parent={key} child={null} />
+            {value.map(value =>
+              Object.entries(value).map(([key, value]) => (
+                <Parent key={key} parent={key} child={value} />
+              ))
+            )}
+          </>
         ))}
       </AccordionPanel>
-    </AccordionItem>
+    </Box>
   )
 }
 

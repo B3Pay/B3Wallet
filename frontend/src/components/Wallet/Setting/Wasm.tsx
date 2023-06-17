@@ -70,6 +70,7 @@ const Wasm: React.FC<WasmProps> = ({
   const [currentVersion, setCurrentVersion] = useState<string>()
   const [upgrading, setUpgrading] = useState(false)
 
+  const [releaseLoading, setReleaseLoading] = useState(false)
   const [loadedRelease, setLoadedRelease] = useState<Release | UnknownRelease>()
 
   const errorToast = useToastMessage()
@@ -105,8 +106,10 @@ const Wasm: React.FC<WasmProps> = ({
       .catch(() => setLoadedRelease(undefined))
   }
 
-  useEffect(() => {
-    const fetchReleases = async () => {
+  const fetchReleases = useCallback(async () => {
+    setReleaseLoading(true)
+
+    try {
       const response = await fetch("wasm/releases.json")
 
       const releases = (await response.json()) as JsonFile[]
@@ -131,73 +134,26 @@ const Wasm: React.FC<WasmProps> = ({
       }, [] as OnlineRelease[])
 
       setReleases(releaseMap)
+      setReleaseLoading(false)
+    } catch (e: any) {
+      console.log("Error fetching releases", e)
+      errorToast({
+        title: "Error",
+        description: "Error fetching releases",
+        status: "error",
+        duration: 5000,
+        isClosable: true
+      })
     }
+  }, [actor, errorToast])
 
+  useEffect(() => {
     console.log("Fetching releases")
 
     updateVersion()
     updateWasmVersion()
     fetchReleases()
   }, [])
-
-  const loadCanisterWasm = useCallback(async () => {
-    setError(undefined)
-    setLoading(true)
-
-    await uploader(selectedRelease)
-
-    console.log("Wasm loaded")
-
-    updateWasmVersion()
-    setLoading(false)
-  }, [actor, selectedRelease, setLoading])
-
-  const upgradeCanister = async () => {
-    setError(undefined)
-    if (!loadedRelease.version || loadedRelease.version === currentVersion) {
-      errorToast({
-        title: "Error",
-        description: "Canister is already upgraded",
-        status: "error",
-        duration: 5000
-      })
-
-      return
-    }
-
-    setUpgrading(true)
-
-    try {
-      await actor.upgrage_wallet()
-    } catch (e: any) {
-      console.log(e)
-    }
-
-    actor.version().then(version => {
-      console.log("Canister upgraded")
-      if (loadedRelease.version === version) {
-        errorToast({
-          title: "Success",
-          description: `Canister upgraded to version ${version}`,
-          status: "success",
-          duration: 5000,
-          isClosable: true
-        })
-        refreshWallet()
-      } else {
-        errorToast({
-          title: "Error",
-          description: "Canister upgrade failed",
-          status: "error",
-          duration: 5000,
-          isClosable: true
-        })
-      }
-
-      updateWasmVersion()
-      setUpgrading(false)
-    })
-  }
 
   const resetWasm = async () => {
     setError(undefined)
@@ -222,6 +178,54 @@ const Wasm: React.FC<WasmProps> = ({
     setLoading(false)
   }
 
+  const loadCanisterWasm = useCallback(async () => {
+    setError(undefined)
+    setLoading(true)
+
+    await resetWasm()
+    await uploader(selectedRelease)
+
+    console.log("Wasm loaded")
+
+    updateWasmVersion()
+    setLoading(false)
+  }, [actor, selectedRelease, setLoading])
+
+  const upgradeCanister = async () => {
+    setError(undefined)
+    setUpgrading(true)
+
+    try {
+      await actor.upgrage_wallet()
+    } catch (e: any) {
+      console.log(e)
+    }
+
+    actor.version().then(version => {
+      console.log("Canister upgraded", loadedRelease.version, version)
+      if (loadedRelease.version === version) {
+        errorToast({
+          title: "Success",
+          description: `Canister upgraded to version ${version}`,
+          status: "success",
+          duration: 5000,
+          isClosable: true
+        })
+        refreshWallet()
+      } else {
+        errorToast({
+          description: "Canister upgrade failed",
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+      }
+
+      updateWasmVersion()
+      setUpgrading(false)
+    })
+  }
+
   return (
     <Stack
       direction="column"
@@ -235,12 +239,30 @@ const Wasm: React.FC<WasmProps> = ({
           <Text fontSize="md" fontWeight="bold">
             Wallet Wasm
           </Text>
-          <Text fontSize="sm" fontWeight="bold" color="gray.600">
-            {currentVersion}
-          </Text>
+          <Stack fontSize="sm" fontWeight="semibold">
+            {releaseLoading ? (
+              <Text>Loading...</Text>
+            ) : (
+              <Stack direction="row" align="center">
+                <Text>{currentVersion}</Text>
+                <IconButton
+                  aria-label="Refresh"
+                  icon={<RepeatIcon />}
+                  onClick={fetchReleases}
+                  size="xs"
+                />
+              </Stack>
+            )}
+          </Stack>
         </Stack>
       </CardHeader>
-      <CardBody borderTop="1px" borderColor="gray.200" position="relative">
+      <CardBody
+        borderTop="1px"
+        borderColor="gray.200"
+        position="relative"
+        py={4}
+        px={2}
+      >
         {wasmLoading && (
           <Loading title="Wasm loading">
             <Progress hasStripe value={progress} height={2} />
@@ -330,7 +352,7 @@ const Wasm: React.FC<WasmProps> = ({
                   </Stack>
                   <Stack direction="row" spacing={2}>
                     <Button onClick={resetWasm} flex={2} colorScheme="red">
-                      Reset
+                      Delete
                     </Button>
                     <Button
                       onClick={upgradeCanister}

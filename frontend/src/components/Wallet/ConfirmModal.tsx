@@ -7,12 +7,16 @@ import {
   ModalBody,
   ModalCloseButton,
   ModalContent,
-  ModalFooter,
   ModalHeader,
   ModalOverlay,
+  Stack,
+  Stat,
+  StatHelpText,
+  StatLabel,
+  Text,
   useDisclosure
 } from "@chakra-ui/react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { PendingRequest } from "../../../declarations/b3_wallet/b3_wallet.did"
 import { B3Wallet } from "../../service/actor"
 import Parent from "../Recursive"
@@ -59,9 +63,18 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     })
   }
 
+  console.log({ requests })
+
   // useInterval(async () => {
   //   fetchRequests()
   // }, 10000)
+
+  const date = useMemo(() => {
+    if (!requests[0]) return new Date()
+
+    const time = requests[0].deadline / BigInt(1e6)
+    return new Date(Number(time))
+  }, [requests[0]])
 
   return (
     <Box>
@@ -83,7 +96,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         <ModalOverlay />
         {requests.length > 0 && (
           <ModalContent>
-            <ModalHeader> {requests[0].consent_message.title}</ModalHeader>
+            <ModalHeader>{requests[0].consent_message.message}</ModalHeader>
             <ModalCloseButton />
             <ModalBody>
               {Object.entries(requests[0].consent_message).map(
@@ -91,22 +104,45 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                   <Parent key={key} parent={key} child={value} />
                 )
               )}
+              <Stat>
+                <StatLabel>Deadline: &nbsp;</StatLabel>
+                <StatHelpText>
+                  {date.toLocaleDateString()} {date.toLocaleTimeString()}
+                </StatHelpText>
+              </Stat>
+              <Stat>
+                <StatLabel>Role: &nbsp;</StatLabel>
+                <StatHelpText>{Object.keys(requests[0].role)[0]}</StatHelpText>
+              </Stat>
+              <Stat>
+                <StatLabel>Responses: &nbsp;</StatLabel>
+                <StatHelpText>
+                  {requests[0].responses.length} / {}{" "}
+                </StatHelpText>
+              </Stat>
+              {Object.entries(requests[0].request).map(([key, value]) => (
+                <Parent key={key} parent={key} child={value} />
+              ))}
             </ModalBody>
-            <ModalFooter>
+            <Stack direction="row" p={4} align="center" justify="space-between">
+              <Text flex={2} fontSize="xs">
+                {requests[0].version}
+              </Text>
               <Button
-                colorScheme="blue"
-                mr={3}
-                onClick={() => confirmHandler(requests[0].id)}
-              >
-                Confirm
-              </Button>
-              <Button
+                flex={3}
                 colorScheme="red"
                 onClick={() => rejectHandler(requests[0].id)}
               >
                 Reject
               </Button>
-            </ModalFooter>
+              <Button
+                colorScheme="blue"
+                flex={3}
+                onClick={() => confirmHandler(requests[0].id)}
+              >
+                Confirm
+              </Button>
+            </Stack>
           </ModalContent>
         )}
       </Modal>

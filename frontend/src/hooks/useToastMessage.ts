@@ -13,8 +13,8 @@ const useToastMessage = () => {
           : [props.description.toString()]
         : ["Unknown error"]
 
-      const { title, description } = compileError(errors)
-
+      const { title, description } = compileError(errors, props.title)
+      console.log("errorToast -> title", title, description)
       return toast({
         ...props,
         title,

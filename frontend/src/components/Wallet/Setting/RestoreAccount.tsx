@@ -1,4 +1,13 @@
-import { Button, Input, Select, Stack } from "@chakra-ui/react"
+import {
+  Button,
+  CardBody,
+  CardHeader,
+  Input,
+  Select,
+  Stack,
+  Text
+} from "@chakra-ui/react"
+import Loading from "components/Loading"
 import { Environment } from "declarations/b3_wallet/b3_wallet.did"
 import { IS_LOCAL } from "helpers/config"
 import useToastMessage from "hooks/useToastMessage"
@@ -15,7 +24,8 @@ const RestoreAccount: React.FC<RestoreAccountProps> = ({
   fetchAccounts
 }) => {
   const [loading, setLoading] = useState(false)
-  const [nonce, setNonce] = useState<bigint>(0n)
+  const [nonce, setNonce] = useState("")
+
   const errorToast = useToastMessage()
 
   const [environment, setEnvironment] = useState<Environment>(
@@ -29,17 +39,19 @@ const RestoreAccount: React.FC<RestoreAccountProps> = ({
   )
 
   function onChangeName(e: React.ChangeEvent<HTMLInputElement>) {
-    const newName = BigInt(e.target.value)
-    setNonce(newName)
+    setNonce(e.target.value)
   }
 
   const createAccount = async () => {
-    if (!actor) {
+    if (!nonce) {
       return
     }
+
+    let nonceNumber = BigInt(nonce)
+
     setLoading(true)
     actor
-      .account_restore(environment, nonce)
+      .account_restore(environment, nonceNumber)
       .then(() => {
         setLoading(false)
         fetchAccounts()
@@ -58,37 +70,58 @@ const RestoreAccount: React.FC<RestoreAccountProps> = ({
   }
 
   return (
-    <Stack direction="row" justify="space-between" align="center">
-      <Select
-        flex={6}
-        value={Object.keys(environment)[0]}
-        onChange={e => {
-          const env = e.target.value
+    <Stack
+      direction="column"
+      borderWidth="1px"
+      borderRadius="lg"
+      overflow="hidden"
+      position="relative"
+    >
+      {loading && <Loading title="Restoring account" />}
+      <CardHeader pb={2}>
+        <Stack direction="row" justify="space-between" align="center">
+          <Text fontSize="md" fontWeight="bold">
+            Restore Account
+          </Text>
+          <Text fontSize="sm" color="gray.500">
+            Restore deleted account
+          </Text>
+        </Stack>
+      </CardHeader>
+      <CardBody borderTop="1px" borderColor="gray.200" position="relative">
+        <Stack direction="row" justify="space-between" align="center">
+          <Select
+            flex={6}
+            value={Object.keys(environment)[0]}
+            onChange={e => {
+              const env = e.target.value
 
-          setEnvironment({ [env]: null } as Environment)
-        }}
-      >
-        <option value="Development">Development</option>
-        <option value="Production">Production</option>
-        <option value="Staging">Staging</option>
-      </Select>
-      <Input
-        id="nonce"
-        alt="Name"
-        flex={2}
-        type="number"
-        placeholder="Nonce"
-        value={nonce.toString()}
-        onChange={onChangeName}
-      />
-      <Button
-        onClick={createAccount}
-        isLoading={loading}
-        flex={4}
-        colorScheme="green"
-      >
-        Restore
-      </Button>
+              setEnvironment({ [env]: null } as Environment)
+            }}
+          >
+            <option value="Development">Development</option>
+            <option value="Production">Production</option>
+            <option value="Staging">Staging</option>
+          </Select>
+          <Input
+            id="nonce"
+            alt="Name"
+            flex={2}
+            type="number"
+            placeholder="Nonce"
+            value={nonce}
+            onChange={onChangeName}
+          />
+          <Button
+            onClick={createAccount}
+            isLoading={loading}
+            flex={4}
+            colorScheme="green"
+          >
+            Restore
+          </Button>
+        </Stack>
+      </CardBody>
     </Stack>
   )
 }

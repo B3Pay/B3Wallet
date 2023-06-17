@@ -49,7 +49,7 @@ impl Ledger {
 
     pub async fn send(
         &self,
-        chain_type: ChainEnum,
+        chain_type: &ChainEnum,
         to: String,
         amount: u64,
     ) -> Result<SendResult, LedgerError> {
@@ -110,9 +110,9 @@ impl Ledger {
         ecdsa.to_secp256k1_public_key()
     }
 
-    pub fn chain(&self, chains: ChainEnum) -> Result<&Chain, LedgerError> {
+    pub fn chain(&self, chains: &ChainEnum) -> Result<&Chain, LedgerError> {
         self.chains
-            .get(&chains)
+            .get(chains)
             .ok_or_else(|| LedgerError::MissingAddress)
     }
 

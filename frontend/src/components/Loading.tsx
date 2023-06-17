@@ -6,9 +6,16 @@ interface LoadingProps extends PropsWithChildren {
   dark?: boolean
   circle?: boolean
   title?: string
+  description?: string
 }
 
-const Loading: React.FC<LoadingProps> = ({ dark, circle, title, children }) => {
+const Loading: React.FC<LoadingProps> = ({
+  dark,
+  circle,
+  title,
+  description,
+  children
+}) => {
   return (
     <Stack
       position="absolute"
@@ -24,6 +31,7 @@ const Loading: React.FC<LoadingProps> = ({ dark, circle, title, children }) => {
       <Text fontWeight="bold" color={dark ? "white" : "gray.600"}>
         <LoadingDots title={title} />
       </Text>
+      <Text color={dark ? "white" : "gray.600"}>{description}</Text>
       <Box w="20vw">
         {children ? (
           children

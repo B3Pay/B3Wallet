@@ -103,7 +103,7 @@ export function extractConfirmations(msg: string): PendingTranscation {
   return result
 }
 
-export const compileError = (description: string[]) => {
+export const compileError = (description: string[], title: React.ReactNode) => {
   if (description.length > 1) {
     return {
       title: description[1],
@@ -111,7 +111,7 @@ export const compileError = (description: string[]) => {
     }
   } else {
     return {
-      title: "Error",
+      title,
       description: description[0]
     }
   }

@@ -4,7 +4,6 @@ import {
   WalletSettingsAndSigners
 } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
-import { useRouter } from "next/router"
 import { useCallback, useEffect, useState } from "react"
 import { B3System, B3Wallet } from "service/actor"
 import Loading from "../Loading"
@@ -21,8 +20,7 @@ interface WalletProps {
 export enum Mode {
   Processed,
   Settings,
-  Accounts,
-  Initial
+  Accounts
 }
 
 const Wallet: React.FC<WalletProps> = ({
@@ -30,7 +28,7 @@ const Wallet: React.FC<WalletProps> = ({
   systemActor,
   walletCanisterId
 }) => {
-  const [mode, setMode] = useState<Mode>(Mode.Initial)
+  const [mode, setMode] = useState<Mode>(Mode.Accounts)
 
   const [loading, setLoading] = useState(false)
   const [accounts, setAccounts] = useState<WalletAccountView[]>([])
@@ -38,9 +36,8 @@ const Wallet: React.FC<WalletProps> = ({
     useState<WalletSettingsAndSigners>()
 
   const errorToast = useToastMessage()
-  const router = useRouter()
 
-  const fetchAccounts = useCallback(() => {
+  const fetchAccounts = useCallback(async () => {
     console.log("fetching accounts")
     setLoading(true)
 
@@ -64,7 +61,7 @@ const Wallet: React.FC<WalletProps> = ({
       })
   }, [actor])
 
-  const fetchSettings = useCallback(() => {
+  const fetchSettingsAndSigners = useCallback(async () => {
     console.log("fetching settings")
     setLoading(true)
 
@@ -90,11 +87,12 @@ const Wallet: React.FC<WalletProps> = ({
   }, [actor])
 
   const refreshWallet = async () => {
-    router.push(router.asPath)
+    await fetchAccounts()
+    await fetchSettingsAndSigners()
   }
 
   useEffect(() => {
-    fetchSettings()
+    fetchSettingsAndSigners()
     fetchAccounts()
   }, [])
 
@@ -108,7 +106,12 @@ const Wallet: React.FC<WalletProps> = ({
     >
       {loading && <Loading title="Loading Wallet" />}
       {accounts.length === 0 ? (
-        <InitialSetup actor={actor} {...settingAndSigners} />
+        <InitialSetup
+          actor={actor}
+          {...settingAndSigners}
+          fetchAccounts={fetchAccounts}
+          fetchSettingsAndSigners={fetchSettingsAndSigners}
+        />
       ) : (
         <>
           <WalletHeader
@@ -124,13 +127,13 @@ const Wallet: React.FC<WalletProps> = ({
             flex={11}
             mode={mode}
             actor={actor}
-            setting={settingAndSigners}
             accounts={accounts}
             systemActor={systemActor}
             setAccounts={setAccounts}
             refreshWallet={refreshWallet}
             fetchAccounts={fetchAccounts}
             walletCanisterId={walletCanisterId}
+            settingsAndSigners={settingAndSigners}
           />
         </>
       )}
