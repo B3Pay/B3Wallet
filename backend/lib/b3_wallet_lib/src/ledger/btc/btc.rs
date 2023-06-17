@@ -12,6 +12,7 @@ use bitcoin::PublicKey;
 use bitcoin::{ecdsa, hashes::Hash, Address, Script, Transaction};
 use ic_cdk::api::management_canister::bitcoin::Satoshi;
 use ic_cdk::api::management_canister::bitcoin::{GetUtxosResponse, UtxoFilter};
+use ic_cdk::println;
 use std::str::FromStr;
 
 use super::error::BitcoinError;
@@ -93,6 +94,11 @@ impl BtcChain {
         let signed_transaction = self.sign_transaction(&mut tx).await?;
 
         let signed_transaction_bytes = serialize(&signed_transaction);
+
+        println!(
+            "Signed transaction: {}",
+            hex::encode(signed_transaction_bytes.clone())
+        );
 
         self.btc_network
             .send_transaction(signed_transaction_bytes)

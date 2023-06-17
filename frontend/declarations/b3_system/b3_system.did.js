@@ -26,10 +26,10 @@ export const idlFactory = ({ IDL }) => {
     'chunks' : IDL.Nat64,
   });
   const ReleaseName = IDL.Variant({
-    'b3_simple_wallet' : IDL.Null,
     'b3_wallet' : IDL.Null,
     'Custom' : IDL.Text,
     'b3_multi_sig_wallet' : IDL.Null,
+    'b3_basic_wallet' : IDL.Null,
   });
   const CanisterStatusType = IDL.Variant({
     'stopped' : IDL.Null,

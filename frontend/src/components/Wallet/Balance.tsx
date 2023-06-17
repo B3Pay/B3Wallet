@@ -23,7 +23,7 @@ const Balance: React.FC<BalanceProps> = ({
   const whole = Number(amount / divisor)
   const fraction = String(amount % divisor)
     .padStart(decimals, "0")
-    .slice(0, 4)
+    .slice(0, 8)
 
   return (
     <Box {...rest}>

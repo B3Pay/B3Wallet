@@ -38,8 +38,8 @@ impl Default for WalletSettings {
 impl WalletSettings {
     pub fn new(controllers: ControllerMap, metadata: Option<Metadata>) -> Self {
         WalletSettings {
-            metadata: metadata.unwrap_or_default(),
             controllers,
+            metadata: metadata.unwrap_or_default(),
             ..Default::default()
         }
     }

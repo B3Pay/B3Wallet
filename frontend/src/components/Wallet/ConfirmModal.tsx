@@ -1,4 +1,4 @@
-import { InfoOutlineIcon, RepeatIcon } from "@chakra-ui/icons"
+import { InfoOutlineIcon } from "@chakra-ui/icons"
 import {
   Box,
   Button,
@@ -78,13 +78,6 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 
   return (
     <Box>
-      <IconButton
-        colorScheme="green"
-        variant={"ghost"}
-        aria-label="Refresh"
-        icon={<RepeatIcon />}
-        onClick={refreshWallet}
-      />
       <IconButton
         colorScheme="red"
         variant={requests.length > 0 ? "solid" : "ghost"}

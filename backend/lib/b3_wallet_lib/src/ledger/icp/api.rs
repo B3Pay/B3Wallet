@@ -85,12 +85,12 @@ impl ChainTrait for IcpChain {
     fn pendings(&self) -> Vec<PendingEnum> {
         self.pendings
             .iter()
-            .map(|pending| PendingEnum::IcpPending(pending.clone()))
+            .map(|pending| PendingEnum::ICP(pending.clone()))
             .collect()
     }
 
     fn add_pending(&mut self, pending: PendingEnum) {
-        if let PendingEnum::IcpPending(p) = pending {
+        if let PendingEnum::ICP(p) = pending {
             self.pendings.push(p);
         }
     }

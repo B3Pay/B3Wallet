@@ -1,22 +1,26 @@
 import { Stack, Text } from "@chakra-ui/react"
+import { AuthClient } from "@dfinity/auth-client"
 import {
   InititializeWalletArgs,
   WalletSettingsAndSigners
 } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useState } from "react"
-import { B3Wallet } from "service/actor"
+import { B3BasicWallet, B3Wallet } from "service/actor"
+import Address from "./Address"
 import Controllers, { ControllerMap } from "./Setting/Controllers"
 import Signers from "./Setting/Signers"
 
 interface InitialSetupProps extends WalletSettingsAndSigners {
-  actor: B3Wallet
-  fetchSettingsAndSigners: () => void
-  fetchAccounts: () => void
+  actor: B3Wallet | B3BasicWallet
+  authClient: AuthClient
+  fetchSettingsAndSigners: () => Promise<void>
+  fetchAccounts: () => Promise<void>
 }
 
 const InitialSetup: React.FC<InitialSetupProps> = ({
   actor,
+  authClient,
   settings,
   signers,
   fetchSettingsAndSigners,
@@ -26,6 +30,7 @@ const InitialSetup: React.FC<InitialSetupProps> = ({
   const errorToast = useToastMessage()
 
   const handleInitialize = async (controllers: ControllerMap) => {
+    console.log("handleInitialize", controllers)
     setIsInitializing(true)
 
     const args: InititializeWalletArgs = {
@@ -45,8 +50,9 @@ const InitialSetup: React.FC<InitialSetupProps> = ({
         isClosable: true
       })
     } finally {
+      await fetchAccounts()
+      await fetchSettingsAndSigners()
       setIsInitializing(false)
-      fetchAccounts()
     }
   }
 
@@ -62,25 +68,35 @@ const InitialSetup: React.FC<InitialSetupProps> = ({
       >
         Initial Setup
       </Text>
-      <Stack spacing={2} paddingTop={2}>
-        <Stack spacing={2} ml={2}>
-          <Text fontSize="large" fontWeight="bold">
-            Add or remove signer.
-          </Text>
-          <Text fontSize="sm">You can add more controller later.</Text>
-          <Text fontSize="small" color="gray.600">
-            Note: The system canister is a connected canister by default, it
-            only have access to some data information, you can remove it if you
-            want.
-          </Text>
+      <Text fontSize="large" fontWeight="bold" mt={2}>
+        Wallet Address
+      </Text>
+      <Address
+        address={authClient.getIdentity().getPrincipal().toString()}
+        overflow="hidden"
+        px={2}
+      />
+      {signers && (
+        <Stack spacing={2} paddingTop={2}>
+          <Stack spacing={2} ml={2}>
+            <Text fontSize="large" fontWeight="bold">
+              Add or remove signer.
+            </Text>
+            <Text fontSize="sm">You can add more controller later.</Text>
+            <Text fontSize="small" color="gray.600">
+              Note: The system canister is a connected canister by default, it
+              only have access to some data information, you can remove it if
+              you want.
+            </Text>
+          </Stack>
+          <Signers
+            signers={signers}
+            actor={actor}
+            refetch={fetchSettingsAndSigners}
+            pt={2}
+          />
         </Stack>
-        <Signers
-          signers={signers}
-          actor={actor}
-          refetch={fetchSettingsAndSigners}
-          pt={2}
-        />
-      </Stack>
+      )}
       <Stack spacing={2} paddingTop={2} position="relative">
         <Stack spacing={2} ml={2}>
           <Text fontSize="large" fontWeight="bold">

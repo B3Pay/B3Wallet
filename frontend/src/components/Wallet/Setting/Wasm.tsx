@@ -14,7 +14,7 @@ import { Release } from "declarations/b3_system/b3_system.did"
 import useLoadRelease from "hooks/useLoadRelease"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useEffect, useState } from "react"
-import { B3System, B3Wallet } from "service/actor"
+import { B3BasicWallet, B3System, B3Wallet } from "service/actor"
 import Error from "../../Error"
 import Address from "../Address"
 
@@ -35,7 +35,7 @@ interface OnlineRelease {
 }
 
 interface WasmProps {
-  actor: B3Wallet
+  actor: B3Wallet | B3BasicWallet
   systemActor: B3System
   refreshWallet: () => void
   setLoading: (loading: boolean) => void
@@ -180,7 +180,7 @@ const Wasm: React.FC<WasmProps> = ({
 
   const loadCanisterWasm = useCallback(async () => {
     setError(undefined)
-    setLoading(true)
+    setReleaseLoading(true)
 
     await resetWasm()
     await uploader(selectedRelease)
@@ -188,8 +188,8 @@ const Wasm: React.FC<WasmProps> = ({
     console.log("Wasm loaded")
 
     updateWasmVersion()
-    setLoading(false)
-  }, [actor, selectedRelease, setLoading])
+    setReleaseLoading(false)
+  }, [actor, selectedRelease])
 
   const upgradeCanister = async () => {
     setError(undefined)
@@ -201,29 +201,7 @@ const Wasm: React.FC<WasmProps> = ({
       console.log(e)
     }
 
-    actor.version().then(version => {
-      console.log("Canister upgraded", loadedRelease.version, version)
-      if (loadedRelease.version === version) {
-        errorToast({
-          title: "Success",
-          description: `Canister upgraded to version ${version}`,
-          status: "success",
-          duration: 5000,
-          isClosable: true
-        })
-        refreshWallet()
-      } else {
-        errorToast({
-          description: "Canister upgrade failed",
-          status: "error",
-          duration: 5000,
-          isClosable: true
-        })
-      }
-
-      updateWasmVersion()
-      setUpgrading(false)
-    })
+    window.location.reload()
   }
 
   return (
@@ -283,7 +261,13 @@ const Wasm: React.FC<WasmProps> = ({
                   </option>
                 ))}
               </Select>
-              <Button onClick={loadCanisterWasm} flex={4} colorScheme="blue">
+              <Button
+                isLoading={releaseLoading || upgrading}
+                isDisabled={!selectedRelease}
+                onClick={loadCanisterWasm}
+                flex={4}
+                colorScheme="blue"
+              >
                 Load Wasm
               </Button>
             </Stack>

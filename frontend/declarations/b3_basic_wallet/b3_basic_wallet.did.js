@@ -11,50 +11,31 @@ export const idlFactory = ({ IDL }) => {
     'ICRC' : IDL.Principal,
     'CKBTC' : Minter,
   });
-  const IcrcPending = IDL.Record({
-    'tx_index' : IDL.Nat,
-    'block_index' : IDL.Nat64,
-  });
   const BtcPending = IDL.Record({ 'txid' : IDL.Text, 'account' : IDL.Text });
-  const CkbtcPending = IDL.Record({
-    'block_index' : IDL.Nat64,
-    'txid' : IDL.Opt(IDL.Nat),
-  });
   const EvmPending = IDL.Record({ 'block_index' : IDL.Nat64 });
   const IcpPending = IDL.Record({
     'block_index' : IDL.Nat64,
     'canister_id' : IDL.Text,
   });
+  const IcrcPending = IDL.Record({
+    'tx_index' : IDL.Nat,
+    'block_index' : IDL.Nat64,
+  });
+  const CkbtcPending = IDL.Record({
+    'block_index' : IDL.Nat64,
+    'txid' : IDL.Opt(IDL.Nat),
+  });
   const PendingEnum = IDL.Variant({
-    'IcrcPending' : IcrcPending,
-    'BtcPending' : BtcPending,
-    'CkbtcPending' : CkbtcPending,
-    'EvmPending' : EvmPending,
-    'IcpPending' : IcpPending,
+    'BTC' : BtcPending,
+    'EVM' : EvmPending,
+    'ICP' : IcpPending,
+    'ICRC' : IcrcPending,
+    'CKBTC' : CkbtcPending,
   });
   const BtcNetwork = IDL.Variant({
     'Mainnet' : IDL.Null,
     'Regtest' : IDL.Null,
     'Testnet' : IDL.Null,
-  });
-  const OutPoint = IDL.Record({
-    'txid' : IDL.Vec(IDL.Nat8),
-    'vout' : IDL.Nat32,
-  });
-  const Utxo = IDL.Record({
-    'height' : IDL.Nat32,
-    'value' : IDL.Nat64,
-    'outpoint' : OutPoint,
-  });
-  const UtxoStatus = IDL.Variant({
-    'ValueTooSmall' : Utxo,
-    'Tainted' : Utxo,
-    'Minted' : IDL.Record({
-      'minted_amount' : IDL.Nat64,
-      'block_index' : IDL.Nat64,
-      'utxo' : Utxo,
-    }),
-    'Checked' : Utxo,
   });
   const Environment = IDL.Variant({
     'Production' : IDL.Null,
@@ -78,6 +59,25 @@ export const idlFactory = ({ IDL }) => {
     'CKBTC' : IDL.Nat,
   });
   const Result_1 = IDL.Variant({ 'Ok' : IDL.Nat, 'Err' : IDL.Text });
+  const OutPoint = IDL.Record({
+    'txid' : IDL.Vec(IDL.Nat8),
+    'vout' : IDL.Nat32,
+  });
+  const Utxo = IDL.Record({
+    'height' : IDL.Nat32,
+    'value' : IDL.Nat64,
+    'outpoint' : OutPoint,
+  });
+  const UtxoStatus = IDL.Variant({
+    'ValueTooSmall' : Utxo,
+    'Tainted' : Utxo,
+    'Minted' : IDL.Record({
+      'minted_amount' : IDL.Nat64,
+      'block_index' : IDL.Nat64,
+      'utxo' : Utxo,
+    }),
+    'Checked' : Utxo,
+  });
   const EvmChain = IDL.Record({
     'pendings' : IDL.Vec(EvmPending),
     'chain_id' : IDL.Nat64,
@@ -226,7 +226,7 @@ export const idlFactory = ({ IDL }) => {
     'account_btc_fees' : IDL.Func([BtcNetwork, IDL.Nat8], [IDL.Nat64], []),
     'account_check_pending' : IDL.Func(
         [IDL.Text, ChainEnum, IDL.Nat64],
-        [IDL.Vec(UtxoStatus)],
+        [],
         [],
       ),
     'account_create' : IDL.Func(
@@ -265,6 +265,11 @@ export const idlFactory = ({ IDL }) => {
         [Result_1],
         [],
       ),
+    'account_update_balance' : IDL.Func(
+        [IDL.Text, BtcNetwork],
+        [IDL.Vec(UtxoStatus)],
+        [],
+      ),
     'add_controller_and_update' : IDL.Func(
         [
           IDL.Principal,
@@ -298,8 +303,9 @@ export const idlFactory = ({ IDL }) => {
         [RetrieveBtcStatus],
         ['query'],
       ),
-    'setting_and_signer' : IDL.Func([], [WalletSettings], ['query']),
+    'setting' : IDL.Func([], [WalletSettings], ['query']),
     'status' : IDL.Func([], [WalletCanisterStatus], []),
+    'uninstall_wallet' : IDL.Func([], [], []),
     'unload_wasm' : IDL.Func([], [IDL.Nat64], []),
     'update_controller' : IDL.Func(
         [IDL.Vec(IDL.Tuple(IDL.Principal, Controller))],

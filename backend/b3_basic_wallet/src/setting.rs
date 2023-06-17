@@ -10,7 +10,7 @@ use ic_cdk::{export::candid::candid_method, query, update};
 
 #[candid_method(query)]
 #[query(guard = "caller_is_owner")]
-fn setting_and_signer() -> WalletSettings {
+fn setting() -> WalletSettings {
     let settings = with_setting(|s| s.clone());
 
     settings

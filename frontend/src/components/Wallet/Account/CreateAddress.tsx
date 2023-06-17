@@ -3,13 +3,13 @@ import { Button, Flex, Input, Select, Stack } from "@chakra-ui/react"
 import { ChainSymbol, handleChainType } from "helpers/utiles"
 import useToastMessage from "hooks/useToastMessage"
 import { useState } from "react"
-import { B3Wallet } from "service/actor"
+import { B3BasicWallet, B3Wallet } from "service/actor"
 
 const chains: ChainSymbol[] = ["BTC", "CKBTC", "EVM", "ICRC", "ICP"]
 const btcNetworks = ["Mainnet", "Testnet", "Regtest"]
 
 interface CreateAddressProps {
-  actor: B3Wallet
+  actor: B3Wallet | B3BasicWallet
   accountId: string
   refetchAccount: () => void
 }
@@ -59,7 +59,13 @@ const CreateAddress: React.FC<CreateAddressProps> = ({
   }
 
   return (
-    <Stack spacing="2" direction="row" justify="space-between" align="center">
+    <Stack
+      spacing="2"
+      p={1}
+      direction="row"
+      justify="space-between"
+      align="center"
+    >
       <Select value={chain} onChange={handleChainChange}>
         <option value="">Select a chain</option>
         {chains.map((chain, index) => (

@@ -1,12 +1,12 @@
 import { Accordion, AccordionItem, Stack, Text } from "@chakra-ui/react"
 import { ProcessedRequest } from "declarations/b3_wallet/b3_wallet.did"
 import { useEffect, useState } from "react"
-import { B3Wallet } from "service/actor"
+import { B3BasicWallet, B3Wallet } from "service/actor"
 import Processed from "./Processed"
 
 interface ProcessedProps {
   setLoading: (loading: boolean) => void
-  actor: B3Wallet
+  actor: B3Wallet | B3BasicWallet
 }
 
 const ProcessedList: React.FC<ProcessedProps> = ({ setLoading, actor }) => {

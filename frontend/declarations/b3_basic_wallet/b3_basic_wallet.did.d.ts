@@ -107,11 +107,11 @@ export type Minter = { 'Mainnet' : null } |
   { 'Regtest' : null } |
   { 'Testnet' : null };
 export interface OutPoint { 'txid' : Uint8Array | number[], 'vout' : number }
-export type PendingEnum = { 'IcrcPending' : IcrcPending } |
-  { 'BtcPending' : BtcPending } |
-  { 'CkbtcPending' : CkbtcPending } |
-  { 'EvmPending' : EvmPending } |
-  { 'IcpPending' : IcpPending };
+export type PendingEnum = { 'BTC' : BtcPending } |
+  { 'EVM' : EvmPending } |
+  { 'ICP' : IcpPending } |
+  { 'ICRC' : IcrcPending } |
+  { 'CKBTC' : CkbtcPending };
 export type Result = { 'Ok' : bigint } |
   { 'Err' : TransferError };
 export type Result_1 = { 'Ok' : bigint } |
@@ -192,10 +192,7 @@ export interface _SERVICE {
   >,
   'account_balance' : ActorMethod<[string, ChainEnum], bigint>,
   'account_btc_fees' : ActorMethod<[BtcNetwork, number], bigint>,
-  'account_check_pending' : ActorMethod<
-    [string, ChainEnum, bigint],
-    Array<UtxoStatus>
-  >,
+  'account_check_pending' : ActorMethod<[string, ChainEnum, bigint], undefined>,
   'account_create' : ActorMethod<
     [[] | [Environment], [] | [string]],
     undefined
@@ -223,6 +220,10 @@ export interface _SERVICE {
     [string, Tokens, [] | [Principal]],
     Result_1
   >,
+  'account_update_balance' : ActorMethod<
+    [string, BtcNetwork],
+    Array<UtxoStatus>
+  >,
   'add_controller_and_update' : ActorMethod<
     [Principal, string, [] | [Array<[string, string]>]],
     undefined
@@ -243,8 +244,9 @@ export interface _SERVICE {
   'remove_setting' : ActorMethod<[string], undefined>,
   'reset_accounts' : ActorMethod<[], undefined>,
   'retrieve_btc_status' : ActorMethod<[Minter, bigint], RetrieveBtcStatus>,
-  'setting_and_signer' : ActorMethod<[], WalletSettings>,
+  'setting' : ActorMethod<[], WalletSettings>,
   'status' : ActorMethod<[], WalletCanisterStatus>,
+  'uninstall_wallet' : ActorMethod<[], undefined>,
   'unload_wasm' : ActorMethod<[], bigint>,
   'update_controller' : ActorMethod<
     [Array<[Principal, Controller]>],

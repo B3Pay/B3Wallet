@@ -13,13 +13,13 @@ import Balance from "components/Wallet/Balance"
 import { ChainEnum } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useEffect, useState } from "react"
-import { B3Wallet } from "service/actor"
+import { B3BasicWallet, B3Wallet } from "service/actor"
 import { AddressesWithChain } from "."
 import TopUpForm from "../TopUpForm"
 import TransferForm from "../TransferForm"
 
 interface IcpCardProps extends AddressesWithChain {
-  actor: B3Wallet
+  actor: B3Wallet | B3BasicWallet
   balance: bigint
   accountId: string
   balanceLoading: boolean
@@ -89,6 +89,13 @@ const IcpCard: React.FC<IcpCardProps> = ({
         .catch(err => {
           console.log(err)
           setLoadings(false)
+          errorToast({
+            title: "Error",
+            description: err.message,
+            status: "error",
+            duration: 5000,
+            isClosable: true
+          })
         })
     },
     [actor, accountId, errorToast]
@@ -125,12 +132,11 @@ const IcpCard: React.FC<IcpCardProps> = ({
       <CardBody marginTop={0}>
         <Stack>
           <Stack direction="row" justify="space-between" align="center">
-            <Address address={address} flex={9} />
+            <Address address={address} />
             <Balance
               amount={balance}
               symbol={symbol}
               loading={balanceLoading}
-              flex={3}
             />
           </Stack>
           <TransferForm

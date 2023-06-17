@@ -1,10 +1,14 @@
 import { AccordionPanel, Skeleton, Stack } from "@chakra-ui/react"
 import Loading from "components/Loading"
-import { ChainEnum, SendToken } from "declarations/b3_wallet/b3_wallet.did"
+import {
+  ChainEnum,
+  PendingEnum,
+  SendToken
+} from "declarations/b3_wallet/b3_wallet.did"
 import { ChainNetwork, ChainSymbol } from "helpers/utiles"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useState } from "react"
-import { B3Wallet } from "service/actor"
+import { B3BasicWallet, B3Wallet } from "service/actor"
 import CreateAddress from "../CreateAddress"
 import BtcCard from "./BtcCard"
 import CkbtcCard from "./CkbtcCard"
@@ -14,6 +18,7 @@ import IcrcCard from "./IcrcCard"
 
 export interface AddressesWithChain {
   symbol: ChainSymbol
+  pending: Array<PendingEnum>
   networkDetail: string
   address: string
   network: ChainNetwork
@@ -42,7 +47,8 @@ export interface Loadings {
 
 interface ChainCardsProps {
   addresses: Addresses
-  actor: B3Wallet
+  pendings: Array<PendingEnum>
+  actor: B3Wallet | B3BasicWallet
   accountId: string
   isExpanded: boolean
   numberOfAddresses: number
@@ -115,10 +121,14 @@ const ChainCards: React.FC<ChainCardsProps> = ({
     async (chain: ChainEnum, to: string, amount: bigint) => {
       let symbol = Object.keys(chain)[0]
 
-      console.log(`Transfering ${amount} ${symbol} from ${accountId} to ${to}`)
+      const amountInDecimal = Number(amount) / 10 ** 8
+
+      console.log(
+        `Transfering ${amountInDecimal} ${symbol} from ${accountId} to ${to}`
+      )
       errorToast({
         title: `Sending ${symbol}`,
-        description: `Transfering ${amount} ${symbol} from ${accountId} to ${to}`,
+        description: `Transfering ${amountInDecimal} ${symbol} from ${accountId} to ${to}`,
         status: "info",
         duration: 5000,
         isClosable: true
@@ -133,34 +143,37 @@ const ChainCards: React.FC<ChainCardsProps> = ({
         amount
       }
 
-      await actor
-        .request_send(sendArgs, "Sending Test", [])
-        .then(res => {
-          console.log(res)
+      try {
+        let result
+        if ("request_send" in actor) {
+          result = await actor.request_send(sendArgs, "Sending Test", [])
+        } else {
+          result = await actor.account_send(accountId, chain, to, amount)
+        }
 
-          setTransferLoadings(prev => ({ ...prev, [symbol]: false }))
-          handleBalance(chain)
-          errorToast({
-            title: "Success",
-            description: `Transfered ${amount} CKBTC from ${chain} to ${to}`,
-            status: "success",
-            duration: 5000,
-            isClosable: true
-          })
+        console.log(result)
+        setTransferLoadings(prev => ({ ...prev, [symbol]: false }))
+        handleBalance(chain)
+        errorToast({
+          title: "Success",
+          description: `Transfered ${amount} ${symbol} from ${
+            Object.keys(chain)[0]
+          } to ${to}`,
+          status: "success",
+          duration: 5000,
+          isClosable: true
         })
-        .catch(err => {
-          errorToast({
-            title: "Error",
-            description: err.message,
-            status: "error",
-            duration: 5000,
-            isClosable: true
-          })
-
-          setTransferLoadings(prev => ({ ...prev, [symbol]: false }))
+      } catch (err) {
+        errorToast({
+          title: "Error",
+          description: err.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true
         })
-
-      setTransferLoadings(prev => ({ ...prev, [symbol]: false }))
+      } finally {
+        setTransferLoadings(prev => ({ ...prev, [symbol]: false }))
+      }
     },
     [actor, handleBalance, accountId]
   )

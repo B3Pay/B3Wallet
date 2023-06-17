@@ -24,13 +24,13 @@ import Loading from "components/Loading"
 import { Controller } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useEffect, useState } from "react"
-import { B3Wallet } from "service/actor"
+import { B3BasicWallet, B3Wallet } from "service/actor"
 import Address from "../Address"
 
 export type ControllerMap = Array<[Principal, Controller]>
 
 interface ControllersProps extends StackProps {
-  actor: B3Wallet
+  actor: B3Wallet | B3BasicWallet
   refetch: () => void
   controllers?: ControllerMap
   isInitializing?: boolean
@@ -151,16 +151,17 @@ const Controllers: React.FC<ControllersProps> = ({
   const edited = JSON.stringify(controllerMap) !== JSON.stringify(controllers)
 
   return (
-    <Stack {...rest} position="relative">
-      {(!controllerMap || loading || isInitializing) && (
-        <Loading title="Loading controllers" />
-      )}
+    <Stack {...rest}>
       <Stack
         direction="column"
         borderWidth="1px"
         borderRadius="lg"
         overflow="hidden"
+        position="relative"
       >
+        {(!controllerMap || loading || isInitializing) && (
+          <Loading title="Loading controllers" />
+        )}
         <CardHeader pb={2}>
           <Stack direction="row" justify="space-between" align="center">
             <Text fontSize="md" fontWeight="bold">
@@ -183,7 +184,7 @@ const Controllers: React.FC<ControllersProps> = ({
             <Table size="sm">
               <Thead>
                 <Tr>
-                  <Th>Controller</Th>
+                  <Th>Controller ID</Th>
                   <Th>Name</Th>
                   <Th></Th>
                 </Tr>

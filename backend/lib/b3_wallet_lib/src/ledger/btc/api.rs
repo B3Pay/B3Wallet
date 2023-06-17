@@ -65,12 +65,12 @@ impl ChainTrait for BtcChain {
     fn pendings(&self) -> Vec<PendingEnum> {
         self.pendings
             .iter()
-            .map(|pending| PendingEnum::BtcPending(pending.clone()))
+            .map(|pending| PendingEnum::BTC(pending.clone()))
             .collect()
     }
 
     fn add_pending(&mut self, pending: PendingEnum) {
-        if let PendingEnum::BtcPending(p) = pending {
+        if let PendingEnum::BTC(p) = pending {
             self.pendings.push(p);
         }
     }

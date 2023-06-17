@@ -5,12 +5,12 @@ mod wasm;
 
 use b3_helper_lib::{
     owner::{with_owner, with_owner_mut},
-    types::{SignerId, WalletCanisterInitArgs},
+    types::{Controller, SignerId, WalletCanisterInitArgs},
     wasm::with_wasm_mut,
 };
 use b3_wallet_lib::{
     state::WalletState,
-    store::{with_wallet, with_wallet_mut},
+    store::{with_setting_mut, with_wallet, with_wallet_mut},
 };
 use ic_cdk::{api::call::arg_data, export::candid::candid_method, init, post_upgrade, pre_upgrade};
 
@@ -19,11 +19,22 @@ use ic_cdk::{api::call::arg_data, export::candid::candid_method, init, post_upgr
 pub fn init() {
     let (call_arg,) = arg_data::<(Option<WalletCanisterInitArgs>,)>();
 
-    if let Some(args) = call_arg {
-        with_owner_mut(|owner| *owner = args.owner_id);
-    } else {
-        with_owner_mut(|owner| *owner = ic_cdk::caller());
-    }
+    let owner_id = match call_arg {
+        Some(WalletCanisterInitArgs {
+            owner_id,
+            system_id: _,
+        }) => owner_id,
+        None => ic_cdk::caller(),
+    };
+
+    with_owner_mut(|owner| *owner = owner_id);
+    with_setting_mut(|s| {
+        s.controllers
+            .insert(ic_cdk::id(), Controller::new("self".to_owned(), None));
+
+        s.controllers
+            .insert(owner_id, Controller::new("owner".to_owned(), None));
+    });
 }
 
 #[pre_upgrade]
@@ -64,7 +75,7 @@ mod tests {
     fn generate_candid() {
         use std::io::Write;
 
-        let mut file = std::fs::File::create("./b3_simple_wallet.did").unwrap();
+        let mut file = std::fs::File::create("./b3_basic_wallet.did").unwrap();
 
         export_service!();
 

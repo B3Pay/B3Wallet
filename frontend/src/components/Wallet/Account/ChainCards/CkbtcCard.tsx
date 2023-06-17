@@ -1,4 +1,4 @@
-import { DeleteIcon, RepeatIcon } from "@chakra-ui/icons"
+import { DeleteIcon, RepeatClockIcon, RepeatIcon } from "@chakra-ui/icons"
 import {
   CardBody,
   CardHeader,
@@ -13,13 +13,13 @@ import Balance from "components/Wallet/Balance"
 import { BtcNetwork, ChainEnum } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useEffect, useState } from "react"
-import { B3Wallet } from "service/actor"
+import { B3BasicWallet, B3Wallet } from "service/actor"
 import { AddressesWithChain } from "."
 import SwapForm from "../SwapForm"
 import TransferForm from "../TransferForm"
 
 interface CkbtcCardProps extends AddressesWithChain {
-  actor: B3Wallet
+  actor: B3Wallet | B3BasicWallet
   balance: bigint
   accountId: string
   balanceLoading: boolean
@@ -39,6 +39,7 @@ const CkbtcCard: React.FC<CkbtcCardProps> = ({
   symbol,
   address,
   balance,
+  pending,
   network,
   accountId,
   balanceLoading,
@@ -80,6 +81,29 @@ const CkbtcCard: React.FC<CkbtcCardProps> = ({
     [actor]
   )
 
+  const updateBalance = useCallback(() => {
+    setLoading(true)
+
+    actor
+      .account_update_balance(accountId, network as BtcNetwork)
+      .then(() => {
+        setLoading(false)
+        handleBalance(chain)
+      })
+      .catch(e => {
+        console.log(e)
+        errorToast({
+          title: "Error",
+          description: e.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+
+        setLoading(false)
+      })
+  }, [handleBalance, network])
+
   return (
     <Stack
       direction="column"
@@ -96,6 +120,13 @@ const CkbtcCard: React.FC<CkbtcCardProps> = ({
             <Text>{networkDetail}</Text>
           </Flex>
           <Stack direction="row" justify="end" align="center" flex={2}>
+            <IconButton
+              aria-label="update-balance"
+              icon={<RepeatClockIcon />}
+              colorScheme="orange"
+              variant="ghost"
+              onClick={() => updateBalance()}
+            />
             <IconButton
               aria-label="Refresh"
               icon={<RepeatIcon />}
@@ -114,12 +145,11 @@ const CkbtcCard: React.FC<CkbtcCardProps> = ({
       <CardBody marginTop={0}>
         <Stack>
           <Stack direction="row" justify="space-between" align="center">
-            <Address address={address} flex={9} />
+            <Address address={address} />
             <Balance
               amount={balance}
               symbol={symbol}
               loading={balanceLoading}
-              flex={3}
             />
           </Stack>
           <TransferForm
@@ -131,7 +161,7 @@ const CkbtcCard: React.FC<CkbtcCardProps> = ({
           <SwapForm
             network={network as BtcNetwork}
             loading={loading}
-            title="Swap cKBTC to BTC"
+            title="Swap ckBTC to BTC"
             handleSwap={swapCkbtcToBtc}
           />
         </Stack>

@@ -90,12 +90,12 @@ impl ChainTrait for CkbtcChain {
     fn pendings(&self) -> Vec<PendingEnum> {
         self.pendings
             .iter()
-            .map(|pending| PendingEnum::CkbtcPending(pending.clone()))
+            .map(|pending| PendingEnum::CKBTC(pending.clone()))
             .collect()
     }
 
     fn add_pending(&mut self, pending: PendingEnum) {
-        if let PendingEnum::CkbtcPending(p) = pending {
+        if let PendingEnum::CKBTC(p) = pending {
             self.pendings.push(p);
         }
     }

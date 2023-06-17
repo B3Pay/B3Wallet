@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react"
-import { B3Wallet } from "service/actor"
+import { B3BasicWallet, B3Wallet } from "service/actor"
 
 const chunkGenerator = async function* (
   wasmModule: number[],
@@ -10,7 +10,7 @@ const chunkGenerator = async function* (
   }
 }
 
-const useLoadRelease = (actor: B3Wallet) => {
+const useLoadRelease = (actor: B3Wallet | B3BasicWallet) => {
   const [progress, setProgress] = useState<number>(0)
   const [wasmLoading, setWasmLoading] = useState<boolean>(false)
 

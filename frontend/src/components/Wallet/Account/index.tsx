@@ -5,13 +5,13 @@ import { Principal } from "@dfinity/principal"
 import { WalletAccountView } from "declarations/b3_wallet/b3_wallet.did"
 import { ChainNetwork, ChainSymbol } from "helpers/utiles"
 import { useMemo } from "react"
-import { B3Wallet } from "service/actor"
+import { B3BasicWallet, B3Wallet } from "service/actor"
 import Loading from "../../Loading"
 import AccountTitle from "./AccountTitle"
 import ChainCards, { Addresses } from "./ChainCards"
 
 interface AccountProps extends WalletAccountView {
-  actor: B3Wallet
+  actor: B3Wallet | B3BasicWallet
   loading: boolean
   isExpanded: boolean
   refetchAccount: () => void
@@ -43,14 +43,17 @@ const Account: React.FC<AccountProps> = ({
   environment,
   refetchAccount
 }) => {
-  console.log({ pendings })
-
   const addressesWithChain: Addresses = useMemo(() => {
     const addressMap: Addresses = {}
 
     addresses.map(([chain, address]) => {
       const symbol = Object.keys(chain)[0] as ChainSymbol
       const network = Object.values(chain)[0] as ChainNetwork
+
+      const pending = pendings.reduce(
+        (acc, pending) => (pending[symbol] ? [...acc, pending[symbol]] : acc),
+        []
+      )
 
       const networkDetail =
         network === null
@@ -67,6 +70,7 @@ const Account: React.FC<AccountProps> = ({
         address,
         symbol,
         network,
+        pending,
         networkDetail,
         chain
       }
@@ -79,7 +83,7 @@ const Account: React.FC<AccountProps> = ({
     })
 
     return addressMap
-  }, [addresses])
+  }, [pendings, addresses])
 
   return (
     <Stack position="relative">
@@ -95,6 +99,7 @@ const Account: React.FC<AccountProps> = ({
       <ChainCards
         actor={actor}
         accountId={id}
+        pendings={pendings}
         isExpanded={isExpanded}
         addresses={addressesWithChain}
         refetchAccount={refetchAccount}

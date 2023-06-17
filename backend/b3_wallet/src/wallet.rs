@@ -2,10 +2,15 @@ use crate::permit::{caller_is_admin, caller_is_signer};
 use b3_helper_lib::revert;
 use b3_helper_lib::time::NanoTimeStamp;
 use b3_helper_lib::types::InititializeWalletArgs;
+use b3_helper_lib::wasm::with_wasm;
 use b3_helper_lib::{ic_canister_status, types::WalletCanisterStatus};
 use b3_wallet_lib::error::WalletError;
 use b3_wallet_lib::setting::WalletSettings;
 use b3_wallet_lib::store::{with_wallet, with_wallet_mut};
+use ic_cdk::api::management_canister::main::{
+    install_code, uninstall_code, CanisterInstallMode, InstallCodeArgument,
+};
+use ic_cdk::api::management_canister::provisional::CanisterIdRecord;
 use ic_cdk::export::candid::candid_method;
 use ic_cdk::{query, update};
 
@@ -21,6 +26,37 @@ pub async fn init_wallet(args: InititializeWalletArgs) {
     setting.update_settings().await.unwrap_or_else(revert);
 
     with_wallet_mut(|w| w.init_wallet(setting));
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_admin")]
+async fn upgrage_wallet() {
+    let canister_id = ic_cdk::id();
+    let wasm_module = with_wasm(|w| {
+        if w.is_empty() {
+            return revert(WalletError::WasmNotLoaded);
+        }
+        w.get()
+    });
+
+    let args = InstallCodeArgument {
+        canister_id,
+        wasm_module,
+        arg: Vec::new(),
+        mode: CanisterInstallMode::Upgrade,
+    };
+
+    install_code(args).await.unwrap();
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_admin")]
+pub async fn uninstall_wallet() {
+    let canister_id = ic_cdk::id();
+
+    let args = CanisterIdRecord { canister_id };
+
+    uninstall_code(args).await.unwrap();
 }
 
 #[candid_method(update)]

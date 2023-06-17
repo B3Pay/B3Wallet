@@ -62,35 +62,35 @@ pub type Pendings = Vec<PendingEnum>;
 #[enum_dispatch(PendingTrait)]
 #[derive(CandidType, PartialEq, Serialize, Eq, PartialOrd, Ord, Deserialize, Clone, Debug)]
 pub enum PendingEnum {
-    CkbtcPending,
-    IcrcPending,
-    BtcPending,
-    EvmPending,
-    IcpPending,
+    CKBTC(CkbtcPending),
+    ICRC(IcrcPending),
+    BTC(BtcPending),
+    EVM(EvmPending),
+    ICP(IcpPending),
 }
 
 impl PendingEnum {
     pub fn new_ckbtc(block_index: BlockIndex, txid: Option<TxIndex>) -> Self {
-        PendingEnum::CkbtcPending(CkbtcPending { txid, block_index })
+        PendingEnum::CKBTC(CkbtcPending { txid, block_index })
     }
 
     pub fn new_icrc(block_index: BlockIndex, tx_index: TxIndex) -> Self {
-        PendingEnum::IcrcPending(IcrcPending {
+        PendingEnum::ICRC(IcrcPending {
             tx_index,
             block_index,
         })
     }
 
     pub fn new_btc(txid: BtcTxId, account: String) -> Self {
-        PendingEnum::BtcPending(BtcPending { txid, account })
+        PendingEnum::BTC(BtcPending { txid, account })
     }
 
     pub fn new_evm(block_index: BlockIndex) -> Self {
-        PendingEnum::EvmPending(EvmPending { block_index })
+        PendingEnum::EVM(EvmPending { block_index })
     }
 
     pub fn new_icp(block_index: BlockIndex, canister_id: String) -> Self {
-        PendingEnum::IcpPending(IcpPending {
+        PendingEnum::ICP(IcpPending {
             block_index,
             canister_id,
         })

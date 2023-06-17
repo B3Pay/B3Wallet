@@ -9,10 +9,10 @@ import {
 import { Environment } from "declarations/b3_wallet/b3_wallet.did"
 import { IS_LOCAL } from "helpers/config"
 import { useState } from "react"
-import { B3Wallet } from "service/actor"
+import { B3BasicWallet, B3Wallet } from "service/actor"
 
 interface CreateAccountProps {
-  actor: B3Wallet
+  actor: B3Wallet | B3BasicWallet
   fetchAccounts: () => void
 }
 

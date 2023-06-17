@@ -52,20 +52,22 @@ const CKBTC_LEDGER_ID_MAINNET: [u8; 10] = [0, 0, 0, 0, 2, 48, 0, 6, 1, 1];
 pub const CKBTC_LEDGER_CANISTER_MAINNET: CanisterId =
     CanisterId::from_slice(&CKBTC_LEDGER_ID_MAINNET);
 
-//mc6ru-gyaaa-aaaar-qaaaq-cai
-const CKBTC_LEDGER_ID_TESTNET: [u8; 10] = [0, 0, 0, 0, 2, 48, 0, 7, 1, 1];
-
-pub const CKBTC_LEDGER_CANISTER_TESTNET: CanisterId =
-    CanisterId::from_slice(&CKBTC_LEDGER_ID_TESTNET);
-
 // mqygn-kiaaa-aaaar-qaadq-cai
 const CKBTC_MINTER_ID_MAINNET: [u8; 10] = [0, 0, 0, 0, 2, 48, 0, 7, 1, 1];
 
 pub const CKBTC_MINTER_CANISTER_MAINNET: CanisterId =
     CanisterId::from_slice(&CKBTC_MINTER_ID_MAINNET);
 
-// m7rhl-6aaaa-aaaah-qaaaa-cai
-const CKBTC_MINTER_ID_TESTNET: [u8; 10] = [0, 0, 0, 0, 2, 48, 0, 8, 1, 1];
+// TESTNET ---------------------------------------------------------------------
+
+// mc6ru-gyaaa-aaaar-qaaaq-cai
+const CKBTC_LEDGER_ID_TESTNET: [u8; 10] = [0, 0, 0, 0, 2, 48, 0, 1, 1, 1];
+
+pub const CKBTC_LEDGER_CANISTER_TESTNET: CanisterId =
+    CanisterId::from_slice(&CKBTC_LEDGER_ID_TESTNET);
+
+// ml52i-qqaaa-aaaar-qaaba-cai
+const CKBTC_MINTER_ID_TESTNET: [u8; 10] = [0, 0, 0, 0, 2, 48, 0, 2, 1, 1];
 
 pub const CKBTC_MINTER_CANISTER_TESTNET: CanisterId =
     CanisterId::from_slice(&CKBTC_MINTER_ID_TESTNET);
@@ -107,5 +109,19 @@ mod tests {
         let minter = CanisterId::from_text("mqygn-kiaaa-aaaar-qaadq-cai").unwrap();
 
         assert_eq!(minter, CKBTC_MINTER_CANISTER_MAINNET);
+    }
+
+    #[test]
+    fn test_testnet_ledger() {
+        let minter = CanisterId::from_text("mc6ru-gyaaa-aaaar-qaaaq-cai").unwrap();
+
+        assert_eq!(minter, CKBTC_LEDGER_CANISTER_TESTNET);
+    }
+
+    #[test]
+    fn test_testnet_minter() {
+        let minter = CanisterId::from_text("ml52i-qqaaa-aaaar-qaaba-cai").unwrap();
+
+        assert_eq!(minter, CKBTC_MINTER_CANISTER_TESTNET);
     }
 }

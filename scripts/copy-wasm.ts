@@ -15,7 +15,7 @@ interface Release {
 
 const wasmPublicDirPath = path.join(__dirname, "../frontend", "public", "wasm")
 
-const walletNames = ["b3_wallet", "b3_simple_wallet"]
+const walletNames = ["b3_wallet", "b3_basic_wallet"]
 
 const copy = async () => {
   for await (const walletName of walletNames) {

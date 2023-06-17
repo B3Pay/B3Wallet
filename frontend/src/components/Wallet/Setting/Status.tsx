@@ -15,11 +15,11 @@ import {
 import { WalletCanisterStatus } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useState } from "react"
-import { B3Wallet } from "service/actor"
+import { B3BasicWallet, B3Wallet } from "service/actor"
 import Recursive from "../../Recursive"
 
 interface ResponseProps {
-  actor: B3Wallet
+  actor: B3Wallet | B3BasicWallet
 }
 
 const Status: React.FC<ResponseProps> = ({ actor }) => {

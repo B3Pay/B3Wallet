@@ -1,18 +1,21 @@
 import { Card } from "@chakra-ui/react"
+import { AuthClient } from "@dfinity/auth-client"
 import {
   WalletAccountView,
   WalletSettingsAndSigners
 } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useEffect, useState } from "react"
-import { B3System, B3Wallet } from "service/actor"
+import { B3BasicWallet, B3System, B3Wallet } from "service/actor"
 import Loading from "../Loading"
 import InitialSetup from "./InitialSetup"
 import WalletBody from "./WalletBody"
 import WalletHeader from "./WalletHeader"
 
 interface WalletProps {
-  actor: B3Wallet
+  actor: B3Wallet | B3BasicWallet
+  authClient: AuthClient
+  walletName: string
   systemActor: B3System
   walletCanisterId: string
 }
@@ -25,7 +28,9 @@ export enum Mode {
 
 const Wallet: React.FC<WalletProps> = ({
   actor,
+  authClient,
   systemActor,
+  walletName,
   walletCanisterId
 }) => {
   const [mode, setMode] = useState<Mode>(Mode.Accounts)
@@ -65,26 +70,28 @@ const Wallet: React.FC<WalletProps> = ({
     console.log("fetching settings")
     setLoading(true)
 
-    actor
-      .setting_and_signer()
-      .then(setting => {
-        console.log(setting)
-        setSttingAndSigners(setting)
-        setLoading(false)
-      })
-      .catch(e => {
-        console.log(e)
-        errorToast({
-          title: "Error",
-          description: e.message,
-          status: "error",
-          duration: 5000,
-          isClosable: true
-        })
+    try {
+      let setting
+      if (walletName === "b3_basic_wallet") {
+        setting = { settings: await (actor as B3BasicWallet).setting() }
+      } else {
+        setting = await (actor as B3Wallet).setting_and_signer()
+      }
 
-        setLoading(false)
+      setSttingAndSigners(setting)
+    } catch (e) {
+      console.log(e)
+      errorToast({
+        title: "Error",
+        description: e.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true
       })
-  }, [actor])
+    } finally {
+      setLoading(false)
+    }
+  }, [actor, walletName])
 
   const refreshWallet = async () => {
     await fetchAccounts()
@@ -109,6 +116,7 @@ const Wallet: React.FC<WalletProps> = ({
         <InitialSetup
           actor={actor}
           {...settingAndSigners}
+          authClient={authClient}
           fetchAccounts={fetchAccounts}
           fetchSettingsAndSigners={fetchSettingsAndSigners}
         />
@@ -118,6 +126,7 @@ const Wallet: React.FC<WalletProps> = ({
             flex={1}
             mode={mode}
             actor={actor}
+            walletName={walletName}
             refreshWallet={refreshWallet}
             walletCanisterId={walletCanisterId}
             fetchAccounts={fetchAccounts}

@@ -1,13 +1,19 @@
-import { AtSignIcon, RepeatClockIcon, SettingsIcon } from "@chakra-ui/icons"
+import {
+  AtSignIcon,
+  RepeatClockIcon,
+  RepeatIcon,
+  SettingsIcon
+} from "@chakra-ui/icons"
 import { Box, IconButton, Stack, StackProps } from "@chakra-ui/react"
 import { Mode } from "."
-import { B3Wallet } from "../../service/actor"
+import { B3BasicWallet, B3Wallet } from "../../service/actor"
 import Address from "./Address"
 import ConfirmationModal from "./ConfirmModal"
 
 interface WalletHeaderProps extends StackProps {
   walletCanisterId: string
-  actor: B3Wallet
+  walletName: string
+  actor: B3Wallet | B3BasicWallet
   mode: Mode
   toggleMode: (mode: Mode) => void
   fetchAccounts: () => void
@@ -18,6 +24,7 @@ const WalletHeader: React.FC<WalletHeaderProps> = ({
   walletCanisterId,
   actor,
   mode,
+  walletName,
   toggleMode,
   fetchAccounts,
   refreshWallet,
@@ -63,18 +70,29 @@ const WalletHeader: React.FC<WalletHeaderProps> = ({
         }
       />
       <Address flex={1} address={walletCanisterId} overflow="hidden" />
-      <ConfirmationModal
-        actor={actor}
-        fetchAccounts={fetchAccounts}
-        refreshWallet={refreshWallet}
-      />
       <IconButton
-        variant={mode === Mode.Processed ? "solid" : "outline"}
-        colorScheme="blue"
-        onClick={() => toggleMode(Mode.Processed)}
-        aria-label="Recent transactions"
-        icon={<RepeatClockIcon />}
+        colorScheme="green"
+        variant={"ghost"}
+        aria-label="Refresh"
+        icon={<RepeatIcon />}
+        onClick={refreshWallet}
       />
+      {walletName === "b3_wallet" && (
+        <>
+          <ConfirmationModal
+            actor={actor as B3Wallet}
+            fetchAccounts={fetchAccounts}
+            refreshWallet={refreshWallet}
+          />
+          <IconButton
+            variant={mode === Mode.Processed ? "solid" : "outline"}
+            colorScheme="blue"
+            onClick={() => toggleMode(Mode.Processed)}
+            aria-label="Recent transactions"
+            icon={<RepeatClockIcon />}
+          />
+        </>
+      )}
       <IconButton
         variant={mode === Mode.Settings ? "solid" : "outline"}
         aria-label="Settings"

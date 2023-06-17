@@ -22,7 +22,7 @@ import {
 import { Principal } from "@dfinity/principal"
 import Address from "components/Wallet/Address"
 import { Release, ReleaseName } from "declarations/b3_system/b3_system.did"
-import { B3_SYSTEM_CANISTER_ID } from "helpers/config"
+import { B3_SYSTEM_CANISTER_ID, IS_LOCAL } from "helpers/config"
 import { useCallback, useEffect, useState } from "react"
 import { B3System } from "../../service/actor"
 import Disclaimer from "../Disclaimer"
@@ -253,13 +253,17 @@ const System: React.FC<SystemProps> = ({ systemActor, fetchUserActor }) => {
                   </FormLabel>
                   <UnorderedList fontSize="sm">
                     <ListItem>
-                      Create a canister id on the&nbsp;
+                      Create a canister on the&nbsp;
                       <Link
                         color="blue.500"
                         isExternal
                         target="_blank"
                         rel="noopener noreferrer"
-                        href="https://nns.ic0.app/"
+                        href={
+                          IS_LOCAL
+                            ? "http://qsgjb-riaaa-aaaaa-aaaga-cai.localhost:8080/"
+                            : "https://nns.ic0.app/"
+                        }
                       >
                         NNS Dapp
                       </Link>
@@ -296,9 +300,9 @@ const System: React.FC<SystemProps> = ({ systemActor, fetchUserActor }) => {
                     </Button>
                   </InputGroup>
                   <FormHelperText fontSize="xs">
-                    Note: This will install the wallet canister on your canister
-                    then remove the controller, so you have full control over
-                    your wallet.
+                    Note: This will install the wallet on your canister then
+                    remove the controller, so you have full control over your
+                    wallet.
                   </FormHelperText>
                 </Stack>
                 <Stack spacing={2} mt={4}>

@@ -25,13 +25,13 @@ import Loading from "components/Loading"
 import { Roles, Signer } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useState } from "react"
-import { B3Wallet } from "service/actor"
+import { B3BasicWallet, B3Wallet } from "service/actor"
 import Address from "../Address"
 
 export type SignerMap = Array<[Principal, Signer]>
 
 interface SignerProps extends StackProps {
-  actor: B3Wallet
+  actor: B3Wallet | B3BasicWallet
   signers: SignerMap
   refetch: () => void
 }
@@ -52,12 +52,14 @@ const Signers: React.FC<SignerProps> = ({
 }) => {
   const [loading, setLoading] = useState(false)
   const [principal, setPrincipal] = useState("")
-  const [role, setRole] = useState<Role>()
+  const [role, setRole] = useState<Role | "select">()
   const errorToast = useToastMessage()
 
   // Remove a user
-  const removeSigner = (signerId: Principal) => {
-    actor
+  const removeSigner = async (signerId: Principal) => {
+    setLoading(true)
+
+    await actor
       .signer_remove(signerId)
       .then(() => {
         refetch()
@@ -79,9 +81,11 @@ const Signers: React.FC<SignerProps> = ({
           isClosable: true
         })
       })
+
+    setLoading(false)
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!role) {
       errorToast({
@@ -99,6 +103,7 @@ const Signers: React.FC<SignerProps> = ({
     } as Roles
 
     let signerId: Principal
+    setLoading(true)
 
     try {
       signerId = Principal.fromText(principal)
@@ -115,7 +120,7 @@ const Signers: React.FC<SignerProps> = ({
     }
 
     // Add the signer
-    actor
+    await actor
       .signer_add(signerId, roles)
       .then(() => {
         errorToast({
@@ -128,7 +133,7 @@ const Signers: React.FC<SignerProps> = ({
 
         // Clear the form
         setPrincipal("")
-        setRole(undefined)
+        setRole("select")
         refetch()
       })
       .catch(e => {
@@ -141,6 +146,8 @@ const Signers: React.FC<SignerProps> = ({
           isClosable: true
         })
       })
+
+    setLoading(false)
   }
 
   return (
@@ -152,25 +159,21 @@ const Signers: React.FC<SignerProps> = ({
       position="relative"
       {...rest}
     >
-      {!signers && <Loading title="Loading signers" />}
+      {(!signers || loading) && <Loading title="Loading signers" />}
       <CardHeader pb={2}>
         <Stack direction="row" justify="space-between" align="center">
           <Text fontSize="md" fontWeight="bold">
             Signers
           </Text>
           <Stack fontSize="sm" fontWeight="semibold">
-            {loading ? (
-              <Text>Loading...</Text>
-            ) : (
-              <Stack direction="row" align="center">
-                <IconButton
-                  aria-label="Refresh"
-                  icon={<RepeatIcon />}
-                  onClick={refetch}
-                  size="xs"
-                />
-              </Stack>
-            )}
+            <Stack direction="row" align="center">
+              <IconButton
+                aria-label="Refresh"
+                icon={<RepeatIcon />}
+                onClick={refetch}
+                size="xs"
+              />
+            </Stack>
           </Stack>
         </Stack>
       </CardHeader>
@@ -179,7 +182,7 @@ const Signers: React.FC<SignerProps> = ({
           <Table size="sm">
             <Thead>
               <Tr>
-                <Th>Signer</Th>
+                <Th>Signer ID</Th>
                 <Th>Role</Th>
                 <Th></Th>
               </Tr>
@@ -219,7 +222,6 @@ const Signers: React.FC<SignerProps> = ({
             </FormControl>
             <FormControl isRequired flex={4}>
               <Select
-                placeholder="Select role"
                 value={role}
                 onChange={e => {
                   const role = e.target.value as Role
@@ -227,6 +229,7 @@ const Signers: React.FC<SignerProps> = ({
                   setRole(role)
                 }}
               >
+                <option value={"select"}>Select Role</option>
                 {Object.keys(RoleEnum).map((role, i) => (
                   <option key={i} value={role}>
                     {role}

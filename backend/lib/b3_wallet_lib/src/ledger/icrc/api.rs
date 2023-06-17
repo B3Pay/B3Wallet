@@ -72,12 +72,12 @@ impl ChainTrait for IcrcChain {
     fn pendings(&self) -> Vec<PendingEnum> {
         self.pendings
             .iter()
-            .map(|pending| PendingEnum::IcrcPending(pending.clone()))
+            .map(|pending| PendingEnum::ICRC(pending.clone()))
             .collect()
     }
 
     fn add_pending(&mut self, pending: PendingEnum) {
-        if let PendingEnum::IcrcPending(p) = pending {
+        if let PendingEnum::ICRC(p) = pending {
             self.pendings.push(p);
         }
     }

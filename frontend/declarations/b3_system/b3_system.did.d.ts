@@ -38,10 +38,10 @@ export interface ReleaseArgs {
   'size' : bigint,
   'version' : string,
 }
-export type ReleaseName = { 'b3_simple_wallet' : null } |
-  { 'b3_wallet' : null } |
+export type ReleaseName = { 'b3_wallet' : null } |
   { 'Custom' : string } |
-  { 'b3_multi_sig_wallet' : null };
+  { 'b3_multi_sig_wallet' : null } |
+  { 'b3_basic_wallet' : null };
 export type Result = { 'Ok' : WalletCanister } |
   { 'Err' : string };
 export interface SystemCanisterStatus {

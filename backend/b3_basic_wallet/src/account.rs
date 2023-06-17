@@ -8,16 +8,14 @@ use b3_helper_lib::{
 };
 use b3_wallet_lib::ledger::{
     chain::ChainTrait,
+    ckbtc::types::UtxoStatus,
     types::{BtcPending, PendingEnum, SendResult},
 };
 use b3_wallet_lib::{
     account::WalletAccount,
     ledger::{
         btc::network::BtcNetwork,
-        ckbtc::{
-            minter::Minter,
-            types::{RetrieveBtcStatus, UtxoStatus},
-        },
+        ckbtc::{minter::Minter, types::RetrieveBtcStatus},
         subaccount::SubaccountTrait,
         types::{AddressMap, Balance, ChainEnum},
     },
@@ -84,6 +82,22 @@ pub async fn retrieve_btc_status(
 }
 
 // UPDATE ---------------------------------------------------------------------
+#[candid_method(update)]
+#[update(guard = "caller_is_owner")]
+pub async fn account_update_balance(account_id: AccountId, network: BtcNetwork) -> Vec<UtxoStatus> {
+    let ckbtc = with_chain(&account_id, &ChainEnum::CKBTC(network), |chain| {
+        chain.ckbtc()
+    })
+    .unwrap_or_else(revert)
+    .unwrap_or_else(revert);
+
+    let reuslt = ckbtc.update_balance().await.unwrap_or_else(revert);
+
+    match reuslt {
+        Ok(utxos) => utxos,
+        Err(err) => revert(err),
+    }
+}
 
 #[candid_method(update)]
 #[update(guard = "caller_is_owner")]
@@ -159,23 +173,19 @@ pub async fn account_send(
 #[update(guard = "caller_is_owner")]
 pub async fn account_check_pending(
     account_id: AccountId,
-    chain: ChainEnum,
+    chain_enum: ChainEnum,
     pending_index: usize,
-) -> Vec<UtxoStatus> {
-    let ckbtc = with_chain(&account_id, &chain, |chain| chain.ckbtc())
-        .unwrap_or_else(revert)
-        .unwrap_or_else(revert);
+) {
+    let chain = with_chain(&account_id, &chain_enum, |chain| chain.clone()).unwrap_or_else(revert);
 
-    let result = ckbtc.update_balance().await.unwrap_or_else(revert);
+    let result = chain.check_pending(pending_index).await;
 
     match result {
-        Ok(result) => {
-            with_chain_mut(&account_id, chain, |chain| {
+        Ok(_) => {
+            with_chain_mut(&account_id, chain_enum, |chain| {
                 chain.remove_pending(pending_index)
             })
             .unwrap_or_else(revert);
-
-            result
         }
         Err(err) => revert(err),
     }

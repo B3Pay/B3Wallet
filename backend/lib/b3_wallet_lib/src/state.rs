@@ -38,9 +38,8 @@ impl WalletState {
             return;
         }
 
+        self.settings = setting;
         self.settings.initialised = true;
-        self.settings.metadata = setting.metadata;
-        self.settings.controllers = setting.controllers;
     }
 
     pub fn init_accounts(&mut self) {

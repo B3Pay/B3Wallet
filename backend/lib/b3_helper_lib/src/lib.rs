@@ -48,6 +48,10 @@ pub fn sha2_sha256_wasm_hash_string(data: &[u8]) -> String {
     hash.to_hex_string()
 }
 
+pub fn vec_to_hex_string(data: &[u8]) -> String {
+    hex::encode(data)
+}
+
 pub async fn ic_canister_status(
     canister_id: CanisterId,
 ) -> Result<CanisterStatusResponse, HelperError> {

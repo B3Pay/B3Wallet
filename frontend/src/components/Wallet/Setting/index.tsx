@@ -1,9 +1,9 @@
 import { Stack, Text } from "@chakra-ui/react"
 import { WalletSettings } from "declarations/b3_wallet/b3_wallet.did"
-import { B3System, B3Wallet } from "service/actor"
+import { B3BasicWallet, B3System, B3Wallet } from "service/actor"
 import Controllers from "./Controllers"
 import Cycles from "./Cycles"
-import ResetAccount from "./ResetAccount"
+import DangerZone from "./DangerZone"
 import RestoreAccount from "./RestoreAccount"
 import Signers, { SignerMap } from "./Signers"
 import Status from "./Status"
@@ -15,7 +15,7 @@ interface SettingsProps {
   setLoading: (loading: boolean) => void
   signers: SignerMap
   settings: WalletSettings
-  actor: B3Wallet
+  actor: B3Wallet | B3BasicWallet
   systemActor: B3System
 }
 
@@ -34,7 +34,9 @@ const Settings: React.FC<SettingsProps> = ({
         Settings
       </Text>
       <Cycles actor={actor} />
-      <Signers actor={actor} refetch={refreshWallet} signers={signers} />
+      {signers && (
+        <Signers actor={actor} refetch={refreshWallet} signers={signers} />
+      )}
       <Stack position="relative" spacing={4}>
         <Controllers
           actor={actor}
@@ -50,7 +52,11 @@ const Settings: React.FC<SettingsProps> = ({
       />
       <RestoreAccount actor={actor} fetchAccounts={fetchAccounts} />
       <Status actor={actor} />
-      <ResetAccount actor={actor} fetchAccounts={fetchAccounts} />
+      <DangerZone
+        actor={actor}
+        fetchAccounts={fetchAccounts}
+        allowUninstall={settings?.controllers.length > 2}
+      />
     </Stack>
   )
 }

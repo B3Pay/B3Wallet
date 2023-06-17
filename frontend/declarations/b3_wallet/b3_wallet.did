@@ -247,11 +247,11 @@ type NotifyTopUp = record {
 };
 type OutPoint = record { txid : vec nat8; vout : nat32 };
 type PendingEnum = variant {
-  IcrcPending : IcrcPending;
-  BtcPending : BtcPending;
-  CkbtcPending : CkbtcPending;
-  EvmPending : EvmPending;
-  IcpPending : IcpPending;
+  BTC : BtcPending;
+  EVM : EvmPending;
+  ICP : IcpPending;
+  ICRC : IcrcPending;
+  CKBTC : CkbtcPending;
 };
 type PendingRequest = record {
   id : nat64;
@@ -399,7 +399,7 @@ service : () -> {
   account_add_pending : (text, ChainEnum, PendingEnum) -> ();
   account_balance : (text, ChainEnum) -> (nat);
   account_btc_fees : (BtcNetwork, nat8) -> (nat64);
-  account_check_pending : (text, ChainEnum, nat64) -> (vec UtxoStatus);
+  account_check_pending : (text, ChainEnum, nat64) -> ();
   account_create : (opt Environment, opt text) -> ();
   account_create_address : (text, ChainEnum) -> ();
   account_hide : (text) -> ();
@@ -412,6 +412,7 @@ service : () -> {
   account_swap_btc_to_ckbtc : (text, BtcNetwork, nat64) -> (BtcPending);
   account_swap_ckbtc_to_btc : (text, BtcNetwork, text, nat64) -> (nat64);
   account_top_up_and_notify : (text, Tokens, opt principal) -> (Result_1);
+  account_update_balance : (text, BtcNetwork) -> (vec UtxoStatus);
   add_controller_and_update : (
       principal,
       text,
@@ -448,13 +449,14 @@ service : () -> {
   request_update_settings : (UpdateCanisterSettings, text, opt nat64) -> (
       nat64,
     );
-  reset_wallet : () -> ();
+  reset_accounts : () -> ();
   response : (nat64, Response) -> (ProcessedRequest);
   retrieve_btc_status : (Minter, nat64) -> (RetrieveBtcStatus) query;
   setting_and_signer : () -> (WalletSettingsAndSigners) query;
   signer_add : (principal, Roles) -> (vec record { principal; Signer });
   signer_remove : (principal) -> (vec record { principal; Signer });
   status : () -> (WalletCanisterStatus);
+  uninstall_wallet : () -> ();
   unload_wasm : () -> (nat64);
   update_controller : (vec record { principal; Controller }) -> (
       vec record { principal; Controller },

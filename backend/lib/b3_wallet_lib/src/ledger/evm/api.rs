@@ -47,12 +47,12 @@ impl ChainTrait for EvmChain {
     fn pendings(&self) -> Vec<PendingEnum> {
         self.pendings
             .iter()
-            .map(|pending| PendingEnum::EvmPending(pending.clone()))
+            .map(|pending| PendingEnum::EVM(pending.clone()))
             .collect()
     }
 
     fn add_pending(&mut self, pending: PendingEnum) {
-        if let PendingEnum::EvmPending(p) = pending {
+        if let PendingEnum::EVM(p) = pending {
             self.pendings.push(p);
         }
     }

@@ -7,6 +7,7 @@ interface SwapFormProps {
   loading: boolean
   title: string
   toAddress?: string
+  noAddressInput?: boolean
   handleSwap: (network: BtcNetwork, to: string, amount: bigint) => Promise<void>
 }
 
@@ -15,6 +16,7 @@ const SwapForm: React.FC<SwapFormProps> = ({
   loading,
   title,
   toAddress,
+  noAddressInput,
   handleSwap
 }) => {
   const [amount, setAmount] = useState<string>("")
@@ -23,7 +25,7 @@ const SwapForm: React.FC<SwapFormProps> = ({
   const transferHandler = useCallback(async () => {
     const decimals = 8
 
-    const bigintAmount = BigInt(Number(amount) * 10 ** decimals)
+    const bigintAmount = BigInt(Math.floor(Number(amount) * 10 ** decimals))
 
     handleSwap(network, to, bigintAmount)
       .then(() => {
@@ -36,15 +38,17 @@ const SwapForm: React.FC<SwapFormProps> = ({
 
   return (
     <Stack direction="row" justify="space-between" align="center">
-      <Input
-        flex={4}
-        alt="To"
-        placeholder="To"
-        type="text"
-        value={toAddress || to}
-        disabled={!!toAddress}
-        onChange={e => setTo(e.target.value)}
-      />
+      {!noAddressInput && (
+        <Input
+          flex={4}
+          alt="To"
+          placeholder="To"
+          type="text"
+          value={toAddress || to}
+          disabled={!!toAddress}
+          onChange={e => setTo(e.target.value)}
+        />
+      )}
       <Input
         flex={4}
         alt="Amount"
@@ -53,7 +57,11 @@ const SwapForm: React.FC<SwapFormProps> = ({
         value={amount}
         onChange={e => setAmount(e.target.value)}
       />
-      <Button flex={3} onClick={transferHandler} isLoading={loading}>
+      <Button
+        flex={noAddressInput ? 8 : 3}
+        onClick={transferHandler}
+        isLoading={loading}
+      >
         {title}
       </Button>
     </Stack>

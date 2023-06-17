@@ -24,7 +24,7 @@ interface Loadings {
 
 interface WalletBodyProps extends StackProps {
   mode: Mode
-  actor: B3Wallet
+  actor: B3Wallet | B3BasicWallet
   walletCanisterId: string
   settingsAndSigners: WalletSettingsAndSigners
   systemActor: B3System

@@ -2,13 +2,13 @@ import { RepeatIcon } from "@chakra-ui/icons"
 import { CardHeader, IconButton, Progress, Stack, Text } from "@chakra-ui/react"
 import { convertBigIntToNumber } from "helpers/utiles"
 import React, { useEffect, useMemo, useState } from "react"
-import { B3Wallet } from "service/actor"
+import { B3BasicWallet, B3Wallet } from "service/actor"
 
 const MILION_CYCLES = 1_000_000n
 const TERILION_CYCLES = 1_000_000_000_000n
 
 interface CyclesProps {
-  actor: B3Wallet
+  actor: B3Wallet | B3BasicWallet
 }
 
 const Cycles: React.FC<CyclesProps> = ({ actor }) => {

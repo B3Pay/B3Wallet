@@ -70,14 +70,14 @@ const Processed: React.FC<ProcessedRequestProps> = ({
         </Text>
         <strong>Result:</strong>
         {Object.entries(result[0]).map(([key, value]) => (
-          <>
+          <Stack>
             <Parent key={key} parent={key} child={null} />
             {value.map(value =>
               Object.entries(value).map(([key, value]) => (
                 <Parent key={key} parent={key} child={value} />
               ))
             )}
-          </>
+          </Stack>
         ))}
       </AccordionPanel>
     </Box>

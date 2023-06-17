@@ -20,16 +20,16 @@
       "type": "custom",
       "wasm": "wasm/b3_wallet/b3_wallet.wasm"
     },
-    "b3_simple_wallet": {
-      "build": "scripts/b3_simple_wallet.sh",
-      "candid": "backend/b3_simple_wallet/b3_simple_wallet.did",
+    "b3_basic_wallet": {
+      "build": "scripts/b3_basic_wallet.sh",
+      "candid": "backend/b3_basic_wallet/b3_basic_wallet.did",
       "declarations": {
         "node_compatibility": true,
-        "output": "frontend/declarations/b3_simple_wallet"
+        "output": "frontend/declarations/b3_basic_wallet"
       },
-      "package": "b3_simple_wallet",
+      "package": "b3_basic_wallet",
       "type": "custom",
-      "wasm": "wasm/b3_simple_wallet/b3_simple_wallet.wasm"
+      "wasm": "wasm/b3_basic_wallet/b3_basic_wallet.wasm"
     },
     "kyt": {
       "build": "",
