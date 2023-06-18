@@ -1,6 +1,6 @@
-# B3 Payment System
+# B3 Payment Demo
 
-The B3 Payment System is a crucial component of the B3 Wallet, a game-changing, decentralized multi-chain, and multi-owner wallet. This payment system is specifically designed to enhance the versatility and usability of the B3 Wallet, allowing users to perform transactions across multiple blockchains, including Bitcoin, Ethereum, and Internet Computer.
+The B3 Payment System is a simple payment top of the B3Wallet, a game-changing, decentralized multi-chain, and multi-owner wallet. This payment system is specifically designed to enhance the versatility and usability of the B3Wallet, allowing users to perform transactions across multiple blockchains, including Bitcoin, Ethereum, and Internet Computer.
 
 ## Key Features
 
