@@ -19,74 +19,56 @@ Follow these instructions to set up and run the B3Wallet project on your local m
 
 1. **Start the dfx service**: Open a terminal and run the following command:
 
-```
-
+```bash
 yarn dfx:start
-
 ```
 
 You can also run the command with the `--enable-bitcoin` flag if you want to enable Bitcoin:
 
-```
-
+```bash
 yarn dfx:start --enable-bitcoin
-
 ```
 
 2. **Install dfx**: While keeping the dfx service running, open another terminal and run:
 
-```
-
+```bash
 yarn dfx:install
-
 ```
 
 Similar to the previous step, you can also run the command with the `--enable-bitcoin` flag:
 
-```
-
+```bash
 yarn dfx:install --enable-bitcoin
-
 ```
 
 3. **Install project dependencies**: Install all the project dependencies with:
 
-```
-
+```bash
 yarn install
-
 ```
 
 4. **Deploy the project**: Deploy the project with:
 
-```
-
+```bash
 yarn deploy
-
 ```
 
 5. **Generate Candid and Types**: Generate the Candid interface and Typescript types for your canisters:
 
-```
-
+```bash
 yarn generate
-
 ```
 
 6. **Load the WASM module to system canister**: Load the WASM module to the system canister with:
 
-```
-
+```bash
 yarn load-wasm:system
-
 ```
 
 7. **Start the development server**: Finally, you can start the development server with:
 
-```
-
+```bash
 yarn dev
-
 ```
 
 All of these commands can also be run with npm by replacing `yarn` with `npm run` in each command.
