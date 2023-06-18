@@ -11,6 +11,7 @@
     "dfinity"
   ],
   "scripts": {
+    "install": "cd frontend && yarn install && cd ../payment && yarn install",
     "dfx:start": "scripts/start.sh",
     "dfx:install": "scripts/install.sh",
     "dfx:stop": "dfx stop",
