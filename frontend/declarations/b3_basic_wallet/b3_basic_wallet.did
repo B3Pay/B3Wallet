@@ -103,8 +103,7 @@ type PendingEnum = variant {
   ICRC : IcrcPending;
   CKBTC : CkbtcPending;
 };
-type Result = variant { Ok : nat64; Err : TransferError };
-type Result_1 = variant { Ok : nat; Err : text };
+type Result = variant { Ok : nat; Err : text };
 type RetrieveBtcStatus = variant {
   Signing;
   Confirmed : record { txid : vec nat8 };
@@ -117,19 +116,12 @@ type RetrieveBtcStatus = variant {
 type SendResult = variant {
   BTC : text;
   EVM;
-  ICP : Result;
+  ICP : nat64;
   ICRC : nat;
   CKBTC : nat;
 };
 type Timestamp = record { timestamp_nanos : nat64 };
 type Tokens = record { e8s : nat64 };
-type TransferError = variant {
-  TxTooOld : record { allowed_window_nanos : nat64 };
-  BadFee : record { expected_fee : Tokens };
-  TxDuplicate : record { duplicate_of : nat64 };
-  TxCreatedInFuture;
-  InsufficientFunds : record { balance : Tokens };
-};
 type Utxo = record { height : nat32; value : nat64; outpoint : OutPoint };
 type UtxoStatus = variant {
   ValueTooSmall : Utxo;
@@ -186,7 +178,7 @@ service : () -> {
   account_send : (text, ChainEnum, text, nat64) -> (SendResult);
   account_swap_btc_to_ckbtc : (text, BtcNetwork, nat64) -> (BtcPending);
   account_swap_ckbtc_to_btc : (text, BtcNetwork, text, nat64) -> (nat64);
-  account_top_up_and_notify : (text, Tokens, opt principal) -> (Result_1);
+  account_top_up_and_notify : (text, Tokens, opt principal) -> (Result);
   account_update_balance : (text, BtcNetwork) -> (vec UtxoStatus);
   add_controller_and_update : (
       principal,

@@ -72,6 +72,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "b3_payment"
+version = "0.0.10"
+dependencies = [
+ "b3_helper_lib",
+ "b3_permit_lib",
+ "candid",
+ "ic-cdk",
+]
+
+[[package]]
 name = "b3_permit_lib"
 version = "0.1.2"
 dependencies = [
@@ -106,7 +116,7 @@ dependencies = [
 
 [[package]]
 name = "b3_wallet"
-version = "0.0.0-alpha.23"
+version = "0.0.0-alpha.26"
 dependencies = [
  "b3_helper_lib",
  "b3_permit_lib",

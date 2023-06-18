@@ -1,5 +1,5 @@
 use super::{btc::network::BtcNetwork, chain::Chain, ckbtc::types::BtcTxId, icrc::types::TxIndex};
-use b3_helper_lib::types::{BlockIndex, CanisterId, TransferResult};
+use b3_helper_lib::types::{BlockIndex, CanisterId};
 use bitcoin::{AddressType, OutPoint, Transaction, TxIn, TxOut};
 use candid::Nat;
 use enum_dispatch::enum_dispatch;
@@ -145,7 +145,7 @@ impl ChainEnum {
 
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub enum SendResult {
-    ICP(TransferResult),
+    ICP(BlockIndex),
     CKBTC(TxIndex),
     ICRC(TxIndex),
     BTC(BtcTxId),

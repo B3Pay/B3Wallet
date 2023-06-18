@@ -26,7 +26,8 @@ const ProcessedItem: React.FC<ProcessedItemRequestProps> = ({
   result,
   timestamp,
   isExpanded,
-  status
+  status,
+  error
 }) => {
   const date = useMemo(() => {
     const time = timestamp / BigInt(1e6)
@@ -54,7 +55,7 @@ const ProcessedItem: React.FC<ProcessedItemRequestProps> = ({
             </Box>
           ) : (
             <Box flex="1" textAlign="left" color="red.500">
-              Rejected
+              {stt}
             </Box>
           )}
           <Box flex="8" textAlign="left">
@@ -103,14 +104,30 @@ const ProcessedItem: React.FC<ProcessedItemRequestProps> = ({
         {result[0] &&
           Object.entries(result[0]).map(([key, value]) => (
             <Stack key={key}>
-              <Parent parent={key} child={null} />
-              {value.map(value =>
-                Object.entries(value).map(([key, value]) => (
-                  <Parent key={key} parent={key} child={value} />
-                ))
-              )}
+              <Parent
+                parent={key}
+                child={!Array.isArray(value) ? value : null}
+              />
+              {Array.isArray(value)
+                ? value.map(value =>
+                    Object.entries(value).map(([key, value]) => (
+                      <Parent key={key} parent={key} child={value} />
+                    ))
+                  )
+                : null}
             </Stack>
           ))}
+        {stt !== "Success" &&
+          Object.entries(request.request).map(([key, value]) => (
+            <Parent key={key} parent={key} child={value} />
+          ))}
+        {error.length > 0 && (
+          <Stack>
+            <Text color="red.500">
+              <strong>Error:</strong> {error}
+            </Text>
+          </Stack>
+        )}
       </AccordionPanel>
     </Box>
   )

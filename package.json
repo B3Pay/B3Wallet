@@ -26,9 +26,12 @@
     "load-wasm:wallet": "ts-node ./scripts/load-wasm.wallet.ts",
     "load-wasm:system": "ts-node ./scripts/load-wasm.system.ts",
     "copy-wasm": "yarn build:wallet && yarn build:basic-wallet && ts-node ./scripts/copy-wasm.ts",
+    "payment:dev": "DFX_NETWORK=ic cd payment && npm run dev",
+    "payment:ic:dev": "DFX_NETWORK=ic cd payment && npm run ic:dev",
     "ic:dev": "DFX_NETWORK=ic cd frontend && npm run ic:dev",
     "dev": "DFX_NETWORK=local cd frontend && npm run dev",
-    "build": "cd frontend && npm run build"
+    "build": "cd frontend && npm run build",
+    "build:payment": "cd payment && npm run build"
   },
   "devDependencies": {
     "@types/node": "^18.15.13",

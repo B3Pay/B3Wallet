@@ -91,9 +91,16 @@ async fn create_wallet_canister(name: String) -> Result<WalletCanister, String> 
             // Install the code.
             let install_result = wallet_canister.install_code(install_arg).await;
 
-            match install_result {
-                Ok(_) => Ok(wallet_canister),
-                Err(err) => Err(err.to_string()),
+            // Update the controllers, and add canister id as controller of itself.
+            // this enables the canister to update itself.
+            let update_result = wallet_canister
+                .add_controllers(vec![owner_id, system_id])
+                .await;
+
+            match (install_result, update_result) {
+                (Ok(_), Ok(_)) => Ok(wallet_canister),
+                (Err(err), _) => Err(err.to_string()),
+                (_, Err(err)) => Err(err.to_string()),
             }
         }
         Err(err) => Err(err.to_string()),
@@ -136,7 +143,9 @@ async fn install_wallet_canister(
 
             // Update the controllers, and add the user and canister id as controller of itself.
             // this enables the canister to update itself.
-            let update_result = wallet_canister.add_controllers(vec![owner_id]).await;
+            let update_result = wallet_canister
+                .add_controllers(vec![owner_id, system_id])
+                .await;
 
             match (install_result, update_result) {
                 (Ok(_), Ok(_)) => Ok(wallet_canister),

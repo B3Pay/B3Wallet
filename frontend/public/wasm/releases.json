@@ -1,282 +1,30 @@
 [
   {
-    "url": "wasm/b3_wallet/0.0.0-alpha.23/b3_wallet.wasm",
+    "url": "wasm/b3_wallet/0.0.0-alpha.26/b3_wallet.wasm",
     "name": "b3_wallet",
-    "size": 3382391,
+    "size": 3379868,
     "wasmFile": "b3_wallet.wasm",
-    "version": "0.0.0-alpha.23"
+    "version": "0.0.0-alpha.26"
   },
   {
-    "url": "wasm/b3_wallet/0.0.0-alpha.23/b3_wallet_candid.wasm",
+    "url": "wasm/b3_wallet/0.0.0-alpha.26/b3_wallet_candid.wasm",
     "name": "b3_wallet",
-    "size": 3892156,
+    "size": 3892113,
     "wasmFile": "b3_wallet_candid.wasm",
-    "version": "0.0.0-alpha.23"
-  },
-  {
-    "url": "wasm/b3_wallet/0.0.0-alpha.22/b3_wallet.wasm",
-    "name": "b3_wallet",
-    "size": 3375171,
-    "wasmFile": "b3_wallet.wasm",
-    "version": "0.0.0-alpha.22"
-  },
-  {
-    "url": "wasm/b3_wallet/0.0.0-alpha.22/b3_wallet_candid.wasm",
-    "name": "b3_wallet",
-    "size": 3884989,
-    "wasmFile": "b3_wallet_candid.wasm",
-    "version": "0.0.0-alpha.22"
-  },
-  {
-    "url": "wasm/b3_wallet/0.0.0-alpha.20/b3_wallet.wasm",
-    "name": "b3_wallet",
-    "size": 3369189,
-    "wasmFile": "b3_wallet.wasm",
-    "version": "0.0.0-alpha.20"
-  },
-  {
-    "url": "wasm/b3_wallet/0.0.0-alpha.20/b3_wallet_candid.wasm",
-    "name": "b3_wallet",
-    "size": 3868215,
-    "wasmFile": "b3_wallet_candid.wasm",
-    "version": "0.0.0-alpha.20"
-  },
-  {
-    "url": "wasm/b3_wallet/0.0.0-alpha.18/b3_wallet.wasm",
-    "name": "b3_wallet",
-    "size": 3356484,
-    "wasmFile": "b3_wallet.wasm",
-    "version": "0.0.0-alpha.18"
-  },
-  {
-    "url": "wasm/b3_wallet/0.0.0-alpha.18/b3_wallet_candid.wasm",
-    "name": "b3_wallet",
-    "size": 3850856,
-    "wasmFile": "b3_wallet_candid.wasm",
-    "version": "0.0.0-alpha.18"
-  },
-  {
-    "url": "wasm/b3_wallet/0.0.0-alpha.17/b3_wallet.wasm",
-    "name": "b3_wallet",
-    "size": 3205372,
-    "wasmFile": "b3_wallet.wasm",
-    "version": "0.0.0-alpha.17"
-  },
-  {
-    "url": "wasm/b3_wallet/0.0.0-alpha.17/b3_wallet_candid.wasm",
-    "name": "b3_wallet",
-    "size": 3693033,
-    "wasmFile": "b3_wallet_candid.wasm",
-    "version": "0.0.0-alpha.17"
-  },
-  {
-    "url": "wasm/b3_wallet/0.0.0-alpha.16/b3_wallet.wasm",
-    "name": "b3_wallet",
-    "size": 3171155,
-    "wasmFile": "b3_wallet.wasm",
-    "version": "0.0.0-alpha.16"
-  },
-  {
-    "url": "wasm/b3_wallet/0.0.0-alpha.16/b3_wallet_candid.wasm",
-    "name": "b3_wallet",
-    "size": 3647757,
-    "wasmFile": "b3_wallet_candid.wasm",
-    "version": "0.0.0-alpha.16"
+    "version": "0.0.0-alpha.26"
   },
   {
     "url": "wasm/b3_basic_wallet/0.0.0-alpha.15/b3_basic_wallet.wasm",
     "name": "b3_basic_wallet",
-    "size": 2412614,
+    "size": 2411203,
     "wasmFile": "b3_basic_wallet.wasm",
     "version": "0.0.0-alpha.15"
   },
   {
     "url": "wasm/b3_basic_wallet/0.0.0-alpha.15/b3_basic_wallet_candid.wasm",
     "name": "b3_basic_wallet",
-    "size": 2756197,
+    "size": 2754476,
     "wasmFile": "b3_basic_wallet_candid.wasm",
     "version": "0.0.0-alpha.15"
-  },
-  {
-    "url": "wasm/b3_wallet/0.0.0-alpha.15/b3_wallet.wasm",
-    "name": "b3_wallet",
-    "size": 3202864,
-    "wasmFile": "b3_wallet.wasm",
-    "version": "0.0.0-alpha.15"
-  },
-  {
-    "url": "wasm/b3_wallet/0.0.0-alpha.15/b3_wallet_candid.wasm",
-    "name": "b3_wallet",
-    "size": 3685826,
-    "wasmFile": "b3_wallet_candid.wasm",
-    "version": "0.0.0-alpha.15"
-  },
-  {
-    "url": "wasm/b3_basic_wallet/0.0.0-alpha.14/b3_basic_wallet.wasm",
-    "name": "b3_basic_wallet",
-    "size": 2410030,
-    "wasmFile": "b3_basic_wallet.wasm",
-    "version": "0.0.0-alpha.14"
-  },
-  {
-    "url": "wasm/b3_basic_wallet/0.0.0-alpha.14/b3_basic_wallet_candid.wasm",
-    "name": "b3_basic_wallet",
-    "size": 2754249,
-    "wasmFile": "b3_basic_wallet_candid.wasm",
-    "version": "0.0.0-alpha.14"
-  },
-  {
-    "url": "wasm/b3_wallet/0.0.0-alpha.14/b3_wallet.wasm",
-    "name": "b3_wallet",
-    "size": 3199066,
-    "wasmFile": "b3_wallet.wasm",
-    "version": "0.0.0-alpha.14"
-  },
-  {
-    "url": "wasm/b3_wallet/0.0.0-alpha.14/b3_wallet_candid.wasm",
-    "name": "b3_wallet",
-    "size": 3683408,
-    "wasmFile": "b3_wallet_candid.wasm",
-    "version": "0.0.0-alpha.14"
-  },
-  {
-    "url": "wasm/b3_basic_wallet/0.0.0-alpha.13/b3_basic_wallet.wasm",
-    "name": "b3_basic_wallet",
-    "size": 2346161,
-    "wasmFile": "b3_basic_wallet.wasm",
-    "version": "0.0.0-alpha.13"
-  },
-  {
-    "url": "wasm/b3_basic_wallet/0.0.0-alpha.13/b3_basic_wallet_candid.wasm",
-    "name": "b3_basic_wallet",
-    "size": 2682754,
-    "wasmFile": "b3_basic_wallet_candid.wasm",
-    "version": "0.0.0-alpha.13"
-  },
-  {
-    "url": "wasm/b3_wallet/0.0.0-alpha.13/b3_wallet.wasm",
-    "name": "b3_wallet",
-    "size": 3200571,
-    "wasmFile": "b3_wallet.wasm",
-    "version": "0.0.0-alpha.13"
-  },
-  {
-    "url": "wasm/b3_wallet/0.0.0-alpha.13/b3_wallet_candid.wasm",
-    "name": "b3_wallet",
-    "size": 3683554,
-    "wasmFile": "b3_wallet_candid.wasm",
-    "version": "0.0.0-alpha.13"
-  },
-  {
-    "url": "wasm/b3_basic_wallet/0.0.0-alpha.12/b3_basic_wallet.wasm",
-    "name": "b3_basic_wallet",
-    "size": 2250647,
-    "wasmFile": "b3_basic_wallet.wasm",
-    "version": "0.0.0-alpha.12"
-  },
-  {
-    "url": "wasm/b3_basic_wallet/0.0.0-alpha.12/b3_basic_wallet_candid.wasm",
-    "name": "b3_basic_wallet",
-    "size": 2578326,
-    "wasmFile": "b3_basic_wallet_candid.wasm",
-    "version": "0.0.0-alpha.12"
-  },
-  {
-    "url": "wasm/b3_wallet/0.0.0-alpha.12/b3_wallet.wasm",
-    "name": "b3_wallet",
-    "size": 3199099,
-    "wasmFile": "b3_wallet.wasm",
-    "version": "0.0.0-alpha.12"
-  },
-  {
-    "url": "wasm/b3_wallet/0.0.0-alpha.12/b3_wallet_candid.wasm",
-    "name": "b3_wallet",
-    "size": 3681127,
-    "wasmFile": "b3_wallet_candid.wasm",
-    "version": "0.0.0-alpha.12"
-  },
-  {
-    "url": "wasm/b3_basic_wallet/0.0.0-alpha.11/b3_basic_wallet.wasm",
-    "name": "b3_basic_wallet",
-    "size": 2250322,
-    "wasmFile": "b3_basic_wallet.wasm",
-    "version": "0.0.0-alpha.11"
-  },
-  {
-    "url": "wasm/b3_basic_wallet/0.0.0-alpha.11/b3_basic_wallet_candid.wasm",
-    "name": "b3_basic_wallet",
-    "size": 2577923,
-    "wasmFile": "b3_basic_wallet_candid.wasm",
-    "version": "0.0.0-alpha.11"
-  },
-  {
-    "url": "wasm/b3_wallet/0.0.0-alpha.11/b3_wallet.wasm",
-    "name": "b3_wallet",
-    "size": 3085621,
-    "wasmFile": "b3_wallet.wasm",
-    "version": "0.0.0-alpha.11"
-  },
-  {
-    "url": "wasm/b3_wallet/0.0.0-alpha.11/b3_wallet_candid.wasm",
-    "name": "b3_wallet",
-    "size": 3550141,
-    "wasmFile": "b3_wallet_candid.wasm",
-    "version": "0.0.0-alpha.11"
-  },
-  {
-    "url": "wasm/b3_simple_wallet/0.0.0-alpha.5/b3_simple_wallet.wasm",
-    "name": "b3_simple_wallet",
-    "size": 2250707,
-    "wasmFile": "b3_simple_wallet.wasm",
-    "version": "0.0.0-alpha.5"
-  },
-  {
-    "url": "wasm/b3_simple_wallet/0.0.0-alpha.5/b3_simple_wallet_candid.wasm",
-    "name": "b3_simple_wallet",
-    "size": 2576908,
-    "wasmFile": "b3_simple_wallet_candid.wasm",
-    "version": "0.0.0-alpha.5"
-  },
-  {
-    "url": "wasm/b3_simple_wallet/0.0.0-alpha.4/b3_simple_wallet.wasm",
-    "name": "b3_simple_wallet",
-    "size": 2127712,
-    "wasmFile": "b3_simple_wallet.wasm",
-    "version": "0.0.0-alpha.4"
-  },
-  {
-    "url": "wasm/b3_simple_wallet/0.0.0-alpha.4/b3_simple_wallet_candid.wasm",
-    "name": "b3_simple_wallet",
-    "size": 2431274,
-    "wasmFile": "b3_simple_wallet_candid.wasm",
-    "version": "0.0.0-alpha.4"
-  },
-  {
-    "url": "wasm/b3_simple_wallet/0.0.0-alpha.2/b3_simple_wallet.wasm",
-    "name": "b3_simple_wallet",
-    "size": 2129138,
-    "wasmFile": "b3_simple_wallet.wasm",
-    "version": "0.0.0-alpha.2"
-  },
-  {
-    "url": "wasm/b3_simple_wallet/0.0.0-alpha.2/b3_simple_wallet_candid.wasm",
-    "name": "b3_simple_wallet",
-    "size": 2438266,
-    "wasmFile": "b3_simple_wallet_candid.wasm",
-    "version": "0.0.0-alpha.2"
-  },
-  {
-    "url": "wasm/b3_simple_wallet/0.0.0-alpha.1/b3_simple_wallet.wasm",
-    "name": "b3_simple_wallet",
-    "size": 2018068,
-    "wasmFile": "b3_simple_wallet.wasm",
-    "version": "0.0.0-alpha.1"
-  },
-  {
-    "url": "wasm/b3_simple_wallet/0.0.0-alpha.1/b3_simple_wallet_candid.wasm",
-    "name": "b3_simple_wallet",
-    "size": 2313910,
-    "wasmFile": "b3_simple_wallet_candid.wasm",
-    "version": "0.0.0-alpha.1"
   }
 ]

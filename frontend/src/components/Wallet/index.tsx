@@ -137,6 +137,7 @@ const Wallet: React.FC<WalletProps> = ({
             mode={mode}
             actor={actor}
             accounts={accounts}
+            authClient={authClient}
             systemActor={systemActor}
             setAccounts={setAccounts}
             refreshWallet={refreshWallet}

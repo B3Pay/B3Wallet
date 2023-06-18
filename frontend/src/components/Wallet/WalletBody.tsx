@@ -5,6 +5,7 @@ import {
   StackProps,
   Text
 } from "@chakra-ui/react"
+import { AuthClient } from "@dfinity/auth-client"
 import { useCallback, useState } from "react"
 import { Mode } from "."
 import {
@@ -25,6 +26,7 @@ interface Loadings {
 interface WalletBodyProps extends StackProps {
   mode: Mode
   actor: B3Wallet | B3BasicWallet
+  authClient: AuthClient
   walletCanisterId: string
   settingsAndSigners: WalletSettingsAndSigners
   systemActor: B3System
@@ -38,6 +40,7 @@ const WalletBody: React.FC<WalletBodyProps> = ({
   mode,
   actor,
   accounts,
+  authClient,
   systemActor,
   setAccounts,
   fetchAccounts,
@@ -89,6 +92,7 @@ const WalletBody: React.FC<WalletBodyProps> = ({
       {mode === Mode.Settings ? (
         <Settings
           actor={actor}
+          authClient={authClient}
           refreshWallet={refreshWallet}
           fetchAccounts={fetchAccounts}
           systemActor={systemActor}

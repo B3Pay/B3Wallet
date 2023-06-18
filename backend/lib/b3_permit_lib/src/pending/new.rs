@@ -84,16 +84,29 @@ impl PendingRequest {
         self.allowed_signers.iter().any(|id| id == signer_id)
     }
 
-    pub fn is_expired(&self) -> bool {
-        self.deadline.has_passed()
-    }
-
     pub fn is_signed(&self, signer_id: &SignerId) -> bool {
         self.responses.keys().any(|id| id == signer_id)
     }
 
+    pub fn is_failed(&self) -> bool {
+        self.get_error().is_some()
+    }
+
+    pub fn is_expired(&self) -> bool {
+        self.deadline.has_passed()
+    }
+
     pub fn is_rejected(&self) -> bool {
-        self.responses.values().any(|response| response.is_reject())
+        let total_signers = self.allowed_signers.len();
+        let rejected_responses = self
+            .responses
+            .iter()
+            .filter(|(signer, response)| {
+                self.allowed_signers.contains(signer) && response.is_reject()
+            })
+            .count();
+
+        rejected_responses * 2 > total_signers
     }
 
     pub fn is_confirmed(&self) -> bool {

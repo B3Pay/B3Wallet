@@ -1,5 +1,16 @@
 {
   "canisters": {
+    "b3_payment": {
+      "build": "scripts/b3_payment.sh",
+      "candid": "backend/b3_payment/b3_payment.did",
+      "declarations": {
+        "node_compatibility": true,
+        "output": "payment/declarations/b3_payment"
+      },
+      "package": "b3_payment",
+      "type": "custom",
+      "wasm": "wasm/b3_payment/b3_payment_candid.wasm"
+    },
     "b3_system": {
       "candid": "backend/b3_system/b3_system.did",
       "declarations": {
@@ -177,6 +188,14 @@
         "entrypoint": "out/index.html"
       },
       "source": ["frontend/out"],
+      "type": "assets"
+    },
+    "payment_assets": {
+      "build": "yarn build:payment",
+      "frontend": {
+        "entrypoint": "out/index.html"
+      },
+      "source": ["payment/out"],
       "type": "assets"
     }
   },

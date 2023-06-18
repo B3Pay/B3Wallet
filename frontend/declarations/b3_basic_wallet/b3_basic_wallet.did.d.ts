@@ -113,8 +113,6 @@ export type PendingEnum = { 'BTC' : BtcPending } |
   { 'ICRC' : IcrcPending } |
   { 'CKBTC' : CkbtcPending };
 export type Result = { 'Ok' : bigint } |
-  { 'Err' : TransferError };
-export type Result_1 = { 'Ok' : bigint } |
   { 'Err' : string };
 export type RetrieveBtcStatus = { 'Signing' : null } |
   { 'Confirmed' : { 'txid' : Uint8Array | number[] } } |
@@ -125,18 +123,11 @@ export type RetrieveBtcStatus = { 'Signing' : null } |
   { 'Pending' : null };
 export type SendResult = { 'BTC' : string } |
   { 'EVM' : null } |
-  { 'ICP' : Result } |
+  { 'ICP' : bigint } |
   { 'ICRC' : bigint } |
   { 'CKBTC' : bigint };
 export interface Timestamp { 'timestamp_nanos' : bigint }
 export interface Tokens { 'e8s' : bigint }
-export type TransferError = {
-    'TxTooOld' : { 'allowed_window_nanos' : bigint }
-  } |
-  { 'BadFee' : { 'expected_fee' : Tokens } } |
-  { 'TxDuplicate' : { 'duplicate_of' : bigint } } |
-  { 'TxCreatedInFuture' : null } |
-  { 'InsufficientFunds' : { 'balance' : Tokens } };
 export interface Utxo {
   'height' : number,
   'value' : bigint,
@@ -218,7 +209,7 @@ export interface _SERVICE {
   >,
   'account_top_up_and_notify' : ActorMethod<
     [string, Tokens, [] | [Principal]],
-    Result_1
+    Result
   >,
   'account_update_balance' : ActorMethod<
     [string, BtcNetwork],

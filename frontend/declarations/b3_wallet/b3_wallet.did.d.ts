@@ -315,8 +315,6 @@ export type RequestStatus = { 'Fail' : null } |
 export type Response = { 'Reject' : null } |
   { 'Confirm' : null };
 export type Result = { 'Ok' : bigint } |
-  { 'Err' : TransferError };
-export type Result_1 = { 'Ok' : bigint } |
   { 'Err' : string };
 export type RetrieveBtcStatus = { 'Signing' : null } |
   { 'Confirmed' : { 'txid' : Uint8Array | number[] } } |
@@ -330,7 +328,7 @@ export type Roles = { 'User' : null } |
   { 'Admin' : null };
 export type SendResult = { 'BTC' : string } |
   { 'EVM' : null } |
-  { 'ICP' : Result } |
+  { 'ICP' : bigint } |
   { 'ICRC' : bigint } |
   { 'CKBTC' : bigint };
 export interface SendToken {
@@ -354,13 +352,6 @@ export interface TopUpTransfer {
   'canister_id' : Principal,
   'amount' : Tokens,
 }
-export type TransferError = {
-    'TxTooOld' : { 'allowed_window_nanos' : bigint }
-  } |
-  { 'BadFee' : { 'expected_fee' : Tokens } } |
-  { 'TxDuplicate' : { 'duplicate_of' : bigint } } |
-  { 'TxCreatedInFuture' : null } |
-  { 'InsufficientFunds' : { 'balance' : Tokens } };
 export interface UpdateCanisterSettings {
   'canister_id' : Principal,
   'settings' : CanisterSettings,
@@ -458,7 +449,7 @@ export interface _SERVICE {
   >,
   'account_top_up_and_notify' : ActorMethod<
     [string, Tokens, [] | [Principal]],
-    Result_1
+    Result
   >,
   'account_update_balance' : ActorMethod<
     [string, BtcNetwork],
@@ -482,6 +473,7 @@ export interface _SERVICE {
   'get_processed_list' : ActorMethod<[], Array<ProcessedRequest>>,
   'get_signers' : ActorMethod<[], Array<[Principal, Signer]>>,
   'init_wallet' : ActorMethod<[InititializeWalletArgs], undefined>,
+  'is_connected' : ActorMethod<[], boolean>,
   'load_wasm' : ActorMethod<[Uint8Array | number[]], bigint>,
   'name' : ActorMethod<[], string>,
   'refresh_settings' : ActorMethod<[], undefined>,
@@ -494,6 +486,7 @@ export interface _SERVICE {
     [AddSigner, string, [] | [bigint]],
     bigint
   >,
+  'request_connect' : ActorMethod<[], bigint>,
   'request_create_account' : ActorMethod<
     [CreateAccount, string, [] | [bigint]],
     bigint

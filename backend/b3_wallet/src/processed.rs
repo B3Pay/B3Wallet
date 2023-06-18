@@ -29,12 +29,17 @@ pub async fn response(request_id: RequestId, answer: Response) -> ProcessedReque
     let caller = ic_cdk::caller();
 
     let request = with_pending_mut(&request_id, |request| {
+        if request.is_expired() {
+            return request.clone();
+        }
+
         request.response(caller, answer).unwrap_or_else(revert);
+
         request.clone()
     })
     .unwrap_or_else(revert);
 
-    if request.is_rejected() || request.is_expired() {
+    if request.is_failed() {
         let processed = ProcessedRequest::from(request);
 
         with_permit_mut(|s| s.insert_processed(request_id, processed.clone()))

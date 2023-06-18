@@ -102,7 +102,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 
   useInterval(async () => {
     fetchRequests()
-  }, 10000)
+  }, 5000)
 
   return (
     <Box>

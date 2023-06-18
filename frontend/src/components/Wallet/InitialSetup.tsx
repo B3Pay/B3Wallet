@@ -69,7 +69,7 @@ const InitialSetup: React.FC<InitialSetupProps> = ({
         Initial Setup
       </Text>
       <Text fontSize="large" fontWeight="bold" mt={2}>
-        Wallet Address
+        Your Principal
       </Text>
       <Address
         address={authClient.getIdentity().getPrincipal().toString()}

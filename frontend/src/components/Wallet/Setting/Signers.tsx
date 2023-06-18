@@ -26,7 +26,7 @@ import {
 } from "@chakra-ui/react"
 import { Principal } from "@dfinity/principal"
 import Loading from "components/Loading"
-import { Roles, Signer } from "declarations/b3_wallet/b3_wallet.did"
+import { AddSigner, Roles, Signer } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useState } from "react"
 import { B3Wallet } from "service/actor"
@@ -125,13 +125,21 @@ const Signers: React.FC<SignerProps> = ({
       })
     }
 
+    const args: AddSigner = {
+      signer_id: signerId,
+      role: roles,
+      expires_at: [],
+      name: "test",
+      threshold: []
+    }
+
     // Add the signer
     await actor
-      .signer_add(signerId, roles)
+      .request_add_signer(args, "Demo wallet", [])
       .then(() => {
         errorToast({
-          title: "Signer added.",
-          description: `Principal ${principal} added with role ${role}`,
+          title: "Request sent.",
+          description: `Request to add signer ${signerId.toString()} has been sent.`,
           status: "success",
           duration: 9000,
           isClosable: true

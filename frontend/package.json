@@ -11,27 +11,17 @@
     "dfinity"
   ],
   "scripts": {
-    "dfx:start": "scripts/create-canisters.sh",
-    "dfx:deploy": "scripts/deploy-canisters.sh",
-    "dfx:stop": "dfx stop",
     "dev": "DFX_NETWORK=local next dev",
     "ic:dev": "DFX_NETWORK=ic next dev",
-    "build:wallet": "./scripts/b3_wallet.sh",
-    "build": "next build",
+    "build": "DFX_NETWORK=ic next build",
+    "build:local": "DFX_NETWORK=local next build",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "export": "next build",
-    "deploy": "cargo test && dfx deploy",
-    "ic:deploy": "dfx generate b3_wallet && dfx deploy b3_wallet --network ic",
-    "env": "node dfx.webpack.config.js init",
-    "generate": "cargo test && dfx generate",
-    "ledger:balance": "ts-node scripts/ledger.balance.ts",
-    "ledger:transfer": "ts-node scripts/ledger.transfer.ts",
-    "ledger:account-id": "ts-node ./scripts/ledger.account-id.ts",
-    "wasm:wallet": "ts-node ./scripts/wasm.wallet.ts",
-    "wasm:system": "ts-node ./scripts/wasm.system.ts",
-    "wasm:copy": "ts-node ./scripts/wasm.copy.ts"
+    "ic:deploy": "dfx generate wallet_assets && dfx deploy wallet_assets --network ic",
+    "env": "DFX_NETWORK=ic node dfx.webpack.config.js init",
+    "generate": "cargo test && dfx generate"
   },
   "devDependencies": {
     "@types/node": "^18.15.13",

@@ -100,7 +100,11 @@ function HomePage() {
               walletCanisterId={walletCanisterId}
             />
           ) : systemActor ? (
-            <System systemActor={systemActor} fetchUserActor={fetchUserActor} />
+            <System
+              authClient={authClient}
+              systemActor={systemActor}
+              fetchUserActor={fetchUserActor}
+            />
           ) : (
             <Loading dark title="Fetching" />
           )

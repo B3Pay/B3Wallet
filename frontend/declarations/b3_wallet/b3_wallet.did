@@ -300,8 +300,7 @@ type Request = variant {
 };
 type RequestStatus = variant { Fail; Success; Expired; Pending };
 type Response = variant { Reject; Confirm };
-type Result = variant { Ok : nat64; Err : TransferError };
-type Result_1 = variant { Ok : nat; Err : text };
+type Result = variant { Ok : nat; Err : text };
 type RetrieveBtcStatus = variant {
   Signing;
   Confirmed : record { txid : vec nat8 };
@@ -315,7 +314,7 @@ type Roles = variant { User; Canister; Admin };
 type SendResult = variant {
   BTC : text;
   EVM;
-  ICP : Result;
+  ICP : nat64;
   ICRC : nat;
   CKBTC : nat;
 };
@@ -339,13 +338,6 @@ type TopUpTransfer = record {
   account_id : text;
   canister_id : principal;
   amount : Tokens;
-};
-type TransferError = variant {
-  TxTooOld : record { allowed_window_nanos : nat64 };
-  BadFee : record { expected_fee : Tokens };
-  TxDuplicate : record { duplicate_of : nat64 };
-  TxCreatedInFuture;
-  InsufficientFunds : record { balance : Tokens };
 };
 type UpdateCanisterSettings = record {
   canister_id : principal;
@@ -413,7 +405,7 @@ service : () -> {
   account_send : (text, ChainEnum, text, nat64) -> (SendResult);
   account_swap_btc_to_ckbtc : (text, BtcNetwork, nat64) -> (BtcPending);
   account_swap_ckbtc_to_btc : (text, BtcNetwork, text, nat64) -> (nat64);
-  account_top_up_and_notify : (text, Tokens, opt principal) -> (Result_1);
+  account_top_up_and_notify : (text, Tokens, opt principal) -> (Result);
   account_update_balance : (text, BtcNetwork) -> (vec UtxoStatus);
   add_controller_and_update : (
       principal,
@@ -434,12 +426,14 @@ service : () -> {
   get_processed_list : () -> (vec ProcessedRequest) query;
   get_signers : () -> (vec record { principal; Signer }) query;
   init_wallet : (InititializeWalletArgs) -> ();
+  is_connected : () -> (bool) query;
   load_wasm : (vec nat8) -> (nat64);
   name : () -> (text) query;
   refresh_settings : () -> ();
   remove_setting_metadata : (text) -> ();
   request_account_rename : (RenameAccount, text, opt nat64) -> (nat64);
   request_add_signer : (AddSigner, text, opt nat64) -> (nat64);
+  request_connect : () -> (nat64);
   request_create_account : (CreateAccount, text, opt nat64) -> (nat64);
   request_delete_account : (HideAccount, text, opt nat64) -> (nat64);
   request_maker : (Request, text, opt nat64) -> (nat64);

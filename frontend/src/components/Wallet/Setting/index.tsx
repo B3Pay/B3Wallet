@@ -1,6 +1,8 @@
 import { Stack, Text } from "@chakra-ui/react"
+import { AuthClient } from "@dfinity/auth-client"
 import { WalletSettings } from "declarations/b3_wallet/b3_wallet.did"
 import { B3BasicWallet, B3System, B3Wallet } from "service/actor"
+import Address from "../Address"
 import Controllers from "./Controllers"
 import Cycles from "./Cycles"
 import DangerZone from "./DangerZone"
@@ -14,6 +16,7 @@ interface SettingsProps {
   fetchAccounts: () => void
   setLoading: (loading: boolean) => void
   signers: SignerMap
+  authClient: AuthClient
   settings: WalletSettings
   actor: B3Wallet | B3BasicWallet
   systemActor: B3System
@@ -24,6 +27,7 @@ const Settings: React.FC<SettingsProps> = ({
   settings,
   signers,
   setLoading,
+  authClient,
   systemActor,
   fetchAccounts,
   refreshWallet
@@ -33,6 +37,14 @@ const Settings: React.FC<SettingsProps> = ({
       <Text fontSize="xl" fontWeight="bold">
         Settings
       </Text>
+      <Text fontSize="large" fontWeight="bold" mt={2}>
+        Your Principal
+      </Text>
+      <Address
+        address={authClient.getIdentity().getPrincipal().toString()}
+        overflow="hidden"
+        px={2}
+      />
       <Cycles actor={actor} />
       {signers && (
         <Signers

@@ -1,3 +1,4 @@
+import { CheckIcon, CloseIcon } from "@chakra-ui/icons"
 import {
   Button,
   ModalBody,
@@ -8,6 +9,8 @@ import {
   StatLabel,
   Text
 } from "@chakra-ui/react"
+import { Principal } from "@dfinity/principal"
+import { useCallback } from "react"
 import { PendingRequest } from "../../../declarations/b3_wallet/b3_wallet.did"
 import Parent from "../Recursive"
 import Address from "./Address"
@@ -36,6 +39,27 @@ const RequestItem: React.FC<RequestItemProps> = ({
   rejectHandler,
   confirmHandler
 }) => {
+  const isVotedBySigner = useCallback(
+    (signer: Principal) => {
+      return responses.reduce(
+        (acc, [responseSigner, response]) => {
+          if (responseSigner.toString() === signer.toString()) {
+            if ("Confirm" in response) {
+              acc.isConfirmed = true
+              acc.isVoted = true
+            } else if ("Reject" in response) {
+              acc.isConfirmed = false
+              acc.isVoted = true
+            }
+          }
+          return acc
+        },
+        { isVoted: false, isConfirmed: false }
+      )
+    },
+    [responses]
+  )
+
   return (
     <Stack>
       <ModalBody>
@@ -72,11 +96,23 @@ const RequestItem: React.FC<RequestItemProps> = ({
         </Stat>
         <Stat>
           <StatLabel>Allowed Signers: &nbsp;</StatLabel>
-          {allowed_signers.map((signer, index) => (
-            <StatHelpText key={index}>
-              <Address address={signer.toString()} />
-            </StatHelpText>
-          ))}
+          {allowed_signers.map((signer, index) => {
+            const { isVoted, isConfirmed } = isVotedBySigner(signer)
+            console.log(isVoted, isConfirmed)
+            return (
+              <StatHelpText key={index}>
+                <Address address={signer.toString()}>
+                  {isVoted ? (
+                    isConfirmed ? (
+                      <CheckIcon color="green" mr={2} />
+                    ) : (
+                      <CloseIcon color="red" mr={2} />
+                    )
+                  ) : null}
+                </Address>
+              </StatHelpText>
+            )
+          })}
         </Stat>
       </ModalBody>
       <ModalFooter borderTop="1px" borderColor="gray.200">

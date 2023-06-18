@@ -19,6 +19,7 @@ import {
   Text,
   UnorderedList
 } from "@chakra-ui/react"
+import { AuthClient } from "@dfinity/auth-client"
 import { Principal } from "@dfinity/principal"
 import Address from "components/Wallet/Address"
 import { Release, ReleaseName } from "declarations/b3_system/b3_system.did"
@@ -32,11 +33,16 @@ import Loading from "../Loading"
 type ReleaseMap = [ReleaseName, Array<Release>][]
 
 interface SystemProps {
+  authClient: AuthClient
   systemActor: B3System
   fetchUserActor: (walletCanisterId: string) => Promise<void>
 }
 
-const System: React.FC<SystemProps> = ({ systemActor, fetchUserActor }) => {
+const System: React.FC<SystemProps> = ({
+  authClient,
+  systemActor,
+  fetchUserActor
+}) => {
   const [releaseMap, setReleaseMap] = useState<ReleaseMap>([])
 
   const [selectedWallet, setSelectedWallet] = useState<string>("")
@@ -242,6 +248,14 @@ const System: React.FC<SystemProps> = ({ systemActor, fetchUserActor }) => {
                 )
               })}
             </Select>
+            <Text fontSize="large" fontWeight="bold" mt={2}>
+              Your Principal
+            </Text>
+            <Address
+              address={authClient.getIdentity().getPrincipal().toString()}
+              overflow="hidden"
+              px={2}
+            />
           </Stack>
           <TabPanels>
             <TabPanel>
@@ -330,7 +344,10 @@ const System: React.FC<SystemProps> = ({ systemActor, fetchUserActor }) => {
                       value={anonymousCanisterId}
                       onChange={e => setAnonymousCanisterId(e.target.value)}
                     />
-                    <Button flex={4} onClick={() => addCanister(canisterId)}>
+                    <Button
+                      flex={4}
+                      onClick={() => addCanister(anonymousCanisterId)}
+                    >
                       Add Canister
                     </Button>
                   </InputGroup>

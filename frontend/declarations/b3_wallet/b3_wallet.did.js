@@ -42,23 +42,15 @@ export const idlFactory = ({ IDL }) => {
     'Development' : IDL.Null,
     'Staging' : IDL.Null,
   });
-  const Tokens = IDL.Record({ 'e8s' : IDL.Nat64 });
-  const TransferError = IDL.Variant({
-    'TxTooOld' : IDL.Record({ 'allowed_window_nanos' : IDL.Nat64 }),
-    'BadFee' : IDL.Record({ 'expected_fee' : Tokens }),
-    'TxDuplicate' : IDL.Record({ 'duplicate_of' : IDL.Nat64 }),
-    'TxCreatedInFuture' : IDL.Null,
-    'InsufficientFunds' : IDL.Record({ 'balance' : Tokens }),
-  });
-  const Result = IDL.Variant({ 'Ok' : IDL.Nat64, 'Err' : TransferError });
   const SendResult = IDL.Variant({
     'BTC' : IDL.Text,
     'EVM' : IDL.Null,
-    'ICP' : Result,
+    'ICP' : IDL.Nat64,
     'ICRC' : IDL.Nat,
     'CKBTC' : IDL.Nat,
   });
-  const Result_1 = IDL.Variant({ 'Ok' : IDL.Nat, 'Err' : IDL.Text });
+  const Tokens = IDL.Record({ 'e8s' : IDL.Nat64 });
+  const Result = IDL.Variant({ 'Ok' : IDL.Nat, 'Err' : IDL.Text });
   const OutPoint = IDL.Record({
     'txid' : IDL.Vec(IDL.Nat8),
     'vout' : IDL.Nat32,
@@ -514,7 +506,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'account_top_up_and_notify' : IDL.Func(
         [IDL.Text, Tokens, IDL.Opt(IDL.Principal)],
-        [Result_1],
+        [Result],
         [],
       ),
     'account_update_balance' : IDL.Func(
@@ -553,6 +545,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'init_wallet' : IDL.Func([InititializeWalletArgs], [], []),
+    'is_connected' : IDL.Func([], [IDL.Bool], ['query']),
     'load_wasm' : IDL.Func([IDL.Vec(IDL.Nat8)], [IDL.Nat64], []),
     'name' : IDL.Func([], [IDL.Text], ['query']),
     'refresh_settings' : IDL.Func([], [], []),
@@ -567,6 +560,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Nat64],
         [],
       ),
+    'request_connect' : IDL.Func([], [IDL.Nat64], []),
     'request_create_account' : IDL.Func(
         [CreateAccount, IDL.Text, IDL.Opt(IDL.Nat64)],
         [IDL.Nat64],

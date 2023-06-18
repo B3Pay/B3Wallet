@@ -1,0 +1,241 @@
+type AddSigner = record {
+  threshold : opt nat8;
+  name : text;
+  role : Roles;
+  signer_id : principal;
+  expires_at : opt nat64;
+};
+type BtcNetwork = variant { Mainnet; Regtest; Testnet };
+type BtcTransfer = record {
+  to : text;
+  account_id : text;
+  network : BtcNetwork;
+  amount : nat64;
+};
+type CanisterSettings = record {
+  freezing_threshold : opt nat;
+  controllers : opt vec principal;
+  memory_allocation : opt nat;
+  compute_allocation : opt nat;
+};
+type ChainEnum = variant {
+  BTC : BtcNetwork;
+  EVM : nat64;
+  ICP;
+  ICRC : principal;
+  CKBTC : BtcNetwork;
+};
+type ConsentMessage = record { title : text; message : text; reason : text };
+type CreateAccount = record { env : opt Environment; name : opt text };
+type Environment = variant { Production; Development; Staging };
+type EvmContractDeployed = record {
+  transaction : EvmTransaction1559;
+  contract_address : text;
+};
+type EvmDeployContract = record {
+  account_id : text;
+  hex_byte_code : vec nat8;
+  max_priority_fee_per_gas : opt nat64;
+  max_fee_per_gas : opt nat64;
+  chain_id : nat64;
+  nonce : nat64;
+  gas_limit : opt nat64;
+};
+type EvmSignMessage = record {
+  account_id : text;
+  chain_id : nat64;
+  message : vec nat8;
+};
+type EvmSignRawTransaction = record {
+  account_id : text;
+  hex_raw_tx : vec nat8;
+  chain_id : nat64;
+};
+type EvmSignTranscation = record {
+  account_id : text;
+  transaction : EvmTransaction;
+  chain_id : nat64;
+};
+type EvmTransaction = variant {
+  EvmTransaction1559 : EvmTransaction1559;
+  EvmTransaction2930 : EvmTransaction2930;
+  EvmTransactionLegacy : EvmTransactionLegacy;
+};
+type EvmTransaction1559 = record {
+  r : text;
+  s : text;
+  v : text;
+  to : text;
+  value : nat64;
+  max_priority_fee_per_gas : nat64;
+  data : text;
+  max_fee_per_gas : nat64;
+  chain_id : nat64;
+  nonce : nat64;
+  gas_limit : nat64;
+  access_list : vec record { text; vec text };
+};
+type EvmTransaction2930 = record {
+  r : text;
+  s : text;
+  v : text;
+  to : text;
+  value : nat64;
+  data : text;
+  chain_id : nat64;
+  nonce : nat64;
+  gas_limit : nat64;
+  access_list : vec record { text; vec text };
+  gas_price : nat64;
+};
+type EvmTransactionLegacy = record {
+  r : text;
+  s : text;
+  v : text;
+  to : text;
+  value : nat64;
+  data : text;
+  chain_id : nat64;
+  nonce : nat64;
+  gas_limit : nat64;
+  gas_price : nat64;
+};
+type EvmTransfer = record {
+  to : text;
+  account_id : text;
+  value : nat64;
+  max_priority_fee_per_gas : opt nat64;
+  max_fee_per_gas : opt nat64;
+  chain_id : nat64;
+  nonce : nat64;
+  gas_limit : opt nat64;
+};
+type EvmTransferErc20 = record {
+  to : text;
+  account_id : text;
+  value : nat64;
+  max_priority_fee_per_gas : opt nat64;
+  max_fee_per_gas : opt nat64;
+  chain_id : nat64;
+  nonce : nat64;
+  gas_limit : opt nat64;
+  contract_address : text;
+};
+type ExecutionResult = variant {
+  AccountCreated : CreateAccount;
+  CanisterTopUped : record { NotifyTopUp; nat };
+  BtcTransfered : record { BtcTransfer; text };
+  IcpTransfered : record { IcpTransfer; nat64 };
+  TokenSent : record { SendToken; SendResult };
+  AccountRenamed : RenameAccount;
+  EvmContractDeployed : EvmContractDeployed;
+  EvmErc20Transfered : record { EvmTransferErc20; text };
+  SignerRemoved : RemoveSigner;
+  EvmTransfered : record { EvmTransfer; text };
+  EvmRawTransactionSigned : record { EvmSignRawTransaction; text };
+  TopUpTransfered : record { TopUpTransfer; nat64 };
+  SignerThresholdUpdated : UpdateSignerThreshold;
+  AccountHidden : HideAccount;
+  EvmMessageSigned : record { EvmSignMessage; vec nat8 };
+  CanisterSettingsUpdated : UpdateCanisterSettings;
+  SignerAdded : AddSigner;
+  CanisterUpgraded : UpgradeCanister;
+  EvmTransactionSigned : record { EvmSignTranscation; text };
+  AccountUnhidden : HideAccount;
+  AccountRemoved : HideAccount;
+};
+type HideAccount = record { account_id : text };
+type IcpTransfer = record {
+  to : vec nat8;
+  fee : opt Tokens;
+  account_id : text;
+  memo : opt nat64;
+  amount : Tokens;
+};
+type NotifyTopUp = record {
+  account_id : text;
+  block_index : nat64;
+  canister_id : principal;
+};
+type PendingRequest = record {
+  id : nat64;
+  status : RequestStatus;
+  responses : vec record { principal; Response };
+  allowed_signers : vec principal;
+  request : Request;
+  role : Roles;
+  deadline : nat64;
+  consent_message : ConsentMessage;
+  created_at : nat64;
+  created_by : principal;
+  version : text;
+};
+type ProcessedRequest = record {
+  status : RequestStatus;
+  result : opt ExecutionResult;
+  method : text;
+  request : PendingRequest;
+  error : opt text;
+  timestamp : nat64;
+};
+type RemoveSigner = record { signer_id : principal };
+type RenameAccount = record { account_id : text; new_name : text };
+type Request = variant {
+  UnhideAccount : HideAccount;
+  EvmDeployContract : EvmDeployContract;
+  AddSigner : AddSigner;
+  IcpTransfer : IcpTransfer;
+  EvmSignRawTransaction : EvmSignRawTransaction;
+  EvmSignMessage : EvmSignMessage;
+  UpdateCanisterSettings : UpdateCanisterSettings;
+  RenameAccount : RenameAccount;
+  EvmSignTranscation : EvmSignTranscation;
+  EvmTransferErc20 : EvmTransferErc20;
+  SendToken : SendToken;
+  HideAccount : HideAccount;
+  UpgradeCanister : UpgradeCanister;
+  TopUpTransfer : TopUpTransfer;
+  BtcTransfer : BtcTransfer;
+  RemoveAccount : HideAccount;
+  CreateAccount : CreateAccount;
+  EvmTransfer : EvmTransfer;
+  RemoveSigner : RemoveSigner;
+  UpdateSignerThreshold : UpdateSignerThreshold;
+};
+type RequestStatus = variant { Fail; Success; Expired; Pending };
+type Response = variant { Reject; Confirm };
+type Roles = variant { User; Canister; Admin };
+type SendResult = variant {
+  BTC : text;
+  EVM;
+  ICP : nat64;
+  ICRC : nat;
+  CKBTC : nat;
+};
+type SendToken = record {
+  to : text;
+  account_id : text;
+  chain : ChainEnum;
+  amount : nat64;
+};
+type Tokens = record { e8s : nat64 };
+type TopUpTransfer = record {
+  fee : opt Tokens;
+  account_id : text;
+  canister_id : principal;
+  amount : Tokens;
+};
+type UpdateCanisterSettings = record {
+  canister_id : principal;
+  settings : CanisterSettings;
+};
+type UpdateSignerThreshold = record { threshold : nat8; signer_id : principal };
+type UpgradeCanister = record { wasm_hash_string : text; wasm_version : text };
+service : {
+  check_pending_requests : (principal) -> (vec PendingRequest);
+  check_processed_request : (principal, nat64) -> (ProcessedRequest);
+  check_processed_requests : (principal) -> (vec ProcessedRequest);
+  is_connected : (principal) -> (bool);
+  request_connect : (principal) -> (nat64);
+  request_maker : (principal, Request, text, opt nat64) -> (nat64);
+}
