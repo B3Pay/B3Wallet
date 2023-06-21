@@ -17,20 +17,20 @@ https://b7pqa-qqaaa-aaaap-abdva-cai.icp0.io/
 ## How it Works
 
 User click on the Connect button to connect to the B3Wallet.
-![Wallet Connect](../../images/payment/connect.jpg)
+![Wallet Connect](../images/payment/connect.jpg)
 The B3Wallet will ask the user(s) to Confirm or Reject the connection.
-![Confirme Connection](../../images/payment/confirm.jpg)
+![Confirme Connection](../images/payment/confirm.jpg)
 Once the user confirms the connection, the B3Payment will be able to access the user's wallet information and query balances and account and request transactions.
-![Connected](../../images/payment/connected.png)
+![Connected](../images/payment/connected.png)
 With this information the canister can query the user's account balance and display it on the screen without the user having to login or provide any other information.
 Then the user can select the blockchain > account > token for buying products.
 As soon as the user clicks on the Buy button, the B3Payment will send a request to the B3Wallet to sign the transaction.
-![Buying](../../images/payment/buying.png)
+![Buying](../images/payment/buying.png)
 And the B3Wallet will ask the user(s) to confirm or reject the transaction.
 B3Payment keep track of the transaction status and display it on the screen.
-![Confirmation](../../images/payment/buy-confirmation.png)
+![Confirmation](../images/payment/buy-confirmation.png)
 Once the transaction is confirmed, selected tokens will be transferred to the seller's account, and callback will be called to check the transaction status using the block index.
-![Done](../../images/payment/done.png)
+![Done](../images/payment/done.png)
 
 ## Getting Started
 
