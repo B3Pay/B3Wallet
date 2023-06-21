@@ -1,6 +1,6 @@
-# B3 Payment Demo
+# Payment Demo
 
-The B3 Payment System is a simple payment top of the B3Wallet, a decentralized multi-chain, and multi-owner wallet. This payment system is specifically designed to enhance the versatility and usability of the B3Wallet, allowing users to perform transactions across multiple blockchains, including Bitcoin, Ethereum, and Internet Computer.
+This is a simple payment top of the B3Wallet, a decentralized multi-chain, and multi-owner wallet. This payment system is specifically designed to enhance the versatility and usability of the B3Wallet, allowing users to perform transactions across multiple blockchains, including Bitcoin, Ethereum, and Internet Computer.
 
 https://b7pqa-qqaaa-aaaap-abdva-cai.icp0.io/
 
@@ -10,7 +10,7 @@ https://b7pqa-qqaaa-aaaap-abdva-cai.icp0.io/
 
 - **Support for multiple owners:** The system is designed to accommodate transactions from single owners, multiple owners, and even transactions requiring multi-signature approvals.
 
-- **Decentralized:** In line with the ethos of blockchain technology, the B3 Payment System is fully decentralized. Users can use it without any registration and recover it without any backup.
+- **Decentralized:** In line with the ethos of blockchain technology, the payment system is fully decentralized. Users can use it without any registration and recover it without any backup.
 
 - **Integration with B3 Wallet:** The B3 Payment System is built to seamlessly integrate with the B3 Wallet without needing login credentials or any other form of registration, providing users with a holistic solution for their crypto transaction needs.
 
