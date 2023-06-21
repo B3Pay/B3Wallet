@@ -74,6 +74,9 @@ function HomePage() {
   }, [toast])
 
   const reuqest_connect = async (canisterId: Principal) => {
+    if (!canisterId) {
+      return
+    }
     const connectStatus = await paymentActor?.is_connected(canisterId)
 
     if (connectStatus) {
@@ -194,6 +197,9 @@ function HomePage() {
   }
 
   const getRequests = async (requestId: bigint) => {
+    if (!walletCanisterId) {
+      return
+    }
     try {
       setLoading(true)
       await paymentActor.check_processed_request(walletCanisterId, requestId)
@@ -212,6 +218,9 @@ function HomePage() {
     }
   }
   const checkProcessedRequests = async () => {
+    if (!walletCanisterId) {
+      return
+    }
     try {
       let processsed = await paymentActor.check_processed_requests(
         walletCanisterId
@@ -249,6 +258,9 @@ function HomePage() {
   }
 
   const checkPendingRequests = async () => {
+    if (!walletCanisterId) {
+      return
+    }
     try {
       let requestIds: any = localStorage.getItem("requestIds")
 
@@ -306,6 +318,14 @@ function HomePage() {
         <title>B3Payment</title>
       </Head>
       <Header />
+      <Card p={2} mb={2}>
+        <Stack direction="row" spacing="2" justify="space-between">
+          <Text size="lg" textAlign="center" my={2}>
+            Payment Canister
+          </Text>
+          <Address address={B3_PAYMENT_CANISTER_ID} />
+        </Stack>
+      </Card>
       <Stack as="main" minH="100px" position="relative" justify="space-between">
         {loading && <Loading title="Loading Wallet" />}
         {paymentActor ? (

@@ -361,10 +361,7 @@ mod test {
             ])
         );
 
-        assert_eq!(
-            subaccount.to_hex(),
-            "0000000000000000000000000000000000000000000000ff0000000000000001"
-        );
+        assert_eq!(subaccount.to_hex(), "ff0000000000000001");
 
         let subaccount = Subaccount::from_hex(
             &"0000000000000000000000000000000000000000000000ff0000000000000001",
@@ -397,10 +394,7 @@ mod test {
             ])
         );
 
-        assert_eq!(
-            subaccount.to_hex(),
-            "0000000000000000000000000000000000000000000000aa0000000000000001"
-        );
+        assert_eq!(subaccount.to_hex(), "aa0000000000000001");
     }
 
     #[test]
