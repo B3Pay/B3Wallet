@@ -123,9 +123,7 @@ impl fmt::Display for ICRCAccount {
                     write!(f, "{}", self.owner)
                 } else {
                     let checksum = self.compute_base32_checksum();
-                    let hex_str = hex::encode(&subaccount.as_slice())
-                        .trim_start_matches('0')
-                        .to_owned();
+                    let hex_str = subaccount.to_hex();
                     write!(f, "{}-{}.{}", self.owner, checksum, hex_str)
                 }
             }

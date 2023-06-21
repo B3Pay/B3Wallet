@@ -65,6 +65,7 @@ impl ProcessedRequest {
 
     pub fn succeed(&mut self, message: ExecutionResult) -> Self {
         self.status = RequestStatus::Success;
+        self.request.status = RequestStatus::Success;
         self.timestamp = ic_timestamp();
         self.result = Some(message);
 
@@ -73,6 +74,7 @@ impl ProcessedRequest {
 
     pub fn fail(&mut self, error: PermitError) -> Self {
         self.status = RequestStatus::Fail;
+        self.request.status = RequestStatus::Fail;
         self.error = Some(error.to_string());
         self.timestamp = ic_timestamp();
 

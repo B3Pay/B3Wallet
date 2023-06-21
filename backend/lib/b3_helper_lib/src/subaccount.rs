@@ -1,6 +1,5 @@
 use crate::{
     account::ICRCAccount,
-    base32::base32_decode,
     constants::{DEVELOPMENT_PREFIX, STAGING_PREFIX},
     environment::Environment,
     identifier::AccountIdentifier,
@@ -12,7 +11,7 @@ use ic_cdk::export::{
     Principal,
 };
 
-use std::{cmp, fmt, hash, mem::size_of, ops::Add};
+use std::{cmp, fmt, hash, mem::size_of, ops::Add, str::FromStr};
 
 impl Default for Subaccount {
     fn default() -> Self {
@@ -106,6 +105,10 @@ impl Subaccount {
         self.environment().to_name(next_index)
     }
 
+    /// returns the account id of the subaccount
+    /// The account id is the first 24 bytes of the subaccount id
+    /// if first byte of the subaccount id is 29 then its an Principal
+    /// otherwise its an Account
     pub fn nonce(&self) -> u64 {
         if self.0[0] == 29 {
             return 0;
@@ -140,10 +143,20 @@ impl Subaccount {
         self.0.to_vec()
     }
 
+    /// Returns the hex representation of the subaccount
+    /// with leading zeros removed
+    /// e.g. 0000000
+    /// will be returned as 0
+    /// 0000001
+    /// will be returned as 1
     pub fn to_hex(&self) -> String {
-        hex::encode(&self.0)
+        hex::encode(&self.as_slice())
+            .trim_start_matches('0')
+            .to_owned()
     }
 
+    /// Returns the hex representation of the subaccount
+    /// with add leading zeros if necessary
     pub fn from_hex(hex: &str) -> Result<Self, SubaccountError> {
         // add leading zeros if necessary
         let hex = if hex.len() < 64 {
@@ -155,13 +168,6 @@ impl Subaccount {
         };
 
         let bytes = hex::decode(hex).map_err(|e| SubaccountError::HexError(e.to_string()))?;
-
-        Subaccount::from_slice(&bytes)
-    }
-
-    pub fn from_base32(base32: &str) -> Result<Self, SubaccountError> {
-        let bytes =
-            base32_decode(base32).map_err(|e| SubaccountError::Base32Error(e.to_string()))?;
 
         Subaccount::from_slice(&bytes)
     }
@@ -220,10 +226,7 @@ impl TryFrom<Vec<u8>> for Subaccount {
 
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
         if value.len() != 32 {
-            return Err(SubaccountError::InvalidSubaccount(format!(
-                "Subaccount must be 32 bytes long, but was {}",
-                value.len()
-            )));
+            return Err(SubaccountError::InvalidSubaccountLength(value.len()));
         }
 
         let mut bytes = [0u8; 32];
@@ -233,14 +236,11 @@ impl TryFrom<Vec<u8>> for Subaccount {
     }
 }
 
-impl TryFrom<&str> for Subaccount {
-    type Error = SubaccountError;
+impl FromStr for Subaccount {
+    type Err = SubaccountError;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let bytes =
-            hex::decode(value).map_err(|e| SubaccountError::InvalidSubaccount(e.to_string()))?;
-
-        Ok(Self::try_from(bytes)?)
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::from_hex(s)?)
     }
 }
 
@@ -256,18 +256,21 @@ pub enum SubaccountError {
     SliceError(String),
     Base32Error(String),
     InvalidSubaccount(String),
+    InvalidSubaccountLength(usize),
 }
 
-impl fmt::Display for SubaccountError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            SubaccountError::InvalidSubaccount(e) => write!(f, "InvalidSubaccount: {}", e),
-            SubaccountError::Base32Error(e) => write!(f, "Subaccount base32 error: {}", e),
-            SubaccountError::SliceError(e) => write!(f, "Subaccount slice error: {}", e),
-            SubaccountError::HexError(e) => write!(f, "Subaccount hex error: {}", e),
-        }
-    }
-}
+#[rustfmt::skip]
+   impl fmt::Display for SubaccountError {
+       fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+           match self {
+               SubaccountError::InvalidSubaccountLength(len) => write!(f, "InvalidSubaccountLength: {}", len),
+               SubaccountError::InvalidSubaccount(e) => write!(f, "InvalidSubaccount: {}", e),
+               SubaccountError::Base32Error(e) => write!(f, "Subaccount base32 error: {}", e),
+               SubaccountError::SliceError(e) => write!(f, "Subaccount slice error: {}", e),
+               SubaccountError::HexError(e) => write!(f, "Subaccount hex error: {}", e),
+           }
+       }
+   }
 
 #[cfg(test)]
 mod test {
@@ -310,15 +313,9 @@ mod test {
             ])
         );
 
-        assert_eq!(
-            subaccount.to_hex(),
-            "0000000000000000000000000000000000000000000000000000000000000001"
-        );
+        assert_eq!(subaccount.to_hex(), "1");
 
-        let subaccount = Subaccount::try_from(
-            "0000000000000000000000000000000000000000000000000000000000000001",
-        )
-        .expect("Failed to parse subaccount");
+        let subaccount = "001".parse::<Subaccount>().unwrap();
 
         assert_eq!(
             subaccount,
@@ -427,7 +424,6 @@ mod test {
             assert_eq!(recover.effective_subaccount().environment(), env);
             assert_eq!(recover.effective_subaccount().nonce(), nonce);
 
-            println!("{:?}", recover);
             assert_eq!(recover, account);
         }
     }

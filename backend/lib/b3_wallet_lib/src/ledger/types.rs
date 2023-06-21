@@ -155,7 +155,7 @@ pub enum SendResult {
 impl fmt::Display for SendResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            SendResult::ICP(result) => write!(f, "ICP({:?})", result),
+            SendResult::ICP(result) => write!(f, "ICP({})", result),
             SendResult::CKBTC(tx_index) => write!(f, "CKBTC({})", tx_index),
             SendResult::ICRC(tx_index) => write!(f, "ICRC({})", tx_index),
             SendResult::BTC(txid) => write!(f, "BTC({})", txid),

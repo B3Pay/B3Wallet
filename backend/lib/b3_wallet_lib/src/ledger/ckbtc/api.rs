@@ -48,7 +48,7 @@ impl ChainTrait for CkbtcChain {
             .map_err(LedgerError::IcrcError)?;
 
         match result {
-            Ok(tx_index) => Ok(SendResult::ICRC(tx_index)),
+            Ok(tx_index) => Ok(SendResult::CKBTC(tx_index)),
             Err(err) => Err(LedgerError::IcrcError(IcrcError::ICRC1TransferError(err))),
         }
     }
