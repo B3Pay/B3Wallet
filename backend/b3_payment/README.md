@@ -20,7 +20,7 @@ User click on the Connect button to connect to the B3Wallet.
 ![Wallet Connect](../../images/payment/connect.jpg)
 The B3Wallet will ask the user(s) to Confirm or Reject the connection.
 ![Confirme Connection](../../images/payment/confirm.jpg)
-Once the user confirms the connection, the B3Payment will be able to access the user's wallet information and query balances and account and request transactions.
+Once the user confirms the connection, the B3Payment will be able to access the user's wallet information and query balances and account and request transactions, until user remove canister connection from the B3Wallet.
 ![Connected](../../images/payment/connected.png)
 With this information the canister can query the user's account balance and display it on the screen without the user having to login or provide any other information.
 Then the user can select the blockchain > account > token for buying products.
