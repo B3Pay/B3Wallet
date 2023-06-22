@@ -42,23 +42,23 @@ fn get_wallet_canisters() -> WalletCanisters {
     with_state(|s| s.wallet_canisters())
 }
 
-#[candid_method(query)]
-#[query(guard = "caller_is_controller")]
+// UPDATE CALLS
+
+#[candid_method(update)]
+#[update(guard = "caller_is_controller")]
 async fn get_canister_version(canister_id: CanisterId) -> Version {
     let wallet = WalletCanister::from(canister_id);
 
     wallet.version().await.unwrap_or_else(revert)
 }
 
-#[candid_method(query)]
-#[query(guard = "caller_is_controller")]
+#[candid_method(update)]
+#[update(guard = "caller_is_controller")]
 async fn get_canister_version_by_user(user_id: SignerId) -> Version {
     let wallet = with_wallet_canister(&user_id, |c| c.clone()).unwrap_or_else(revert);
 
     wallet.version().await.unwrap_or_else(revert)
 }
-
-// UPDATE CALLS
 
 #[update]
 #[candid_method(update)]

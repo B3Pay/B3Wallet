@@ -45,7 +45,7 @@ const System: React.FC<SystemProps> = ({
 }) => {
   const [releaseMap, setReleaseMap] = useState<ReleaseMap>([])
 
-  const [selectedWallet, setSelectedWallet] = useState<string>("")
+  const [selectedWallet, setSelectedWallet] = useState<string>("b3_wallet")
 
   const [error, setError] = useState<string>()
   const [loading, setLoading] = useState<boolean>()
@@ -61,11 +61,6 @@ const System: React.FC<SystemProps> = ({
       .release_map()
       .then(releases => {
         setReleaseMap(releases)
-
-        if (releases.length > 0) {
-          const walletName = Object.keys(releases[0][0])[0]
-          setSelectedWallet(walletName)
-        }
 
         setLoading(false)
       })
@@ -238,7 +233,11 @@ const System: React.FC<SystemProps> = ({
           </TabList>
           <Stack spacing={2} px={4}>
             <FormLabel as="label">Select a Wallet:</FormLabel>
-            <Select onChange={e => setSelectedWallet(e.target.value)} size="lg">
+            <Select
+              onChange={e => setSelectedWallet(e.target.value)}
+              value={selectedWallet}
+              size="lg"
+            >
               {releaseMap.map(([releaseName]) => {
                 const walletName = Object.keys(releaseName)[0]
                 return (

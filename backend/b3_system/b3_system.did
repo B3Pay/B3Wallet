@@ -55,8 +55,8 @@ service : () -> {
   create_wallet_canister : (text) -> (Result);
   deprecate_release : (text, text) -> ();
   get_canister : () -> (WalletCanister) query;
-  get_canister_version : (principal) -> (text) query;
-  get_canister_version_by_user : (principal) -> (text) query;
+  get_canister_version : (principal) -> (text);
+  get_canister_version_by_user : (principal) -> (text);
   get_controllers : () -> (vec principal) query;
   get_release : (text, text) -> (Release) query;
   get_release_by_hash_string : (text, vec nat8) -> (Release) query;
