@@ -60,10 +60,6 @@ B3Wallet allows for self-upgrades, ensuring that you always have access to the l
 
 ![Alt text](/images/selfupgrade.png?raw=true "Self Custody")
 
-## Getting Started
-
-Absolutely, I apologize for the confusion earlier. Here's a revised introduction:
-
 # Custom Wallet Creation Libraries
 
 Also, there are three libraries to facilitate other developers in building their own wallets seamlessly. These libraries, located in the [lib directory](https://github.com/B3Pay/b3-wallet/tree/main/backend/lib), aim to streamline the wallet creation process and allow developers to customize a wallet that meets their unique needs.
