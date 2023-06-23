@@ -2,12 +2,12 @@
 
 ## Introduction
 
-B3Wallet is a decentralized multi-chain and multi-owner wallet. It is designed to support multiple blockchains, including Bitcoin, Ethereum, and Internet Computer. It also supports multiple owners, including single owner, multi-owner, and multi-signature. In addition, it supports multiple accounts, including single account. Being decentralized, it does not rely on any centralized service and users can use it without any registration and recover it without any backup.
+B3Wallet is a decentralized multi-chain and multi-owner wallet. It is designed to support multiple blockchains, including Bitcoin, Ethereum, and Internet Computer. It also supports multiple owners, including single owner, multi-owner, and multi-signature. In addition, it supports multiple accounts. Being decentralized, it does not rely on any centralized service and users can use it without any registration and recover it without any backup.
 
 ## Features
 
 - Multiple blockchain support: Bitcoin, Ethereum, and Internet Computer
-- Multiple owner support: single owner, multi-owner, and multi-signature
+- Multiple owner support: single-owner, multi-owner, and multi-signature
 - Multiple account support: single account
 - Decentralized: does not rely on any centralized service, users can use it without any registration and recover it without any backup.
 
@@ -19,7 +19,7 @@ B3Wallet is a decentralized multi-chain and multi-owner wallet. It is designed t
 
 To start, log in using your Internet Identity.
 
-![Alt text](images/login.png)
+![Alt text](/images/login.png "Login")
 
 ## Create Wallet:
 
@@ -34,13 +34,13 @@ To create a wallet, follow these steps:
 - - Alternatively, you can use the 'Create' button to generate a new canister. As of now, this is free, but it may cost some cycles in the future.
 - - If you're part of a multi-signature wallet, you can add a canister ID that's already been created by other users, and click Add Canister button.
 
-![Alt text](images/create-wallet.png?raw=true "Create Wallet")
+![Alt text](/images/create-wallet.png?raw=true "Create Wallet")
 
 ## Add Account:
 
 By default, the wallet creates an account for you. However, if you need more, you can add additional accounts. These accounts are derived from the same canister but utilize different indices.
 
-![Alt text](add-account.png?raw=true "Add Account")
+![Alt text](/images/add-account.png?raw=true "Add Account")
 
 ## Multiple Signatures:
 
@@ -66,7 +66,7 @@ Absolutely, I apologize for the confusion earlier. Here's a revised introduction
 
 # Custom Wallet Creation Libraries
 
-Also there is three libraries to facilitate other developers in building their own wallets seamlessly. These libraries, located in the [lib directory](https://github.com/B3Pay/b3-wallet/tree/main/backend/lib), aim to streamline the wallet creation process and allow developers to customize a wallet that meets their unique needs.
+Also, there are three libraries to facilitate other developers in building their own wallets seamlessly. These libraries, located in the [lib directory](https://github.com/B3Pay/b3-wallet/tree/main/backend/lib), aim to streamline the wallet creation process and allow developers to customize a wallet that meets their unique needs.
 
 ## The Libraries:
 
