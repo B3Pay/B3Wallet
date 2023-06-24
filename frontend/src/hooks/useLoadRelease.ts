@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react"
-import { B3BasicWallet, B3Wallet } from "service/actor"
+import { B3BasicWallet, B3Wallet } from "service"
 
 const chunkGenerator = async function* (
   wasmModule: number[],

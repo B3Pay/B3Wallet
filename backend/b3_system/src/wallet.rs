@@ -10,10 +10,11 @@ use b3_helper_lib::{
 use b3_system_lib::{
     error::SystemError,
     store::{
-        with_state, with_state_mut, with_users_mut, with_wallet_canister, with_wallet_canister_mut,
+        with_state, with_state_mut, with_user_state_mut, with_users_mut, with_wallet_canister,
     },
-    types::WalletCanister,
-    types::WalletCanisters,
+    types::UserState,
+    types::UserStates,
+    wallet::WalletCanister,
 };
 use ic_cdk::{
     api::management_canister::main::CanisterInstallMode, export::candid::candid_method, query,
@@ -24,10 +25,10 @@ use ic_cdk::{
 
 #[candid_method(query)]
 #[query]
-fn get_canister() -> WalletCanister {
+fn get_states() -> UserState {
     let user_id = ic_cdk::caller();
 
-    with_wallet_canister(&user_id, |c| c.clone()).unwrap_or_else(revert)
+    with_state(|s| s.user_state(user_id)).unwrap_or_else(revert)
 }
 
 #[candid_method(query)]
@@ -38,8 +39,8 @@ fn get_user_ids() -> Vec<SignerId> {
 
 #[candid_method(query)]
 #[query(guard = "caller_is_controller")]
-fn get_wallet_canisters() -> WalletCanisters {
-    with_state(|s| s.wallet_canisters())
+fn get_user_states() -> UserStates {
+    with_state(|s| s.user_states())
 }
 
 // UPDATE CALLS
@@ -47,35 +48,35 @@ fn get_wallet_canisters() -> WalletCanisters {
 #[candid_method(update)]
 #[update(guard = "caller_is_controller")]
 async fn get_canister_version(canister_id: CanisterId) -> Version {
-    let wallet = WalletCanister::from(canister_id);
+    let wallet = WalletCanister(canister_id);
 
     wallet.version().await.unwrap_or_else(revert)
 }
 
 #[candid_method(update)]
 #[update(guard = "caller_is_controller")]
-async fn get_canister_version_by_user(user_id: SignerId) -> Version {
-    let wallet = with_wallet_canister(&user_id, |c| c.clone()).unwrap_or_else(revert);
+async fn get_canister_version_by_user(user_id: SignerId, index: usize) -> Version {
+    let wallet = with_wallet_canister(&user_id, index, |w| w.clone()).unwrap_or_else(revert);
 
     wallet.version().await.unwrap_or_else(revert)
 }
 
 #[update]
 #[candid_method(update)]
-async fn create_wallet_canister(name: String) -> Result<WalletCanister, String> {
+async fn create_wallet_canister(name: String) -> Result<UserState, String> {
     let owner_id = ic_cdk::caller();
     let system_id = ic_cdk::id();
 
     let release_name = ReleaseName::from_str(&name).unwrap_or_else(revert);
 
-    let mut wallet_canister = with_state_mut(|s| s.init_user(owner_id)).unwrap_or_else(revert);
+    let mut user_state = with_state_mut(|s| s.init_user(owner_id)).unwrap_or_else(revert);
 
-    wallet_canister
+    let wallet_canister = user_state
         .create_with_cycles(vec![owner_id, system_id], CREATE_SIGNER_CANISTER_CYCLES)
         .await
         .unwrap_or_else(revert);
 
-    with_state_mut(|s| s.add_user(owner_id, wallet_canister.clone()));
+    with_state_mut(|s| s.add_user(owner_id, user_state.clone()));
 
     let init_args = WalletCanisterInitArgs {
         owner_id,
@@ -98,7 +99,7 @@ async fn create_wallet_canister(name: String) -> Result<WalletCanister, String> 
                 .await;
 
             match (install_result, update_result) {
-                (Ok(_), Ok(_)) => Ok(wallet_canister),
+                (Ok(_), Ok(_)) => Ok(user_state),
                 (Err(err), _) => Err(err.to_string()),
                 (_, Err(err)) => Err(err.to_string()),
             }
@@ -111,15 +112,15 @@ async fn create_wallet_canister(name: String) -> Result<WalletCanister, String> 
 #[candid_method(update)]
 async fn install_wallet_canister(
     name: String,
-    canister_id: Option<CanisterId>,
-) -> Result<WalletCanister, String> {
+    canister_id: CanisterId,
+) -> Result<UserState, String> {
     let system_id = ic_cdk::id();
     let owner_id = ic_cdk::caller();
 
     let release_name = ReleaseName::from_str(&name).unwrap_or_else(revert);
 
-    let mut wallet_canister =
-        with_state_mut(|s| s.get_or_init_user(owner_id, canister_id)).unwrap_or_else(revert);
+    let user_state =
+        with_state_mut(|s| s.get_or_init_user(owner_id, Some(canister_id))).unwrap_or_else(revert);
 
     let init_args = WalletCanisterInitArgs {
         owner_id,
@@ -132,6 +133,8 @@ async fn install_wallet_canister(
 
     match install_arg_result {
         Ok(install_arg) => {
+            let wallet_canister = WalletCanister(canister_id);
+
             let status = wallet_canister.status().await;
 
             if status.is_ok() {
@@ -148,7 +151,7 @@ async fn install_wallet_canister(
                 .await;
 
             match (install_result, update_result) {
-                (Ok(_), Ok(_)) => Ok(wallet_canister),
+                (Ok(_), Ok(_)) => Ok(user_state),
                 (Err(err), _) => Err(err.to_string()),
                 (_, Err(err)) => Err(err.to_string()),
             }
@@ -162,7 +165,7 @@ async fn install_wallet_canister(
 async fn add_wallet_canister(canister_id: CanisterId) {
     let user_id = ic_cdk::caller();
 
-    let wallet_canister = WalletCanister::from(canister_id);
+    let wallet_canister = WalletCanister(canister_id);
 
     let is_valid = wallet_canister
         .validate_signer(user_id)
@@ -170,7 +173,8 @@ async fn add_wallet_canister(canister_id: CanisterId) {
         .unwrap_or_else(revert);
 
     if is_valid {
-        with_state_mut(|s| s.get_or_init_user(user_id, Some(canister_id))).unwrap_or_else(revert);
+        with_user_state_mut(&user_id, |s| s.add_canister_id(wallet_canister))
+            .unwrap_or_else(revert);
     } else {
         revert(SystemError::InvalidWalletCanister)
     }
@@ -178,10 +182,11 @@ async fn add_wallet_canister(canister_id: CanisterId) {
 
 #[update]
 #[candid_method(update)]
-fn change_wallet_canister(canister_id: CanisterId) {
+fn change_wallet_canister(canister_id: CanisterId, index: usize) {
     let user_id = ic_cdk::caller();
 
-    with_wallet_canister_mut(&user_id, |c| c.add_canister_id(canister_id)).unwrap_or_else(revert);
+    with_user_state_mut(&user_id, |s| s.change_canister_id(index, canister_id))
+        .unwrap_or_else(revert);
 }
 
 #[candid_method(update)]

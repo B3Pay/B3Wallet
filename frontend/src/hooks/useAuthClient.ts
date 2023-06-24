@@ -1,7 +1,7 @@
 import { AuthClient } from "@dfinity/auth-client"
 import { useCallback, useEffect, useState } from "react"
+import { B3System, createB3SystemActor, createManagmentActor } from "service"
 import { IDENTITY_CANISTER_ID, IS_LOCAL } from "../helpers/config"
-import { B3System, makeB3SystemActor } from "../service/actor"
 
 const useAuth = () => {
   const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false)
@@ -36,7 +36,7 @@ const useAuth = () => {
 
   const initActor = useCallback(() => {
     if (!authClient) return
-    const actor = makeB3SystemActor(authClient.getIdentity())
+    const actor = createB3SystemActor(authClient.getIdentity())
 
     setSystemActor(actor)
   }, [authClient])
@@ -44,8 +44,17 @@ const useAuth = () => {
   const logout = () => {
     setIsAuthenticated(false)
     setSystemActor(undefined)
+
     authClient?.logout({ returnTo: "/" })
   }
+
+  const getManagmentActor = useCallback(() => {
+    if (!authClient) return
+
+    const management = createManagmentActor(authClient.getIdentity())
+
+    return management
+  }, [authClient])
 
   useEffect(() => {
     if (authClient == null) {
@@ -79,7 +88,8 @@ const useAuth = () => {
     isAuthenticating,
     login,
     logout,
-    systemActor
+    systemActor,
+    getManagmentActor
   }
 }
 

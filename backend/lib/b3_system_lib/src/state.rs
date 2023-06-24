@@ -1,6 +1,6 @@
 use crate::{
     error::SystemError,
-    types::{Controllers, State, WalletCanister, WalletCanisters},
+    types::{Canisters, Controllers, State, UserState, UserStates},
     types::{Release, Users},
 };
 use b3_helper_lib::{
@@ -14,44 +14,40 @@ use ic_cdk::api::management_canister::main::CanisterInstallMode;
 
 impl State {
     // user
-    pub fn init_user(&mut self, user: SignerId) -> Result<WalletCanister, SystemError> {
+    pub fn init_user(&mut self, user: SignerId) -> Result<UserState, SystemError> {
         let canister = self.users.get(&user);
 
         if canister.is_some() {
             return Err(SystemError::UserAlreadyExists);
         }
 
-        let wallet_canister = WalletCanister::new();
+        let user_state = UserState::new(None);
 
-        self.users.insert(user, wallet_canister.clone());
+        self.users.insert(user, user_state.clone());
 
-        Ok(wallet_canister)
+        Ok(user_state)
     }
 
     pub fn get_or_init_user(
         &mut self,
         user: SignerId,
         opt_canister_id: Option<CanisterId>,
-    ) -> Result<WalletCanister, SystemError> {
+    ) -> Result<UserState, SystemError> {
         if let Some(canister) = self.users.get_mut(&user) {
             return canister
                 .get_with_update_rate()
                 .map_err(|e| SystemError::WalletCanisterRateError(e.to_string()));
         }
 
-        let wallet_canister = if let Some(canister_id) = opt_canister_id {
-            WalletCanister::from(canister_id)
-        } else {
-            WalletCanister::new()
-        };
+        let user_state = UserState::new(opt_canister_id);
 
-        self.users.insert(user, wallet_canister.clone());
+        self.users.insert(user, user_state.clone());
 
-        Ok(wallet_canister)
+        Ok(user_state)
     }
 
-    pub fn add_user(&mut self, user: SignerId, wallet_canister: WalletCanister) {
-        self.users.insert(user, wallet_canister);
+    pub fn add_user(&mut self, user: SignerId, user_state: UserState) {
+        self.users.insert(user, user_state);
     }
 
     pub fn remove_user(&mut self, user: &SignerId) {
@@ -62,7 +58,22 @@ impl State {
         self.users.keys().cloned().collect()
     }
 
-    pub fn wallet_canisters(&self) -> WalletCanisters {
+    pub fn wallet_canisters(&self) -> Canisters {
+        self.users
+            .values()
+            .filter_map(|u| u.canister_ids().ok())
+            .flatten()
+            .collect()
+    }
+
+    pub fn user_state(&self, user_id: SignerId) -> Result<UserState, SystemError> {
+        self.users
+            .get(&user_id)
+            .cloned()
+            .ok_or(SystemError::UserNotFound)
+    }
+
+    pub fn user_states(&self) -> UserStates {
         self.users.values().cloned().collect()
     }
 

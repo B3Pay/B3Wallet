@@ -18,9 +18,9 @@ import useAuthClient from "../hooks/useAuthClient"
 import {
   B3BasicWallet,
   B3Wallet,
-  makeB3BasicWalletActor,
-  makeB3WalletActor
-} from "../service/actor"
+  createB3BasicWalletActor,
+  createB3WalletActor
+} from "../service/"
 
 function HomePage() {
   const {
@@ -29,10 +29,12 @@ function HomePage() {
     authClient,
     login,
     logout,
-    systemActor
+    systemActor,
+    getManagmentActor
   } = useAuthClient()
 
   const [loading, setLoading] = useState(false)
+
   const [walletCanisterId, setWalletCanisterId] = useState<string>("")
   const [walletActor, setWalletActor] = useState<B3Wallet | B3BasicWallet>()
   const [walletName, setWalletName] = useState<string>("")
@@ -44,7 +46,10 @@ function HomePage() {
       if (!authClient || !canisterId) return
       setWalletCanisterId(canisterId)
 
-      const userActor = makeB3WalletActor(canisterId, authClient.getIdentity())
+      const userActor = createB3WalletActor(
+        canisterId,
+        authClient.getIdentity()
+      )
 
       console.log("fetching user actor")
       setLoading(true)
@@ -54,7 +59,7 @@ function HomePage() {
         .then(async name => {
           console.log("user actor name", name)
           if (name === "b3_basic_wallet") {
-            const basicWallet = await makeB3BasicWalletActor(
+            const basicWallet = createB3BasicWalletActor(
               canisterId,
               authClient.getIdentity()
             )
@@ -86,7 +91,7 @@ function HomePage() {
       <Head>
         <title>B3Wallet</title>
       </Head>
-      <Header />
+      <Header getManagmentActor={getManagmentActor} systemActor={systemActor} />
       <Stack as="main" minH="100px" position="relative" justify="space-between">
         {isAuthenticating && <Loading title="Authenticating" />}
         {loading && <Loading title="Loading Wallet" />}

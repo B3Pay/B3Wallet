@@ -6,7 +6,7 @@ import {
 } from "@chakra-ui/icons"
 import { Box, IconButton, Stack, StackProps } from "@chakra-ui/react"
 import { Mode } from "."
-import { B3BasicWallet, B3Wallet } from "../../service/actor"
+import { B3BasicWallet, B3Wallet } from "../../service"
 import Address from "./Address"
 import ConfirmationModal from "./ConfirmModal"
 

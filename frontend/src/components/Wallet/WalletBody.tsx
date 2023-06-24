@@ -13,7 +13,7 @@ import {
   WalletSettingsAndSigners
 } from "../../../declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "../../hooks/useToastMessage"
-import { B3BasicWallet, B3System, B3Wallet } from "../../service/actor"
+import { B3BasicWallet, B3System, B3Wallet } from "../../service"
 import Account from "./Account"
 import CreateAccount from "./Account/CreateAccount"
 import ProcessedList from "./ProcessedList"

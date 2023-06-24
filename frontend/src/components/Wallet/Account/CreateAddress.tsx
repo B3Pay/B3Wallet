@@ -4,7 +4,7 @@ import { IS_LOCAL } from "helpers/config"
 import { ChainSymbol, handleChainType } from "helpers/utiles"
 import useToastMessage from "hooks/useToastMessage"
 import { useState } from "react"
-import { B3BasicWallet, B3Wallet } from "service/actor"
+import { B3BasicWallet, B3Wallet } from "service"
 
 const chains: ChainSymbol[] = ["BTC", "CKBTC", "EVM", "ICRC", "ICP"]
 const btcNetworks = IS_LOCAL

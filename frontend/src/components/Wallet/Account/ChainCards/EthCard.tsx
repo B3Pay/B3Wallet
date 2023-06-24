@@ -14,7 +14,7 @@ import { ChainEnum } from "declarations/b3_wallet/b3_wallet.did"
 import { ethers, providers } from "ethers"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useEffect, useState } from "react"
-import { B3BasicWallet, B3Wallet } from "service/actor"
+import { B3BasicWallet, B3Wallet } from "service"
 import { AddressesWithChain } from "."
 import TransferForm from "../TransferForm"
 

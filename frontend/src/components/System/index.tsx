@@ -25,7 +25,7 @@ import Address from "components/Wallet/Address"
 import { Release, ReleaseName } from "declarations/b3_system/b3_system.did"
 import { B3_SYSTEM_CANISTER_ID, IS_LOCAL } from "helpers/config"
 import { useCallback, useEffect, useState } from "react"
-import { B3System } from "../../service/actor"
+import { B3System } from "../../service"
 import Disclaimer from "../Disclaimer"
 import Error from "../Error"
 import Loading from "../Loading"
@@ -296,7 +296,7 @@ const System: React.FC<SystemProps> = ({
                     </ListItem>
                     <ListItem>
                       Click on the button below to install the wallet canister
-                      on your
+                      on your canister.
                     </ListItem>
                   </UnorderedList>
                   <InputGroup>

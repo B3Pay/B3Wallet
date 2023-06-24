@@ -21,11 +21,9 @@ function initCanisterIds() {
   }
 
   const network =
-    process.env.DFX_NETWORK ||
-    (process.env.NODE_ENV === "production" ? "ic" : "local")
+    process.env.DFX_NETWORK || process.env.NEXT_PUBLIC_DFX_NETWORK || "local"
 
   console.info(`initCanisterIds: network=${network}`)
-  console.info(`initCanisterIds: DFX_NETWORK=${process.env.DFX_NETWORK}`)
 
   canisters = network === "local" ? localCanisters : prodCanisters
 

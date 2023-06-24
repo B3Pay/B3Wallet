@@ -202,7 +202,7 @@
       "type": "assets"
     },
     "wallet_assets": {
-      "build": "yarn build",
+      "build": "yarn build:local",
       "frontend": {
         "entrypoint": "out/index.html"
       },

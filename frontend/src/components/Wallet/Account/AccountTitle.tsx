@@ -20,7 +20,7 @@ import {
 } from "@chakra-ui/react"
 import { Environment } from "declarations/b3_wallet/b3_wallet.did"
 import React, { useState } from "react"
-import { B3BasicWallet, B3Wallet } from "service/actor"
+import { B3BasicWallet, B3Wallet } from "service"
 import { Loadings } from "."
 
 interface AccountTitleProps {

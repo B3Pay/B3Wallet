@@ -5,7 +5,8 @@ use b3_helper_lib::{
 
 use crate::{
     error::SystemError,
-    types::{Release, ReleaseMap, Releases, State, UserMap, WalletCanister, WasmMap},
+    types::{Release, ReleaseMap, Releases, State, UserMap, UserState, WasmMap},
+    wallet::WalletCanister,
 };
 use std::{cell::RefCell, str::FromStr};
 
@@ -164,9 +165,9 @@ where
     with_state_mut(|state| f(&mut state.users))
 }
 
-pub fn with_wallet_canister<F, T>(user_id: &SignerId, f: F) -> Result<T, SystemError>
+pub fn with_user_state<F, T>(user_id: &SignerId, f: F) -> Result<T, SystemError>
 where
-    F: FnOnce(&WalletCanister) -> T,
+    F: FnOnce(&UserState) -> T,
 {
     with_users(|signers| {
         signers
@@ -176,9 +177,9 @@ where
     })
 }
 
-pub fn with_wallet_canister_mut<F, T>(user_id: &SignerId, f: F) -> Result<T, SystemError>
+pub fn with_user_state_mut<F, T>(user_id: &SignerId, f: F) -> Result<T, SystemError>
 where
-    F: FnOnce(&mut WalletCanister) -> T,
+    F: FnOnce(&mut UserState) -> T,
 {
     with_users_mut(|signers| {
         signers
@@ -186,6 +187,36 @@ where
             .ok_or(SystemError::WalletCanisterNotFound)
             .map(f)
     })
+}
+
+pub fn with_wallet_canister<F, T>(user_id: &SignerId, index: usize, f: F) -> Result<T, SystemError>
+where
+    F: FnOnce(&WalletCanister) -> T,
+{
+    with_user_state(user_id, |state| {
+        state
+            .canisters
+            .get(index)
+            .ok_or(SystemError::WalletCanisterNotFound)
+            .map(f)
+    })?
+}
+
+pub fn with_wallet_canister_mut<F, T>(
+    user_id: &SignerId,
+    index: usize,
+    f: F,
+) -> Result<T, SystemError>
+where
+    F: FnOnce(&mut WalletCanister) -> T,
+{
+    with_user_state_mut(user_id, |state| {
+        state
+            .canisters
+            .get_mut(index)
+            .ok_or(SystemError::WalletCanisterNotFound)
+            .map(f)
+    })?
 }
 
 // WASM
