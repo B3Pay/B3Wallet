@@ -183,8 +183,10 @@ const System: React.FC<SystemProps> = ({
           return console.log(userControl.Err)
         }
 
-        setCanisterId(userControl.Ok.canisters[0].toString())
-        fetchUserActor(userControl.Ok.canisters[0].toString())
+        const canisterId = userControl.Ok.canisters[0].toString()
+
+        setCanisterId(canisterId)
+        fetchUserActor(canisterId)
         setLoading(false)
       })
       .catch(e => {

@@ -1,5 +1,16 @@
 {
   "canisters": {
+    "b3_basic_wallet": {
+      "build": "scripts/b3_basic_wallet.sh",
+      "candid": "backend/b3_basic_wallet/b3_basic_wallet.did",
+      "declarations": {
+        "node_compatibility": true,
+        "output": "frontend/declarations/b3_basic_wallet"
+      },
+      "package": "b3_basic_wallet",
+      "type": "custom",
+      "wasm": "wasm/b3_basic_wallet/b3_basic_wallet.wasm"
+    },
     "b3_payment": {
       "build": "scripts/b3_payment.sh",
       "candid": "backend/b3_payment/b3_payment.did",
@@ -31,25 +42,8 @@
       "type": "custom",
       "wasm": "wasm/b3_wallet/b3_wallet.wasm"
     },
-    "b3_basic_wallet": {
-      "build": "scripts/b3_basic_wallet.sh",
-      "candid": "backend/b3_basic_wallet/b3_basic_wallet.did",
-      "declarations": {
-        "node_compatibility": true,
-        "output": "frontend/declarations/b3_basic_wallet"
-      },
-      "package": "b3_basic_wallet",
-      "type": "custom",
-      "wasm": "wasm/b3_basic_wallet/b3_basic_wallet.wasm"
-    },
-    "kyt": {
-      "build": "",
-      "candid": "wasm/kyt/kyt.did",
-      "type": "custom",
-      "wasm": "wasm/kyt/kyt.wasm"
-    },
     "ckbtc": {
-      "build": "",
+      "build": "scripts/ckbtc.sh",
       "candid": "wasm/ckbtc/ledger.did",
       "declarations": {
         "node_compatibility": true
@@ -63,17 +57,34 @@
       "type": "custom",
       "wasm": "wasm/ckbtc/ledger.wasm"
     },
-    "minter": {
-      "build": "",
-      "candid": "wasm/minter/minter.did",
-      "type": "custom",
-      "wasm": "wasm/minter/minter.wasm"
-    },
     "index": {
-      "build": "",
+      "build": "scripts/index.sh",
       "candid": "wasm/index/index.did",
       "type": "custom",
       "wasm": "wasm/index/index.wasm"
+    },
+    "internet_identity": {
+      "build": "",
+      "candid": "candid/internet_identity.did",
+      "remote": {
+        "id": {
+          "local": "qhbym-qaaaa-aaaaa-aaafq-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": ""
+    },
+    "kyt": {
+      "build": "scripts/kyt.sh",
+      "candid": "wasm/kyt/kyt.did",
+      "type": "custom",
+      "wasm": "wasm/kyt/kyt.wasm"
+    },
+    "minter": {
+      "build": "scripts/minter.sh",
+      "candid": "wasm/minter/minter.did",
+      "type": "custom",
+      "wasm": "wasm/minter/minter.wasm"
     },
     "nns-cycles-minting": {
       "build": "",
@@ -182,20 +193,20 @@
       "type": "custom",
       "wasm": ""
     },
-    "wallet_assets": {
-      "build": "yarn build",
-      "frontend": {
-        "entrypoint": "out/index.html"
-      },
-      "source": ["frontend/out"],
-      "type": "assets"
-    },
     "payment_assets": {
       "build": "yarn build:payment",
       "frontend": {
         "entrypoint": "out/index.html"
       },
       "source": ["payment/out"],
+      "type": "assets"
+    },
+    "wallet_assets": {
+      "build": "yarn build",
+      "frontend": {
+        "entrypoint": "out/index.html"
+      },
+      "source": ["frontend/out"],
       "type": "assets"
     }
   },
