@@ -1,10 +1,10 @@
 export const idlFactory = ({ IDL }) => {
-  const WalletCanister = IDL.Record({
+  const UserState = IDL.Record({
     'updated_at' : IDL.Nat64,
     'created_at' : IDL.Nat64,
     'canisters' : IDL.Vec(IDL.Principal),
   });
-  const Result = IDL.Variant({ 'Ok' : WalletCanister, 'Err' : IDL.Text });
+  const Result = IDL.Variant({ 'Ok' : UserState, 'Err' : IDL.Text });
   const Release = IDL.Record({
     'features' : IDL.Opt(IDL.Vec(IDL.Text)),
     'date' : IDL.Nat64,
@@ -60,16 +60,16 @@ export const idlFactory = ({ IDL }) => {
   return IDL.Service({
     'add_controller' : IDL.Func([IDL.Principal], [], []),
     'add_wallet_canister' : IDL.Func([IDL.Principal], [], []),
-    'change_wallet_canister' : IDL.Func([IDL.Principal], [], []),
+    'change_wallet_canister' : IDL.Func([IDL.Principal, IDL.Nat64], [], []),
     'create_wallet_canister' : IDL.Func([IDL.Text], [Result], []),
     'deprecate_release' : IDL.Func([IDL.Text, IDL.Text], [], []),
-    'get_canister' : IDL.Func([], [WalletCanister], ['query']),
-    'get_canister_version' : IDL.Func([IDL.Principal], [IDL.Text], ['query']),
+    'get_canister_version' : IDL.Func([IDL.Principal], [IDL.Text], []),
     'get_canister_version_by_user' : IDL.Func(
-        [IDL.Principal],
+        [IDL.Principal, IDL.Nat64],
         [IDL.Text],
-        ['query'],
+        [],
       ),
+    'get_canisters' : IDL.Func([], [IDL.Vec(IDL.Principal)], ['query']),
     'get_controllers' : IDL.Func([], [IDL.Vec(IDL.Principal)], ['query']),
     'get_release' : IDL.Func([IDL.Text, IDL.Text], [Release], ['query']),
     'get_release_by_hash_string' : IDL.Func(
@@ -82,10 +82,11 @@ export const idlFactory = ({ IDL }) => {
         [Release],
         ['query'],
       ),
+    'get_states' : IDL.Func([], [UserState], ['query']),
     'get_user_ids' : IDL.Func([], [IDL.Vec(IDL.Principal)], ['query']),
-    'get_wallet_canisters' : IDL.Func([], [IDL.Vec(WalletCanister)], ['query']),
+    'get_user_states' : IDL.Func([], [IDL.Vec(UserState)], ['query']),
     'install_wallet_canister' : IDL.Func(
-        [IDL.Text, IDL.Opt(IDL.Principal)],
+        [IDL.Text, IDL.Principal],
         [Result],
         [],
       ),

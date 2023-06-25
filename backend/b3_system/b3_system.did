@@ -35,7 +35,7 @@ type ReleaseName = variant {
   b3_multi_sig_wallet;
   b3_basic_wallet;
 };
-type Result = variant { Ok : WalletCanister; Err : text };
+type Result = variant { Ok : UserState; Err : text };
 type SystemCanisterStatus = record {
   canister_id : principal;
   user_status : nat64;
@@ -43,7 +43,7 @@ type SystemCanisterStatus = record {
   version : text;
   canister_status : CanisterStatusResponse;
 };
-type WalletCanister = record {
+type UserState = record {
   updated_at : nat64;
   created_at : nat64;
   canisters : vec principal;
@@ -51,19 +51,20 @@ type WalletCanister = record {
 service : () -> {
   add_controller : (principal) -> ();
   add_wallet_canister : (principal) -> ();
-  change_wallet_canister : (principal) -> ();
+  change_wallet_canister : (principal, nat64) -> ();
   create_wallet_canister : (text) -> (Result);
   deprecate_release : (text, text) -> ();
-  get_canister : () -> (WalletCanister) query;
   get_canister_version : (principal) -> (text);
-  get_canister_version_by_user : (principal) -> (text);
+  get_canister_version_by_user : (principal, nat64) -> (text);
+  get_canisters : () -> (vec principal) query;
   get_controllers : () -> (vec principal) query;
   get_release : (text, text) -> (Release) query;
   get_release_by_hash_string : (text, vec nat8) -> (Release) query;
   get_release_by_index : (text, nat64) -> (Release) query;
+  get_states : () -> (UserState) query;
   get_user_ids : () -> (vec principal) query;
-  get_wallet_canisters : () -> (vec WalletCanister) query;
-  install_wallet_canister : (text, opt principal) -> (Result);
+  get_user_states : () -> (vec UserState) query;
+  install_wallet_canister : (text, principal) -> (Result);
   latest_release : (text) -> (Release) query;
   load_release : (text, vec nat8, ReleaseArgs) -> (LoadRelease);
   release_map : () -> (vec record { ReleaseName; vec Release }) query;

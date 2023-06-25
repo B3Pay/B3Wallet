@@ -29,7 +29,7 @@ import Loading from "components/Loading"
 import { AddSigner, Roles, Signer } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useState } from "react"
-import { B3Wallet } from "service/actor"
+import { B3Wallet } from "service"
 import Address from "../Address"
 
 export type SignerMap = Array<[Principal, Signer]>

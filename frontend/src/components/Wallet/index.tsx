@@ -6,7 +6,7 @@ import {
 } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useEffect, useState } from "react"
-import { B3BasicWallet, B3System, B3Wallet } from "service/actor"
+import { B3BasicWallet, B3System, B3Wallet } from "service"
 import Loading from "../Loading"
 import InitialSetup from "./InitialSetup"
 import WalletBody from "./WalletBody"
@@ -99,8 +99,8 @@ const Wallet: React.FC<WalletProps> = ({
   }
 
   useEffect(() => {
-    fetchSettingsAndSigners()
-    fetchAccounts()
+    console.log("wallet canister id", walletCanisterId)
+    refreshWallet()
   }, [])
 
   return (

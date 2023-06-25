@@ -14,7 +14,7 @@ import { Release } from "declarations/b3_system/b3_system.did"
 import useLoadRelease from "hooks/useLoadRelease"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useEffect, useState } from "react"
-import { B3BasicWallet, B3System, B3Wallet } from "service/actor"
+import { B3BasicWallet, B3System, B3Wallet } from "service"
 import Error from "../../Error"
 import Address from "../Address"
 
@@ -211,6 +211,8 @@ const Wasm: React.FC<WasmProps> = ({
           duration: 5000,
           isClosable: true
         })
+
+        setCurrentVersion(version)
         refreshWallet()
       } else {
         errorToast({

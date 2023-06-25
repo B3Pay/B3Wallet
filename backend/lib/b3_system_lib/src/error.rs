@@ -5,6 +5,7 @@ use ic_cdk::export::candid::{CandidType, Deserialize};
 #[derive(CandidType, Deserialize)]
 pub enum SystemError {
     HelperError(HelperError),
+    InvalidSigner,
     ValidateSignerError(String),
     UpdateCanisterControllersError(String),
     VersionError(String),
@@ -35,6 +36,7 @@ pub enum SystemError {
     WalletCanisterAlreadyExists(String),
     CreateCanisterError(String),
     CanisterStatusError(String),
+    CanisterIdNotFound,
 }
 
 use std::fmt;
@@ -44,6 +46,7 @@ impl fmt::Display for SystemError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             SystemError::HelperError(e) => write!(f, "{}", e),
+            SystemError::InvalidSigner => write!(f, "Invalid signer!"),
             SystemError::ValidateSignerError(e) => write!(f, "Validate signer error: {}", e),
             SystemError::UpdateCanisterControllersError(e) => write!(f, "Update canister controllers error: {}", e),
             SystemError::VersionError(e) => write!(f, "Version error: {}", e),
@@ -66,9 +69,10 @@ impl fmt::Display for SystemError {
             SystemError::WasmGetError(e) => write!(f, "Wasm get error: {}", e),
             SystemError::WasmHashError(e) => write!(f, "Wasm hash error: {}", e),
             SystemError::EncodeError(e) => write!(f, "Encode error: {}", e),
-            SystemError::CreateCanisterError(e) => write!(f, "Create canister error: {}", e),
             SystemError::InstallCodeError(e) => write!(f, "Install code error: {}", e),
+            SystemError::CreateCanisterError(e) => write!(f, "Create canister error: {}", e),
             SystemError::CanisterStatusError(e) => write!(f, "Wallet status error: {}", e),
+            SystemError::CanisterIdNotFound => write!(f, "Canister id not found!"),
             SystemError::WalletCanisterRateError(e) => write!(f, "Wallet canister rate error: {}", e),
             SystemError::WalletCanisterNotFound => write!(f, "Wallet Canister id not found!"),
             SystemError::WalletCanisterDoesNotExist(e) => write!(f, "Wallet does not exist: {}", e),

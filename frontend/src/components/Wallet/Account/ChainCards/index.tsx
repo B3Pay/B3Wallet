@@ -11,7 +11,7 @@ import {
 import { ChainNetwork, ChainSymbol, extractConfirmations } from "helpers/utiles"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useState } from "react"
-import { B3BasicWallet, B3Wallet } from "service/actor"
+import { B3BasicWallet, B3Wallet } from "service"
 import CreateAddress from "../CreateAddress"
 import BtcCard from "./BtcCard"
 import CkbtcCard from "./CkbtcCard"

@@ -32,7 +32,8 @@ function initCanisterIds() {
   const envList = {
     DFX_NETWORK: network,
     NEXT_PUBLIC_IC_HOST:
-      network === "ic" ? "https://ic0.app" : "http://localhost:8080"
+      network === "ic" ? "https://ic0.app" : "http://localhost:8080",
+    NEXT_PUBLIC_VERSION: require("./package.json").version
   }
 
   for (const canister in canisters) {

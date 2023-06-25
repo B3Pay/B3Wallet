@@ -1,5 +1,5 @@
 import { ReleaseArgs } from "../frontend/declarations/b3_system/b3_system.did"
-import { B3System } from "../frontend/src/service/actor"
+import { B3System } from "../frontend/src/service"
 import { systemActorIC, systemLocalActor } from "./actor"
 import { chunkGenerator, loadWasm, readVersion } from "./utils"
 

@@ -20,7 +20,7 @@ import Loading from "components/Loading"
 import useToastMessage from "hooks/useToastMessage"
 import { useState } from "react"
 import { PendingRequest } from "../../../declarations/b3_wallet/b3_wallet.did"
-import { B3Wallet } from "../../service/actor"
+import { B3Wallet } from "../../service"
 import RequestItem from "./RequestItem"
 
 interface ConfirmationModalProps {

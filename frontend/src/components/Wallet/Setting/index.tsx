@@ -1,7 +1,7 @@
 import { Stack, Text } from "@chakra-ui/react"
 import { AuthClient } from "@dfinity/auth-client"
 import { WalletSettings } from "declarations/b3_wallet/b3_wallet.did"
-import { B3BasicWallet, B3System, B3Wallet } from "service/actor"
+import { B3BasicWallet, B3System, B3Wallet } from "service"
 import Address from "../Address"
 import Controllers from "./Controllers"
 import Cycles from "./Cycles"

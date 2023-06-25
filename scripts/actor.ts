@@ -3,7 +3,7 @@ import { Principal } from "@dfinity/principal"
 import { readFileSync } from "fs"
 import { idlFactory as systemFactory } from "../frontend/declarations/b3_system"
 import { idlFactory as userFactory } from "../frontend/declarations/b3_wallet"
-import { B3System, B3Wallet } from "../frontend/src/service/actor"
+import { B3System, B3Wallet } from "../frontend/src/service"
 import { initIdentity } from "./utils"
 
 const systemPrincipalIC = () => {

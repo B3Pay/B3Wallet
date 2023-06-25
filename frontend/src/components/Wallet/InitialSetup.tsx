@@ -6,7 +6,7 @@ import {
 } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useState } from "react"
-import { B3BasicWallet, B3Wallet } from "service/actor"
+import { B3BasicWallet, B3Wallet } from "service"
 import Address from "./Address"
 import Controllers, { ControllerMap } from "./Setting/Controllers"
 import Signers from "./Setting/Signers"

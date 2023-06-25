@@ -28,7 +28,7 @@ import Loading from "components/Loading"
 import { Controller } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useEffect, useState } from "react"
-import { B3BasicWallet, B3Wallet } from "service/actor"
+import { B3BasicWallet, B3Wallet } from "service"
 import Address from "../Address"
 
 export type ControllerMap = Array<[Principal, Controller]>

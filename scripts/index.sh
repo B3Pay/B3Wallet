@@ -13,5 +13,9 @@ curl -o wasm/index/index.wasm.gz "https://download.dfinity.systems/ic/$IC_VERSIO
 gunzip -f wasm/index/index.wasm.gz
 curl -o wasm/index/index.did "https://raw.githubusercontent.com/dfinity/ic/$IC_VERSION/rs/rosetta-api/icrc1/index/index.did"
 
+if [ "$1" = "--no-deploy" ]; then
+  exit 0
+fi
+
 # Deploy index
 dfx deploy index --specified-id "$INDEX_ID" --argument "(record { ledger_id = principal \"$CKBTC_ID\" })"

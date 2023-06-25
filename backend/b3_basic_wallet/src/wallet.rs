@@ -1,7 +1,7 @@
-use b3_helper_lib::owner::caller_is_owner;
+use b3_helper_lib::owner::{caller_is_owner, with_owner};
 use b3_helper_lib::revert;
 use b3_helper_lib::time::NanoTimeStamp;
-use b3_helper_lib::types::InititializeWalletArgs;
+use b3_helper_lib::types::{InititializeWalletArgs, SignerId};
 use b3_helper_lib::wasm::with_wasm;
 use b3_helper_lib::{ic_canister_status, types::WalletCanisterStatus};
 use b3_wallet_lib::error::WalletError;
@@ -80,6 +80,12 @@ pub async fn status() -> WalletCanisterStatus {
         canister_status,
         account_status,
     }
+}
+
+#[query]
+#[candid_method(query)]
+pub fn validate_signer(signer_id: SignerId) -> bool {
+    with_owner(|o| o.eq(&signer_id))
 }
 
 #[query]

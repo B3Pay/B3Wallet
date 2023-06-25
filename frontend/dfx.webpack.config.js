@@ -21,18 +21,17 @@ function initCanisterIds() {
   }
 
   const network =
-    process.env.DFX_NETWORK ||
-    (process.env.NODE_ENV === "production" ? "ic" : "local")
+    process.env.DFX_NETWORK || process.env.NEXT_PUBLIC_DFX_NETWORK || "local"
 
   console.info(`initCanisterIds: network=${network}`)
-  console.info(`initCanisterIds: DFX_NETWORK=${process.env.DFX_NETWORK}`)
 
   canisters = network === "local" ? localCanisters : prodCanisters
 
   const envList = {
     DFX_NETWORK: network,
     NEXT_PUBLIC_IC_HOST:
-      network === "ic" ? "https://ic0.app" : "http://localhost:8080"
+      network === "ic" ? "https://ic0.app" : "http://localhost:8080",
+    NEXT_PUBLIC_VERSION: require("./package.json").version
   }
 
   for (const canister in canisters) {

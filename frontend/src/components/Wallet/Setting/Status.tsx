@@ -15,7 +15,7 @@ import {
 import { WalletCanisterStatus } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useState } from "react"
-import { B3BasicWallet, B3Wallet } from "service/actor"
+import { B3BasicWallet, B3Wallet } from "service"
 import Recursive from "../../Recursive"
 
 interface ResponseProps {

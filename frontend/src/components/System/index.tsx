@@ -25,7 +25,7 @@ import Address from "components/Wallet/Address"
 import { Release, ReleaseName } from "declarations/b3_system/b3_system.did"
 import { B3_SYSTEM_CANISTER_ID, IS_LOCAL } from "helpers/config"
 import { useCallback, useEffect, useState } from "react"
-import { B3System } from "../../service/actor"
+import { B3System } from "../../service"
 import Disclaimer from "../Disclaimer"
 import Error from "../Error"
 import Loading from "../Loading"
@@ -60,6 +60,7 @@ const System: React.FC<SystemProps> = ({
     systemActor
       .release_map()
       .then(releases => {
+        console.log(releases)
         setReleaseMap(releases)
 
         setLoading(false)
@@ -70,8 +71,8 @@ const System: React.FC<SystemProps> = ({
       })
 
     systemActor
-      .get_canister()
-      .then(({ canisters }) => {
+      .get_canisters()
+      .then(canisters => {
         console.log(canisters[0])
         const walletCanisterId = canisters[0].toString()
 
@@ -86,9 +87,13 @@ const System: React.FC<SystemProps> = ({
   }, [systemActor, fetchUserActor])
 
   useEffect(() => {
-    setLoading(true)
+    const localWalletCanisterId = localStorage.getItem("walletCanisterId")
 
-    fetchCanisterId()
+    if (localWalletCanisterId) {
+      fetchUserActor(localWalletCanisterId)
+    } else {
+      fetchCanisterId()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -113,7 +118,7 @@ const System: React.FC<SystemProps> = ({
       }
 
       systemActor
-        .install_wallet_canister(selectedWallet, [canisterPrincipal])
+        .install_wallet_canister(selectedWallet, canisterPrincipal)
         .then(async userControl => {
           if ("Err" in userControl) {
             setLoading(false)
@@ -296,7 +301,7 @@ const System: React.FC<SystemProps> = ({
                     </ListItem>
                     <ListItem>
                       Click on the button below to install the wallet canister
-                      on your
+                      on your canister.
                     </ListItem>
                   </UnorderedList>
                   <InputGroup>
