@@ -31,8 +31,8 @@
     "payment:ic:dev": "DFX_NETWORK=ic cd payment && yarn ic:dev",
     "ic:dev": "DFX_NETWORK=ic cd frontend && yarn ic:dev",
     "dev": "DFX_NETWORK=local cd frontend && yarn dev",
-    "build": "",
-    "build:ic": "cd frontend && yarn build:local",
+    "build": "yarn build:ic",
+    "build:ic": "cd frontend && yarn build",
     "build:local": "cd frontend && yarn build:local",
     "build:payment": "cd payment && yarn build"
   },

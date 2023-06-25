@@ -211,6 +211,8 @@ const Wasm: React.FC<WasmProps> = ({
           duration: 5000,
           isClosable: true
         })
+
+        setCurrentVersion(version)
         refreshWallet()
       } else {
         errorToast({

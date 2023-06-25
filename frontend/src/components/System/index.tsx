@@ -87,8 +87,6 @@ const System: React.FC<SystemProps> = ({
   }, [systemActor, fetchUserActor])
 
   useEffect(() => {
-    setLoading(true)
-
     const localWalletCanisterId = localStorage.getItem("walletCanisterId")
 
     if (localWalletCanisterId) {

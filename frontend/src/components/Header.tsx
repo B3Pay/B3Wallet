@@ -34,15 +34,10 @@ type CanisterStatuses = {
 
 interface HeaderProps {
   getManagmentActor: () => Promise<any>
-  fetchUserActor: (id: string) => void
   systemActor?: B3System
 }
 
-const Header: React.FC<HeaderProps> = ({
-  getManagmentActor,
-  fetchUserActor,
-  systemActor
-}) => {
+const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
   const [error, setError] = useState("")
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -60,6 +55,7 @@ const Header: React.FC<HeaderProps> = ({
   const errorToast = useToastMessage()
 
   const fetchCanisterIds = useCallback(async () => {
+    setError(undefined)
     if (!systemActor) return
 
     setLoading(true)
@@ -90,6 +86,7 @@ const Header: React.FC<HeaderProps> = ({
   }, [fetchCanisterIds, getManagmentActor])
 
   const fetchHandler = async (principal: string) => {
+    setError(undefined)
     if (!managementActor) return
 
     let canister_id: Principal
@@ -114,6 +111,7 @@ const Header: React.FC<HeaderProps> = ({
         .then(status => setStatuses(prev => ({ ...prev, [principal]: status })))
 
       setControllers(controllers)
+      setLoading(false)
     } catch (e) {
       console.log(e)
     } finally {
@@ -195,34 +193,64 @@ const Header: React.FC<HeaderProps> = ({
                 <FormLabel>Add Wallet Canister</FormLabel>
                 <Stack direction="row">
                   <Input
+                    flex={10}
                     placeholder="Canister ID"
                     value={canisterIdInput}
                     onChange={e => setCanisterIdInput(e.target.value)}
                   />
-                  <Button onClick={() => addCanister(canisterIdInput)}>
+                  <Button
+                    flex={1}
+                    onClick={() => {
+                      setCanisterIds(prev => [
+                        Principal.fromText(canisterIdInput),
+                        ...prev
+                      ])
+                    }}
+                  >
+                    Link
+                  </Button>
+                  <Button
+                    colorScheme="blue"
+                    flex={1}
+                    onClick={() => addCanister(canisterIdInput)}
+                  >
                     Add
                   </Button>
                 </Stack>
               </FormControl>
               <FormControl id="walletName">
                 <FormLabel>Your Wallet Canisters</FormLabel>
-                <Select
-                  placeholder="Select wallet"
-                  onChange={e => setSelectedCanisterId(e.target.value)}
-                  value={selectedCanisterId?.toString()}
-                >
-                  {canisterIds.map(canisterId => (
-                    <option
-                      key={canisterId.toString()}
-                      value={canisterId.toString()}
-                    >
-                      {canisterId.toString()}
-                    </option>
-                  ))}
-                </Select>
+                <Stack direction="row">
+                  <Select
+                    flex={10}
+                    placeholder="Select wallet"
+                    onChange={e => setSelectedCanisterId(e.target.value)}
+                    value={selectedCanisterId?.toString()}
+                  >
+                    {canisterIds.map(canisterId => (
+                      <option
+                        key={canisterId.toString()}
+                        value={canisterId.toString()}
+                      >
+                        {canisterId.toString()}
+                      </option>
+                    ))}
+                  </Select>
+                  <Button
+                    colorScheme="orange"
+                    flex={2}
+                    onClick={fetchCanisterIds}
+                  >
+                    Reset
+                  </Button>
+                </Stack>
               </FormControl>
-              <Button onClick={() => fetchHandler(selectedCanisterId)}>
-                Fetch
+              <Button
+                variant="outline"
+                colorScheme="blue"
+                onClick={() => fetchHandler(selectedCanisterId)}
+              >
+                Fetch Status
               </Button>
             </Stack>
             {statuses &&
@@ -250,7 +278,7 @@ const Header: React.FC<HeaderProps> = ({
           <ModalFooter justifyContent="space-between">
             <Button
               flex={10}
-              colorScheme="blue"
+              colorScheme="green"
               mr={3}
               onClick={() => {
                 onClose()
@@ -266,7 +294,7 @@ const Header: React.FC<HeaderProps> = ({
               colorScheme="red"
               onClick={onClose}
             >
-              Close
+              Cancel
             </Button>
           </ModalFooter>
         </ModalContent>

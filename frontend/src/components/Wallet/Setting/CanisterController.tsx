@@ -79,8 +79,6 @@ const CanisterControllers: React.FC<ControllersProps> = ({
   const edited =
     JSON.stringify(settings.controllers) !== JSON.stringify(controllers)
 
-  console.log(edited, settings.controllers, controllers)
-
   const handleUpdateController = async () => {
     setLoading(true)
 
