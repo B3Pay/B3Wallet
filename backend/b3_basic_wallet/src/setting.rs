@@ -1,11 +1,12 @@
-use b3_helper_lib::owner::caller_is_owner;
+use b3_helper_lib::owner::{caller_is_owner, with_owner_mut};
 use b3_helper_lib::revert;
-use b3_helper_lib::types::{Controller, ControllerId, ControllerMap, Metadata};
+use b3_helper_lib::types::{Controller, ControllerId, ControllerMap, Metadata, SignerId};
 use b3_wallet_lib::store::with_wallet_mut;
 use b3_wallet_lib::{
     setting::WalletSettings,
     store::{with_setting, with_setting_mut},
 };
+
 use ic_cdk::{export::candid::candid_method, query, update};
 
 #[candid_method(query)]
@@ -14,6 +15,12 @@ fn setting() -> WalletSettings {
     let settings = with_setting(|s| s.clone());
 
     settings
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_owner")]
+async fn change_owner(new_owner: SignerId) {
+    with_owner_mut(|o| *o = new_owner);
 }
 
 #[candid_method(update)]

@@ -60,6 +60,7 @@ const System: React.FC<SystemProps> = ({
     systemActor
       .release_map()
       .then(releases => {
+        console.log(releases)
         setReleaseMap(releases)
 
         setLoading(false)
@@ -70,8 +71,8 @@ const System: React.FC<SystemProps> = ({
       })
 
     systemActor
-      .get_canister()
-      .then(({ canisters }) => {
+      .get_canisters()
+      .then(canisters => {
         console.log(canisters[0])
         const walletCanisterId = canisters[0].toString()
 
@@ -88,7 +89,13 @@ const System: React.FC<SystemProps> = ({
   useEffect(() => {
     setLoading(true)
 
-    fetchCanisterId()
+    const localWalletCanisterId = localStorage.getItem("walletCanisterId")
+
+    if (localWalletCanisterId) {
+      fetchUserActor(localWalletCanisterId)
+    } else {
+      fetchCanisterId()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -113,7 +120,7 @@ const System: React.FC<SystemProps> = ({
       }
 
       systemActor
-        .install_wallet_canister(selectedWallet, [canisterPrincipal])
+        .install_wallet_canister(selectedWallet, canisterPrincipal)
         .then(async userControl => {
           if ("Err" in userControl) {
             setLoading(false)

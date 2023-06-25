@@ -91,7 +91,11 @@ function HomePage() {
       <Head>
         <title>B3Wallet</title>
       </Head>
-      <Header getManagmentActor={getManagmentActor} systemActor={systemActor} />
+      <Header
+        systemActor={systemActor}
+        fetchUserActor={fetchUserActor}
+        getManagmentActor={getManagmentActor}
+      />
       <Stack as="main" minH="100px" position="relative" justify="space-between">
         {isAuthenticating && <Loading title="Authenticating" />}
         {loading && <Loading title="Loading Wallet" />}

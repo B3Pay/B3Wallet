@@ -13,5 +13,9 @@ curl -o wasm/ckbtc/ledger.wasm.gz "https://download.dfinity.systems/ic/$IC_VERSI
 gunzip -f wasm/ckbtc/ledger.wasm.gz
 curl -o wasm/ckbtc/ledger.did "https://raw.githubusercontent.com/dfinity/ic/$IC_VERSION/rs/rosetta-api/icrc1/ledger/ledger.did"
 
+if [ "$1" = "--no-deploy" ]; then
+  exit 0
+fi
+
 # Deploy ckbtc
 dfx deploy ckbtc --specified-id "$CKBTC_ID" --argument="(variant { Init = record { minting_account = record { owner = principal \"$MINTER_ID\"}; transfer_fee = 0 : nat64; token_symbol = \""ckBTC"\"; token_name = \""ckBTC"\"; metadata = vec {}; initial_balances = vec {}; archive_options = record { num_blocks_to_archive = 0 : nat64; trigger_threshold = 0 : nat64; controller_id = principal \""aaaaa-aa"\"} } })"

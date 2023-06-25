@@ -1,5 +1,12 @@
 import { RepeatIcon } from "@chakra-ui/icons"
-import { CardHeader, IconButton, Progress, Stack, Text } from "@chakra-ui/react"
+import {
+  CardHeader,
+  IconButton,
+  Progress,
+  Stack,
+  StackProps,
+  Text
+} from "@chakra-ui/react"
 import { convertBigIntToNumber } from "helpers/utiles"
 import React, { useEffect, useMemo, useState } from "react"
 import { B3BasicWallet, B3Wallet } from "service"
@@ -7,15 +14,24 @@ import { B3BasicWallet, B3Wallet } from "service"
 const MILION_CYCLES = 1_000_000n
 const TERILION_CYCLES = 1_000_000_000_000n
 
-interface CyclesProps {
-  actor: B3Wallet | B3BasicWallet
+interface CyclesProps extends StackProps {
+  actor?: B3Wallet | B3BasicWallet
+  balance?: bigint
 }
 
-const Cycles: React.FC<CyclesProps> = ({ actor }) => {
+const Cycles: React.FC<CyclesProps> = ({
+  actor,
+  balance = BigInt(0),
+  ...rest
+}) => {
   const [balanceLoading, setBalanceLoading] = useState(false)
-  const [cycleBalance, setCycleBalance] = useState(BigInt(0))
+  const [cycleBalance, setCycleBalance] = useState(balance)
 
   const getBalance = async () => {
+    if (!actor) {
+      return
+    }
+
     setBalanceLoading(true)
     actor
       .canister_cycle_balance()
@@ -30,10 +46,6 @@ const Cycles: React.FC<CyclesProps> = ({ actor }) => {
   }
 
   useEffect(() => {
-    if (!actor) {
-      return
-    }
-
     getBalance()
   }, [])
 
@@ -61,30 +73,33 @@ const Cycles: React.FC<CyclesProps> = ({ actor }) => {
       percent
     }
   }, [cycleBalance])
+
   return (
     <Stack
       direction="column"
       borderWidth="1px"
       borderRadius="lg"
       overflow="hidden"
+      spacing={0}
+      {...rest}
     >
-      <CardHeader pb={2}>
+      <CardHeader m={4} p={0}>
         <Stack direction="row" justify="space-between" align="center">
-          <Text fontSize="md" fontWeight="bold">
-            Cycle Balance
-          </Text>
-          <Stack fontSize="sm" fontWeight="semibold">
+          <Text fontWeight="bold">Cycle Balance</Text>
+          <Stack fontWeight="semibold">
             {balanceLoading ? (
               <Text>Loading...</Text>
             ) : (
               <Stack direction="row" align="center">
                 <Text>{(cycleBalance / MILION_CYCLES).toLocaleString()} M</Text>
-                <IconButton
-                  aria-label="Refresh"
-                  icon={<RepeatIcon />}
-                  onClick={getBalance}
-                  size="xs"
-                />
+                {actor && (
+                  <IconButton
+                    aria-label="Refresh"
+                    icon={<RepeatIcon />}
+                    onClick={getBalance}
+                    size="xs"
+                  />
+                )}
               </Stack>
             )}
           </Stack>

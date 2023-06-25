@@ -43,7 +43,7 @@
       "wasm": "wasm/b3_wallet/b3_wallet.wasm"
     },
     "ckbtc": {
-      "build": "scripts/ckbtc.sh",
+      "build": "",
       "candid": "wasm/ckbtc/ledger.did",
       "declarations": {
         "node_compatibility": true
@@ -58,7 +58,7 @@
       "wasm": "wasm/ckbtc/ledger.wasm"
     },
     "index": {
-      "build": "scripts/index.sh",
+      "build": "",
       "candid": "wasm/index/index.did",
       "type": "custom",
       "wasm": "wasm/index/index.wasm"
@@ -75,13 +75,13 @@
       "wasm": ""
     },
     "kyt": {
-      "build": "scripts/kyt.sh",
+      "build": "",
       "candid": "wasm/kyt/kyt.did",
       "type": "custom",
       "wasm": "wasm/kyt/kyt.wasm"
     },
     "minter": {
-      "build": "scripts/minter.sh",
+      "build": "",
       "candid": "wasm/minter/minter.did",
       "type": "custom",
       "wasm": "wasm/minter/minter.wasm"

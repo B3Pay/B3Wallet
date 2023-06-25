@@ -1,7 +1,8 @@
 use crate::{
     error::SystemError,
-    types::{Canisters, Controllers, State, UserState, UserStates},
+    types::{Canisters, Controllers, State, UserStates},
     types::{Release, Users},
+    user::UserState,
 };
 use b3_helper_lib::{
     release::ReleaseName,
@@ -61,7 +62,7 @@ impl State {
     pub fn wallet_canisters(&self) -> Canisters {
         self.users
             .values()
-            .filter_map(|u| u.canister_ids().ok())
+            .filter_map(|u| u.canisters().ok())
             .flatten()
             .collect()
     }

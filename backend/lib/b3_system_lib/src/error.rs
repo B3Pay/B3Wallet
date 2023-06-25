@@ -5,6 +5,7 @@ use ic_cdk::export::candid::{CandidType, Deserialize};
 #[derive(CandidType, Deserialize)]
 pub enum SystemError {
     HelperError(HelperError),
+    InvalidSigner,
     ValidateSignerError(String),
     UpdateCanisterControllersError(String),
     VersionError(String),
@@ -45,6 +46,7 @@ impl fmt::Display for SystemError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             SystemError::HelperError(e) => write!(f, "{}", e),
+            SystemError::InvalidSigner => write!(f, "Invalid signer!"),
             SystemError::ValidateSignerError(e) => write!(f, "Validate signer error: {}", e),
             SystemError::UpdateCanisterControllersError(e) => write!(f, "Update canister controllers error: {}", e),
             SystemError::VersionError(e) => write!(f, "Version error: {}", e),

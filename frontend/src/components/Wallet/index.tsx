@@ -99,8 +99,8 @@ const Wallet: React.FC<WalletProps> = ({
   }
 
   useEffect(() => {
-    fetchSettingsAndSigners()
-    fetchAccounts()
+    console.log("wallet canister id", walletCanisterId)
+    refreshWallet()
   }, [])
 
   return (

@@ -10,10 +10,12 @@ use b3_helper_lib::{
 use b3_system_lib::{
     error::SystemError,
     store::{
-        with_state, with_state_mut, with_user_state_mut, with_users_mut, with_wallet_canister,
+        with_state, with_state_mut, with_user_state, with_user_state_mut, with_users_mut,
+        with_wallet_canister,
     },
-    types::UserState,
+    types::Canisters,
     types::UserStates,
+    user::UserState,
     wallet::WalletCanister,
 };
 use ic_cdk::{
@@ -41,6 +43,16 @@ fn get_user_ids() -> Vec<SignerId> {
 #[query(guard = "caller_is_controller")]
 fn get_user_states() -> UserStates {
     with_state(|s| s.user_states())
+}
+
+#[query]
+#[candid_method(query)]
+fn get_canisters() -> Canisters {
+    let user_id = ic_cdk::caller();
+
+    with_user_state(&user_id, |s| s.canisters())
+        .unwrap_or_else(revert)
+        .unwrap_or_else(revert)
 }
 
 // UPDATE CALLS
@@ -176,7 +188,7 @@ async fn add_wallet_canister(canister_id: CanisterId) {
         with_user_state_mut(&user_id, |s| s.add_canister_id(wallet_canister))
             .unwrap_or_else(revert);
     } else {
-        revert(SystemError::InvalidWalletCanister)
+        revert(SystemError::InvalidSigner)
     }
 }
 

@@ -6,7 +6,6 @@ import {
   FormControl,
   Input,
   Stack,
-  StackProps,
   Table,
   TableContainer,
   Tbody,
@@ -23,23 +22,23 @@ import useToastMessage from "hooks/useToastMessage"
 import { useState } from "react"
 import { CanisterStatus } from "service"
 import Address from "../Address"
+import Cycles from "./Cycles"
 
-interface ControllersProps extends StackProps {
+interface ControllersProps extends CanisterStatus {
   actor: ManagementCanisterRecord
   canisterId: string
-  status: CanisterStatus
-  setStatus: React.Dispatch<React.SetStateAction<CanisterStatus>>
+  setParentControllers: (controller: Array<Principal>) => void
 }
 
 const CanisterControllers: React.FC<ControllersProps> = ({
   actor,
-  status,
-  setStatus,
-  canisterId,
-  ...rest
+  cycles,
+  settings,
+  setParentControllers,
+  canisterId
 }) => {
   const [controllers, setControllers] = useState<Principal[]>(
-    status.settings.controllers
+    settings.controllers
   )
 
   const [loading, setLoading] = useState(false)
@@ -73,12 +72,14 @@ const CanisterControllers: React.FC<ControllersProps> = ({
       })
     }
 
-    setControllers(prev => [...prev, signerId])
+    setControllers(prev => [signerId, ...prev])
     setPrincipal("")
   }
 
   const edited =
-    JSON.stringify(status.settings.controllers) !== JSON.stringify(controllers)
+    JSON.stringify(settings.controllers) !== JSON.stringify(controllers)
+
+  console.log(edited, settings.controllers, controllers)
 
   const handleUpdateController = async () => {
     setLoading(true)
@@ -121,10 +122,8 @@ const CanisterControllers: React.FC<ControllersProps> = ({
           compute_allocation: []
         }
       })
-      setStatus(prev => ({
-        ...prev,
-        settings: { ...prev.settings, controllers }
-      }))
+
+      setParentControllers(controllers)
     } catch (err) {
       console.error(err)
       errorToast({
@@ -140,7 +139,8 @@ const CanisterControllers: React.FC<ControllersProps> = ({
   }
 
   return (
-    <Stack {...rest}>
+    <Stack pt={2}>
+      <Cycles balance={cycles} />
       <Stack
         direction="column"
         borderWidth="1px"
@@ -214,7 +214,7 @@ const CanisterControllers: React.FC<ControllersProps> = ({
                 <Stack direction="row" justify="space-between" mt={4}>
                   <Button
                     onClick={() => {
-                      setControllers(status.settings.controllers)
+                      setControllers(settings.controllers)
                     }}
                     isLoading={loading}
                     colorScheme="red"

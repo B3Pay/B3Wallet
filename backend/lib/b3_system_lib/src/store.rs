@@ -5,7 +5,8 @@ use b3_helper_lib::{
 
 use crate::{
     error::SystemError,
-    types::{Release, ReleaseMap, Releases, State, UserMap, UserState, WasmMap},
+    types::{Release, ReleaseMap, Releases, State, UserMap, WasmMap},
+    user::UserState,
     wallet::WalletCanister,
 };
 use std::{cell::RefCell, str::FromStr};

@@ -188,6 +188,7 @@ service : () -> {
   add_setting : (text, text) -> ();
   canister_cycle_balance : () -> (nat) query;
   canister_version : () -> (nat64) query;
+  change_owner : (principal) -> ();
   get_account : (text) -> (WalletAccount) query;
   get_account_count : () -> (nat64) query;
   get_account_counters : () -> (AccountsNonce) query;
@@ -210,6 +211,7 @@ service : () -> {
     );
   update_settings : () -> ();
   upgrage_wallet : () -> ();
+  validate_signer : (principal) -> (bool) query;
   version : () -> (text) query;
   wasm_details : () -> (WasmDetails) query;
   wasm_hash : () -> (vec nat8) query;

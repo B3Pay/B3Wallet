@@ -28,18 +28,27 @@ import Error from "./Error"
 import Loading from "./Loading"
 import CanisterControllers from "./Wallet/Setting/CanisterController"
 
+type CanisterStatuses = {
+  [key in string]: CanisterStatus
+}
+
 interface HeaderProps {
   getManagmentActor: () => Promise<any>
+  fetchUserActor: (id: string) => void
   systemActor?: B3System
 }
 
-const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
+const Header: React.FC<HeaderProps> = ({
+  getManagmentActor,
+  fetchUserActor,
+  systemActor
+}) => {
   const [error, setError] = useState("")
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const [status, setStatus] = useState<CanisterStatus>()
-  const [canisterId, setCanisterId] = useState<string>()
+  const [statuses, setStatuses] = useState<CanisterStatuses>()
+  const [selectedCanisterId, setSelectedCanisterId] = useState<string>()
   const [canisterIds, setCanisterIds] = useState<Principal[]>([])
 
   const [canisterIdInput, setCanisterIdInput] = useState("")
@@ -56,14 +65,14 @@ const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
     setLoading(true)
 
     systemActor
-      ?.get_canister()
-      .then(({ canisters }) => {
-        console.log(canisters[0])
-
+      .get_canisters()
+      .then(canisters => {
         setCanisterIds(canisters)
-        const walletCanisterId = canisters[0].toString()
 
-        setCanisterId(walletCanisterId)
+        const walletCanisterId =
+          localStorage.getItem("walletCanisterId") || canisters[0].toString()
+
+        setSelectedCanisterId(walletCanisterId)
         setLoading(false)
       })
       .catch(e => {
@@ -83,10 +92,10 @@ const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
   const fetchHandler = async (principal: string) => {
     if (!managementActor) return
 
-    let signerId: Principal
+    let canister_id: Principal
 
     try {
-      signerId = Principal.fromText(principal)
+      canister_id = Principal.fromText(principal)
     } catch (e) {
       return errorToast({
         title: "Invalid Principal",
@@ -99,12 +108,17 @@ const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
 
     setLoading(true)
 
-    await managementActor
-      .canister_status({ canister_id: signerId })
-      .then(setStatus)
+    try {
+      await managementActor
+        .canister_status({ canister_id })
+        .then(status => setStatuses(prev => ({ ...prev, [principal]: status })))
 
-    setControllers(controllers)
-    setLoading(false)
+      setControllers(controllers)
+    } catch (e) {
+      console.log(e)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const addCanister = async (canisterId: string) => {
@@ -176,7 +190,7 @@ const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
             {error && (
               <Error error={error} mb={2} borderRadius="base" shadow="base" />
             )}
-            <Stack spacing={4} pb={4}>
+            <Stack spacing={4}>
               <FormControl id="addWallet">
                 <FormLabel>Add Wallet Canister</FormLabel>
                 <Stack direction="row">
@@ -194,8 +208,8 @@ const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
                 <FormLabel>Your Wallet Canisters</FormLabel>
                 <Select
                   placeholder="Select wallet"
-                  onChange={e => setCanisterId(e.target.value)}
-                  value={canisterId?.toString()}
+                  onChange={e => setSelectedCanisterId(e.target.value)}
+                  value={selectedCanisterId?.toString()}
                 >
                   {canisterIds.map(canisterId => (
                     <option
@@ -207,19 +221,51 @@ const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
                   ))}
                 </Select>
               </FormControl>
-              <Button onClick={() => fetchHandler(canisterId)}>Fetch</Button>
+              <Button onClick={() => fetchHandler(selectedCanisterId)}>
+                Fetch
+              </Button>
             </Stack>
-            {status && (
-              <CanisterControllers
-                status={status}
-                setStatus={setStatus}
-                actor={managementActor}
-                canisterId={canisterId}
-              />
-            )}
+            {statuses &&
+              Object.entries(statuses)?.map(
+                ([canisterId, status]) =>
+                  canisterId === selectedCanisterId && (
+                    <CanisterControllers
+                      {...status}
+                      key={canisterId}
+                      setParentControllers={(controllers: Array<Principal>) => {
+                        setStatuses(prev => ({
+                          ...prev,
+                          [canisterId]: {
+                            ...prev[canisterId],
+                            controllers
+                          }
+                        }))
+                      }}
+                      actor={managementActor}
+                      canisterId={canisterId}
+                    />
+                  )
+              )}
           </ModalBody>
-          <ModalFooter>
-            <Button variant="ghost" onClick={onClose}>
+          <ModalFooter justifyContent="space-between">
+            <Button
+              flex={10}
+              colorScheme="blue"
+              mr={3}
+              onClick={() => {
+                onClose()
+                localStorage.setItem("walletCanisterId", selectedCanisterId)
+                window.location.reload()
+              }}
+            >
+              Use
+            </Button>
+            <Button
+              flex={2}
+              variant="solid"
+              colorScheme="red"
+              onClick={onClose}
+            >
               Close
             </Button>
           </ModalFooter>

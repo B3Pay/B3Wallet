@@ -14,5 +14,10 @@ gunzip -f wasm/kyt/kyt.wasm.gz
 curl -o wasm/kyt/kyt.did "https://raw.githubusercontent.com/dfinity/ic/$IC_VERSION/rs/bitcoin/ckbtc/kyt/kyt.did"
 
 # Deploy kyt (know your token)
+# if the user pass the no-deploy flag, then skip this step
+if [ "$1" = "--no-deploy" ]; then
+  exit 0
+fi
+
 dfx deploy kyt --specified-id "$KYY_ID" --argument "(variant { InitArg = record { minter_id = principal \"$MINTER_ID\"; maintainers = vec { principal \"$(dfx identity get-principal)\" }; mode = variant { AcceptAll } } })"
 dfx canister call kyt set_api_key '(record { api_key = "" })'

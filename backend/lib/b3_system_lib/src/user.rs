@@ -1,17 +1,23 @@
-use crate::{
-    error::SystemError,
-    types::{Canisters, UserState},
-    wallet::WalletCanister,
-};
+use crate::{error::SystemError, types::Canisters, wallet::WalletCanister};
 use b3_helper_lib::{
     constants::RATE_LIMIT,
     time::NanoTimeStamp,
     types::{CanisterId, ControllerId},
 };
-use ic_cdk::api::management_canister::{
-    main::{create_canister_with_extra_cycles, CreateCanisterArgument},
-    provisional::CanisterSettings,
+use ic_cdk::{
+    api::management_canister::{
+        main::{create_canister_with_extra_cycles, CreateCanisterArgument},
+        provisional::CanisterSettings,
+    },
+    export::candid::{CandidType, Deserialize},
 };
+
+#[derive(CandidType, Deserialize, Clone)]
+pub struct UserState {
+    pub canisters: Vec<WalletCanister>,
+    pub created_at: NanoTimeStamp,
+    pub updated_at: NanoTimeStamp,
+}
 
 impl From<WalletCanister> for UserState {
     fn from(canister_id: WalletCanister) -> Self {
@@ -55,7 +61,7 @@ impl UserState {
     }
 
     /// Returns the canister ids, throws an error if it is not available.
-    pub fn canister_ids(&self) -> Result<Canisters, SystemError> {
+    pub fn canisters(&self) -> Result<Canisters, SystemError> {
         if self.canisters.is_empty() {
             return Err(SystemError::CanisterIdNotFound);
         }

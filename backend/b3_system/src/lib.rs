@@ -45,6 +45,7 @@ pub fn post_upgrade() {
 mod tests {
     use b3_helper_lib::types::*;
     use b3_system_lib::types::*;
+    use b3_system_lib::user::UserState;
     use ic_cdk::export::candid::export_service;
 
     #[test]
