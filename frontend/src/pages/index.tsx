@@ -29,6 +29,7 @@ function HomePage() {
     authClient,
     login,
     logout,
+    principal,
     systemActor,
     getManagmentActor
   } = useAuthClient()
@@ -91,14 +92,18 @@ function HomePage() {
       <Head>
         <title>B3Wallet</title>
       </Head>
-      <Header systemActor={systemActor} getManagmentActor={getManagmentActor} />
+      <Header
+        systemActor={systemActor}
+        getManagmentActor={getManagmentActor}
+        principal={principal}
+      />
       <Stack as="main" minH="100px" position="relative" justify="space-between">
         {isAuthenticating && <Loading title="Authenticating" />}
         {loading && <Loading title="Loading Wallet" />}
         {isAuthenticated ? (
           walletActor ? (
             <Wallet
-              authClient={authClient}
+              principal={principal}
               walletName={walletName}
               actor={walletActor}
               systemActor={systemActor}
@@ -106,7 +111,7 @@ function HomePage() {
             />
           ) : systemActor ? (
             <System
-              authClient={authClient}
+              principal={principal}
               systemActor={systemActor}
               fetchUserActor={fetchUserActor}
             />

@@ -19,9 +19,9 @@ import {
   Text,
   UnorderedList
 } from "@chakra-ui/react"
-import { AuthClient } from "@dfinity/auth-client"
 import { Principal } from "@dfinity/principal"
 import Address from "components/Wallet/Address"
+import PrincipalCard from "components/Wallet/PrincipalCard"
 import { Release, ReleaseName } from "declarations/b3_system/b3_system.did"
 import { B3_SYSTEM_CANISTER_ID, IS_LOCAL } from "helpers/config"
 import { useCallback, useEffect, useState } from "react"
@@ -33,13 +33,13 @@ import Loading from "../Loading"
 type ReleaseMap = [ReleaseName, Array<Release>][]
 
 interface SystemProps {
-  authClient: AuthClient
+  principal: string
   systemActor: B3System
   fetchUserActor: (walletCanisterId: string) => Promise<void>
 }
 
 const System: React.FC<SystemProps> = ({
-  authClient,
+  principal,
   systemActor,
   fetchUserActor
 }) => {
@@ -58,19 +58,6 @@ const System: React.FC<SystemProps> = ({
     setLoading(true)
 
     systemActor
-      .release_map()
-      .then(releases => {
-        console.log(releases)
-        setReleaseMap(releases)
-
-        setLoading(false)
-      })
-      .catch(e => {
-        console.log(e)
-        setLoading(false)
-      })
-
-    systemActor
       .get_canisters()
       .then(canisters => {
         console.log(canisters[0])
@@ -86,8 +73,28 @@ const System: React.FC<SystemProps> = ({
       })
   }, [systemActor, fetchUserActor])
 
+  const fetchReleases = useCallback(async () => {
+    setError(undefined)
+    setLoading(true)
+
+    systemActor
+      .release_map()
+      .then(releases => {
+        console.log(releases)
+        setReleaseMap(releases)
+
+        setLoading(false)
+      })
+      .catch(e => {
+        console.log(e)
+        setLoading(false)
+      })
+  }, [systemActor, fetchUserActor])
+
   useEffect(() => {
     const localWalletCanisterId = localStorage.getItem("walletCanisterId")
+
+    fetchReleases()
 
     if (localWalletCanisterId) {
       fetchUserActor(localWalletCanisterId)
@@ -254,14 +261,7 @@ const System: React.FC<SystemProps> = ({
                 )
               })}
             </Select>
-            <Text fontSize="large" fontWeight="bold" mt={2}>
-              Your Principal
-            </Text>
-            <Address
-              address={authClient.getIdentity().getPrincipal().toString()}
-              overflow="hidden"
-              px={2}
-            />
+            <PrincipalCard address={principal} />
           </Stack>
           <TabPanels>
             <TabPanel>

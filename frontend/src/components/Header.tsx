@@ -26,6 +26,7 @@ import { useCallback, useEffect, useState } from "react"
 import { B3System, CanisterStatus } from "service"
 import Error from "./Error"
 import Loading from "./Loading"
+import PrincipalCard from "./Wallet/PrincipalCard"
 import CanisterControllers from "./Wallet/Setting/CanisterController"
 
 type CanisterStatuses = {
@@ -34,10 +35,15 @@ type CanisterStatuses = {
 
 interface HeaderProps {
   getManagmentActor: () => Promise<any>
+  principal: string
   systemActor?: B3System
 }
 
-const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
+const Header: React.FC<HeaderProps> = ({
+  getManagmentActor,
+  principal,
+  systemActor
+}) => {
   const [error, setError] = useState("")
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -85,14 +91,14 @@ const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
     fetchCanisterIds()
   }, [fetchCanisterIds, getManagmentActor])
 
-  const fetchHandler = async (principal: string) => {
+  const fetchHandler = async () => {
     setError(undefined)
     if (!managementActor) return
 
     let canister_id: Principal
 
     try {
-      canister_id = Principal.fromText(principal)
+      canister_id = Principal.fromText(selectedCanisterId)
     } catch (e) {
       return errorToast({
         title: "Invalid Principal",
@@ -108,7 +114,9 @@ const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
     try {
       await managementActor
         .canister_status({ canister_id })
-        .then(status => setStatuses(prev => ({ ...prev, [principal]: status })))
+        .then(status =>
+          setStatuses(prev => ({ ...prev, [selectedCanisterId]: status }))
+        )
 
       setControllers(controllers)
       setLoading(false)
@@ -189,6 +197,7 @@ const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
               <Error error={error} mb={2} borderRadius="base" shadow="base" />
             )}
             <Stack spacing={4}>
+              <PrincipalCard address={principal} fontSize="sm" p={2} />
               <FormControl id="addWallet">
                 <FormLabel>Add Wallet Canister</FormLabel>
                 <Stack direction="row">
@@ -248,7 +257,7 @@ const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
               <Button
                 variant="outline"
                 colorScheme="blue"
-                onClick={() => fetchHandler(selectedCanisterId)}
+                onClick={fetchHandler}
               >
                 Fetch Status
               </Button>

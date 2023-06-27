@@ -43,4 +43,8 @@ impl RequestTrait for SendToken {
     fn method_name(&self) -> String {
         "send_token".to_string()
     }
+
+    fn title(&self) -> String {
+        format!("Send {} {}", self.amount, self.chain)
+    }
 }

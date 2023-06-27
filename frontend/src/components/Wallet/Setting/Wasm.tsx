@@ -1,5 +1,11 @@
 import { RepeatIcon } from "@chakra-ui/icons"
 import {
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
+  Box,
   Button,
   CardBody,
   CardHeader,
@@ -236,156 +242,200 @@ const Wasm: React.FC<WasmProps> = ({
       overflow="hidden"
     >
       {upgrading && <Loading title="Upgrading canister" />}
-      <CardHeader pb={2}>
-        <Stack direction="row" justify="space-between" align="center">
-          <Text fontSize="md" fontWeight="bold">
-            Wallet Wasm
-          </Text>
-          <Stack fontSize="sm" fontWeight="semibold">
-            {releaseLoading ? (
-              <Text>Loading...</Text>
-            ) : (
-              <Stack direction="row" align="center">
-                <Text>{currentVersion}</Text>
-                <IconButton
-                  aria-label="Refresh"
-                  icon={<RepeatIcon />}
-                  onClick={fetchReleases}
-                  size="xs"
-                />
-              </Stack>
-            )}
-          </Stack>
-        </Stack>
-      </CardHeader>
-      <CardBody
-        borderTop="1px"
-        borderColor="gray.200"
-        position="relative"
-        py={4}
-        px={2}
-      >
-        {wasmLoading && (
-          <Loading title="Wasm loading">
-            <Progress hasStripe value={progress} height={2} />
-          </Loading>
-        )}
-        <Stack fontSize="sm" fontWeight="semibold">
-          {releases && (
-            <Stack direction="row" spacing={2}>
-              <Select
-                flex={8}
-                value={selectedRelease}
-                onChange={e => setSelectedRelease(e.target.value)}
+      <Accordion allowToggle>
+        <AccordionItem border="none" _focus={{ boxShadow: "none" }}>
+          {({ isExpanded }) => (
+            <Box>
+              <Stack
+                direction="row"
+                justify="space-between"
+                align="center"
+                px={4}
+                py={2}
               >
-                <option value="">Select version</option>
-                {releases.map(({ version, url, withCandid }) => (
-                  <option key={url} value={url}>
-                    {version} {withCandid ? "(candid)" : ""}
-                  </option>
-                ))}
-              </Select>
-              <Button
-                isLoading={releaseLoading || upgrading}
-                isDisabled={!selectedRelease}
-                onClick={loadCanisterWasm}
-                flex={4}
-                colorScheme="blue"
-              >
-                Load Wasm
-              </Button>
-            </Stack>
-          )}
-          {error && <Error error={error} />}
-          {loadedRelease ? (
-            <Stack
-              direction="column"
-              borderWidth="1px"
-              borderRadius="lg"
-              overflow="hidden"
-            >
-              <CardHeader pb={2}>
-                <Stack direction="row" justify="space-between" align="center">
-                  <Text fontSize="md" fontWeight="bold">
-                    Loaded Wasm
-                  </Text>
-                  <Stack direction="row" align="center">
-                    <Text>{loadedRelease.version}</Text>
+                <Text flex={6} fontSize="md" fontWeight="bold">
+                  Wasm
+                </Text>
+                <Stack
+                  fontSize="sm"
+                  fontWeight="semibold"
+                  justify="flex-end"
+                  direction="row"
+                  align="center"
+                >
+                  <Text flex={8}>{currentVersion}</Text>
+                  {isExpanded && (
                     <IconButton
                       aria-label="Refresh"
                       icon={<RepeatIcon />}
-                      onClick={updateWasmVersion}
+                      onClick={fetchReleases}
                       size="xs"
                     />
-                  </Stack>
-                </Stack>
-              </CardHeader>
-              <CardBody borderTop="1px" borderColor="gray.200">
-                <Stack spacing={2}>
-                  <Stack direction="row" justify="space-between" align="center">
-                    <Text fontSize="sm" fontWeight="semibold">
-                      Release Name:
-                    </Text>
-                    <Text fontSize="sm" fontWeight="semibold">
-                      {loadedRelease.name}
-                    </Text>
-                  </Stack>
-                  <Stack direction="row" justify="space-between" align="center">
-                    <Text fontSize="sm" fontWeight="semibold">
-                      Release Size:
-                    </Text>
-                    <Text fontSize="sm" fontWeight="semibold">
-                      {(loadedRelease.size / 1000n).toLocaleString()} kb
-                    </Text>
-                  </Stack>
-                  {"date" in loadedRelease && (
-                    <Stack
-                      direction="row"
-                      justify="space-between"
-                      align="center"
-                    >
-                      <Text fontSize="sm" fontWeight="semibold">
-                        Release Date:
-                      </Text>
-                      <Text fontSize="sm" fontWeight="semibold">
-                        {nanoTimeStampToDate(loadedRelease.date)}
-                      </Text>
-                    </Stack>
                   )}
-                  <Stack direction="row" justify="space-between" align="center">
-                    <Text fontSize="sm" fontWeight="semibold">
-                      Release Hash:
-                    </Text>
-                    <Address address={arrayToHex(loadedRelease.hash)} />
-                  </Stack>
-                  <Stack direction="row" spacing={2}>
-                    <Button onClick={resetWasm} flex={2} colorScheme="red">
-                      Delete
-                    </Button>
-                    <Button
-                      onClick={upgradeCanister}
-                      flex={10}
-                      colorScheme="orange"
-                    >
-                      Upgrade
-                    </Button>
-                  </Stack>
                 </Stack>
-              </CardBody>
-            </Stack>
-          ) : (
-            <Text
-              mt={2}
-              fontSize="sm"
-              fontWeight="semibold"
-              color="gray.600"
-              textAlign="center"
-            >
-              No wasm loaded on the canister
-            </Text>
+                <Stack fontSize="sm" fontWeight="semibold">
+                  <AccordionButton borderRadius="lg" flex={1}>
+                    <AccordionIcon />
+                  </AccordionButton>
+                </Stack>
+              </Stack>
+              <AccordionPanel>
+                <CardBody
+                  borderTop="1px"
+                  borderColor="gray.200"
+                  position="relative"
+                  py={4}
+                  px={2}
+                >
+                  {wasmLoading && (
+                    <Loading title="Wasm loading">
+                      <Progress hasStripe value={progress} height={2} />
+                    </Loading>
+                  )}
+                  <Stack fontSize="sm" fontWeight="semibold">
+                    {releases && (
+                      <Stack direction="row" spacing={2}>
+                        <Select
+                          flex={8}
+                          value={selectedRelease}
+                          onChange={e => setSelectedRelease(e.target.value)}
+                        >
+                          <option value="">Select version</option>
+                          {releases.map(({ version, url, withCandid }) => (
+                            <option key={url} value={url}>
+                              {version} {withCandid ? "(candid)" : ""}
+                            </option>
+                          ))}
+                        </Select>
+                        <Button
+                          isLoading={releaseLoading || upgrading}
+                          isDisabled={!selectedRelease}
+                          onClick={loadCanisterWasm}
+                          flex={4}
+                          colorScheme="blue"
+                        >
+                          Load Wasm
+                        </Button>
+                      </Stack>
+                    )}
+                    {error && <Error error={error} />}
+                    {loadedRelease ? (
+                      <Stack
+                        direction="column"
+                        borderWidth="1px"
+                        borderRadius="lg"
+                        overflow="hidden"
+                      >
+                        <CardHeader pb={2}>
+                          <Stack
+                            direction="row"
+                            justify="space-between"
+                            align="center"
+                          >
+                            <Text fontSize="md" fontWeight="bold">
+                              Loaded Wasm
+                            </Text>
+                            <Stack direction="row" align="center">
+                              <Text>{loadedRelease.version}</Text>
+                              <IconButton
+                                aria-label="Refresh"
+                                icon={<RepeatIcon />}
+                                onClick={updateWasmVersion}
+                                size="xs"
+                              />
+                            </Stack>
+                          </Stack>
+                        </CardHeader>
+                        <CardBody borderTop="1px" borderColor="gray.200">
+                          <Stack spacing={2}>
+                            <Stack
+                              direction="row"
+                              justify="space-between"
+                              align="center"
+                            >
+                              <Text fontSize="sm" fontWeight="semibold">
+                                Release Name:
+                              </Text>
+                              <Text fontSize="sm" fontWeight="semibold">
+                                {loadedRelease.name}
+                              </Text>
+                            </Stack>
+                            <Stack
+                              direction="row"
+                              justify="space-between"
+                              align="center"
+                            >
+                              <Text fontSize="sm" fontWeight="semibold">
+                                Release Size:
+                              </Text>
+                              <Text fontSize="sm" fontWeight="semibold">
+                                {(loadedRelease.size / 1000n).toLocaleString()}{" "}
+                                kb
+                              </Text>
+                            </Stack>
+                            {"date" in loadedRelease && (
+                              <Stack
+                                direction="row"
+                                justify="space-between"
+                                align="center"
+                              >
+                                <Text fontSize="sm" fontWeight="semibold">
+                                  Release Date:
+                                </Text>
+                                <Text fontSize="sm" fontWeight="semibold">
+                                  {nanoTimeStampToDate(loadedRelease.date)}
+                                </Text>
+                              </Stack>
+                            )}
+                            <Stack
+                              direction="row"
+                              justify="space-between"
+                              align="center"
+                            >
+                              <Text fontSize="sm" fontWeight="semibold">
+                                Release Hash:
+                              </Text>
+                              <Address
+                                address={arrayToHex(loadedRelease.hash)}
+                              />
+                            </Stack>
+                            <Stack direction="row" spacing={2}>
+                              <Button
+                                onClick={resetWasm}
+                                flex={2}
+                                colorScheme="red"
+                              >
+                                Delete
+                              </Button>
+                              <Button
+                                onClick={upgradeCanister}
+                                flex={10}
+                                colorScheme="orange"
+                              >
+                                Upgrade
+                              </Button>
+                            </Stack>
+                          </Stack>
+                        </CardBody>
+                      </Stack>
+                    ) : (
+                      <Text
+                        mt={2}
+                        fontSize="sm"
+                        fontWeight="semibold"
+                        color="gray.600"
+                        textAlign="center"
+                      >
+                        No wasm loaded on the canister
+                      </Text>
+                    )}
+                  </Stack>
+                </CardBody>
+              </AccordionPanel>
+            </Box>
           )}
-        </Stack>
-      </CardBody>
+        </AccordionItem>
+      </Accordion>
     </Stack>
   )
 }

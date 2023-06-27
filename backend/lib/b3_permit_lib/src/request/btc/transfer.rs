@@ -44,4 +44,8 @@ impl RequestTrait for BtcTransfer {
     fn method_name(&self) -> String {
         "btc_transfer".to_string()
     }
+
+    fn title(&self) -> String {
+        format!("Send {} {}", self.amount, self.network)
+    }
 }

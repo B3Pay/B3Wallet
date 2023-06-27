@@ -83,7 +83,7 @@ dependencies = [
 
 [[package]]
 name = "b3_permit_lib"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "async-trait",
  "b3_helper_lib",
@@ -116,7 +116,7 @@ dependencies = [
 
 [[package]]
 name = "b3_wallet"
-version = "0.0.0-alpha.28"
+version = "0.0.0-alpha.29"
 dependencies = [
  "b3_helper_lib",
  "b3_permit_lib",

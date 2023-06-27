@@ -1,7 +1,12 @@
 import {
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
+  Box,
   Button,
   CardBody,
-  CardHeader,
   Input,
   Select,
   Stack,
@@ -78,50 +83,72 @@ const RestoreAccount: React.FC<RestoreAccountProps> = ({
       position="relative"
     >
       {loading && <Loading title="Restoring account" />}
-      <CardHeader pb={2}>
-        <Stack direction="row" justify="space-between" align="center">
-          <Text fontSize="md" fontWeight="bold">
-            Restore Account
-          </Text>
-          <Text fontSize="sm" color="gray.500">
-            Restore deleted account
-          </Text>
-        </Stack>
-      </CardHeader>
-      <CardBody borderTop="1px" borderColor="gray.200" position="relative">
-        <Stack direction="row" justify="space-between" align="center">
-          <Select
-            flex={6}
-            value={Object.keys(environment)[0]}
-            onChange={e => {
-              const env = e.target.value
+      <Accordion allowToggle>
+        <AccordionItem border="none" _focus={{ boxShadow: "none" }}>
+          <Box>
+            <Stack
+              direction="row"
+              justify="space-between"
+              align="center"
+              px={4}
+              py={2}
+            >
+              <Text flex={6} fontSize="md" fontWeight="bold">
+                Restore Account
+              </Text>
+              <Stack fontSize="sm" fontWeight="semibold">
+                <AccordionButton borderRadius="lg" flex={1}>
+                  <AccordionIcon />
+                </AccordionButton>
+              </Stack>
+            </Stack>
+            <AccordionPanel>
+              <CardBody
+                borderTop="1px"
+                borderColor="gray.200"
+                position="relative"
+                py={4}
+                px={2}
+              >
+                <Stack direction="row" justify="space-between" align="center">
+                  <Select
+                    flex={6}
+                    value={Object.keys(environment)[0]}
+                    onChange={e => {
+                      const env = e.target.value
 
-              setEnvironment({ [env]: null } as Environment)
-            }}
-          >
-            {IS_LOCAL && <option value="Development">Development</option>}
-            <option value="Production">Production</option>
-            <option value="Staging">Staging</option>
-          </Select>
-          <Input
-            id="nonce"
-            alt="Name"
-            flex={2}
-            type="number"
-            placeholder="Nonce"
-            value={nonce}
-            onChange={onChangeName}
-          />
-          <Button
-            onClick={createAccount}
-            isLoading={loading}
-            flex={4}
-            colorScheme="green"
-          >
-            Restore
-          </Button>
-        </Stack>
-      </CardBody>
+                      setEnvironment({ [env]: null } as Environment)
+                    }}
+                  >
+                    {IS_LOCAL && (
+                      <option value="Development">Development</option>
+                    )}
+                    <option value="Production">Production</option>
+                    <option value="Staging">Staging</option>
+                  </Select>
+                  <Input
+                    id="nonce"
+                    alt="Name"
+                    flex={2}
+                    type="number"
+                    placeholder="Nonce"
+                    value={nonce}
+                    onChange={onChangeName}
+                  />
+                  <Button
+                    onClick={createAccount}
+                    isLoading={loading}
+                    flex={4}
+                    colorScheme="green"
+                  >
+                    Restore
+                  </Button>
+                </Stack>
+              </CardBody>
+            </AccordionPanel>
+          </Box>
+        </AccordionItem>
+      </Accordion>
     </Stack>
   )
 }

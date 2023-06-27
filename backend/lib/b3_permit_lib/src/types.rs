@@ -63,13 +63,13 @@ pub struct ConsentMessage {
 
 impl ConsentMessage {
     pub fn new(request: &Request, reason: String) -> Self {
-        let method = request.method_name();
         let message = request.to_string();
+        let title = request.title();
 
         ConsentMessage {
             message,
             reason,
-            title: method.to_string(),
+            title,
         }
     }
 }

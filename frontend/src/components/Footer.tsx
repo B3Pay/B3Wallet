@@ -9,8 +9,7 @@ export const Footer: React.FC<FooterProps> = ({}) => {
       <VStack>
         <Box fontSize="sm">
           &copy; {new Date().getFullYear()} B3Wallet(
-          {process.env.NEXT_PUBLIC_VERSION || "0.0.0"}
-          ).
+          {process.env.NEXT_PUBLIC_VERSION || "0.0.0"})
         </Box>
         {/* add github link */}
         <Link href="https://github.com/B3Pay/b3-wallet" isExternal>

@@ -60,6 +60,10 @@ impl RequestTrait for AddSigner {
     fn method_name(&self) -> String {
         "add_signer".to_string()
     }
+
+    fn title(&self) -> String {
+        format!("Add signer {}", self.name)
+    }
 }
 
 // REMOVE SIGNER
@@ -94,6 +98,10 @@ impl RequestTrait for RemoveSigner {
 
     fn method_name(&self) -> String {
         "remove_signer".to_string()
+    }
+
+    fn title(&self) -> String {
+        format!("Remove signer {}", self.signer_id)
     }
 }
 
@@ -136,5 +144,9 @@ impl RequestTrait for UpdateSignerThreshold {
 
     fn method_name(&self) -> String {
         "update_signer_threshold".to_string()
+    }
+
+    fn title(&self) -> String {
+        format!("Update signer {} threshold", self.signer_id)
     }
 }

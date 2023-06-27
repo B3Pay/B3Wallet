@@ -10,6 +10,7 @@ import {
   CardBody,
   CloseButton,
   FormControl,
+  Grid,
   IconButton,
   Input,
   Select,
@@ -59,6 +60,8 @@ const Signers: React.FC<SignerProps> = ({
   const [loading, setLoading] = useState(false)
   const [principal, setPrincipal] = useState("")
   const [role, setRole] = useState<Role | "select">()
+  const [name, setName] = useState("")
+
   const errorToast = useToastMessage()
 
   // Remove a user
@@ -129,7 +132,7 @@ const Signers: React.FC<SignerProps> = ({
       signer_id: signerId,
       role: roles,
       expires_at: [],
-      name: "test",
+      name,
       threshold: []
     }
 
@@ -212,16 +215,18 @@ const Signers: React.FC<SignerProps> = ({
                         <Tr>
                           <Th>Signer ID</Th>
                           <Th>Role</Th>
+                          <Th>Name</Th>
                           <Th></Th>
                         </Tr>
                       </Thead>
                       <Tbody>
-                        {signers?.map(([userId, { role }], index) => (
+                        {signers?.map(([userId, { role, name }], index) => (
                           <Tr key={index}>
                             <Td>
                               <Address address={userId.toString()} noIcon />
                             </Td>
                             <Td>{Object.keys(role)[0]}</Td>
+                            <Td>{name}</Td>
                             <Td>
                               <CloseButton
                                 color="red"
@@ -237,27 +242,36 @@ const Signers: React.FC<SignerProps> = ({
                     as="form"
                     onSubmit={handleSubmit}
                     p={2}
+                    pb={0}
                     borderTop="1px"
                     borderColor="gray.200"
                   >
-                    <Stack
-                      alignItems="center"
-                      justify="space-between"
-                      direction="row"
+                    <Grid
+                      templateColumns={{
+                        base: "repeat(2, 1fr)",
+                        md: "repeat(4, 1fr)"
+                      }}
+                      gap={2}
                     >
-                      <FormControl isRequired flex={5}>
+                      <FormControl isRequired>
                         <Input
                           value={principal}
                           onChange={e => setPrincipal(e.target.value)}
                           placeholder="Principal"
                         />
                       </FormControl>
-                      <FormControl isRequired flex={4}>
+                      <FormControl isRequired>
+                        <Input
+                          value={name}
+                          onChange={e => setName(e.target.value)}
+                          placeholder="Name"
+                        />
+                      </FormControl>
+                      <FormControl isRequired>
                         <Select
                           value={role}
                           onChange={e => {
                             const role = e.target.value as Role
-
                             setRole(role)
                           }}
                         >
@@ -269,10 +283,10 @@ const Signers: React.FC<SignerProps> = ({
                           ))}
                         </Select>
                       </FormControl>
-                      <Button colorScheme="orange" type="submit" flex={3}>
+                      <Button colorScheme="orange" type="submit">
                         Add Signer
                       </Button>
-                    </Stack>
+                    </Grid>
                   </Box>
                 </CardBody>
               </AccordionPanel>

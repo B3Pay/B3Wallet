@@ -1,5 +1,4 @@
 import { Card } from "@chakra-ui/react"
-import { AuthClient } from "@dfinity/auth-client"
 import {
   WalletAccountView,
   WalletSettingsAndSigners
@@ -14,7 +13,7 @@ import WalletHeader from "./WalletHeader"
 
 interface WalletProps {
   actor: B3Wallet | B3BasicWallet
-  authClient: AuthClient
+  principal: string
   walletName: string
   systemActor: B3System
   walletCanisterId: string
@@ -28,7 +27,7 @@ export enum Mode {
 
 const Wallet: React.FC<WalletProps> = ({
   actor,
-  authClient,
+  principal,
   systemActor,
   walletName,
   walletCanisterId
@@ -116,7 +115,7 @@ const Wallet: React.FC<WalletProps> = ({
         <InitialSetup
           actor={actor}
           {...settingAndSigners}
-          authClient={authClient}
+          principal={principal}
           fetchAccounts={fetchAccounts}
           fetchSettingsAndSigners={fetchSettingsAndSigners}
         />
@@ -137,7 +136,7 @@ const Wallet: React.FC<WalletProps> = ({
             mode={mode}
             actor={actor}
             accounts={accounts}
-            authClient={authClient}
+            principal={principal}
             systemActor={systemActor}
             setAccounts={setAccounts}
             refreshWallet={refreshWallet}
