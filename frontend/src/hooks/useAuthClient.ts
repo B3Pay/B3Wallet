@@ -1,5 +1,5 @@
 import { AuthClient } from "@dfinity/auth-client"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { B3System, createB3SystemActor, createManagmentActor } from "service"
 import { IDENTITY_CANISTER_ID, IS_LOCAL } from "../helpers/config"
 
@@ -82,11 +82,7 @@ const useAuth = () => {
     if (isAuthenticated) initActor()
   }, [isAuthenticated, initActor])
 
-  const principal = useMemo(() => {
-    if (authClient == null) return null
-
-    return authClient.getIdentity().getPrincipal().toString()
-  }, [authClient])
+  const principal = authClient?.getIdentity().getPrincipal().toString()
 
   return {
     authClient,

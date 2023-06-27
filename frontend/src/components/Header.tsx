@@ -24,10 +24,10 @@ import { Principal } from "@dfinity/principal"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useEffect, useState } from "react"
 import { B3System, CanisterStatus } from "service"
-import Error from "./Error"
 import Loading from "./Loading"
 import PrincipalCard from "./Wallet/PrincipalCard"
 import CanisterControllers from "./Wallet/Setting/CanisterController"
+import WalletError from "./WalletError"
 
 type CanisterStatuses = {
   [key in string]: CanisterStatus
@@ -61,7 +61,6 @@ const Header: React.FC<HeaderProps> = ({
   const errorToast = useToastMessage()
 
   const fetchCanisterIds = useCallback(async () => {
-    setError(undefined)
     if (!systemActor) return
 
     setLoading(true)
@@ -69,6 +68,7 @@ const Header: React.FC<HeaderProps> = ({
     systemActor
       .get_canisters()
       .then(canisters => {
+        console.log(canisters)
         setCanisterIds(canisters)
 
         const walletCanisterId =
@@ -98,6 +98,8 @@ const Header: React.FC<HeaderProps> = ({
     let canister_id: Principal
 
     try {
+      if (!selectedCanisterId) throw new Error("No canister selected!")
+
       canister_id = Principal.fromText(selectedCanisterId)
     } catch (e) {
       return errorToast({
@@ -174,7 +176,7 @@ const Header: React.FC<HeaderProps> = ({
         <Heading size="lg" textAlign="center" my={2}>
           B3Wallet Demo
         </Heading>
-        {canisterIds.length > 0 ? (
+        {principal && principal !== "2vxsx-fae" ? (
           <IconButton
             aria-label="Settings"
             variant="ghost"
@@ -183,18 +185,23 @@ const Header: React.FC<HeaderProps> = ({
             onClick={onOpen}
           />
         ) : (
-          <Box />
+          <Box width="35px" />
         )}
       </Stack>
       <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay />
         <ModalContent position="relative">
           {loading && <Loading title="Loading Wallet" />}
-          <ModalHeader>Settings</ModalHeader>
+          <ModalHeader>Wallet Settings</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             {error && (
-              <Error error={error} mb={2} borderRadius="base" shadow="base" />
+              <WalletError
+                error={error}
+                mb={2}
+                borderRadius="base"
+                shadow="base"
+              />
             )}
             <Stack spacing={4}>
               <PrincipalCard address={principal} fontSize="sm" p={2} />
@@ -248,7 +255,10 @@ const Header: React.FC<HeaderProps> = ({
                   <Button
                     colorScheme="orange"
                     flex={2}
-                    onClick={fetchCanisterIds}
+                    onClick={() => {
+                      localStorage.removeItem("walletCanisterId")
+                      fetchCanisterIds()
+                    }}
                   >
                     Reset
                   </Button>

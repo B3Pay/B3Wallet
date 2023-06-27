@@ -185,8 +185,7 @@ async fn add_wallet_canister(canister_id: CanisterId) {
         .unwrap_or_else(revert);
 
     if is_valid {
-        with_user_state_mut(&user_id, |s| s.add_canister_id(wallet_canister))
-            .unwrap_or_else(revert);
+        with_state_mut(|s| s.get_or_init_user(user_id, Some(canister_id))).unwrap_or_else(revert);
     } else {
         revert(SystemError::InvalidSigner)
     }
@@ -197,8 +196,7 @@ async fn add_wallet_canister(canister_id: CanisterId) {
 fn change_wallet_canister(canister_id: CanisterId, index: usize) {
     let user_id = ic_cdk::caller();
 
-    with_user_state_mut(&user_id, |s| s.change_canister_id(index, canister_id))
-        .unwrap_or_else(revert);
+    with_user_state_mut(&user_id, |s| s.change_canister(index, canister_id)).unwrap_or_else(revert);
 }
 
 #[candid_method(update)]

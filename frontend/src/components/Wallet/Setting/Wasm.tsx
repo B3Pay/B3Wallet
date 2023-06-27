@@ -21,7 +21,7 @@ import useLoadRelease from "hooks/useLoadRelease"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useEffect, useState } from "react"
 import { B3BasicWallet, B3System, B3Wallet } from "service"
-import Error from "../../Error"
+import WalletError from "../../WalletError"
 import Address from "../Address"
 
 interface JsonFile {
@@ -318,7 +318,7 @@ const Wasm: React.FC<WasmProps> = ({
                         </Button>
                       </Stack>
                     )}
-                    {error && <Error error={error} />}
+                    {error && <WalletError error={error} />}
                     {loadedRelease ? (
                       <Stack
                         direction="column"

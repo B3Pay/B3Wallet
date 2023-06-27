@@ -13,7 +13,7 @@ use ic_cdk::{
     export::candid::{CandidType, Deserialize},
 };
 
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Deserialize, PartialEq, Clone)]
 pub struct WalletCanister(pub CanisterId);
 
 impl From<CanisterId> for WalletCanister {

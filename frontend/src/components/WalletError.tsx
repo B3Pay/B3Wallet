@@ -8,11 +8,11 @@ import {
 import { compileError } from "helpers/utiles"
 import { useMemo } from "react"
 
-interface ErrorProps extends AlertProps {
+interface WalletErrorProps extends AlertProps {
   error: string
 }
 
-const Error: React.FC<ErrorProps> = ({ error, ...rest }) => {
+const WalletError: React.FC<WalletErrorProps> = ({ error, ...rest }) => {
   const { title, description } = useMemo(() => {
     const errors = error
       ? error.toString().includes("Error::")
@@ -32,4 +32,4 @@ const Error: React.FC<ErrorProps> = ({ error, ...rest }) => {
   )
 }
 
-export default Error
+export default WalletError

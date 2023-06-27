@@ -27,8 +27,8 @@ import { B3_SYSTEM_CANISTER_ID, IS_LOCAL } from "helpers/config"
 import { useCallback, useEffect, useState } from "react"
 import { B3System } from "../../service"
 import Disclaimer from "../Disclaimer"
-import Error from "../Error"
 import Loading from "../Loading"
+import WalletError from "../WalletError"
 
 type ReleaseMap = [ReleaseName, Array<Release>][]
 
@@ -236,7 +236,7 @@ const System: React.FC<SystemProps> = ({
   return (
     <Box position="relative">
       {error && (
-        <Error error={error} mb={1} borderRadius="base" shadow="base" />
+        <WalletError error={error} mb={1} borderRadius="base" shadow="base" />
       )}
       {loading && <Loading />}
       <Card>

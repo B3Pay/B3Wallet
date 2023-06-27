@@ -170,12 +170,7 @@ pub fn with_user_state<F, T>(user_id: &SignerId, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&UserState) -> T,
 {
-    with_users(|signers| {
-        signers
-            .get(user_id)
-            .ok_or(SystemError::WalletCanisterNotFound)
-            .map(f)
-    })
+    with_users(|signers| signers.get(user_id).ok_or(SystemError::UserNotFound).map(f))
 }
 
 pub fn with_user_state_mut<F, T>(user_id: &SignerId, f: F) -> Result<T, SystemError>
@@ -185,7 +180,7 @@ where
     with_users_mut(|signers| {
         signers
             .get_mut(user_id)
-            .ok_or(SystemError::WalletCanisterNotFound)
+            .ok_or(SystemError::UserNotFound)
             .map(f)
     })
 }

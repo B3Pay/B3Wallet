@@ -3,6 +3,7 @@ use crate::{
     types::{Canisters, Controllers, State, UserStates},
     types::{Release, Users},
     user::UserState,
+    wallet::WalletCanister,
 };
 use b3_helper_lib::{
     release::ReleaseName,
@@ -34,10 +35,14 @@ impl State {
         user: SignerId,
         opt_canister_id: Option<CanisterId>,
     ) -> Result<UserState, SystemError> {
-        if let Some(canister) = self.users.get_mut(&user) {
-            return canister
-                .get_with_update_rate()
-                .map_err(|e| SystemError::WalletCanisterRateError(e.to_string()));
+        if let Some(states) = self.users.get_mut(&user) {
+            let mut user_state = states.update_rate()?;
+
+            if let Some(canister_id) = opt_canister_id {
+                user_state.add_canister(WalletCanister(canister_id));
+            }
+
+            return Ok(user_state);
         }
 
         let user_state = UserState::new(opt_canister_id);
