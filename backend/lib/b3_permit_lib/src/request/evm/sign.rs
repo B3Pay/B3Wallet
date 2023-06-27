@@ -55,6 +55,10 @@ impl RequestTrait for EvmSignTranscation {
     fn method_name(&self) -> String {
         "evm_sign_transaction".to_string()
     }
+
+    fn title(&self) -> String {
+        format!("Sign EVM Transaction {}", self.chain_id)
+    }
 }
 
 // EVM SIGN TRANSACTION MESSAGE
@@ -121,6 +125,10 @@ impl RequestTrait for EvmSignRawTransaction {
     fn method_name(&self) -> String {
         "evm_sign_transaction".to_string()
     }
+
+    fn title(&self) -> String {
+        format!("Sign EVM Transaction {}", self.chain_id)
+    }
 }
 
 // EVM SIGN MESSAGE
@@ -160,5 +168,9 @@ impl RequestTrait for EvmSignMessage {
 
     fn method_name(&self) -> String {
         "evm_sign_message".to_string()
+    }
+
+    fn title(&self) -> String {
+        format!("Sign EVM Message {}", self.chain_id)
     }
 }

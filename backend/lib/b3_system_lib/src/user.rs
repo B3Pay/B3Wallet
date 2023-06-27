@@ -41,7 +41,7 @@ impl UserState {
     }
 
     /// get with updated_at.
-    pub fn get_with_update_rate(&mut self) -> Result<UserState, SystemError> {
+    pub fn update_rate(&mut self) -> Result<UserState, SystemError> {
         self.check_rate()?;
         self.updated_at = NanoTimeStamp::now();
 
@@ -49,13 +49,16 @@ impl UserState {
     }
 
     /// Set the canister id.
-    pub fn add_canister_id(&mut self, canister_id: WalletCanister) {
+    pub fn add_canister(&mut self, canister_id: WalletCanister) {
+        if self.canisters.contains(&canister_id) {
+            return;
+        }
         self.canisters.push(canister_id);
         self.updated_at = NanoTimeStamp::now();
     }
 
     /// Change the canister id.
-    pub fn change_canister_id(&mut self, index: usize, canister_id: CanisterId) {
+    pub fn change_canister(&mut self, index: usize, canister_id: CanisterId) {
         self.canisters[index] = canister_id.into();
         self.updated_at = NanoTimeStamp::now();
     }
@@ -99,7 +102,7 @@ impl UserState {
             Ok(result) => {
                 let canister_id = WalletCanister(result.0.canister_id);
 
-                self.add_canister_id(canister_id.clone());
+                self.add_canister(canister_id.clone());
 
                 Ok(canister_id)
             }

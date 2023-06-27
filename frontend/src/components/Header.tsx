@@ -24,9 +24,10 @@ import { Principal } from "@dfinity/principal"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useEffect, useState } from "react"
 import { B3System, CanisterStatus } from "service"
-import Error from "./Error"
 import Loading from "./Loading"
+import PrincipalCard from "./Wallet/PrincipalCard"
 import CanisterControllers from "./Wallet/Setting/CanisterController"
+import WalletError from "./WalletError"
 
 type CanisterStatuses = {
   [key in string]: CanisterStatus
@@ -34,10 +35,15 @@ type CanisterStatuses = {
 
 interface HeaderProps {
   getManagmentActor: () => Promise<any>
+  principal: string
   systemActor?: B3System
 }
 
-const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
+const Header: React.FC<HeaderProps> = ({
+  getManagmentActor,
+  principal,
+  systemActor
+}) => {
   const [error, setError] = useState("")
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -55,7 +61,6 @@ const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
   const errorToast = useToastMessage()
 
   const fetchCanisterIds = useCallback(async () => {
-    setError(undefined)
     if (!systemActor) return
 
     setLoading(true)
@@ -63,6 +68,7 @@ const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
     systemActor
       .get_canisters()
       .then(canisters => {
+        console.log(canisters)
         setCanisterIds(canisters)
 
         const walletCanisterId =
@@ -85,14 +91,16 @@ const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
     fetchCanisterIds()
   }, [fetchCanisterIds, getManagmentActor])
 
-  const fetchHandler = async (principal: string) => {
+  const fetchHandler = async () => {
     setError(undefined)
     if (!managementActor) return
 
     let canister_id: Principal
 
     try {
-      canister_id = Principal.fromText(principal)
+      if (!selectedCanisterId) throw new Error("No canister selected!")
+
+      canister_id = Principal.fromText(selectedCanisterId)
     } catch (e) {
       return errorToast({
         title: "Invalid Principal",
@@ -108,7 +116,9 @@ const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
     try {
       await managementActor
         .canister_status({ canister_id })
-        .then(status => setStatuses(prev => ({ ...prev, [principal]: status })))
+        .then(status =>
+          setStatuses(prev => ({ ...prev, [selectedCanisterId]: status }))
+        )
 
       setControllers(controllers)
       setLoading(false)
@@ -166,7 +176,7 @@ const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
         <Heading size="lg" textAlign="center" my={2}>
           B3Wallet Demo
         </Heading>
-        {canisterIds.length > 0 ? (
+        {principal && principal !== "2vxsx-fae" ? (
           <IconButton
             aria-label="Settings"
             variant="ghost"
@@ -175,20 +185,26 @@ const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
             onClick={onOpen}
           />
         ) : (
-          <Box />
+          <Box width="35px" />
         )}
       </Stack>
       <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay />
         <ModalContent position="relative">
           {loading && <Loading title="Loading Wallet" />}
-          <ModalHeader>Settings</ModalHeader>
+          <ModalHeader>Wallet Settings</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             {error && (
-              <Error error={error} mb={2} borderRadius="base" shadow="base" />
+              <WalletError
+                error={error}
+                mb={2}
+                borderRadius="base"
+                shadow="base"
+              />
             )}
             <Stack spacing={4}>
+              <PrincipalCard address={principal} fontSize="sm" p={2} />
               <FormControl id="addWallet">
                 <FormLabel>Add Wallet Canister</FormLabel>
                 <Stack direction="row">
@@ -239,7 +255,10 @@ const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
                   <Button
                     colorScheme="orange"
                     flex={2}
-                    onClick={fetchCanisterIds}
+                    onClick={() => {
+                      localStorage.removeItem("walletCanisterId")
+                      fetchCanisterIds()
+                    }}
                   >
                     Reset
                   </Button>
@@ -248,7 +267,7 @@ const Header: React.FC<HeaderProps> = ({ getManagmentActor, systemActor }) => {
               <Button
                 variant="outline"
                 colorScheme="blue"
-                onClick={() => fetchHandler(selectedCanisterId)}
+                onClick={fetchHandler}
               >
                 Fetch Status
               </Button>

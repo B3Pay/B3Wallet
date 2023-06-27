@@ -1,6 +1,6 @@
 [package]
 name = "b3_system"
-version = "0.0.10"
+version = "0.0.15"
 edition = "2021"
 
 [lib]

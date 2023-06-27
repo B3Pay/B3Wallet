@@ -21,6 +21,7 @@ use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 #[async_trait]
 #[enum_dispatch]
 pub trait RequestTrait {
+    fn title(&self) -> String;
     fn method_name(&self) -> String;
     fn validate_request(&self) -> Result<(), PermitError>;
     async fn execute(self) -> Result<ExecutionResult, WalletError>;

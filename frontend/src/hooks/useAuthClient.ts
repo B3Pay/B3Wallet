@@ -82,12 +82,15 @@ const useAuth = () => {
     if (isAuthenticated) initActor()
   }, [isAuthenticated, initActor])
 
+  const principal = authClient?.getIdentity().getPrincipal().toString()
+
   return {
     authClient,
     isAuthenticated,
     isAuthenticating,
     login,
     logout,
+    principal,
     systemActor,
     getManagmentActor
   }

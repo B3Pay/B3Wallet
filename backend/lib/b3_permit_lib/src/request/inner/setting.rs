@@ -69,6 +69,10 @@ impl RequestTrait for UpdateCanisterSettings {
     fn method_name(&self) -> String {
         "update_canister_settings".to_string()
     }
+
+    fn title(&self) -> String {
+        format!("Update canister settings for {}", self.canister_id)
+    }
 }
 
 // UPDATE SETTINGS - END
@@ -123,5 +127,9 @@ impl RequestTrait for UpgradeCanister {
 
     fn method_name(&self) -> String {
         "upgrade_canister".to_string()
+    }
+
+    fn title(&self) -> String {
+        format!("Upgrade canister to version {}", self.wasm_version)
     }
 }

@@ -1,5 +1,4 @@
 import { Stack, Text } from "@chakra-ui/react"
-import { AuthClient } from "@dfinity/auth-client"
 import {
   InititializeWalletArgs,
   WalletSettingsAndSigners
@@ -7,20 +6,20 @@ import {
 import useToastMessage from "hooks/useToastMessage"
 import { useState } from "react"
 import { B3BasicWallet, B3Wallet } from "service"
-import Address from "./Address"
+import PrincipalCard from "./PrincipalCard"
 import Controllers, { ControllerMap } from "./Setting/Controllers"
 import Signers from "./Setting/Signers"
 
 interface InitialSetupProps extends WalletSettingsAndSigners {
   actor: B3Wallet | B3BasicWallet
-  authClient: AuthClient
+  principal: string
   fetchSettingsAndSigners: () => Promise<void>
   fetchAccounts: () => Promise<void>
 }
 
 const InitialSetup: React.FC<InitialSetupProps> = ({
   actor,
-  authClient,
+  principal,
   settings,
   signers,
   fetchSettingsAndSigners,
@@ -68,14 +67,7 @@ const InitialSetup: React.FC<InitialSetupProps> = ({
       >
         Initial Setup
       </Text>
-      <Text fontSize="large" fontWeight="bold" mt={2}>
-        Your Principal
-      </Text>
-      <Address
-        address={authClient.getIdentity().getPrincipal().toString()}
-        overflow="hidden"
-        px={2}
-      />
+      <PrincipalCard address={principal} />
       {signers && (
         <Stack spacing={2} paddingTop={2}>
           <Stack spacing={2} ml={2}>

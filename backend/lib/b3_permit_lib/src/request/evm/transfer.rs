@@ -73,6 +73,10 @@ impl RequestTrait for EvmTransfer {
     fn method_name(&self) -> String {
         "evm_transfer_eth".to_string()
     }
+
+    fn title(&self) -> String {
+        format!("Transfer {} ETH", self.value)
+    }
 }
 
 // EVM TRANSFER ERC20
@@ -134,5 +138,9 @@ impl RequestTrait for EvmTransferErc20 {
 
     fn method_name(&self) -> String {
         self.contract_address.clone()
+    }
+
+    fn title(&self) -> String {
+        format!("Transfer {} ERC20", self.value)
     }
 }
