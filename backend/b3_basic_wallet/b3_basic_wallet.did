@@ -3,6 +3,7 @@ type AccountsNonce = record {
   production : nat64;
   development : nat64;
 };
+type Amount = record { decimals : nat8; amount : nat };
 type BtcChain = record {
   pendings : vec BtcPending;
   subaccount : vec nat8;
@@ -175,7 +176,7 @@ service : () -> {
   account_remove_pending : (text, ChainEnum, nat64) -> ();
   account_rename : (text, text) -> ();
   account_restore : (Environment, nat64) -> ();
-  account_send : (text, ChainEnum, text, nat64) -> (SendResult);
+  account_send : (text, ChainEnum, text, Amount) -> (SendResult);
   account_swap_btc_to_ckbtc : (text, BtcNetwork, nat64) -> (BtcPending);
   account_swap_ckbtc_to_btc : (text, BtcNetwork, text, nat64) -> (nat64);
   account_top_up_and_notify : (text, Tokens, opt principal) -> (Result);

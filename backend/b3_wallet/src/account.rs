@@ -1,5 +1,6 @@
 use crate::permit::caller_is_signer;
 use b3_helper_lib::{
+    amount::Amount,
     environment::Environment,
     revert,
     subaccount::Subaccount,
@@ -162,7 +163,7 @@ pub async fn account_send(
     account_id: AccountId,
     chain: ChainEnum,
     to: String,
-    amount: u64,
+    amount: Amount,
 ) -> SendResult {
     let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 

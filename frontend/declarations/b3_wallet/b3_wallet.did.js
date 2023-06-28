@@ -42,6 +42,7 @@ export const idlFactory = ({ IDL }) => {
     'Development' : IDL.Null,
     'Staging' : IDL.Null,
   });
+  const Amount = IDL.Record({ 'decimals' : IDL.Nat8, 'amount' : IDL.Nat });
   const SendResult = IDL.Variant({
     'BTC' : IDL.Text,
     'EVM' : IDL.Null,
@@ -276,7 +277,7 @@ export const idlFactory = ({ IDL }) => {
     'to' : IDL.Text,
     'account_id' : IDL.Text,
     'chain' : ChainEnum,
-    'amount' : IDL.Nat64,
+    'amount' : Amount,
   });
   const UpgradeCanister = IDL.Record({
     'wasm_hash_string' : IDL.Text,
@@ -292,7 +293,7 @@ export const idlFactory = ({ IDL }) => {
     'to' : IDL.Text,
     'account_id' : IDL.Text,
     'network' : Minter,
-    'amount' : IDL.Nat64,
+    'amount' : Amount,
   });
   const CreateAccount = IDL.Record({
     'env' : IDL.Opt(Environment),
@@ -490,7 +491,7 @@ export const idlFactory = ({ IDL }) => {
     'account_rename' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'account_restore' : IDL.Func([Environment, IDL.Nat64], [], []),
     'account_send' : IDL.Func(
-        [IDL.Text, ChainEnum, IDL.Text, IDL.Nat64],
+        [IDL.Text, ChainEnum, IDL.Text, Amount],
         [SendResult],
         [],
       ),

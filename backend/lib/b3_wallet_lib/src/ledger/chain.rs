@@ -9,7 +9,7 @@ use super::{
     types::{Balance, ChainId, PendingEnum, SendResult},
 };
 use async_trait::async_trait;
-use b3_helper_lib::{subaccount::Subaccount, types::CanisterId};
+use b3_helper_lib::{amount::Amount, subaccount::Subaccount, types::CanisterId};
 use enum_dispatch::enum_dispatch;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
@@ -19,11 +19,11 @@ pub trait ChainTrait {
     fn address(&self) -> String;
     fn pendings(&self) -> Vec<PendingEnum>;
     async fn balance(&self) -> Result<Balance, LedgerError>;
-    async fn send(&self, to: String, amount: u64) -> Result<SendResult, LedgerError>;
+    async fn send(&self, to: String, amount: Amount) -> Result<SendResult, LedgerError>;
     async fn send_mut(
         &mut self,
         to: String,
-        amount: u64,
+        amount: Amount,
         fee: Option<u64>,
         memo: Option<String>,
     ) -> Result<SendResult, LedgerError>;

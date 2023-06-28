@@ -172,6 +172,7 @@ const Header: React.FC<HeaderProps> = ({
           aria-label="B3Wallet Logo"
           variant="ghost"
           icon={<Image boxSize="35px" src="logo.svg"></Image>}
+          onClick={() => window.location.reload()}
         />
         <Heading size="lg" textAlign="center" my={2}>
           B3Wallet Demo

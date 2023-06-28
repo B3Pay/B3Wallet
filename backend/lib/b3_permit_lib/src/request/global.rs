@@ -1,5 +1,6 @@
 use crate::request::result::ExecutionResult;
 use async_trait::async_trait;
+use b3_helper_lib::amount::Amount;
 use b3_wallet_lib::{
     error::WalletError,
     ledger::{chain::ChainTrait, types::ChainEnum},
@@ -14,7 +15,7 @@ use super::{request::RequestTrait, result::TokenSent};
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
 pub struct SendToken {
     pub to: String,
-    pub amount: u64,
+    pub amount: Amount,
     pub chain: ChainEnum,
     pub account_id: String,
 }
@@ -33,7 +34,7 @@ impl RequestTrait for SendToken {
     }
 
     fn validate_request(&self) -> Result<(), PermitError> {
-        if self.amount == 0 {
+        if self.amount <= Amount::from(0) {
             return Err(PermitError::InvalidAmount);
         }
 

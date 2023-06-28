@@ -8,6 +8,7 @@ export interface AddSigner {
   'signer_id' : Principal,
   'expires_at' : [] | [bigint],
 }
+export interface Amount { 'decimals' : number, 'amount' : bigint }
 export type BtcNetwork = { 'Mainnet' : null } |
   { 'Regtest' : null } |
   { 'Testnet' : null };
@@ -15,7 +16,7 @@ export interface BtcTransfer {
   'to' : string,
   'account_id' : string,
   'network' : BtcNetwork,
-  'amount' : bigint,
+  'amount' : Amount,
 }
 export interface CanisterSettings {
   'freezing_threshold' : [] | [bigint],
@@ -226,7 +227,7 @@ export interface SendToken {
   'to' : string,
   'account_id' : string,
   'chain' : ChainEnum,
-  'amount' : bigint,
+  'amount' : Amount,
 }
 export interface Tokens { 'e8s' : bigint }
 export interface TopUpTransfer {

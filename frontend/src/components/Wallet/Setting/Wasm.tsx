@@ -1,14 +1,16 @@
-import { RepeatIcon } from "@chakra-ui/icons"
+import { CheckCircleIcon, RepeatIcon, WarningIcon } from "@chakra-ui/icons"
 import {
   Accordion,
   AccordionButton,
   AccordionIcon,
   AccordionItem,
   AccordionPanel,
+  Badge,
   Box,
   Button,
   CardBody,
   CardHeader,
+  Icon,
   IconButton,
   Progress,
   Select,
@@ -234,6 +236,9 @@ const Wasm: React.FC<WasmProps> = ({
     })
   }
 
+  const isNewUpdateAvailable =
+    releases && releases[0].version !== currentVersion
+
   return (
     <Stack
       direction="column"
@@ -263,7 +268,22 @@ const Wasm: React.FC<WasmProps> = ({
                   direction="row"
                   align="center"
                 >
-                  <Text flex={8}>{currentVersion}</Text>
+                  <Badge textTransform="none" position="relative">
+                    {currentVersion}
+                    <Icon
+                      top={0}
+                      right={0}
+                      boxSize={2}
+                      position="absolute"
+                      transform="translate(50%, -50%)"
+                    >
+                      {isNewUpdateAvailable ? (
+                        <WarningIcon color="orange" />
+                      ) : (
+                        <CheckCircleIcon color="green" />
+                      )}
+                    </Icon>
+                  </Badge>
                   {isExpanded && (
                     <IconButton
                       aria-label="Refresh"

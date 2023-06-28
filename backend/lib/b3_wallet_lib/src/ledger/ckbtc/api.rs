@@ -9,7 +9,7 @@ use crate::{
     },
 };
 use async_trait::async_trait;
-use b3_helper_lib::account::ICRCAccount;
+use b3_helper_lib::{account::ICRCAccount, amount::Amount};
 use std::str::FromStr;
 
 #[async_trait]
@@ -29,12 +29,12 @@ impl ChainTrait for CkbtcChain {
         }
     }
 
-    async fn send(&self, to: String, amount: u64) -> Result<SendResult, LedgerError> {
+    async fn send(&self, to: String, amount: Amount) -> Result<SendResult, LedgerError> {
         let to = ICRCAccount::from_str(&to).map_err(LedgerError::ICRCAccountError)?;
 
         let transfer_args = ICRC1TransferArgs {
             to,
-            amount: amount.into(),
+            amount: amount.to_nat(),
             from_subaccount: self.account.subaccount(),
             fee: self.fee.clone(),
             memo: self.memo.clone(),
@@ -56,7 +56,7 @@ impl ChainTrait for CkbtcChain {
     async fn send_mut(
         &mut self,
         to: String,
-        amount: u64,
+        amount: Amount,
         _fee: Option<u64>,
         _memo: Option<String>,
     ) -> Result<SendResult, LedgerError> {

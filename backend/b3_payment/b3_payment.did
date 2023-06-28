@@ -5,12 +5,13 @@ type AddSigner = record {
   signer_id : principal;
   expires_at : opt nat64;
 };
+type Amount = record { decimals : nat8; amount : nat };
 type BtcNetwork = variant { Mainnet; Regtest; Testnet };
 type BtcTransfer = record {
   to : text;
   account_id : text;
   network : BtcNetwork;
-  amount : nat64;
+  amount : Amount;
 };
 type CanisterSettings = record {
   freezing_threshold : opt nat;
@@ -216,7 +217,7 @@ type SendToken = record {
   to : text;
   account_id : text;
   chain : ChainEnum;
-  amount : nat64;
+  amount : Amount;
 };
 type Tokens = record { e8s : nat64 };
 type TopUpTransfer = record {

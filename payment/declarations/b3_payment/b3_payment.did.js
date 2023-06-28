@@ -132,11 +132,12 @@ export const idlFactory = ({ IDL }) => {
     'ICRC' : IDL.Principal,
     'CKBTC' : BtcNetwork,
   });
+  const Amount = IDL.Record({ 'decimals' : IDL.Nat8, 'amount' : IDL.Nat });
   const SendToken = IDL.Record({
     'to' : IDL.Text,
     'account_id' : IDL.Text,
     'chain' : ChainEnum,
-    'amount' : IDL.Nat64,
+    'amount' : Amount,
   });
   const UpgradeCanister = IDL.Record({
     'wasm_hash_string' : IDL.Text,
@@ -152,7 +153,7 @@ export const idlFactory = ({ IDL }) => {
     'to' : IDL.Text,
     'account_id' : IDL.Text,
     'network' : BtcNetwork,
-    'amount' : IDL.Nat64,
+    'amount' : Amount,
   });
   const Environment = IDL.Variant({
     'Production' : IDL.Null,
