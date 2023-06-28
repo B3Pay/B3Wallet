@@ -1,6 +1,8 @@
-import { Stack, Text } from "@chakra-ui/react"
+import { Alert, AlertIcon, Stack, Text } from "@chakra-ui/react"
 import { WalletSettings } from "declarations/b3_wallet/b3_wallet.did"
+import { B3_SYSTEM_CANISTER_ID } from "helpers/config"
 import { B3BasicWallet, B3System, B3Wallet } from "service"
+import Address from "../Address"
 import PrincipalCard from "../PrincipalCard"
 import Controllers from "./Controllers"
 import Cycles from "./Cycles"
@@ -37,6 +39,22 @@ const Settings: React.FC<SettingsProps> = ({
         Settings
       </Text>
       <PrincipalCard address={principal} />
+      <Alert status="warning" borderRadius="base">
+        <AlertIcon />
+        <Text fontSize="sm">
+          If you have trouble with your wallet canister, you should try to
+          update it.
+          <br />
+          If update fails, you can uninstall from below and reinstall it. don't
+          forget to add system
+          <Address
+            address={B3_SYSTEM_CANISTER_ID}
+            display="inline-flex"
+            color="blue.500"
+          />
+          canister id as a controller before uninstalling.
+        </Text>
+      </Alert>
       <Cycles actor={actor} />
       {signers && (
         <Signers

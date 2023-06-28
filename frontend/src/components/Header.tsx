@@ -17,7 +17,8 @@ import {
   ModalHeader,
   ModalOverlay,
   Select,
-  Stack
+  Stack,
+  Text
 } from "@chakra-ui/react"
 import { ManagementCanisterRecord } from "@dfinity/agent"
 import { Principal } from "@dfinity/principal"
@@ -25,6 +26,7 @@ import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useEffect, useState } from "react"
 import { B3System, CanisterStatus } from "service"
 import Loading from "./Loading"
+import Address from "./Wallet/Address"
 import PrincipalCard from "./Wallet/PrincipalCard"
 import CanisterControllers from "./Wallet/Setting/CanisterController"
 import WalletError from "./WalletError"
@@ -206,6 +208,9 @@ const Header: React.FC<HeaderProps> = ({
             )}
             <Stack spacing={4}>
               <PrincipalCard address={principal} fontSize="sm" p={2} />
+              <Text fontSize="sm">
+                If you want to use your own wallet canister, please add it here.
+              </Text>
               <FormControl id="addWallet">
                 <FormLabel>Add Wallet Canister</FormLabel>
                 <Stack direction="row">
@@ -253,6 +258,9 @@ const Header: React.FC<HeaderProps> = ({
                       </option>
                     ))}
                   </Select>
+                  {selectedCanisterId && (
+                    <Address address={selectedCanisterId} hiddenAddress />
+                  )}
                   <Button
                     colorScheme="orange"
                     flex={2}
