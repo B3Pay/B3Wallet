@@ -74,7 +74,25 @@ Also, there are three libraries to facilitate other developers in building their
 
 By utilizing these libraries, developers can create customized wallets tailored to their specific needs and innovative concepts.
 
-# Future Plans
+## Use Cases
+
+The `b3_wallet` presents numerous practical applications in everyday life and the business world:
+
+1. **Couples' Saving Wallet**: Couples can create a shared wallet to manage joint expenses or save for common goals, providing an intuitive and transparent way to handle shared finances.
+
+2. **Company Payroll**: Businesses can leverage this wallet to distribute salaries to their employees. With the capability to handle different blockchains and tokens, it can cater to diverse payment preferences and requirements.
+
+3. **Multi-owner Operations**: Any group with shared financial interests, from small project teams to large organizations, can use this wallet to manage their funds. By setting the required number of signatures, the group can enforce collective decision-making on financial matters.
+
+4. **Personal Finance**: Individuals can use this wallet to manage their crypto assets across multiple blockchains from a single interface. With its robust security features and easy recovery options, it offers a reliable and user-friendly tool for personal asset management.
+
+5. **Custom Wallets**: With the help of `b3_wallet_lib`, `b3_helper`, and `b3_permit`, developers can create custom wallet solutions tailored to specific needs. This opens up a world of possibilities for innovative financial products and services built on top of the `b3_wallet`.
+
+This project harnesses the power of the Internet Computer blockchain. By utilizing the blockchain's features such as scalability, security, and seamless interoperability, `b3_wallet` is able to provide a decentralized, robust, and versatile solution for managing crypto assets. 
+
+As the digital economy continues to grow, the `b3_wallet` has the potential to play a crucial role in various sectors, making crypto asset management more accessible and secure for all, with the incredible capabilities of the Internet Computer blockchain backing it.
+
+## Future Plans
 
 I am considering the creation of a global wallet - a wallet that no one owns but everyone can sign. This revolutionary concept aims to bring the ethos of decentralization in blockchain technology to the next level. Stay tuned for more updates on this.
 
