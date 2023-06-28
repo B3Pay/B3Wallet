@@ -13,6 +13,7 @@ import { useMemo } from "react"
 interface AddressWithCopyProps extends FlexProps {
   address: string
   noIcon?: boolean
+  hiddenAddress?: boolean
 }
 
 const Address: React.FC<AddressWithCopyProps> = ({
@@ -20,6 +21,7 @@ const Address: React.FC<AddressWithCopyProps> = ({
   noIcon,
   overflow,
   children,
+  hiddenAddress,
   ...rest
 }) => {
   const { hasCopied, onCopy } = useClipboard(address)
@@ -44,7 +46,12 @@ const Address: React.FC<AddressWithCopyProps> = ({
     <Tooltip label={address} aria-label="Full address">
       <Flex alignItems="center" overflow={overflow} {...rest}>
         {children}
-        <Text overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+        <Text
+          overflow="hidden"
+          textOverflow="ellipsis"
+          whiteSpace="nowrap"
+          hidden={hiddenAddress}
+        >
           {truncatedAddress}
         </Text>
         {noIcon ? null : (
@@ -52,7 +59,7 @@ const Address: React.FC<AddressWithCopyProps> = ({
             colorScheme="blue"
             onClick={onCopy}
             aria-label="Copy to clipboard"
-            variant="ghost"
+            variant={hiddenAddress ? "solid" : "ghost"}
             icon={hasCopied ? <CheckIcon /> : <CopyIcon />}
           />
         )}
