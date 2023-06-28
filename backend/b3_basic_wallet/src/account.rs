@@ -1,4 +1,5 @@
 use b3_helper_lib::{
+    amount::Amount,
     environment::Environment,
     owner::caller_is_owner,
     revert,
@@ -162,7 +163,7 @@ pub async fn account_send(
     account_id: AccountId,
     chain: ChainEnum,
     to: String,
-    amount: u64,
+    amount: Amount,
 ) -> SendResult {
     let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 

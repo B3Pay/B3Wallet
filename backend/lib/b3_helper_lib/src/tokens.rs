@@ -11,6 +11,8 @@ pub struct Tokens {
 }
 
 impl Tokens {
+    /// Decimal places of precision.
+    pub const DECIMALS: u8 = 8;
     /// The maximum number of Tokens we can hold on a single account.
     pub const MAX: Self = Tokens { e8s: u64::MAX };
     /// Zero Tokens.

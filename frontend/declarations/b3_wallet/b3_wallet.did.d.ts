@@ -13,6 +13,7 @@ export interface AddSigner {
   'signer_id' : Principal,
   'expires_at' : [] | [bigint],
 }
+export interface Amount { 'decimals' : number, 'amount' : bigint }
 export interface BtcChain {
   'pendings' : Array<BtcPending>,
   'subaccount' : Uint8Array | number[],
@@ -29,7 +30,7 @@ export interface BtcTransfer {
   'to' : string,
   'account_id' : string,
   'network' : Minter,
-  'amount' : bigint,
+  'amount' : Amount,
 }
 export interface CanisterSettings {
   'freezing_threshold' : [] | [bigint],
@@ -335,7 +336,7 @@ export interface SendToken {
   'to' : string,
   'account_id' : string,
   'chain' : ChainEnum,
-  'amount' : bigint,
+  'amount' : Amount,
 }
 export interface Signer {
   'threshold' : [] | [number],
@@ -438,7 +439,7 @@ export interface _SERVICE {
   >,
   'account_rename' : ActorMethod<[string, string], undefined>,
   'account_restore' : ActorMethod<[Environment, bigint], undefined>,
-  'account_send' : ActorMethod<[string, ChainEnum, string, bigint], SendResult>,
+  'account_send' : ActorMethod<[string, ChainEnum, string, Amount], SendResult>,
   'account_swap_btc_to_ckbtc' : ActorMethod<
     [string, BtcNetwork, bigint],
     BtcPending

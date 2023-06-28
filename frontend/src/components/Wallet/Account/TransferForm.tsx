@@ -15,7 +15,7 @@ interface TransferFormProps {
 const TransferForm: React.FC<TransferFormProps> = ({
   chain,
   title,
-  handleTransfer: handleTransfer
+  handleTransfer
 }) => {
   const [to, setTo] = useState<string>("")
   const [amount, setAmount] = useState<string>("")

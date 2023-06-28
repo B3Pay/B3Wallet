@@ -42,6 +42,7 @@ export const idlFactory = ({ IDL }) => {
     'Development' : IDL.Null,
     'Staging' : IDL.Null,
   });
+  const Amount = IDL.Record({ 'decimals' : IDL.Nat8, 'amount' : IDL.Nat });
   const SendResult = IDL.Variant({
     'BTC' : IDL.Text,
     'EVM' : IDL.Null,
@@ -238,7 +239,7 @@ export const idlFactory = ({ IDL }) => {
     'account_rename' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'account_restore' : IDL.Func([Environment, IDL.Nat64], [], []),
     'account_send' : IDL.Func(
-        [IDL.Text, ChainEnum, IDL.Text, IDL.Nat64],
+        [IDL.Text, ChainEnum, IDL.Text, Amount],
         [SendResult],
         [],
       ),
@@ -274,6 +275,7 @@ export const idlFactory = ({ IDL }) => {
     'add_setting' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'canister_cycle_balance' : IDL.Func([], [IDL.Nat], ['query']),
     'canister_version' : IDL.Func([], [IDL.Nat64], ['query']),
+    'change_owner' : IDL.Func([IDL.Principal], [], []),
     'get_account' : IDL.Func([IDL.Text], [WalletAccount], ['query']),
     'get_account_count' : IDL.Func([], [IDL.Nat64], ['query']),
     'get_account_counters' : IDL.Func([], [AccountsNonce], ['query']),
@@ -306,6 +308,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'update_settings' : IDL.Func([], [], []),
     'upgrage_wallet' : IDL.Func([], [], []),
+    'validate_signer' : IDL.Func([IDL.Principal], [IDL.Bool], ['query']),
     'version' : IDL.Func([], [IDL.Text], ['query']),
     'wasm_details' : IDL.Func([], [WasmDetails], ['query']),
     'wasm_hash' : IDL.Func([], [IDL.Vec(IDL.Nat8)], ['query']),

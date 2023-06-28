@@ -85,6 +85,7 @@ pub fn post_upgrade() {
 
 #[cfg(test)]
 mod tests {
+    use b3_helper_lib::amount::Amount;
     use b3_helper_lib::environment::Environment;
     use b3_helper_lib::time::NanoTimeStamp;
     use b3_helper_lib::tokens::Tokens;

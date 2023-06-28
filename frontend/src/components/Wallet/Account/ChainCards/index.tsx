@@ -1,6 +1,7 @@
 import { AccordionPanel, Skeleton, Stack } from "@chakra-ui/react"
 import Loading from "components/Loading"
 import {
+  Amount,
   BtcPending,
   ChainEnum,
   CkbtcPending,
@@ -101,12 +102,12 @@ const ChainCards: React.FC<ChainCardsProps> = ({
   )
 
   const handleTransfer = useCallback(
-    async (chain: ChainEnum, to: string, amount: bigint) => {
+    async (chain: ChainEnum, to: string, value: bigint, decimals = 8) => {
       let symbol = Object.keys(chain)[0]
 
-      const amountInDecimal = Number(amount) / 10 ** 8
+      const valueInDecimal = Number(value) / 10 ** decimals
 
-      if (amount <= 0) {
+      if (value <= 0) {
         errorToast({
           title: "Error",
           description: "Amount must be greater than 0",
@@ -129,15 +130,20 @@ const ChainCards: React.FC<ChainCardsProps> = ({
       }
 
       console.log(
-        `Transfering ${amountInDecimal} ${symbol} from ${accountId} to ${to}`
+        `Transfering ${valueInDecimal} ${symbol} from ${accountId} to ${to}`
       )
       errorToast({
         title: `Sending ${symbol}`,
-        description: `Transfering ${amountInDecimal} ${symbol} from ${accountId} to ${to}`,
+        description: `Transfering ${valueInDecimal} ${symbol} from ${accountId} to ${to}`,
         status: "info",
         duration: 5000,
         isClosable: true
       })
+
+      let amount: Amount = {
+        amount: value,
+        decimals
+      }
 
       let sendArgs: SendToken = {
         account_id: accountId,
@@ -161,7 +167,7 @@ const ChainCards: React.FC<ChainCardsProps> = ({
 
         errorToast({
           title: "Success",
-          description: `${message} ${amountInDecimal} ${symbol} from ${
+          description: `${message} ${valueInDecimal} ${symbol} from ${
             Object.keys(chain)[0]
           } to ${to}`,
           status: "success",

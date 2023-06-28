@@ -24,6 +24,7 @@ pub enum LedgerError {
     BtcTxIdError(String),
     PendingIndexError(usize),
     UpdateBalanceError(String),
+    InvalidAmountError(String),
     InvalidChain,
     MissingAddress,
     MissingEcdsaPublicKey,
@@ -56,6 +57,7 @@ impl fmt::Display for LedgerError {
             LedgerError::GenerateError(ref msg) => write!(f, "Generate error: {}", msg),
             LedgerError::UpdateBalanceError(ref msg) => write!(f, "Update balance error: {}", msg),
             LedgerError::EcdsaPublicKeyError(ref msg) => write!(f, "Ecdsa public key error: {}", msg),
+            LedgerError::InvalidAmountError(ref msg) => write!(f, "Invalid amount error: {}", msg),
         }
     }
 }

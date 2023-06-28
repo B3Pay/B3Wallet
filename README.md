@@ -136,6 +136,8 @@ yarn install
 yarn deploy
 ```
 
+Note: If you get `The Replica returned an error: code 3, message: "Canister bkyz2-fmaaa-aaaaa-qaaaq-cai is already installed"`, run `yarn deploy` again.
+
 5. **Generate Candid and Types**: Generate the Candid interface and Typescript types for your canisters:
 
 ```bash
