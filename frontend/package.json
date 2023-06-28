@@ -11,17 +11,17 @@
     "dfinity"
   ],
   "scripts": {
-    "dev": "DFX_NETWORK=local next dev",
-    "ic:dev": "DFX_NETWORK=ic next dev",
+    "dev": "yarn env && source ../.env && DFX_NETWORK=local next dev",
+    "ic:dev": "yarn ic:env && source ../.env && DFX_NETWORK=ic next dev",
+    "env": "DFX_NETWORK=local node dfx.webpack.config.js init",
+    "ic:env": "DFX_NETWORK=ic node dfx.webpack.config.js init",
     "build": "DFX_NETWORK=ic next build",
     "build:local": "DFX_NETWORK=local next build",
     "start": "next start",
     "lint": "next lint",
-    "lint:fix": "next lint --fix",
     "export": "next build",
-    "ic:deploy": "dfx generate wallet_assets && dfx deploy wallet_assets --network ic",
-    "env": "DFX_NETWORK=ic node dfx.webpack.config.js init",
-    "generate": "cargo test && dfx generate"
+    "lint:fix": "next lint --fix",
+    "ic:deploy": "yarn ic:env && dfx deploy wallet_assets --network ic"
   },
   "devDependencies": {
     "@types/node": "^18.15.13",
