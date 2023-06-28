@@ -46,7 +46,8 @@
       "build": "",
       "candid": "wasm/ckbtc/ledger.did",
       "declarations": {
-        "node_compatibility": true
+        "node_compatibility": false,
+        "output": "declarations"
       },
       "remote": {
         "candid": "ledger.public.did",
@@ -60,6 +61,10 @@
     "index": {
       "build": "",
       "candid": "wasm/index/index.did",
+      "declarations": {
+        "node_compatibility": false,
+        "output": "declarations"
+      },
       "type": "custom",
       "wasm": "wasm/index/index.wasm"
     },
@@ -77,12 +82,20 @@
     "kyt": {
       "build": "",
       "candid": "wasm/kyt/kyt.did",
+      "declarations": {
+        "node_compatibility": false,
+        "output": "declarations"
+      },
       "type": "custom",
       "wasm": "wasm/kyt/kyt.wasm"
     },
     "minter": {
       "build": "",
       "candid": "wasm/minter/minter.did",
+      "declarations": {
+        "node_compatibility": false,
+        "output": "declarations"
+      },
       "type": "custom",
       "wasm": "wasm/minter/minter.wasm"
     },
@@ -198,6 +211,10 @@
       "frontend": {
         "entrypoint": "out/index.html"
       },
+      "declarations": {
+        "node_compatibility": false,
+        "output": "declarations"
+      },
       "source": ["payment/out"],
       "type": "assets"
     },
@@ -205,6 +222,10 @@
       "build": "yarn build:local",
       "frontend": {
         "entrypoint": "out/index.html"
+      },
+      "declarations": {
+        "node_compatibility": false,
+        "output": "declarations"
       },
       "source": ["frontend/out"],
       "type": "assets"
