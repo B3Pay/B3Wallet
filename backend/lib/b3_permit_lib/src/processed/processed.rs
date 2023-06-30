@@ -93,8 +93,8 @@ impl ProcessedRequest {
         self.status == RequestStatus::Pending
     }
 
-    pub fn get_error(&self) -> &Option<String> {
-        &self.error
+    pub fn get_error(&self) -> Option<&String> {
+        self.error.as_ref()
     }
 
     pub fn get_timestamp(&self) -> u64 {

@@ -36,6 +36,7 @@ const Account: React.FC<AccountProps> = ({
   actor,
   id,
   name,
+  hidden,
   loading,
   pendings,
   addresses,
@@ -93,8 +94,9 @@ const Account: React.FC<AccountProps> = ({
         id={id}
         name={name}
         actor={actor}
+        hidden={hidden}
+        isExpanded={isExpanded}
         environment={environment}
-        setLoadings={() => {}}
         refetchAccount={refetchAccount}
       />
       <ChainCards

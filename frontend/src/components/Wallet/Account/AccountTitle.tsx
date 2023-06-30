@@ -21,48 +21,93 @@ import {
 import { Environment } from "declarations/b3_wallet/b3_wallet.did"
 import React, { useState } from "react"
 import { B3BasicWallet, B3Wallet } from "service"
-import { Loadings } from "."
 
 interface AccountTitleProps {
   name: string
+  hidden: boolean
+  isExpanded: boolean
   environment: Environment
   id: string
   actor: B3Wallet | B3BasicWallet
-  setLoadings: React.Dispatch<React.SetStateAction<Loadings>>
   refetchAccount: () => void
 }
 
 const AccountTitle: React.FC<AccountTitleProps> = ({
   name,
+  hidden,
   environment,
   id,
   actor,
-  setLoadings,
+  isExpanded,
   refetchAccount
 }) => {
   const [newName, setNewName] = useState<string>(name)
   const [editMode, setEditMode] = useState<boolean>(false)
+  const [loadings, setLoadings] = useState({
+    remove: false,
+    rename: false,
+    hide: false
+  })
 
   const removeAccount = async () => {
-    setLoadings(prev => ({ ...prev, global: true }))
+    setLoadings(prev => ({ ...prev, remove: true }))
 
-    actor
-      .account_remove(id)
-      .then(() => {
-        setLoadings(prev => ({ ...prev, global: false }))
-        refetchAccount()
+    try {
+      await actor.account_remove(id)
+      refetchAccount()
+    } catch (e) {
+      Toast({
+        title: "Error",
+        description: e.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true
       })
-      .catch(e => {
-        Toast({
-          title: "Error",
-          description: e.message,
-          status: "error",
-          duration: 5000,
-          isClosable: true
-        })
+    } finally {
+      setLoadings(prev => ({ ...prev, remove: false }))
+    }
+  }
 
-        setLoadings(prev => ({ ...prev, global: false }))
+  const hideAccount = async () => {
+    setLoadings(prev => ({ ...prev, hide: true }))
+
+    try {
+      // @ts-ignore
+      if (hidden) await actor.account_show(id)
+      else await actor.account_hide(id)
+
+      refetchAccount()
+    } catch (e) {
+      Toast({
+        title: "Error",
+        description: e.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true
       })
+    } finally {
+      setLoadings(prev => ({ ...prev, hide: false }))
+    }
+  }
+
+  const renameAccount = async () => {
+    setLoadings(prev => ({ ...prev, rename: true }))
+
+    try {
+      await actor.account_rename(id, newName)
+      refetchAccount()
+      setEditMode(false)
+    } catch (e) {
+      Toast({
+        title: "Error",
+        description: e.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true
+      })
+    } finally {
+      setLoadings(prev => ({ ...prev, rename: false }))
+    }
   }
 
   return (
@@ -85,14 +130,11 @@ const AccountTitle: React.FC<AccountTitleProps> = ({
           variant="ghost"
           colorScheme="blue"
           aria-label="Edit account name"
+          isLoading={loadings.rename}
           icon={editMode ? <CheckIcon /> : <EditIcon />}
           onClick={async () => {
-            if (editMode) {
-              await actor.account_rename(id, newName)
-
-              refetchAccount()
-              setEditMode(false)
-            } else setEditMode(true)
+            if (editMode) renameAccount()
+            else setEditMode(true)
           }}
         />
         {editMode ? (
@@ -108,22 +150,31 @@ const AccountTitle: React.FC<AccountTitleProps> = ({
           />
         ) : null}
       </Flex>
-      <Stack direction="row" flex="2" justify="end">
-        <IconButton
-          size="xs"
-          colorScheme="blue"
-          aria-label="refetchAccount account"
-          icon={<RepeatIcon />}
-          onClick={refetchAccount}
-        />
-        <IconButton
-          size="xs"
-          aria-label="Remove account"
-          colorScheme="red"
-          icon={<DeleteIcon />}
-          onClick={removeAccount}
-        />
-      </Stack>
+      {isExpanded && (
+        <Stack direction="row" flex="2" justify="end">
+          <IconButton
+            size="xs"
+            colorScheme="blue"
+            aria-label="refetchAccount account"
+            icon={<RepeatIcon />}
+            onClick={refetchAccount}
+          />
+          {/* <IconButton
+            size="xs"
+            aria-label="Hide account"
+            colorScheme="orange"
+            icon={hidden ? <ViewIcon /> : <ViewOffIcon />}
+            onClick={hideAccount}
+          /> */}
+          <IconButton
+            size="xs"
+            aria-label="Remove account"
+            colorScheme="red"
+            icon={<DeleteIcon />}
+            onClick={removeAccount}
+          />
+        </Stack>
+      )}
       <AccordionButton borderRadius="md" width={50}>
         <AccordionIcon />
       </AccordionButton>
