@@ -432,7 +432,7 @@ const Wasm: React.FC<WasmProps> = ({
                                 flex={10}
                                 colorScheme="orange"
                               >
-                                Upgrade
+                                Request Upgrade
                               </Button>
                             </Stack>
                           </Stack>

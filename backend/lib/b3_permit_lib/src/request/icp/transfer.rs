@@ -62,6 +62,10 @@ impl RequestTrait for IcpTransfer {
     fn title(&self) -> String {
         format!("Transfer {} ICP", self.amount)
     }
+
+    fn message(&self) -> String {
+        format!("Transfer {} ICP", self.amount)
+    }
 }
 
 // TOP UP CANISTER
@@ -102,6 +106,10 @@ impl RequestTrait for TopUpTransfer {
     fn title(&self) -> String {
         format!("Top up {} ICP", self.amount)
     }
+
+    fn message(&self) -> String {
+        format!("Top up {} ICP", self.amount)
+    }
 }
 
 // TOP UP CANISTER
@@ -136,6 +144,10 @@ impl RequestTrait for NotifyTopUp {
     }
 
     fn title(&self) -> String {
+        format!("Top up canister {}", self.canister_id)
+    }
+
+    fn message(&self) -> String {
         format!("Top up canister {}", self.canister_id)
     }
 }

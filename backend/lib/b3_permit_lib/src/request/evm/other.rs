@@ -86,4 +86,8 @@ impl RequestTrait for EvmDeployContract {
     fn title(&self) -> String {
         format!("Deploy contract on EVM chain {}", self.chain_id)
     }
+
+    fn message(&self) -> String {
+        format!("Deploy contract on EVM chain {}", self.chain_id)
+    }
 }

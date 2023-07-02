@@ -2,7 +2,7 @@ use crate::{
     permit::{caller_is_admin, caller_is_signer},
     wallet::version,
 };
-use b3_helper_lib::{revert, time::NanoTimeStamp, types::RequestId};
+use b3_helper_lib::{revert, time::NanoTimeStamp, types::RequestId, wasm::with_wasm};
 use b3_permit_lib::{
     pending::new::RequestArgs,
     request::{
@@ -11,7 +11,7 @@ use b3_permit_lib::{
         icp::transfer::IcpTransfer,
         inner::{
             account::{CreateAccount, RemoveAccount, RenameAccount},
-            setting::UpdateCanisterSettings,
+            setting::{UpdateCanisterSettings, UpgradeCanister},
             signer::AddSigner,
         },
         request::{Request, RequestTrait},
@@ -20,8 +20,6 @@ use b3_permit_lib::{
     store::{with_permit, with_permit_mut, with_signer_check, with_signer_ids_by_role},
     types::PendingRequestList,
 };
-use b3_wallet_lib::ledger::subaccount::SubaccountTrait;
-use b3_wallet_lib::store::with_ledger;
 use ic_cdk::{export::candid::candid_method, query, update};
 
 // QUERY ---------------------------------------------------------------------
@@ -334,27 +332,31 @@ pub fn request_send(
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub async fn request_sign_message(account_id: String, message_hash: Vec<u8>) -> Vec<u8> {
-    let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
+pub async fn request_upgrade_canister(wasm_version: String) -> RequestId {
+    let caller = ic_cdk::caller();
 
-    ledger
-        .subaccount
-        .sign_with_ecdsa(message_hash)
-        .await
-        .unwrap_or_else(revert)
-}
+    let upgrade_request = with_wasm(|w| UpgradeCanister {
+        wasm_hash_string: w.generate_hash_string(),
+        wasm_version,
+    });
 
-#[candid_method(update)]
-#[update(guard = "caller_is_signer")]
-pub async fn request_sign_transaction(
-    account_id: String,
-    hex_raw_tx: Vec<u8>,
-    chain_id: u64,
-) -> Vec<u8> {
-    let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
+    upgrade_request.validate_request().unwrap_or_else(revert);
 
-    ledger
-        .sign_evm_transaction(hex_raw_tx, chain_id)
-        .await
-        .unwrap_or_else(revert)
+    let role = Roles::Admin;
+    let allowed_signers = with_signer_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+
+    let request_args = RequestArgs {
+        role,
+        allowed_signers,
+        request: upgrade_request.into(),
+        version: version(),
+        reason: "Upgrade canister".to_string(),
+        deadline: None,
+    };
+
+    with_permit_mut(|s| {
+        let new_request = s.new_request(caller, request_args);
+
+        s.insert_new_request(new_request)
+    })
 }

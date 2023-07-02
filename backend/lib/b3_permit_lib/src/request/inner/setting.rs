@@ -73,6 +73,10 @@ impl RequestTrait for UpdateCanisterSettings {
     fn title(&self) -> String {
         format!("Update canister settings for {}", self.canister_id)
     }
+
+    fn message(&self) -> String {
+        format!("Update canister settings for {}", self.canister_id)
+    }
 }
 
 // UPDATE SETTINGS - END
@@ -96,6 +100,9 @@ impl UpgradeCanister {
 #[async_trait]
 impl RequestTrait for UpgradeCanister {
     async fn execute(self) -> Result<ExecutionResult, WalletError> {
+        self.validate_request()
+            .map_err(|_| WalletError::WasmNotLoaded)?;
+
         let canister_id = ic_cdk_id();
         let wasm_module = with_wasm(|w| w.get());
 
@@ -106,7 +113,7 @@ impl RequestTrait for UpgradeCanister {
             mode: CanisterInstallMode::Upgrade,
         };
 
-        install_code(args).await.unwrap();
+        let _ = install_code(args).await;
 
         Ok(self.into())
     }
@@ -130,6 +137,13 @@ impl RequestTrait for UpgradeCanister {
     }
 
     fn title(&self) -> String {
-        format!("Upgrade canister to version {}", self.wasm_version)
+        format!("Upgrade canister to v{}", self.wasm_version)
+    }
+
+    fn message(&self) -> String {
+        format!(
+            "Upgrade canister to version {}, hash {}",
+            self.wasm_version, self.wasm_hash_string
+        )
     }
 }

@@ -77,6 +77,10 @@ impl RequestTrait for EvmTransfer {
     fn title(&self) -> String {
         format!("Transfer {} ETH", self.value)
     }
+
+    fn message(&self) -> String {
+        format!("Transfer {} ETH", self.value)
+    }
 }
 
 // EVM TRANSFER ERC20
@@ -141,6 +145,10 @@ impl RequestTrait for EvmTransferErc20 {
     }
 
     fn title(&self) -> String {
+        format!("Transfer {} ERC20", self.value)
+    }
+
+    fn message(&self) -> String {
         format!("Transfer {} ERC20", self.value)
     }
 }

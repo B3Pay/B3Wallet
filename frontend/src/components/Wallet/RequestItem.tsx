@@ -18,6 +18,7 @@ import Address from "./Address"
 interface RequestItemProps extends PendingRequest {
   rejectHandler: (request_id: bigint) => void
   confirmHandler: (request_id: bigint) => void
+  proccessHandler: (request_id: bigint) => void
 }
 
 const date = (timestamp?: bigint) => {
@@ -37,7 +38,8 @@ const RequestItem: React.FC<RequestItemProps> = ({
   version,
   id,
   rejectHandler,
-  confirmHandler
+  confirmHandler,
+  proccessHandler
 }) => {
   const isVotedBySigner = useCallback(
     (signer: Principal) => {
@@ -116,7 +118,7 @@ const RequestItem: React.FC<RequestItemProps> = ({
         </Stat>
       </ModalBody>
       <ModalFooter borderTop="1px" borderColor="gray.200">
-        <Text flex={3} fontSize="xs">
+        <Text flex={3} fontSize="xs" onClick={() => proccessHandler(id)}>
           {version}
         </Text>
         <Button

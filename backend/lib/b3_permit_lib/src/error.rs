@@ -17,6 +17,7 @@ pub enum PermitError {
     RequestExpired,
     RequestNotFound(RequestId),
     RequestAlreadyProcessed(RequestId),
+    RequestRemovedByAdmin(String),
     SignerNotAllowed(String),
     SignerNotFound(String),
     SignerAlreadyExists(String),
@@ -38,6 +39,8 @@ pub enum PermitError {
     InvalidController,
     InvalidTransaction,
     SneakyMessage,
+    AccountNotFound,
+    ChainNotFound(String, String),
     ChainIdNotInitialized
 }
 
@@ -67,6 +70,7 @@ impl fmt::Display for PermitError {
             PermitError::RequestNotFound(ref msg) => write!(f, "Request not found: {}", msg),
             PermitError::RequestAlreadySigned(ref signer) => write!(f, "Signer {} already signed", signer),
             PermitError::RequestAlreadyProcessed(ref request_id) => write!(f, "Request {} already processed!", request_id),
+            PermitError::RequestRemovedByAdmin(ref signer) => write!(f, "Request removed by admin: {}", signer),
             PermitError::WasmNotSet => write!(f, "Wasm not set!"),
             PermitError::InvalidChainId(ref chain_id, ref expected_chain_id) => write!(f, "Invalid chain id! Expected: {}, got: {}", expected_chain_id, chain_id),
             PermitError::InvalidAmount => write!(f, "Invalid amount!"),
@@ -74,6 +78,8 @@ impl fmt::Display for PermitError {
             PermitError::InvalidController => write!(f, "Invalid controller!"),
             PermitError::InvalidTransaction => write!(f, "Invalid transaction!"),
             PermitError::SneakyMessage => write!(f, "Sneaky message, if you want to send transaction use 'send_transaction' method!"),
+            PermitError::AccountNotFound => write!(f, "Account not found!"),
+            PermitError::ChainNotFound(ref chain_name, ref chain_id) => write!(f, "Chain {} with id {} not found!", chain_name, chain_id),
             PermitError::ChainIdNotInitialized => write!(f, "Chain ID not initialized!"),
         }
     }
