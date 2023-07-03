@@ -25,12 +25,14 @@ import RequestItem from "./RequestItem"
 
 interface ConfirmationModalProps {
   actor: B3Wallet
+  principal: string
   fetchAccounts: () => void
   refreshWallet: () => void
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   actor,
+  principal,
   fetchAccounts,
   refreshWallet
 }) => {
@@ -177,7 +179,9 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           )}
           {requests[index] && (
             <RequestItem
+              loading={loading}
               {...requests[index]}
+              principal={principal}
               rejectHandler={rejectHandler}
               confirmHandler={confirmHandler}
               proccessHandler={proccessHandler}

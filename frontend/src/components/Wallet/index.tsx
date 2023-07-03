@@ -125,6 +125,7 @@ const Wallet: React.FC<WalletProps> = ({
             flex={1}
             mode={mode}
             actor={actor}
+            principal={principal}
             walletName={walletName}
             refreshWallet={refreshWallet}
             walletCanisterId={walletCanisterId}
