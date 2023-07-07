@@ -99,7 +99,7 @@ pub fn request_connect() -> RequestId {
     let caller = ic_cdk::caller();
 
     let request = AddSigner {
-        name: "B3 Peyment".to_string(),
+        name: "B3Peyment".to_string(),
         role: Roles::Canister,
         signer_id: caller,
         expires_at: None,
@@ -312,6 +312,8 @@ pub fn request_send(
 ) -> RequestId {
     let caller = ic_cdk::caller();
 
+    request.validate_request().unwrap_or_else(revert);
+
     let role = Roles::Admin;
     let allowed_signers = with_signer_ids_by_role(role, |signer_ids| signer_ids.to_vec());
 
@@ -326,6 +328,7 @@ pub fn request_send(
 
     with_permit_mut(|s| {
         let new_request = s.new_request(caller, request_args);
+
         s.insert_new_request(new_request)
     })
 }

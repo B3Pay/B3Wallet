@@ -1,3 +1,5 @@
+use std::ops::Add;
+
 use crate::error::WalletError;
 use crate::ledger::ledger::Ledger;
 use crate::nonces::NonceTrait;
@@ -18,10 +20,16 @@ pub struct WalletState {
 
 impl Default for WalletState {
     fn default() -> Self {
+        let default_account = WalletAccount::new(Subaccount::default(), "Main Account".to_owned());
+
+        let mut accounts = WalletAccountMap::default();
+
+        accounts.insert("-default".to_owned(), default_account);
+
         WalletState {
             nonces: AccountsNonce::default(),
             settings: WalletSettings::default(),
-            accounts: WalletAccountMap::default(),
+            accounts,
         }
     }
 }
@@ -29,7 +37,6 @@ impl Default for WalletState {
 impl WalletState {
     // Init Functions
     pub fn init_wallet(&mut self, setting: WalletSettings) {
-        self.init_accounts();
         self.init_setting(setting);
     }
 
@@ -71,7 +78,7 @@ impl WalletState {
 
         let nonce = self.account_nonce(&env);
 
-        Subaccount::new(env, nonce)
+        Subaccount::new(env, nonce.add(1))
     }
 
     pub fn insert_account(&mut self, mut account: WalletAccount, opt_name: Option<String>) {
@@ -183,7 +190,7 @@ mod test {
 
         assert_eq!(state.accounts_len(), 1);
 
-        let account = state.account(&"default".to_owned()).unwrap();
+        let account = state.account(&"-default".to_owned()).unwrap();
 
         assert_eq!(account.name(), "Main Account");
 
@@ -213,7 +220,7 @@ mod test {
 
         state.insert_account(account, None);
 
-        assert_eq!(state.accounts_len(), 1);
+        assert_eq!(state.accounts_len(), 2);
     }
 
     #[test]
@@ -235,9 +242,9 @@ mod test {
 
         state.insert_account(account, None);
 
-        let account = state.account(&"default".to_owned()).unwrap();
+        let account = state.account(&"-default".to_owned()).unwrap();
 
-        assert_eq!(account.name(), "Account 1");
+        assert_eq!(account.name(), "Main Account");
     }
 
     #[test]
@@ -250,7 +257,7 @@ mod test {
 
         state.insert_account(account, None);
 
-        let account = state.account_mut(&"default".to_owned()).unwrap();
+        let account = state.account_mut(&"-default".to_owned()).unwrap();
 
         account.rename("Test Account".to_owned());
 
@@ -269,7 +276,7 @@ mod test {
 
         let public_keys = state.accounts_public_keys();
 
-        assert_eq!(public_keys.len(), 1);
+        assert_eq!(public_keys.len(), 2);
     }
 
     #[test]
@@ -284,16 +291,18 @@ mod test {
 
         let account_views = state.account_views();
 
-        assert_eq!(account_views.len(), 1);
+        assert_eq!(account_views.len(), 2);
 
-        assert_eq!(account_views[0].name, "Development Account 1");
+        assert_eq!(account_views[1].name, "Development Account 1");
 
-        assert_eq!(account_views[0].environment, Environment::Development);
+        assert_eq!(account_views[1].environment, Environment::Development);
     }
 
     #[test]
     fn test_accounts_len() {
         let mut state = WalletState::default();
+
+        assert_eq!(state.accounts_len(), 1);
 
         let subaccount = state.new_subaccount(None);
 
@@ -301,7 +310,7 @@ mod test {
 
         state.insert_account(account, None);
 
-        assert_eq!(state.accounts_len(), 1);
+        assert_eq!(state.accounts_len(), 2);
     }
 
     #[test]
@@ -321,7 +330,11 @@ mod test {
 
         assert_eq!(nonce, 0);
 
-        state.init_accounts();
+        let new_account = state.new_subaccount(None);
+
+        let account = WalletAccount::from(new_account);
+
+        state.insert_account(account, None);
 
         let nonce = state.account_nonce(&Environment::Production);
 

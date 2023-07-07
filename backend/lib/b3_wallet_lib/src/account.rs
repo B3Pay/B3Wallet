@@ -53,6 +53,19 @@ impl From<Subaccount> for WalletAccount {
 }
 
 impl WalletAccount {
+    pub fn new(subaccount: Subaccount, name: String) -> Self {
+        let id = subaccount.id();
+        let ledger = Ledger::from(subaccount.clone());
+
+        WalletAccount {
+            id,
+            name,
+            ledger,
+            hidden: false,
+            metadata: Metadata::default(),
+        }
+    }
+
     pub fn view(&self) -> WalletAccountView {
         WalletAccountView {
             id: self.id.clone(),
