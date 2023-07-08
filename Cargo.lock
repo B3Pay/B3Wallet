@@ -96,7 +96,7 @@ dependencies = [
 
 [[package]]
 name = "b3_system"
-version = "0.0.15"
+version = "0.0.16"
 dependencies = [
  "b3_helper_lib",
  "b3_system_lib",

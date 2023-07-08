@@ -15,7 +15,7 @@ pub const RATE_LIMIT: u64 = NanoTimeStamp::NS_PER_MINUTE;
 
 pub const IC_TRANSACTION_FEE_ICP: Tokens = Tokens::from_e8s(10_000);
 
-pub const CREATE_SIGNER_CANISTER_CYCLES: u128 = 100_000_000_000;
+pub const CREATE_WALLET_CANISTER_CYCLES: u128 = 100_000_000_000;
 
 pub const CANISTER_CREATE_MEMO: Memo = Memo(0x41455243);
 
