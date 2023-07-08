@@ -1,6 +1,7 @@
-use crate::permit::caller_is_signer;
+use crate::permit::{caller_is_admin, caller_is_signer};
 use b3_helper_lib::{revert, types::RequestId};
 use b3_permit_lib::{
+    error::PermitError,
     processed::processed::ProcessedRequest,
     store::{with_pending_mut, with_permit, with_permit_mut, with_processed_request},
     types::{ProcessedRequestList, Response},
@@ -25,7 +26,7 @@ pub fn get_processed_list() -> ProcessedRequestList {
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub async fn response(request_id: RequestId, answer: Response) -> ProcessedRequest {
+pub async fn response(request_id: RequestId, answer: Response) -> Result<ProcessedRequest, String> {
     let caller = ic_cdk::caller();
 
     let request = with_pending_mut(&request_id, |request| {
@@ -42,20 +43,38 @@ pub async fn response(request_id: RequestId, answer: Response) -> ProcessedReque
     if request.is_failed() {
         let processed = ProcessedRequest::from(request);
 
-        with_permit_mut(|s| s.insert_processed(request_id, processed.clone()))
-            .unwrap_or_else(revert);
+        if let Err(err) = with_permit_mut(|s| s.insert_processed(request_id, processed.clone())) {
+            return Err(err.to_string());
+        }
 
-        return processed;
+        return Ok(processed);
     }
 
     if request.is_confirmed() {
         let processed = request.execute().await;
 
-        with_permit_mut(|s| s.insert_processed(request_id, processed.clone()))
-            .unwrap_or_else(revert);
+        if let Err(err) = with_permit_mut(|s| s.insert_processed(request_id, processed.clone())) {
+            return Err(err.to_string());
+        }
 
-        return processed;
+        return Ok(processed);
     }
 
-    request.into()
+    Ok(request.into())
+}
+
+#[candid_method(update)]
+#[update(guard = "caller_is_admin")]
+pub fn process_request(request_id: RequestId) {
+    let caller = ic_cdk::caller();
+
+    with_permit_mut(|s| {
+        let mut processed: ProcessedRequest =
+            s.request(&request_id).unwrap_or_else(revert).clone().into();
+
+        processed.fail(PermitError::RequestRemovedByAdmin(caller.to_string()));
+
+        s.insert_processed(request_id, processed)
+            .unwrap_or_else(revert);
+    });
 }

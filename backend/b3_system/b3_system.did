@@ -58,6 +58,7 @@ service : () -> {
   get_canister_version_by_user : (principal, nat64) -> (text);
   get_canisters : () -> (vec principal) query;
   get_controllers : () -> (vec principal) query;
+  get_create_canister_wallet_cycle : () -> (nat) query;
   get_release : (text, text) -> (Release) query;
   get_release_by_hash_string : (text, vec nat8) -> (Release) query;
   get_release_by_index : (text, nat64) -> (Release) query;

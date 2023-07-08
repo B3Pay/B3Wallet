@@ -98,15 +98,9 @@ impl PendingRequest {
 
     pub fn is_rejected(&self) -> bool {
         let total_signers = self.allowed_signers.len();
-        let rejected_responses = self
-            .responses
-            .iter()
-            .filter(|(signer, response)| {
-                self.allowed_signers.contains(signer) && response.is_reject()
-            })
-            .count();
+        let rejected_responses = self.responses.values().filter(|r| r.is_reject()).count();
 
-        rejected_responses * 2 > total_signers
+        rejected_responses >= (total_signers + 1) / 2
     }
 
     pub fn is_confirmed(&self) -> bool {

@@ -133,9 +133,6 @@ const BtcCard: React.FC<BtcCardProps> = ({
               {tx_id}
             </Text>
             <Stack direction="row" align="center" justify="end">
-              <Button size="sm" onClick={() => checkPending(id, chain, index)}>
-                Refresh
-              </Button>
               <Link
                 variant="link"
                 href={`https://blockstream.info/${networkDetail.toLowerCase()}/tx/${tx_id}`}
@@ -144,6 +141,13 @@ const BtcCard: React.FC<BtcCardProps> = ({
               >
                 View on Blockstream
               </Link>
+              <Button
+                size="sm"
+                colorScheme="red"
+                onClick={() => checkPending(id, chain, index)}
+              >
+                Got it
+              </Button>
             </Stack>
           </Stack>
         ),
@@ -163,7 +167,7 @@ const BtcCard: React.FC<BtcCardProps> = ({
       overflow="hidden"
       position="relative"
     >
-      {loading && <Loading title="Loading Wallet" />}
+      {loading && <Loading title="BTC Loading" />}
       <CardHeader pb={0}>
         <Stack direction="row" justify="space-between" align="center">
           <Flex flex={5}>

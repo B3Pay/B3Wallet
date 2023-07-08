@@ -1,6 +1,7 @@
 import { CheckIcon, CloseIcon } from "@chakra-ui/icons"
 import {
   Button,
+  IconButton,
   ModalBody,
   ModalFooter,
   Stack,
@@ -16,8 +17,11 @@ import Parent from "../Recursive"
 import Address from "./Address"
 
 interface RequestItemProps extends PendingRequest {
+  loading: boolean
+  principal: string
   rejectHandler: (request_id: bigint) => void
   confirmHandler: (request_id: bigint) => void
+  proccessHandler: (request_id: bigint) => void
 }
 
 const date = (timestamp?: bigint) => {
@@ -32,12 +36,15 @@ const RequestItem: React.FC<RequestItemProps> = ({
   created_at,
   deadline,
   role,
+  loading,
+  principal,
   responses,
   allowed_signers,
   version,
   id,
   rejectHandler,
-  confirmHandler
+  confirmHandler,
+  proccessHandler
 }) => {
   const isVotedBySigner = useCallback(
     (signer: Principal) => {
@@ -59,6 +66,8 @@ const RequestItem: React.FC<RequestItemProps> = ({
     },
     [responses]
   )
+
+  const isVoted = responses.some(([signer]) => signer.toString() === principal)
 
   return (
     <Stack>
@@ -98,7 +107,7 @@ const RequestItem: React.FC<RequestItemProps> = ({
           <StatLabel>Allowed Signers: &nbsp;</StatLabel>
           {allowed_signers.map((signer, index) => {
             const { isVoted, isConfirmed } = isVotedBySigner(signer)
-            console.log(isVoted, isConfirmed)
+
             return (
               <StatHelpText key={index}>
                 <Address address={signer.toString()}>
@@ -116,6 +125,15 @@ const RequestItem: React.FC<RequestItemProps> = ({
         </Stat>
       </ModalBody>
       <ModalFooter borderTop="1px" borderColor="gray.200">
+        <IconButton
+          aria-label="proccess"
+          colorScheme="red"
+          size="xs"
+          variant="ghost"
+          onClick={() => proccessHandler(id)}
+        >
+          <CloseIcon />
+        </IconButton>
         <Text flex={3} fontSize="xs">
           {version}
         </Text>
@@ -123,11 +141,19 @@ const RequestItem: React.FC<RequestItemProps> = ({
           flex={3}
           colorScheme="red"
           mr={2}
+          isLoading={loading}
+          isDisabled={isVoted}
           onClick={() => rejectHandler(id)}
         >
           Reject
         </Button>
-        <Button colorScheme="green" flex={3} onClick={() => confirmHandler(id)}>
+        <Button
+          colorScheme="green"
+          isLoading={loading}
+          isDisabled={isVoted}
+          flex={3}
+          onClick={() => confirmHandler(id)}
+        >
           Confirm
         </Button>
       </ModalFooter>

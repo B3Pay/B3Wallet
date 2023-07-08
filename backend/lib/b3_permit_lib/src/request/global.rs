@@ -4,7 +4,7 @@ use b3_helper_lib::amount::Amount;
 use b3_wallet_lib::{
     error::WalletError,
     ledger::{chain::ChainTrait, types::ChainEnum},
-    store::with_chain,
+    store::{with_account, with_chain},
 };
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
@@ -38,7 +38,22 @@ impl RequestTrait for SendToken {
             return Err(PermitError::InvalidAmount);
         }
 
-        with_chain(&self.account_id, &self.chain, |_| Ok(()))?
+        with_account(&self.account_id, |account| {
+            if account.is_hidden() {
+                return Err(PermitError::AccountIsHidden);
+            }
+
+            account
+                .ledger()
+                .chain(&self.chain)
+                .map(|_| ())
+                .map_err(|_| {
+                    PermitError::ChainNotFound(self.chain.to_string(), self.account_id.clone())
+                })?;
+
+            Ok(())
+        })
+        .map_err(|err| PermitError::WalletError(err))?
     }
 
     fn method_name(&self) -> String {
@@ -47,5 +62,19 @@ impl RequestTrait for SendToken {
 
     fn title(&self) -> String {
         format!("Send {} {}", self.amount, self.chain)
+    }
+
+    fn message(&self) -> String {
+        // we already checked that the account exists on validate_request
+        let account = with_account(&self.account_id, |account| account.clone()).unwrap();
+
+        format!(
+            "Send {} {} from {}({}) to {}",
+            self.amount,
+            self.chain,
+            account.name(),
+            self.account_id,
+            self.to
+        )
     }
 }

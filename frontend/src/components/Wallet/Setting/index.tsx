@@ -41,7 +41,7 @@ const Settings: React.FC<SettingsProps> = ({
       <PrincipalCard address={principal} />
       <Alert status="warning" borderRadius="base">
         <AlertIcon />
-        <Text fontSize="sm">
+        <Text fontSize="sm" as="div">
           If you have trouble with your wallet canister, you should try to
           update it.
           <br />

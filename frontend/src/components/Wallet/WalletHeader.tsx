@@ -15,6 +15,7 @@ interface WalletHeaderProps extends StackProps {
   walletName: string
   actor: B3Wallet | B3BasicWallet
   mode: Mode
+  principal: string
   toggleMode: (mode: Mode) => void
   fetchAccounts: () => void
   refreshWallet: () => void
@@ -24,6 +25,7 @@ const WalletHeader: React.FC<WalletHeaderProps> = ({
   walletCanisterId,
   actor,
   mode,
+  principal,
   walletName,
   toggleMode,
   fetchAccounts,
@@ -80,6 +82,7 @@ const WalletHeader: React.FC<WalletHeaderProps> = ({
       {walletName === "b3_wallet" && (
         <>
           <ConfirmationModal
+            principal={principal}
             actor={actor as B3Wallet}
             fetchAccounts={fetchAccounts}
             refreshWallet={refreshWallet}

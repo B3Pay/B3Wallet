@@ -5,7 +5,6 @@ import {
   RepeatIcon
 } from "@chakra-ui/icons"
 import {
-  Box,
   Button,
   CardBody,
   CardHeader,
@@ -158,15 +157,15 @@ const CkbtcCard: React.FC<CkbtcCardProps> = ({
     if (!ckbtcPending) return
     toast({
       id: "ckbtc-pending",
-      title: "ckBTC is being minted. Please wait for confirmations.",
+      title: "Please wait for confirmations.",
       description: (
-        <Box>
+        <Stack spacing={4}>
           <Text fontSize="sm">
             ckBTC({networkDetail}) has {ckbtcPending.currentConfirmations}{" "}
             confirmations. Please wait for {ckbtcPending.requiredConfirmations}{" "}
             confirmations before you can use it.
           </Text>
-          <Stack direction="row" align="center">
+          <Stack direction="row" align="center" justify="end">
             <Link
               variant="link"
               href={`https://blockstream.info/tx/${pending}`}
@@ -184,11 +183,12 @@ const CkbtcCard: React.FC<CkbtcCardProps> = ({
                     handleBalance(id, chain)
                   })
               }
+              colorScheme="red"
             >
-              Cancel
+              Got it
             </Button>
           </Stack>
-        </Box>
+        </Stack>
       ),
       status: "loading",
       duration: 10000,
@@ -263,7 +263,7 @@ const CkbtcCard: React.FC<CkbtcCardProps> = ({
             <Balance
               amount={balance}
               symbol={symbol}
-              loading={balanceLoading}
+              loading={loading || balanceLoading}
             />
           </Stack>
           <TransferForm

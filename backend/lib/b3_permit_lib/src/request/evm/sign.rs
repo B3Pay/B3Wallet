@@ -59,6 +59,10 @@ impl RequestTrait for EvmSignTranscation {
     fn title(&self) -> String {
         format!("Sign EVM Transaction {}", self.chain_id)
     }
+
+    fn message(&self) -> String {
+        format!("Sign EVM Transaction {}", self.chain_id)
+    }
 }
 
 // EVM SIGN TRANSACTION MESSAGE
@@ -129,6 +133,10 @@ impl RequestTrait for EvmSignRawTransaction {
     fn title(&self) -> String {
         format!("Sign EVM Transaction {}", self.chain_id)
     }
+
+    fn message(&self) -> String {
+        format!("Sign EVM Transaction {}", self.chain_id)
+    }
 }
 
 // EVM SIGN MESSAGE
@@ -171,6 +179,10 @@ impl RequestTrait for EvmSignMessage {
     }
 
     fn title(&self) -> String {
+        format!("Sign EVM Message {}", self.chain_id)
+    }
+
+    fn message(&self) -> String {
         format!("Sign EVM Message {}", self.chain_id)
     }
 }

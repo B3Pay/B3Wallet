@@ -29,9 +29,14 @@ import { Principal } from "@dfinity/principal"
 import Loading from "components/Loading"
 import { AddSigner, Roles, Signer } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { B3Wallet } from "service"
 import Address from "../Address"
+
+interface SignerWithRole extends Omit<Signer, "role"> {
+  role: Role
+  id: Principal
+}
 
 export type SignerMap = Array<[Principal, Signer]>
 
@@ -59,7 +64,7 @@ const Signers: React.FC<SignerProps> = ({
 }) => {
   const [loading, setLoading] = useState(false)
   const [principal, setPrincipal] = useState("")
-  const [role, setRole] = useState<Role | "select">()
+  const [role, setRole] = useState<Role | "select">("select")
   const [name, setName] = useState("")
 
   const errorToast = useToastMessage()
@@ -167,6 +172,18 @@ const Signers: React.FC<SignerProps> = ({
     setLoading(false)
   }
 
+  const signerSorted = useMemo(() => {
+    if (!signers) return []
+
+    return signers
+      .map(([id, signer]) => ({
+        id,
+        ...signer,
+        role: Object.keys(signer.role)[0] as Role
+      }))
+      .sort((a, b) => a.role.localeCompare(b.role))
+  }, [signers])
+
   return (
     <Stack
       direction="column"
@@ -220,17 +237,17 @@ const Signers: React.FC<SignerProps> = ({
                         </Tr>
                       </Thead>
                       <Tbody>
-                        {signers?.map(([userId, { role, name }], index) => (
+                        {signerSorted.map(({ id, role, name }, index) => (
                           <Tr key={index}>
                             <Td>
-                              <Address address={userId.toString()} noIcon />
+                              <Address address={id.toString()} noIcon />
                             </Td>
-                            <Td>{Object.keys(role)[0]}</Td>
+                            <Td>{role}</Td>
                             <Td>{name}</Td>
                             <Td>
                               <CloseButton
                                 color="red"
-                                onClick={() => removeSigner(userId)}
+                                onClick={() => removeSigner(id)}
                               />
                             </Td>
                           </Tr>
@@ -284,7 +301,7 @@ const Signers: React.FC<SignerProps> = ({
                         </Select>
                       </FormControl>
                       <Button colorScheme="orange" type="submit">
-                        Add Signer
+                        Add {role !== "select" ? role : "Signer"}
                       </Button>
                     </Grid>
                   </Box>

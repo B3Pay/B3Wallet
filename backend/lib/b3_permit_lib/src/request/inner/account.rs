@@ -41,6 +41,13 @@ impl RequestTrait for CreateAccount {
             self.env.clone().unwrap_or(Environment::Production)
         )
     }
+
+    fn message(&self) -> String {
+        format!(
+            "Create {} Account",
+            self.env.clone().unwrap_or(Environment::Production)
+        )
+    }
 }
 
 // REMOVE ACCOUNT
@@ -72,6 +79,10 @@ impl RequestTrait for RemoveAccount {
     }
 
     fn title(&self) -> String {
+        format!("Remove Account {}", self.account_id)
+    }
+
+    fn message(&self) -> String {
         format!("Remove Account {}", self.account_id)
     }
 }
@@ -110,6 +121,10 @@ impl RequestTrait for RenameAccount {
     fn title(&self) -> String {
         format!("Rename Account {}", self.account_id)
     }
+
+    fn message(&self) -> String {
+        format!("Rename Account {}", self.account_id)
+    }
 }
 
 // HIDING ACCOUNT
@@ -145,6 +160,10 @@ impl RequestTrait for HideAccount {
     fn title(&self) -> String {
         format!("Hide Account {}", self.account_id)
     }
+
+    fn message(&self) -> String {
+        format!("Hide Account {}", self.account_id)
+    }
 }
 
 // UNHIDING ACCOUNT
@@ -178,6 +197,10 @@ impl RequestTrait for UnhideAccount {
     }
 
     fn title(&self) -> String {
+        format!("Unhide Account {}", self.account_id)
+    }
+
+    fn message(&self) -> String {
         format!("Unhide Account {}", self.account_id)
     }
 }

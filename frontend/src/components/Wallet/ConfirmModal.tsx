@@ -25,12 +25,14 @@ import RequestItem from "./RequestItem"
 
 interface ConfirmationModalProps {
   actor: B3Wallet
+  principal: string
   fetchAccounts: () => void
   refreshWallet: () => void
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   actor,
+  principal,
   fetchAccounts,
   refreshWallet
 }) => {
@@ -82,6 +84,28 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     setLoading(true)
     try {
       await actor.response(request_id, { Reject: null })
+      onClose()
+      await fetchRequests()
+
+      fetchAccounts()
+    } catch (e) {
+      console.log(e)
+      errorToast({
+        title: "Error",
+        description: e.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true
+      })
+    }
+
+    setLoading(false)
+  }
+
+  const proccessHandler = async (request_id: bigint) => {
+    setLoading(true)
+    try {
+      await actor.process_request(request_id)
       onClose()
       await fetchRequests()
 
@@ -155,9 +179,12 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           )}
           {requests[index] && (
             <RequestItem
+              loading={loading}
               {...requests[index]}
+              principal={principal}
               rejectHandler={rejectHandler}
               confirmHandler={confirmHandler}
+              proccessHandler={proccessHandler}
             />
           )}
         </ModalContent>

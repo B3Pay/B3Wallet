@@ -2,7 +2,7 @@ use std::{str::FromStr, vec};
 
 use crate::guard::caller_is_controller;
 use b3_helper_lib::{
-    constants::CREATE_SIGNER_CANISTER_CYCLES,
+    constants::CREATE_WALLET_CANISTER_CYCLES,
     release::ReleaseName,
     revert,
     types::{CanisterId, SignerId, Version, WalletCanisterInitArgs},
@@ -31,6 +31,12 @@ fn get_states() -> UserState {
     let user_id = ic_cdk::caller();
 
     with_state(|s| s.user_state(user_id)).unwrap_or_else(revert)
+}
+
+#[candid_method(query)]
+#[query]
+fn get_create_canister_wallet_cycle() -> u128 {
+    CREATE_WALLET_CANISTER_CYCLES
 }
 
 #[candid_method(query)]
@@ -84,7 +90,7 @@ async fn create_wallet_canister(name: String) -> Result<UserState, String> {
     let mut user_state = with_state_mut(|s| s.init_user(owner_id)).unwrap_or_else(revert);
 
     let wallet_canister = user_state
-        .create_with_cycles(vec![owner_id, system_id], CREATE_SIGNER_CANISTER_CYCLES)
+        .create_with_cycles(vec![owner_id, system_id], CREATE_WALLET_CANISTER_CYCLES)
         .await
         .unwrap_or_else(revert);
 
