@@ -24,7 +24,7 @@ impl AccountIdentifier {
         data.push(0x0A);
         data.extend_from_slice("account-id".as_bytes());
         data.extend_from_slice(owner.as_slice());
-        data.extend_from_slice(subaccount.0.as_ref());
+        data.extend_from_slice(subaccount.as_slice());
 
         let account_hash = easy_hasher::raw_sha224(data);
 
@@ -72,11 +72,7 @@ impl FromStr for AccountIdentifier {
 
 impl fmt::Display for AccountIdentifier {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut result = String::new();
-        for byte in self.0.iter() {
-            result.push_str(&format!("{:02x}", byte));
-        }
-        write!(f, "{}", result)
+        write!(f, "{}", hex::encode(&self.0))
     }
 }
 

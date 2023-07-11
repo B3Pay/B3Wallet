@@ -122,6 +122,10 @@ impl Subaccount {
         self.0 == [0u8; 32]
     }
 
+    pub fn as_ref(&self) -> &[u8; 32] {
+        &self.0
+    }
+
     pub fn as_slice(&self) -> &[u8] {
         &self.0
     }

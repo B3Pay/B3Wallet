@@ -13,9 +13,9 @@ use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct WalletState {
-    pub accounts: WalletAccountMap,
     pub nonces: AccountsNonce,
     pub settings: WalletSettings,
+    pub accounts: WalletAccountMap,
 }
 
 impl Default for WalletState {
@@ -58,7 +58,7 @@ impl WalletState {
 
         account.rename("Main Account".to_owned());
 
-        self.accounts.insert("default".to_owned(), account);
+        self.accounts.insert("-default".to_owned(), account);
 
         self.nonces.increment(Environment::Production);
     }
@@ -140,7 +140,7 @@ impl WalletState {
     }
 
     pub fn remove_account(&mut self, id: &String) -> Result<(), WalletError> {
-        if id == "default" {
+        if id == "-default" {
             return Err(WalletError::CannotRemoveDefaultAccount);
         }
 
