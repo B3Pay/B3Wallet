@@ -30,7 +30,7 @@ impl NanoTimeStamp {
 
     /// Converts the timestamp to seconds
     pub fn to_secs(&self) -> u64 {
-        self.0 / 1_000_000_000
+        self.0 / Self::NS_PER_SECOND
     }
 
     /// Converts the timestamp to milliseconds
@@ -107,6 +107,21 @@ impl NanoTimeStamp {
         NanoTimeStamp(self.0 + ns_to_add)
     }
 
+    /// Get the number of whole seconds represented by the timestamp
+    pub fn get_secs(&self) -> u64 {
+        self.0 / Self::NS_PER_SECOND
+    }
+
+    /// Get the number of whole minutes represented by the timestamp
+    pub fn get_mins(&self) -> u64 {
+        self.0 / Self::NS_PER_MINUTE
+    }
+
+    /// Get the number of whole hours represented by the timestamp
+    pub fn get_hours(&self) -> u64 {
+        self.0 / Self::NS_PER_HOUR
+    }
+
     /// Get the number of whole days represented by the timestamp
     pub fn get_days(&self) -> u64 {
         self.0 / Self::NS_PER_DAY
@@ -136,14 +151,18 @@ mod tests {
 
         let ts = ts.add_secs(1);
         assert_eq!(ts.to_secs(), 1);
+        assert_eq!(ts.get_secs(), 1);
 
         let ts = ts.add_mins(1);
         assert_eq!(ts.to_secs(), 61);
+        assert_eq!(ts.get_mins(), 1);
 
         let ts = ts.add_hours(1);
         assert_eq!(ts.to_secs(), 3661);
+        assert_eq!(ts.get_hours(), 1);
 
         let ts = ts.add_days(1);
+        assert_eq!(ts.to_secs(), 90061);
         assert_eq!(ts.get_days(), 1);
     }
 
