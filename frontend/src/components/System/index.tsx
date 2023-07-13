@@ -134,7 +134,10 @@ const System: React.FC<SystemProps> = ({
             return setError(userControl.Err)
           }
 
-          fetchUserActor(userControl.Ok.canisters[0].toString())
+          const canisterId = userControl.Ok.canisters[0].toString()
+
+          localStorage.setItem("walletCanisterId", canisterId)
+          fetchUserActor(canisterId)
           setLoading(false)
         })
         .catch(e => {
@@ -214,10 +217,8 @@ const System: React.FC<SystemProps> = ({
       setError(undefined)
       setLoading(true)
 
-      let canisterPrincipal: Principal
-      console.log(canisterId)
       try {
-        canisterPrincipal = Principal.fromText(canisterId)
+        Principal.fromText(canisterId)
       } catch (e) {
         console.log(e)
 
@@ -539,7 +540,7 @@ const System: React.FC<SystemProps> = ({
                         />
                         <Button
                           flex={4}
-                          onClick={() => addCanister(anonymousCanisterId)}
+                          onClick={() => anonymouslyRun(anonymousCanisterId)}
                         >
                           Use Canister
                         </Button>
