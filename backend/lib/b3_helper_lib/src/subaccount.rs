@@ -77,7 +77,7 @@ impl Subaccount {
         }
 
         if self.is_default() {
-            return "default".to_string();
+            return "-default".to_string();
         }
 
         let env_str = match self.0[23] {

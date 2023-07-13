@@ -207,6 +207,16 @@ const Wasm: React.FC<WasmProps> = ({
       await actor.upgrage_wallet()
     } catch (e: any) {
       console.log(e)
+      // check if error include out of cycles then show error
+      if (e.message.includes("out of cycles")) {
+        errorToast({
+          title: "Error",
+          description: "Out of cycles",
+          status: "error",
+          duration: 5000,
+          isClosable: true
+        })
+      }
     }
 
     actor.version().then(version => {
@@ -432,7 +442,7 @@ const Wasm: React.FC<WasmProps> = ({
                                 flex={10}
                                 colorScheme="orange"
                               >
-                                Request Upgrade
+                                Install Upgrade
                               </Button>
                             </Stack>
                           </Stack>
