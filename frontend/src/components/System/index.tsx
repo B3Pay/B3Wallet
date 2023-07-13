@@ -1,10 +1,11 @@
 import {
+  Alert,
   Box,
   Button,
   Card,
+  Circle,
   FormControl,
   FormHelperText,
-  FormLabel,
   Input,
   InputGroup,
   Link,
@@ -133,7 +134,10 @@ const System: React.FC<SystemProps> = ({
             return setError(userControl.Err)
           }
 
-          fetchUserActor(userControl.Ok.canisters[0].toString())
+          const canisterId = userControl.Ok.canisters[0].toString()
+
+          localStorage.setItem("walletCanisterId", canisterId)
+          fetchUserActor(canisterId)
           setLoading(false)
         })
         .catch(e => {
@@ -213,10 +217,8 @@ const System: React.FC<SystemProps> = ({
       setError(undefined)
       setLoading(true)
 
-      let canisterPrincipal: Principal
-      console.log(canisterId)
       try {
-        canisterPrincipal = Principal.fromText(canisterId)
+        Principal.fromText(canisterId)
       } catch (e) {
         console.log(e)
 
@@ -236,167 +238,326 @@ const System: React.FC<SystemProps> = ({
   return (
     <Box position="relative">
       {error && (
-        <WalletError error={error} mb={1} borderRadius="base" shadow="base" />
+        <WalletError error={error} mb={1} borderRadius="md" shadow="md" />
       )}
       {loading && <Loading />}
+      <Card mb={2} borderRadius="md" padding={2}>
+        <Alert fontSize="md">
+          Welcome to the Wallet Installation page. Here, you can install your
+          wallet on a new or existing canister. The process is straightforward
+          and involves a few steps. Please follow the instructions carefully to
+          ensure a successful installation.
+        </Alert>
+      </Card>
       <Card>
         <Tabs isFitted variant="enclosed">
-          <TabList mb="1em">
-            <Tab>Install</Tab>
-            <Tab>Anonymously</Tab>
+          <TabList mb="1em" bg="gray.100" borderTopRadius="md">
+            <Tab _selected={{ color: "hotpink", bg: "white" }}>
+              Install Wallet
+            </Tab>
+            <Tab _selected={{ color: "indigo", bg: "white" }}>Add Wallet</Tab>
           </TabList>
-          <Stack spacing={2} px={4}>
-            <FormLabel as="label">Select a Wallet:</FormLabel>
-            <Select
-              onChange={e => setSelectedWallet(e.target.value)}
-              value={selectedWallet}
-              size="lg"
-            >
-              {releaseMap.map(([releaseName]) => {
-                const walletName = Object.keys(releaseName)[0]
-                return (
-                  <option key={walletName} value={walletName}>
-                    {walletName}
-                  </option>
-                )
-              })}
-            </Select>
-            <PrincipalCard address={principal} />
-          </Stack>
           <TabPanels>
-            <TabPanel>
-              <FormControl as="fieldset">
-                <Stack spacing={2} mt={4}>
-                  <FormLabel as="label">
-                    Install {selectedWallet} on a canister by entering its id
-                    below:
-                  </FormLabel>
-                  <UnorderedList fontSize="sm">
-                    <ListItem>
-                      Create a canister on the&nbsp;
-                      <Link
-                        color="blue.500"
-                        isExternal
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        href={
-                          IS_LOCAL
-                            ? "http://qsgjb-riaaa-aaaaa-aaaga-cai.localhost:8080/"
-                            : "https://nns.ic0.app/"
-                        }
-                      >
-                        NNS Dapp
-                      </Link>
-                      .
-                    </ListItem>
-                    <ListItem>
-                      Add this system canister as controller
-                      <Address
-                        address={B3_SYSTEM_CANISTER_ID}
-                        overflow="break-word"
-                      />
-                    </ListItem>
-                    <ListItem>
-                      Copy the canister id and paste it in the input below.
-                    </ListItem>
-                    <ListItem>
-                      Click on the button below to install the wallet canister
-                      on your canister.
-                    </ListItem>
-                  </UnorderedList>
-                  <InputGroup>
-                    <Input
-                      flex={8}
-                      type="text"
-                      placeholder="Enter Canister id"
-                      value={canisterId}
-                      onChange={e => setCanisterId(e.target.value)}
-                    />
-                    <Button
-                      flex={4}
-                      onClick={() => installCanister(canisterId)}
-                    >
-                      Install Wallet
-                    </Button>
-                  </InputGroup>
-                  <FormHelperText fontSize="xs">
-                    Note: This will install the wallet on your canister then
-                    remove the controller, so you have full control over your
-                    wallet.
-                  </FormHelperText>
-                </Stack>
-                <Stack spacing={2} mt={4}>
-                  <FormLabel as="label" mt={4}>
-                    Or Create a canister and install the wallet canister on it.
-                  </FormLabel>
-                  <Button onClick={createCanister}>
-                    Create Canister & Install
-                  </Button>
-                  <FormHelperText fontSize="xs">
-                    Note: This will create a canister and install the wallet
-                    canister on it, then remove the controller, so you have full
-                    control over your wallet.
-                  </FormHelperText>
-                </Stack>
-                <Stack spacing={2} my={4}>
-                  <FormLabel as="label" mt={4}>
-                    Or Add a canister to your wallet.
-                  </FormLabel>
-                  <InputGroup>
-                    <Input
-                      flex={8}
-                      type="text"
-                      placeholder="Enter Canister id"
-                      value={anonymousCanisterId}
-                      onChange={e => setAnonymousCanisterId(e.target.value)}
-                    />
-                    <Button
-                      flex={4}
-                      onClick={() => addCanister(anonymousCanisterId)}
-                    >
-                      Add Canister
-                    </Button>
-                  </InputGroup>
-                  <FormHelperText fontSize="xs">
-                    Note: This will add the canister to your own if you are one
-                    of the signer.
-                  </FormHelperText>
-                </Stack>
-              </FormControl>
-              <Disclaimer />
-            </TabPanel>
-            <TabPanel>
-              <FormControl as="fieldset">
-                <FormLabel as="label">
-                  Anonymously use the user interface
-                </FormLabel>
-                <Text fontSize="sm" mb={4}>
-                  no canister will be installed or connected to your wallet.
+            <TabPanel padding={2} pt={0}>
+              <Stack mb={2} spacing={2}>
+                <Text borderBottom="1px solid" borderColor="gray.100" p={2}>
+                  If you're looking to create a new canister, you have two
+                  options. You can use the system to create a canister
+                  automatically, or you can create one manually if you prefer.
+                  The system canister creation process is simpler and
+                  recommended for most users. However, if you want more control
+                  over the creation process, you might prefer to create the
+                  canister manually.
                 </Text>
-                <InputGroup>
-                  <Input
-                    flex={8}
-                    type="text"
-                    placeholder="Enter Canister id"
-                    value={anonymousCanisterId}
-                    onChange={e => setAnonymousCanisterId(e.target.value)}
-                  />
-                  <Button
-                    flex={4}
-                    onClick={() => anonymouslyRun(anonymousCanisterId)}
+                <Stack spacing={2}>
+                  <Text fontSize="md">
+                    <b>Step 1:</b> Select a wallet to install
+                  </Text>
+                  <Select
+                    onChange={e => setSelectedWallet(e.target.value)}
+                    value={selectedWallet}
+                    size="lg"
                   >
-                    Go
-                  </Button>
-                </InputGroup>
-                <FormHelperText fontSize="xs">
-                  Note: This will save on the local storage the canister id, so
-                  you can use it later.
-                </FormHelperText>
-              </FormControl>
+                    {releaseMap.map(([releaseName]) => {
+                      const walletName = Object.keys(releaseName)[0]
+                      return (
+                        <option key={walletName} value={walletName}>
+                          {walletName}
+                        </option>
+                      )
+                    })}
+                  </Select>
+                </Stack>
+                <Text fontSize="md">
+                  <b>Step 2:</b> One of the following options:
+                </Text>
+                <Stack spacing={2}>
+                  <FormControl
+                    border="1px solid"
+                    borderColor="gray.200"
+                    borderRadius="md"
+                  >
+                    <Stack
+                      direction="row"
+                      padding={2}
+                      mb={2}
+                      alignItems="center"
+                      alignContent="center"
+                      borderBottom="1px solid"
+                      borderColor="gray.200"
+                    >
+                      <Circle
+                        size="25px"
+                        bg="hotpink"
+                        color="white"
+                        fontSize={12}
+                      >
+                        A
+                      </Circle>
+                      <Text fontSize="md" fontWeight="bold">
+                        Install {selectedWallet} on a new canister
+                      </Text>
+                    </Stack>
+                    <Stack spacing={2} padding={2}>
+                      <Text>
+                        This process will create a new canister and install the
+                        wallet canister on it.
+                      </Text>
+                      <Button onClick={createCanister}>
+                        Create Canister & Install
+                      </Button>
+                      <FormHelperText fontSize="xs">
+                        Note: This will create a canister and install the wallet
+                        canister on it, then remove the controller, so you have
+                        full control over your wallet.
+                      </FormHelperText>
+                    </Stack>
+                  </FormControl>
+                  <FormControl
+                    border="1px solid"
+                    borderColor="gray.200"
+                    borderRadius="md"
+                  >
+                    <Stack
+                      direction="row"
+                      padding={2}
+                      mb={2}
+                      alignItems="center"
+                      alignContent="center"
+                      borderBottom="1px solid"
+                      borderColor="gray.200"
+                    >
+                      <Circle
+                        size="25px"
+                        bg="hotpink"
+                        color="white"
+                        fontSize={12}
+                      >
+                        B
+                      </Circle>
+                      <Text fontSize="md" fontWeight="bold">
+                        Install {selectedWallet} on a canister that you already
+                        control
+                      </Text>
+                    </Stack>
+                    <Stack spacing={2} padding={2}>
+                      <Text>
+                        If you already own a canister, you can directly start
+                        from the second step. There's no need to create a new
+                        canister unless you want a separate one for this wallet.
+                      </Text>
+                      <UnorderedList fontSize="sm">
+                        <ListItem>
+                          Create a canister on the&nbsp;
+                          <Link
+                            color="blue.500"
+                            isExternal
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            href={
+                              IS_LOCAL
+                                ? "http://qsgjb-riaaa-aaaaa-aaaga-cai.localhost:8080/"
+                                : "https://nns.ic0.app/"
+                            }
+                          >
+                            NNS Dapp
+                          </Link>
+                          .
+                        </ListItem>
+                        <ListItem>
+                          Add this system canister as controller
+                          <Address
+                            address={B3_SYSTEM_CANISTER_ID}
+                            overflow="break-word"
+                          />
+                        </ListItem>
+                        <ListItem>
+                          Copy the canister id and paste it in the input below.
+                        </ListItem>
+                        <ListItem>
+                          Click on the button below to install the wallet
+                          canister on your canister.
+                        </ListItem>
+                      </UnorderedList>
+                      <InputGroup>
+                        <Input
+                          flex={8}
+                          type="text"
+                          placeholder="Enter Canister id"
+                          value={canisterId}
+                          onChange={e => setCanisterId(e.target.value)}
+                        />
+                        <Button
+                          flex={4}
+                          onClick={() => installCanister(canisterId)}
+                        >
+                          Install Wallet
+                        </Button>
+                      </InputGroup>
+                      <FormHelperText fontSize="xs">
+                        Note: This will install the wallet on your canister then
+                        remove the controller, so you have full control over
+                        your wallet.
+                      </FormHelperText>
+                    </Stack>
+                  </FormControl>
+                </Stack>
+              </Stack>
+            </TabPanel>
+            <TabPanel padding={2} pt={0}>
+              <Stack
+                spacing={2}
+                borderBottom="1px solid"
+                borderColor="gray.100"
+              >
+                <Text p={2}>
+                  If you're looking to become a signer in another user's wallet,
+                  please ensure you have the wallet owner's permission. As a
+                  signer, you'll be able to authorize transactions from the
+                  wallet, so it's important that this is set up correctly.
+                  Follow the instructions provided by the wallet owner to add
+                  your principal ID as a signer.
+                </Text>
+                <PrincipalCard address={principal} mb={2} />
+              </Stack>
+              <Text fontSize="md" py={2}>
+                One of the following options:
+              </Text>
+              <Stack>
+                <FormControl
+                  border="1px solid"
+                  borderColor="gray.200"
+                  borderRadius="md"
+                >
+                  <Stack spacing={2}>
+                    <Stack
+                      direction="row"
+                      padding={2}
+                      mb={2}
+                      alignItems="center"
+                      alignContent="center"
+                      borderBottom="1px solid"
+                      borderColor="gray.200"
+                    >
+                      <Circle
+                        size="25px"
+                        bg="indigo"
+                        color="white"
+                        fontSize={12}
+                      >
+                        A
+                      </Circle>
+                      <Text fontSize="md" fontWeight="bold">
+                        Add wallet you are signer of
+                      </Text>
+                    </Stack>
+                    <Stack spacing={2} padding={2}>
+                      <Text>
+                        If you are one of the signer of a wallet, you can add it
+                        to your own wallet.
+                      </Text>
+                      <InputGroup>
+                        <Input
+                          flex={8}
+                          type="text"
+                          placeholder="Enter Canister id"
+                          value={anonymousCanisterId}
+                          onChange={e => setAnonymousCanisterId(e.target.value)}
+                        />
+                        <Button
+                          flex={4}
+                          onClick={() => addCanister(anonymousCanisterId)}
+                        >
+                          Add Canister
+                        </Button>
+                      </InputGroup>
+                      <FormHelperText fontSize="xs">
+                        Note: This will add the canister to your own if you are
+                        one of the signer.
+                      </FormHelperText>
+                    </Stack>
+                  </Stack>
+                </FormControl>
+                <FormControl
+                  border="1px solid"
+                  borderColor="gray.200"
+                  borderRadius="md"
+                >
+                  <Stack spacing={2}>
+                    <Stack
+                      direction="row"
+                      padding={2}
+                      mb={2}
+                      alignItems="center"
+                      alignContent="center"
+                      borderBottom="1px solid"
+                      borderColor="gray.200"
+                    >
+                      <Circle
+                        size="25px"
+                        bg="indigo"
+                        color="white"
+                        fontSize={12}
+                      >
+                        B
+                      </Circle>
+                      <Text fontSize="md" fontWeight="bold">
+                        Use a wallet you are signer of
+                      </Text>
+                    </Stack>
+                    <Stack spacing={2} padding={2}>
+                      <Text>
+                        No canister will be installed or connected to your
+                        wallet.
+                      </Text>
+                      <InputGroup>
+                        <Input
+                          flex={8}
+                          type="text"
+                          placeholder="Enter Canister id"
+                          value={anonymousCanisterId}
+                          onChange={e => setAnonymousCanisterId(e.target.value)}
+                        />
+                        <Button
+                          flex={4}
+                          onClick={() => anonymouslyRun(anonymousCanisterId)}
+                        >
+                          Use Canister
+                        </Button>
+                      </InputGroup>
+                      <FormHelperText fontSize="xs">
+                        Note: This will save on the local storage the canister
+                        id, so you can use it later.
+                      </FormHelperText>
+                    </Stack>
+                  </Stack>
+                </FormControl>
+              </Stack>
             </TabPanel>
           </TabPanels>
         </Tabs>
       </Card>
+      <Disclaimer asCard />
     </Box>
   )
 }

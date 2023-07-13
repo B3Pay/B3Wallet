@@ -155,7 +155,7 @@ function HomePage() {
           chain,
           to,
           amount: product.price,
-          account_id: "default"
+          account_id: "-default"
         }
       }
 

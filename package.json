@@ -1,6 +1,6 @@
 {
   "name": "b3wallet",
-  "version": "0.4.2",
+  "version": "0.4.8",
   "author": "b3hr4d",
   "description": "Wallet and System Canister for the B3wallet on the Internet Computer",
   "keywords": [

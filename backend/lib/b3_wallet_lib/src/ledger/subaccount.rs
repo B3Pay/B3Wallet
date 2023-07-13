@@ -96,7 +96,7 @@ mod tests {
         assert_eq!(subaccount.environment(), Environment::Production);
         assert_eq!(subaccount.nonce(), 0);
         assert_eq!(subaccount.name(), "Default");
-        assert_eq!(subaccount.id(), "default");
+        assert_eq!(subaccount.id(), "-default");
 
         let identifier = subaccount.account_identifier(TEST_PRINCIPAL);
 
@@ -146,7 +146,7 @@ mod tests {
                 0, 0, 0, 0
             ]]
         );
-        assert_eq!(subaccount.id(), "default");
+        assert_eq!(subaccount.id(), "-default");
         assert_eq!(subaccount.name(), "Default");
 
         let subaccount = Subaccount::new(Environment::Production, 1);

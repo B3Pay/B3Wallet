@@ -53,6 +53,9 @@ const Settings: React.FC<SettingsProps> = ({
             color="blue.500"
           />
           canister id as a controller before uninstalling.
+          <br />
+          Note: You need more that 100 million cycles to update your wallet
+          canister.
         </Text>
       </Alert>
       <Cycles actor={actor} />
