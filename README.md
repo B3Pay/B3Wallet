@@ -8,7 +8,7 @@ B3Wallet is a decentralized multi-chain and multi-owner wallet. It is designed t
 
 - Multiple blockchain support: Bitcoin, Ethereum, and Internet Computer
 - Multiple owner support: single-owner, multi-owner, and multi-signature
-- Multiple account support: single account
+- Multiple account support
 - Decentralized: does not rely on any centralized service, users can use it without any registration and recover it without any backup.
 
 # Demo
