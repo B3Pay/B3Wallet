@@ -44,13 +44,13 @@ impl TokenAmount {
     /// Otherwise returns an error.
     /// # Example
     /// ```
-    /// use b3_helper_lib::amount::Amount;
+    /// use b3_helper_lib::amount::TokenAmount;
     ///
-    /// let amount = Amount::new(100, 0);
+    /// let amount = TokenAmount::new(100, 0);
     ///
     /// assert_eq!(amount.as_u64().unwrap(), 100);
     ///
-    /// let amount = Amount::new(100, 1);
+    /// let amount = TokenAmount::new(100, 1);
     ///
     /// assert!(amount.as_u64().is_err());
     /// ```
@@ -70,9 +70,9 @@ impl TokenAmount {
     ///
     /// # Example
     /// ```
-    /// use b3_helper_lib::amount::Amount;
+    /// use b3_helper_lib::amount::TokenAmount;
     ///
-    /// let amount = Amount::new(100, 0);
+    /// let amount = TokenAmount::new(100, 0);
     ///
     /// assert_eq!(amount.as_u128().unwrap(), 100);
     /// ```

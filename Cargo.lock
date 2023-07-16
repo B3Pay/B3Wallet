@@ -61,7 +61,7 @@ dependencies = [
 
 [[package]]
 name = "b3_helper_lib"
-version = "0.2.1"
+version = "0.0.1"
 dependencies = [
  "candid",
  "easy-hasher",
