@@ -7,7 +7,7 @@ use crate::ledger::{
     types::{Balance, BtcPending, PendingEnum, SendResult},
 };
 use async_trait::async_trait;
-use b3_helper_lib::{account::ICRCAccount, amount::Amount};
+use b3_helper_lib::{account::ICRCAccount, token_amount::TokenAmount};
 
 use super::btc::BtcChain;
 
@@ -26,7 +26,7 @@ impl ChainTrait for BtcChain {
             .map_err(LedgerError::BitcoinError)
     }
 
-    async fn send(&self, to: String, amount: Amount) -> Result<SendResult, LedgerError> {
+    async fn send(&self, to: String, amount: TokenAmount) -> Result<SendResult, LedgerError> {
         let amount = amount
             .to_satoshi()
             .map_err(|e| LedgerError::InvalidAmountError(e.to_string()))?;
@@ -42,7 +42,7 @@ impl ChainTrait for BtcChain {
     async fn send_mut(
         &mut self,
         _to: String,
-        _amount: Amount,
+        _amount: TokenAmount,
         _fee: Option<u64>,
         _memo: Option<String>,
     ) -> Result<SendResult, LedgerError> {

@@ -6,17 +6,17 @@ use std::fmt;
 use std::ops::{Add, AddAssign, Sub, SubAssign};
 
 #[derive(CandidType, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct Tokens {
+pub struct ICPToken {
     pub e8s: u64,
 }
 
-impl Tokens {
+impl ICPToken {
     /// Decimal places of precision.
     pub const DECIMALS: u8 = 8;
     /// The maximum number of Tokens we can hold on a single account.
-    pub const MAX: Self = Tokens { e8s: u64::MAX };
+    pub const MAX: Self = ICPToken { e8s: u64::MAX };
     /// Zero Tokens.
-    pub const ZERO: Self = Tokens { e8s: 0 };
+    pub const ZERO: Self = ICPToken { e8s: 0 };
     /// How many times can Tokenss be divided
     pub const SUBDIVIDABLE_BY: u64 = 100_000_000;
 
@@ -42,7 +42,7 @@ impl Tokens {
     }
 }
 
-impl Add for Tokens {
+impl Add for ICPToken {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
@@ -56,14 +56,14 @@ impl Add for Tokens {
     }
 }
 
-impl AddAssign for Tokens {
+impl AddAssign for ICPToken {
     fn add_assign(&mut self, other: Self) {
         let temp = self.clone() + other;
         *self = temp;
     }
 }
 
-impl Sub for Tokens {
+impl Sub for ICPToken {
     type Output = Self;
     fn sub(self, other: Self) -> Self {
         let e8s = self.e8s.checked_sub(other.e8s).unwrap_or_else(|| {
@@ -76,20 +76,20 @@ impl Sub for Tokens {
     }
 }
 
-impl SubAssign for Tokens {
+impl SubAssign for ICPToken {
     fn sub_assign(&mut self, other: Self) {
         let temp = self.clone() - other;
         *self = temp;
     }
 }
 
-impl fmt::Display for Tokens {
+impl fmt::Display for ICPToken {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "{}.{:08}",
-            self.e8s / Tokens::SUBDIVIDABLE_BY,
-            self.e8s % Tokens::SUBDIVIDABLE_BY
+            self.e8s / ICPToken::SUBDIVIDABLE_BY,
+            self.e8s % ICPToken::SUBDIVIDABLE_BY
         )
     }
 }

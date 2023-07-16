@@ -1,4 +1,4 @@
-use b3_helper_lib::time::NanoTimeStamp;
+use b3_helper_lib::timestamp::NanoTimeStamp;
 use b3_helper_lib::types::{CanisterId, RequestId};
 use b3_permit_lib::processed::processed::ProcessedRequest;
 use b3_permit_lib::request::request::Request;

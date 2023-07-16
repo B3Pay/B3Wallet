@@ -1,6 +1,6 @@
 use crate::permit::{caller_is_admin, caller_is_signer};
 use b3_helper_lib::revert;
-use b3_helper_lib::time::NanoTimeStamp;
+use b3_helper_lib::timestamp::NanoTimeStamp;
 use b3_helper_lib::types::InititializeWalletArgs;
 use b3_helper_lib::wasm::with_wasm;
 use b3_helper_lib::{ic_canister_status, types::WalletCanisterStatus};

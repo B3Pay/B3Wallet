@@ -6,7 +6,7 @@ use crate::{
     types::{ConsentMessage, Response, ResponseMap, SignerIds},
 };
 use b3_helper_lib::{
-    time::NanoTimeStamp,
+    timestamp::NanoTimeStamp,
     types::{RequestId, SignerId, Version},
 };
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};

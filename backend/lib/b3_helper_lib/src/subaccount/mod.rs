@@ -1,8 +1,11 @@
+pub mod error;
+mod test;
+
 use crate::{
-    account::ICRCAccount,
+    account_identifier::AccountIdentifier,
     constants::{DEVELOPMENT_PREFIX, STAGING_PREFIX},
     environment::Environment,
-    identifier::AccountIdentifier,
+    icrc_account::ICRCAccount,
     types::CanisterId,
 };
 use ic_cdk::export::{
@@ -12,6 +15,8 @@ use ic_cdk::export::{
 };
 
 use std::{cmp, fmt, hash, mem::size_of, ops::Add, str::FromStr};
+
+use self::error::SubaccountError;
 
 impl Default for Subaccount {
     fn default() -> Self {
@@ -47,7 +52,7 @@ impl Subaccount {
     pub fn new(environment: Environment, nonce: u64) -> Self {
         let mut subaccount = [0; 32];
         // Set the 24th byte of the subaccount array as the prefix of the environment
-        subaccount[23] = environment.prefix();
+        subaccount[23] = environment.identifier();
 
         // Convert the nonce into bytes in big-endian order
         let nonce_bytes = nonce.to_be_bytes();
@@ -251,178 +256,5 @@ impl FromStr for Subaccount {
 impl fmt::Display for Subaccount {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         hex::encode(&self.0).fmt(f)
-    }
-}
-
-#[derive(CandidType, Deserialize, Serialize, Debug)]
-pub enum SubaccountError {
-    HexError(String),
-    SliceError(String),
-    Base32Error(String),
-    InvalidSubaccount(String),
-    InvalidSubaccountLength(usize),
-}
-
-#[rustfmt::skip]
-   impl fmt::Display for SubaccountError {
-       fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-           match self {
-               SubaccountError::InvalidSubaccountLength(len) => write!(f, "InvalidSubaccountLength: {}", len),
-               SubaccountError::InvalidSubaccount(e) => write!(f, "InvalidSubaccount: {}", e),
-               SubaccountError::Base32Error(e) => write!(f, "Subaccount base32 error: {}", e),
-               SubaccountError::SliceError(e) => write!(f, "Subaccount slice error: {}", e),
-               SubaccountError::HexError(e) => write!(f, "Subaccount hex error: {}", e),
-           }
-       }
-   }
-
-#[cfg(test)]
-mod test {
-    use crate::mocks::ic_cdk_id;
-
-    use super::*;
-
-    #[test]
-    fn test_production_subaccount() {
-        let subaccount = Subaccount::default();
-        assert_eq!(
-            subaccount.to_owned(),
-            Subaccount([
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-            ])
-        );
-
-        let subaccount = Subaccount::new(Environment::Production, 0);
-        assert_eq!(
-            subaccount.to_owned(),
-            Subaccount([
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-            ])
-        );
-
-        let subaccount = Subaccount::new(Environment::Production, 1);
-
-        assert_eq!(subaccount.nonce(), 1);
-
-        assert_eq!(
-            subaccount.to_owned(),
-            Subaccount([
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
-            ])
-        );
-
-        assert_eq!(subaccount.to_hex(), "1");
-
-        let subaccount = "001".parse::<Subaccount>().unwrap();
-
-        assert_eq!(
-            subaccount,
-            Subaccount([
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
-            ])
-        );
-
-        let subaccount = Subaccount::new(Environment::Production, 512);
-
-        assert_eq!(
-            subaccount.to_owned(),
-            Subaccount([
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0
-            ])
-        )
-    }
-
-    #[test]
-    fn test_development_subaccount() {
-        let subaccount = Subaccount::new(Environment::Development, 0);
-        assert_eq!(
-            subaccount.to_owned(),
-            Subaccount([
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 255, 0, 0, 0, 0, 0, 0, 0, 0
-            ])
-        );
-
-        let subaccount = Subaccount::new(Environment::Development, 1);
-
-        assert_eq!(
-            subaccount.to_owned(),
-            Subaccount([
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 255, 0, 0, 0, 0, 0, 0, 0, 1
-            ])
-        );
-
-        assert_eq!(subaccount.to_hex(), "ff0000000000000001");
-
-        let subaccount = Subaccount::from_hex(
-            &"0000000000000000000000000000000000000000000000ff0000000000000001",
-        )
-        .expect("Failed to parse subaccount");
-
-        assert_eq!(subaccount, Subaccount::new(Environment::Development, 1));
-    }
-
-    #[test]
-    fn test_staging_subaccount() {
-        let subaccount = Subaccount::new(Environment::Staging, 0);
-        assert_eq!(
-            subaccount.to_owned(),
-            Subaccount([
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 170, 0, 0, 0, 0, 0, 0, 0, 0
-            ])
-        );
-
-        let subaccount = Subaccount::new(Environment::Staging, 1);
-
-        assert_eq!(
-            subaccount.to_owned(),
-            Subaccount([
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
-                0, 0, 170, 0, 0, 0, 0, 0, 0, 0, 1
-            ])
-        );
-
-        assert_eq!(subaccount.to_hex(), "aa0000000000000001");
-    }
-
-    #[test]
-    fn test_account_and_subaccount_with_loop() {
-        for i in 0..30 {
-            let env = match i % 3 {
-                0 => Environment::Production,
-                1 => Environment::Staging,
-                2 => Environment::Development,
-                _ => unreachable!(),
-            };
-            let nonce = i / 3;
-
-            let subaccount = Subaccount::new(env.clone(), nonce);
-            let account = ICRCAccount::new(ic_cdk_id(), Some(subaccount.clone()));
-
-            assert_eq!(account.effective_subaccount(), &subaccount);
-            println!("{}", account.to_text());
-
-            let recover = ICRCAccount::from_text(&account.to_text()).unwrap();
-            assert_eq!(recover.effective_subaccount().environment(), env);
-            assert_eq!(recover.effective_subaccount().nonce(), nonce);
-
-            assert_eq!(recover, account);
-        }
     }
 }

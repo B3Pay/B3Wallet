@@ -1,10 +1,10 @@
 use crate::permit::caller_is_signer;
 use b3_helper_lib::{
-    amount::Amount,
     environment::Environment,
+    icp_token::ICPToken,
     revert,
     subaccount::Subaccount,
-    tokens::Tokens,
+    token_amount::TokenAmount,
     types::{AccountsNonce, BlockIndex, CanisterId, Cycles, NotifyTopUpResult},
 };
 use b3_wallet_lib::ledger::{
@@ -163,7 +163,7 @@ pub async fn account_send(
     account_id: AccountId,
     chain: ChainEnum,
     to: String,
-    amount: Amount,
+    amount: TokenAmount,
 ) -> SendResult {
     let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
@@ -270,7 +270,7 @@ pub async fn account_swap_ckbtc_to_btc(
 #[update(guard = "caller_is_signer")]
 pub async fn account_top_up_and_notify(
     account_id: AccountId,
-    amount: Tokens,
+    amount: ICPToken,
     canister_id: Option<CanisterId>,
 ) -> Result<Cycles, String> {
     let icp = with_chain(&account_id, &ChainEnum::ICP, |chain| chain.icp())

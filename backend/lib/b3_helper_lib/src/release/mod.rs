@@ -1,7 +1,7 @@
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use std::{fmt, str::FromStr};
 
-use crate::error::HelperError;
+use crate::error::helper_error::HelperError;
 
 #[derive(CandidType, PartialEq, Eq, Hash, Deserialize, Clone)]
 pub enum ReleaseName {

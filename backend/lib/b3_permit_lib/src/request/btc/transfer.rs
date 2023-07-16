@@ -4,7 +4,7 @@ use crate::{
     request::{request::RequestTrait, result::BtcTransfered},
 };
 use async_trait::async_trait;
-use b3_helper_lib::amount::Amount;
+use b3_helper_lib::token_amount::TokenAmount;
 use b3_wallet_lib::ledger::types::ChainEnum;
 use b3_wallet_lib::ledger::{chain::ChainTrait, types::SendResult};
 use b3_wallet_lib::{error::WalletError, ledger::btc::network::BtcNetwork, store::with_chain};
@@ -13,7 +13,7 @@ use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
 pub struct BtcTransfer {
     pub account_id: String,
-    pub amount: Amount,
+    pub amount: TokenAmount,
     pub to: String,
     pub network: BtcNetwork,
 }
@@ -35,7 +35,7 @@ impl RequestTrait for BtcTransfer {
     }
 
     fn validate_request(&self) -> Result<(), PermitError> {
-        if self.amount <= Amount::from(0) {
+        if self.amount <= TokenAmount::from(0) {
             return Err(PermitError::InvalidAmount);
         }
 

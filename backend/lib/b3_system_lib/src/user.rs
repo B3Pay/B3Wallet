@@ -1,7 +1,7 @@
 use crate::{error::SystemError, types::Canisters, wallet::WalletCanister};
 use b3_helper_lib::{
     constants::RATE_LIMIT,
-    time::NanoTimeStamp,
+    timestamp::NanoTimeStamp,
     types::{CanisterId, ControllerId},
 };
 use ic_cdk::{

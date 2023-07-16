@@ -3,7 +3,7 @@ use crate::ledger::{
     error::LedgerError,
     types::{Balance, ChainId, EvmPending, PendingEnum, SendResult},
 };
-use b3_helper_lib::amount::Amount;
+use b3_helper_lib::token_amount::TokenAmount;
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 use async_trait::async_trait;
@@ -27,14 +27,14 @@ impl ChainTrait for EvmChain {
         Ok(Balance::from(0))
     }
 
-    async fn send(&self, _to: String, _amount: Amount) -> Result<SendResult, LedgerError> {
+    async fn send(&self, _to: String, _amount: TokenAmount) -> Result<SendResult, LedgerError> {
         todo!("implement the async method for EVM...")
     }
 
     async fn send_mut(
         &mut self,
         _to: String,
-        _amount: Amount,
+        _amount: TokenAmount,
         _fee: Option<u64>,
         _memo: Option<String>,
     ) -> Result<SendResult, LedgerError> {

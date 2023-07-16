@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use b3_helper_lib::{
-    amount::Amount,
     identifier::AccountIdentifier,
+    token_amount::TokenAmount,
     types::{NotifyTopUpResult, TransferResult},
 };
 use candid::Principal;
@@ -38,7 +38,7 @@ impl ChainTrait for IcpChain {
         Ok(res.e8s().into())
     }
 
-    async fn send(&self, to: String, amount: Amount) -> Result<SendResult, LedgerError> {
+    async fn send(&self, to: String, amount: TokenAmount) -> Result<SendResult, LedgerError> {
         let to =
             AccountIdentifier::from_str(&to).map_err(|e| LedgerError::CallError(e.to_string()))?;
 
@@ -62,7 +62,7 @@ impl ChainTrait for IcpChain {
     async fn send_mut(
         &mut self,
         to: String,
-        amount: Amount,
+        amount: TokenAmount,
         _fee: Option<u64>,
         _memo: Option<String>,
     ) -> Result<SendResult, LedgerError> {

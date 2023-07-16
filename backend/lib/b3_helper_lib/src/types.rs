@@ -1,9 +1,9 @@
 use crate::{
-    error::{HelperError, NotifyError, TransferError},
-    identifier::AccountIdentifier,
+    account_identifier::AccountIdentifier,
+    error::{helper_error::HelperError, notify_error::NotifyError, transfer_error::TransferError},
+    icp_token::ICPToken,
     subaccount::Subaccount,
-    time::NanoTimeStamp,
-    tokens::Tokens,
+    timestamp::NanoTimeStamp,
 };
 use ic_cdk::{
     api::management_canister::main::{CanisterInstallMode, CanisterStatusResponse},
@@ -14,7 +14,6 @@ use ic_cdk::{
     },
 };
 
-use serde_bytes::ByteBuf;
 use std::collections::HashMap;
 
 pub type Metadata = HashMap<String, String>;
@@ -30,9 +29,6 @@ pub type Cycles = u128;
 pub type Version = String;
 
 pub type Blob = Vec<u8>;
-
-#[derive(CandidType, Deserialize, Serialize, Clone)]
-pub struct Wasm(pub ByteBuf);
 
 pub type WasmSize = usize;
 pub type WasmModule = Vec<u8>;
@@ -154,10 +150,10 @@ pub struct Timestamp {
 }
 
 #[derive(CandidType, Deserialize, Serialize, Clone)]
-pub struct TransferArgs {
+pub struct ICPTransferArgs {
     pub memo: Memo,
-    pub fee: Tokens,
-    pub amount: Tokens,
+    pub fee: ICPToken,
+    pub amount: ICPToken,
     pub to: AccountIdentifier,
     pub from_subaccount: Option<Subaccount>,
     pub created_at_time: Option<Timestamp>,
@@ -169,32 +165,4 @@ pub type TransferResult = Result<BlockIndex, TransferError>;
 pub enum NotifyTopUpResult {
     Ok(u128),
     Err(NotifyError),
-}
-
-#[derive(CandidType, Deserialize, Serialize)]
-pub struct TransferFee {
-    pub transfer_fee: Tokens,
-}
-
-#[derive(CandidType, Deserialize, Serialize)]
-pub struct TransferFeeArgs {}
-
-#[derive(CandidType, Deserialize, Serialize)]
-pub struct HeaderField(pub String, pub String);
-
-#[derive(CandidType, Deserialize, Serialize)]
-pub struct HttpRequest {
-    pub method: String,
-    pub url: String,
-    pub headers: Vec<HeaderField>,
-    #[serde(with = "serde_bytes")]
-    pub body: Vec<u8>,
-}
-
-#[derive(CandidType, Deserialize, Serialize)]
-pub struct HttpResponse {
-    pub status_code: u16,
-    pub headers: Vec<HeaderField>,
-    #[serde(with = "serde_bytes")]
-    pub body: Vec<u8>,
 }

@@ -1,6 +1,6 @@
 use b3_helper_lib::{
     release::ReleaseName,
-    time::NanoTimeStamp,
+    timestamp::NanoTimeStamp,
     types::{ControllerId, SignerId, Version, Wasm, WasmHash, WasmSize},
 };
 use ic_cdk::export::candid::{CandidType, Deserialize};

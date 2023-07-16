@@ -2,7 +2,7 @@ use crate::{
     permit::{caller_is_admin, caller_is_signer},
     wallet::version,
 };
-use b3_helper_lib::{revert, time::NanoTimeStamp, types::RequestId, wasm::with_wasm};
+use b3_helper_lib::{revert, timestamp::NanoTimeStamp, types::RequestId, wasm::with_wasm};
 use b3_permit_lib::{
     pending::new::RequestArgs,
     request::{

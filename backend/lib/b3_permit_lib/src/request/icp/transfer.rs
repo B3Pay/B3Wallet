@@ -5,8 +5,8 @@ use crate::request::result::ExecutionResult;
 use crate::request::result::IcpTransfered;
 use crate::request::result::TopUpTransfered;
 use async_trait::async_trait;
+use b3_helper_lib::icp_token::ICPToken;
 use b3_helper_lib::identifier::AccountIdentifier;
-use b3_helper_lib::tokens::Tokens;
 use b3_helper_lib::types::{CanisterId, Memo, NotifyTopUpResult, TransferResult};
 use b3_wallet_lib::error::WalletError;
 use b3_wallet_lib::ledger::types::ChainEnum;
@@ -18,8 +18,8 @@ use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 pub struct IcpTransfer {
     pub account_id: String,
     pub to: AccountIdentifier,
-    pub amount: Tokens,
-    pub fee: Option<Tokens>,
+    pub amount: ICPToken,
+    pub fee: Option<ICPToken>,
     pub memo: Option<Memo>,
 }
 
@@ -73,8 +73,8 @@ impl RequestTrait for IcpTransfer {
 pub struct TopUpTransfer {
     pub account_id: String,
     pub canister_id: CanisterId,
-    pub amount: Tokens,
-    pub fee: Option<Tokens>,
+    pub amount: ICPToken,
+    pub fee: Option<ICPToken>,
 }
 
 #[async_trait]

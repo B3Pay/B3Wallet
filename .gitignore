@@ -23,7 +23,8 @@ out/
 target/
 
 .env
-wasm/
 declarations/
 frontend/declarations/
 payment/declarations/
+frontend/public/wasm/**
+wasm/**

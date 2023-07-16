@@ -2,7 +2,7 @@ const BASE32_ALPHABET: &[u8; 32] = b"abcdefghijklmnopqrstuvwxyz234567";
 
 /// simple base32 encoding for Account
 /// should not be used for anything else
-pub(super) fn base32_encode(input: &[u8]) -> String {
+pub(crate) fn base32_encode_account(input: &[u8]) -> String {
     let mut output = String::with_capacity((input.len() * 8 + 4) / 5);
 
     for chunk in input.chunks(5) {
@@ -26,16 +26,16 @@ mod tests {
 
     #[test]
     fn test_base32_encode() {
-        assert_eq!(base32_encode(b""), "");
-        assert_eq!(base32_encode(b"f"), "my");
-        assert_eq!(base32_encode(b"fo"), "mzxq");
-        assert_eq!(base32_encode(b"foo"), "mzxw6");
-        assert_eq!(base32_encode(b"foob"), "mzxw6yq");
-        assert_eq!(base32_encode(b"fooba"), "mzxw6ytb");
-        assert_eq!(base32_encode(b"foobar"), "mzxw6ytboi");
+        assert_eq!(base32_encode_account(b""), "");
+        assert_eq!(base32_encode_account(b"f"), "my");
+        assert_eq!(base32_encode_account(b"fo"), "mzxq");
+        assert_eq!(base32_encode_account(b"foo"), "mzxw6");
+        assert_eq!(base32_encode_account(b"foob"), "mzxw6yq");
+        assert_eq!(base32_encode_account(b"fooba"), "mzxw6ytb");
+        assert_eq!(base32_encode_account(b"foobar"), "mzxw6ytboi");
     }
 
-    pub fn base32_decode(input: &str) -> Result<Vec<u8>, &'static str> {
+    pub fn base32_decode_account(input: &str) -> Result<Vec<u8>, &'static str> {
         let mut output = Vec::with_capacity(input.len() * 5 / 8);
         let mut buffer = 0u64;
         let mut buffer_length = 0;
@@ -65,12 +65,12 @@ mod tests {
 
     #[test]
     fn test_base32_decode() {
-        assert_eq!(base32_decode(""), Ok(vec![]));
-        assert_eq!(base32_decode("my"), Ok(b"f".to_vec()));
-        assert_eq!(base32_decode("mzxq"), Ok(b"fo".to_vec()));
-        assert_eq!(base32_decode("mzxw6"), Ok(b"foo".to_vec()));
-        assert_eq!(base32_decode("mzxw6yq"), Ok(b"foob".to_vec()));
-        assert_eq!(base32_decode("mzxw6ytb"), Ok(b"fooba".to_vec()));
-        assert_eq!(base32_decode("mzxw6ytboi"), Ok(b"foobar".to_vec()));
+        assert_eq!(base32_decode_account(""), Ok(vec![]));
+        assert_eq!(base32_decode_account("my"), Ok(b"f".to_vec()));
+        assert_eq!(base32_decode_account("mzxq"), Ok(b"fo".to_vec()));
+        assert_eq!(base32_decode_account("mzxw6"), Ok(b"foo".to_vec()));
+        assert_eq!(base32_decode_account("mzxw6yq"), Ok(b"foob".to_vec()));
+        assert_eq!(base32_decode_account("mzxw6ytb"), Ok(b"fooba".to_vec()));
+        assert_eq!(base32_decode_account("mzxw6ytboi"), Ok(b"foobar".to_vec()));
     }
 }

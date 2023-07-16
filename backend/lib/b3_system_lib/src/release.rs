@@ -1,5 +1,5 @@
 use b3_helper_lib::{
-    time::NanoTimeStamp,
+    timestamp::NanoTimeStamp,
     types::{Wasm, WasmHash, WasmModule, WasmSize},
 };
 
