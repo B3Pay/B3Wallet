@@ -1,9 +1,4 @@
-pub mod error;
-mod test;
-
-use crate::{
-    constants::DEFAULT_SUBACCOUNT, subaccount::Subaccount, utils::base32::base32_encode_account,
-};
+use crate::{constants::DEFAULT_SUBACCOUNT, subaccount::Subaccount, utils::base32_encode_account};
 use easy_hasher::easy_hasher;
 use ic_cdk::export::{
     candid::CandidType,
@@ -17,7 +12,7 @@ use crate::utils::mocks::ic_cdk_id;
 #[cfg(not(test))]
 use ic_cdk::api::id as ic_cdk_id;
 
-use self::error::ICRCAccountError;
+use super::error::ICRCAccountError;
 
 #[derive(CandidType, Deserialize, Serialize, Debug, Clone)]
 pub struct ICRCAccount {

@@ -1,6 +1,3 @@
-pub mod error;
-mod test;
-
 use ic_cdk::export::{
     candid::CandidType,
     serde::{Deserialize, Serialize},
@@ -12,7 +9,7 @@ use crate::subaccount::Subaccount;
 use easy_hasher::easy_hasher;
 use std::{fmt, str::FromStr};
 
-use self::error::AccountIdentifierError;
+use super::error::AccountIdentifierError;
 
 #[derive(CandidType, Deserialize, Serialize, Clone, Debug, PartialEq)]
 pub struct AccountIdentifier(pub [u8; 32]);

@@ -59,9 +59,9 @@ pub fn post_upgrade() {
 
 #[cfg(test)]
 mod tests {
+    use b3_helper_lib::amount::TokenAmount;
     use b3_helper_lib::environment::Environment;
-    use b3_helper_lib::icp_token::ICPToken;
-    use b3_helper_lib::token_amount::TokenAmount;
+    use b3_helper_lib::token::ICPToken;
     use b3_helper_lib::types::*;
     use b3_wallet_lib::account::WalletAccount;
     use b3_wallet_lib::ledger::btc::network::BtcNetwork;

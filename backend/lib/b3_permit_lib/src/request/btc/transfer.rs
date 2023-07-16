@@ -4,7 +4,7 @@ use crate::{
     request::{request::RequestTrait, result::BtcTransfered},
 };
 use async_trait::async_trait;
-use b3_helper_lib::token_amount::TokenAmount;
+use b3_helper_lib::amount::TokenAmount;
 use b3_wallet_lib::ledger::types::ChainEnum;
 use b3_wallet_lib::ledger::{chain::ChainTrait, types::SendResult};
 use b3_wallet_lib::{error::WalletError, ledger::btc::network::BtcNetwork, store::with_chain};

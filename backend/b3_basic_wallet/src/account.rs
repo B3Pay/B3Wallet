@@ -1,10 +1,10 @@
 use b3_helper_lib::{
+    amount::TokenAmount,
     environment::Environment,
-    icp_token::ICPToken,
     owner::caller_is_owner,
     revert,
     subaccount::Subaccount,
-    token_amount::TokenAmount,
+    token::ICPToken,
     types::{CanisterId, Cycles, NotifyTopUpResult, TransferBlockIndex, WalletAccountsNonce},
 };
 use b3_wallet_lib::ledger::{

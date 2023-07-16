@@ -1,12 +1,11 @@
-pub mod error;
-
 use ic_cdk::export::{
     candid::CandidType,
     serde::{Deserialize, Serialize},
 };
 
-use crate::{icp_transfer::TransferBlockIndex, wallet::CanisterId};
-use error::NotifyError;
+use crate::{transfer::TransferBlockIndex, wallet::CanisterId};
+
+use super::NotifyError;
 
 #[derive(CandidType, Deserialize, Serialize)]
 pub struct NotifyTopupArgs {

@@ -6,9 +6,9 @@ use b3_helper_lib::{
         CANISTER_TOP_UP_MEMO, CANISTER_TRANSFER_MEMO, CYCLES_MINTING_CANISTER_ID,
         IC_TRANSACTION_FEE_ICP, LEDGER_CANISTER_ID,
     },
-    icp_token::ICPToken,
     identifier::AccountIdentifier,
     subaccount::Subaccount,
+    token::ICPToken,
     types::{
         CanisterId, ICPAccountBalanceArgs, ICPTransferArgs, ICPTransferResult,
         ICPTransferTimestamp, NotifyTopUpResult, NotifyTopupArgs, TransferBlockIndex, TransferMemo,

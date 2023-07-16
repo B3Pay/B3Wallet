@@ -1,4 +1,4 @@
-use crate::{icp_token::ICPToken, icp_transfer::TransferBlockIndex};
+use crate::{token::ICPToken, transfer::TransferBlockIndex};
 use ic_cdk::export::{
     candid::CandidType,
     serde::{Deserialize, Serialize},

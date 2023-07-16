@@ -1,5 +1,5 @@
 use super::TransferBlockIndex;
-use crate::icp_token::ICPToken;
+use crate::token::ICPToken;
 
 use ic_cdk::export::{
     candid::CandidType,

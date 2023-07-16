@@ -2,9 +2,7 @@
 mod tests {
     use candid::Principal;
 
-    use crate::{
-        account_identifier::AccountIdentifier, environment::Environment, subaccount::Subaccount,
-    };
+    use crate::{environment::Environment, identifier::AccountIdentifier, subaccount::Subaccount};
 
     #[test]
     fn test_default_account_identifier() {

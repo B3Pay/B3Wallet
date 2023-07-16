@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use b3_helper_lib::{
+    amount::TokenAmount,
     identifier::AccountIdentifier,
-    token_amount::TokenAmount,
     types::{ICPTransferResult, NotifyTopUpResult},
 };
 use candid::Principal;

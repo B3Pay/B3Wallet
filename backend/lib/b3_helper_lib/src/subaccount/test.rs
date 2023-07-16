@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod test {
     use crate::{
-        environment::Environment, icrc_account::ICRCAccount, subaccount::Subaccount,
+        account::ICRCAccount, environment::Environment, subaccount::Subaccount,
         utils::mocks::ic_cdk_id,
     };
 

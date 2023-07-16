@@ -1,10 +1,10 @@
 use crate::permit::caller_is_signer;
 use b3_helper_lib::{
+    amount::TokenAmount,
     environment::Environment,
-    icp_token::ICPToken,
     revert,
     subaccount::Subaccount,
-    token_amount::TokenAmount,
+    token::ICPToken,
     types::{CanisterId, Cycles, NotifyTopUpResult, TransferBlockIndex, WalletAccountsNonce},
 };
 use b3_wallet_lib::ledger::{

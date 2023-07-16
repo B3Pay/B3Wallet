@@ -1,6 +1,6 @@
 use crate::request::result::ExecutionResult;
 use async_trait::async_trait;
-use b3_helper_lib::token_amount::TokenAmount;
+use b3_helper_lib::amount::TokenAmount;
 use b3_wallet_lib::{
     error::WalletError,
     ledger::{chain::ChainTrait, types::ChainEnum},

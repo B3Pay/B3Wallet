@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::constants::*;
+    use crate::{constants::*, wallet::CanisterId};
 
     #[test]
     fn test_ledger() {

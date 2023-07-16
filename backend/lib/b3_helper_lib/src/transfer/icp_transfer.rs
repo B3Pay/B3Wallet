@@ -1,18 +1,10 @@
-pub mod error;
-
+use super::{ICPTransferError, TransferBlockIndex, TransferMemo};
+use crate::token::ICPToken;
+use crate::{identifier::AccountIdentifier, subaccount::Subaccount};
 use ic_cdk::export::{
     candid::CandidType,
     serde::{Deserialize, Serialize},
 };
-
-use crate::{account_identifier::AccountIdentifier, icp_token::ICPToken, subaccount::Subaccount};
-
-use error::ICPTransferError;
-
-#[derive(CandidType, Deserialize, Serialize, Debug, PartialEq, Clone)]
-pub struct TransferMemo(pub u64);
-
-pub type TransferBlockIndex = u64;
 
 #[derive(CandidType, Clone, Deserialize, Serialize, PartialEq, Debug)]
 pub struct ICPTransferTimestamp {

@@ -1,7 +1,4 @@
-pub mod error;
-mod test;
-
-use crate::icp_token::ICPToken;
+use crate::token::ICPToken;
 use candid::Nat;
 use ic_cdk::export::{
     candid::CandidType,
@@ -13,7 +10,7 @@ use std::{
     str::FromStr,
 };
 
-use self::error::TokenAmountError;
+use super::error::TokenAmountError;
 
 #[derive(CandidType, Deserialize, PartialEq, Eq, Serialize, Copy, Clone, Debug)]
 pub struct TokenAmount {

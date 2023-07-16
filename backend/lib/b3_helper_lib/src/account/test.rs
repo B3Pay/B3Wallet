@@ -2,41 +2,37 @@
 mod tests {
     use candid::Principal;
 
-    use crate::{environment::Environment, icrc_account::ICRCAccount, subaccount::Subaccount};
+    use crate::{account::ICRCAccount, environment::Environment, subaccount::Subaccount};
 
     #[test]
     fn test_account_display() {
-        let account_1 = ICRCAccount {
-            owner: Principal::from_text(
-                "k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae",
-            )
-            .unwrap(),
-            subaccount: None,
-        };
+        let account_1 = ICRCAccount::new(
+            Principal::from_text("k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae")
+                .unwrap(),
+            None,
+        );
+
         assert_eq!(
             account_1.to_string(),
             "k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae"
         );
 
-        let account_2 = ICRCAccount {
-            owner: Principal::from_text(
-                "k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae",
-            )
-            .unwrap(),
-            subaccount: Some(Subaccount::from_slice(&[0u8; 32]).unwrap()),
-        };
+        let account_2 = ICRCAccount::new(
+            Principal::from_text("k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae")
+                .unwrap(),
+            Some(Subaccount::from_slice(&[0u8; 32]).unwrap()),
+        );
+
         assert_eq!(
             account_2.to_string(),
             "k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae"
         );
 
-        let account_3 = ICRCAccount {
-            owner: Principal::from_text(
-                "k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae",
-            )
-            .unwrap(),
-            subaccount: Some(Subaccount::from_slice(&[1u8; 32]).unwrap()),
-        };
+        let account_3 = ICRCAccount::new(
+            Principal::from_text("k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae")
+                .unwrap(),
+            Some(Subaccount::from_slice(&[1u8; 32]).unwrap()),
+        );
         assert_eq!(
             account_3.to_string(),
             "k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae-7s4rpcq.101010101010101010101010101010101010101010101010101010101010101"
@@ -45,13 +41,11 @@ mod tests {
         let mut slices = [0u8; 32];
         slices[31] = 0x01;
 
-        let account_4 = ICRCAccount {
-            owner: Principal::from_text(
-                "k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae",
-            )
-            .unwrap(),
-            subaccount: Some(Subaccount::from_slice(&slices).unwrap()),
-        };
+        let account_4 = ICRCAccount::new(
+            Principal::from_text("k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae")
+                .unwrap(),
+            Some(Subaccount::from_slice(&slices).unwrap()),
+        );
 
         assert_eq!(
             account_4.to_string(),
@@ -64,13 +58,12 @@ mod tests {
             0x1d, 0x1e, 0x1f, 0x20,
         ];
 
-        let account_5 = ICRCAccount {
-            owner: Principal::from_text(
-                "k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae",
-            )
-            .unwrap(),
-            subaccount: Some(Subaccount::from_slice(&slices).unwrap()),
-        };
+        let account_5 = ICRCAccount::new(
+            Principal::from_text("k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae")
+                .unwrap(),
+            Some(Subaccount::from_slice(&slices).unwrap()),
+        );
+
         assert_eq!(
             account_5.to_string(),
             "k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae-dfxgiyy.102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20"
@@ -84,13 +77,11 @@ mod tests {
         )
         .unwrap();
 
-        let expected_1 = ICRCAccount {
-            owner: Principal::from_text(
-                "k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae",
-            )
-            .unwrap(),
-            subaccount: None,
-        };
+        let expected_1 = ICRCAccount::new(
+            Principal::from_text("k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae")
+                .unwrap(),
+            None,
+        );
 
         assert_eq!(account_1, expected_1,);
 
@@ -98,13 +89,11 @@ mod tests {
             .parse::<ICRCAccount>()
             .unwrap();
 
-        let expected_2 = ICRCAccount {
-            owner: Principal::from_text(
-                "k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae",
-            )
-            .unwrap(),
-            subaccount: Some(Subaccount([0u8; 32])),
-        };
+        let expected_2 = ICRCAccount::new(
+            Principal::from_text("k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae")
+                .unwrap(),
+            Some(Subaccount([0u8; 32])),
+        );
 
         assert_eq!(account_2, expected_2);
 
@@ -112,26 +101,22 @@ mod tests {
             "k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae-7s4rpcq.101010101010101010101010101010101010101010101010101010101010101"
         ).unwrap();
 
-        let expected_3 = ICRCAccount {
-            owner: Principal::from_text(
-                "k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae",
-            )
-            .unwrap(),
-            subaccount: Some(Subaccount([1u8; 32])),
-        };
+        let expected_3 = ICRCAccount::new(
+            Principal::from_text("k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae")
+                .unwrap(),
+            Some(Subaccount([1u8; 32])),
+        );
 
         assert_eq!(account_3, expected_3);
 
         let mut slices = [0u8; 32];
         slices[31] = 0x01;
 
-        let account_4 = ICRCAccount {
-            owner: Principal::from_text(
-                "k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae",
-            )
-            .unwrap(),
-            subaccount: Some(Subaccount(slices)),
-        };
+        let account_4 = ICRCAccount::new(
+            Principal::from_text("k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae")
+                .unwrap(),
+            Some(Subaccount(slices)),
+        );
 
         assert_eq!(
             account_4,
@@ -146,13 +131,11 @@ mod tests {
             0x1d, 0x1e, 0x1f, 0x20,
         ];
 
-        let account_5 = ICRCAccount {
-            owner: Principal::from_text(
-                "k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae",
-            )
-            .unwrap(),
-            subaccount: Some(Subaccount(slices)),
-        };
+        let account_5 = ICRCAccount::new(
+            Principal::from_text("k2t6j-2nvnp-4zjm3-25dtz-6xhaa-c7boj-5gayf-oj3xs-i43lp-teztq-6ae")
+                .unwrap(),
+            Some(Subaccount(slices)),
+        );
 
         assert_eq!(
             account_5,

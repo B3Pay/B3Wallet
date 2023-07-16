@@ -8,7 +8,7 @@ use crate::ledger::{
     types::{Balance, PendingEnum, SendResult},
 };
 use async_trait::async_trait;
-use b3_helper_lib::{account::ICRCAccount, token_amount::TokenAmount};
+use b3_helper_lib::{account::ICRCAccount, amount::TokenAmount};
 use std::str::FromStr;
 
 #[cfg(test)]
