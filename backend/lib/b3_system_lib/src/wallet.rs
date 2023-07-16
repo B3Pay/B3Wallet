@@ -2,7 +2,8 @@ use crate::{error::SystemError, types::Controllers};
 use b3_helper_lib::{
     ic_canister_status,
     types::{
-        CanisterId, SignerId, Version, WalletCanisterInstallArg, WalletCanisterStatus, WasmHash,
+        CanisterId, SignerId, WalletCanisterInstallArg, WalletCanisterStatus, WalletVersion,
+        WasmHash,
     },
 };
 use ic_cdk::{
@@ -42,8 +43,8 @@ impl WalletCanister {
     }
 
     /// Get the version of the canister.
-    pub async fn version(&self) -> Result<Version, SystemError> {
-        let (version,): (Version,) = ic_cdk::call(self.0, "version", ())
+    pub async fn version(&self) -> Result<WalletVersion, SystemError> {
+        let (version,): (WalletVersion,) = ic_cdk::call(self.0, "version", ())
             .await
             .map_err(|err| SystemError::VersionError(err.1))?;
 

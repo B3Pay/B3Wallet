@@ -5,7 +5,7 @@ mod wasm;
 
 use b3_helper_lib::{
     owner::{with_owner, with_owner_mut},
-    types::{Controller, SignerId, WalletCanisterInitArgs},
+    types::{SignerId, WalletCanisterInitArgs, WalletController},
     wasm::with_wasm_mut,
 };
 use b3_wallet_lib::{
@@ -30,10 +30,10 @@ pub fn init() {
     with_owner_mut(|owner| *owner = owner_id);
     with_setting_mut(|s| {
         s.controllers
-            .insert(ic_cdk::id(), Controller::new("self".to_owned(), None));
+            .insert(ic_cdk::id(), WalletController::new("self".to_owned(), None));
 
         s.controllers
-            .insert(owner_id, Controller::new("owner".to_owned(), None));
+            .insert(owner_id, WalletController::new("owner".to_owned(), None));
     });
 }
 

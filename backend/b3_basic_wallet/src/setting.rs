@@ -1,6 +1,8 @@
 use b3_helper_lib::owner::{caller_is_owner, with_owner_mut};
 use b3_helper_lib::revert;
-use b3_helper_lib::types::{Controller, ControllerId, ControllerMap, Metadata, SignerId};
+use b3_helper_lib::types::{
+    ControllerId, Metadata, SignerId, WalletController, WalletControllerMap,
+};
 use b3_wallet_lib::store::with_wallet_mut;
 use b3_wallet_lib::{
     setting::WalletSettings,
@@ -30,7 +32,7 @@ async fn add_controller_and_update(
     name: String,
     metadata: Option<Metadata>,
 ) {
-    let controller = Controller::new(name, metadata);
+    let controller = WalletController::new(name, metadata);
 
     let mut settings = with_setting(|s| s.clone());
 
@@ -44,7 +46,7 @@ async fn add_controller_and_update(
 
 #[candid_method(update)]
 #[update(guard = "caller_is_owner")]
-async fn update_controller(controller_map: ControllerMap) -> ControllerMap {
+async fn update_controller(controller_map: WalletControllerMap) -> WalletControllerMap {
     let mut settings = with_setting(|s| s.clone());
 
     settings

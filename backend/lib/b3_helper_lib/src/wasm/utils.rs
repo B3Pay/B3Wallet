@@ -1,7 +1,6 @@
 use easy_hasher::easy_hasher;
 
-use super::{Wasm, WASM};
-use crate::types::WasmHash;
+use super::{types::WasmHash, Wasm, WASM};
 
 pub fn sha256_wasm_hash(data: &[u8]) -> WasmHash {
     let hash = easy_hasher::raw_sha256(data.to_vec());

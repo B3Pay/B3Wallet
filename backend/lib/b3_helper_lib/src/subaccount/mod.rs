@@ -6,7 +6,7 @@ use crate::{
     constants::{DEVELOPMENT_PREFIX, STAGING_PREFIX},
     environment::Environment,
     icrc_account::ICRCAccount,
-    types::CanisterId,
+    wallet::SignerId,
 };
 use ic_cdk::export::{
     candid::CandidType,
@@ -183,11 +183,11 @@ impl Subaccount {
 }
 
 impl Subaccount {
-    pub fn account_identifier(&self, owner: CanisterId) -> AccountIdentifier {
+    pub fn account_identifier(&self, owner: SignerId) -> AccountIdentifier {
         AccountIdentifier::new(owner, self.clone())
     }
 
-    pub fn icrc_account(&self, owner: CanisterId) -> ICRCAccount {
+    pub fn icrc_account(&self, owner: SignerId) -> ICRCAccount {
         ICRCAccount::new(owner, Some(self.clone()))
     }
 }

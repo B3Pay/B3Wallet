@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use b3_helper_lib::{
     identifier::AccountIdentifier,
     token_amount::TokenAmount,
-    types::{NotifyTopUpResult, TransferResult},
+    types::{ICPTransferResult, NotifyTopUpResult},
 };
 use candid::Principal;
 use std::str::FromStr;
@@ -52,8 +52,8 @@ impl ChainTrait for IcpChain {
             .map_err(|e| LedgerError::CallError(e.to_string()))?;
 
         match result {
-            TransferResult::Ok(block_index) => Ok(SendResult::ICP(block_index)),
-            TransferResult::Err(err) => {
+            ICPTransferResult::Ok(block_index) => Ok(SendResult::ICP(block_index)),
+            ICPTransferResult::Err(err) => {
                 return Err(LedgerError::IcpError(IcpError::TransferError(err)))
             }
         }

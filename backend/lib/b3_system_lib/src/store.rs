@@ -1,6 +1,6 @@
 use b3_helper_lib::{
-    release::ReleaseName,
-    types::{SignerId, Version, Wasm, WasmHash},
+    release::ReleaseTypes,
+    types::{SignerId, WalletVersion, Wasm, WasmHash},
 };
 
 use crate::{
@@ -52,7 +52,7 @@ pub fn with_releases<F, T>(name: &str, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&Releases) -> T,
 {
-    let release_name = ReleaseName::from_str(name).map_err(SystemError::HelperError)?;
+    let release_name = ReleaseTypes::from_str(name).map_err(SystemError::HelperError)?;
 
     with_release_map(|releases| {
         releases
@@ -62,7 +62,7 @@ where
     })
 }
 
-pub fn with_releases_mut<F, T>(release_name: ReleaseName, f: F) -> T
+pub fn with_releases_mut<F, T>(release_name: ReleaseTypes, f: F) -> T
 where
     F: FnOnce(&mut Releases) -> T,
 {
@@ -88,7 +88,7 @@ pub fn with_release_mut<F, T>(name: &str, index: usize, f: F) -> Result<T, Syste
 where
     F: FnOnce(&mut Release) -> T,
 {
-    let release_name = ReleaseName::from_str(name).map_err(SystemError::HelperError)?;
+    let release_name = ReleaseTypes::from_str(name).map_err(SystemError::HelperError)?;
 
     with_releases_mut(release_name, |releases| {
         releases
@@ -98,7 +98,11 @@ where
     })
 }
 
-pub fn with_version_release<F, T>(name: &str, version: Version, f: F) -> Result<T, SystemError>
+pub fn with_version_release<F, T>(
+    name: &str,
+    version: WalletVersion,
+    f: F,
+) -> Result<T, SystemError>
 where
     F: FnOnce(&Release) -> T,
 {
@@ -112,8 +116,8 @@ where
 }
 
 pub fn with_version_release_mut<F, T>(
-    release_name: ReleaseName,
-    version: Version,
+    release_name: ReleaseTypes,
+    version: WalletVersion,
     f: F,
 ) -> Result<T, SystemError>
 where
@@ -231,7 +235,7 @@ where
     WASM.with(|wasm| f(&mut wasm.borrow_mut()))
 }
 
-pub fn with_wasm<F, T>(version: &Version, f: F) -> Result<T, SystemError>
+pub fn with_wasm<F, T>(version: &WalletVersion, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&Wasm) -> T,
 {
@@ -243,7 +247,7 @@ where
     })
 }
 
-pub fn with_wasm_mut<F, T>(version: &Version, f: F) -> Result<T, SystemError>
+pub fn with_wasm_mut<F, T>(version: &WalletVersion, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&mut Wasm) -> T,
 {

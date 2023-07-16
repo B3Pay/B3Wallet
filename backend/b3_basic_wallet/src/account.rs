@@ -5,7 +5,7 @@ use b3_helper_lib::{
     revert,
     subaccount::Subaccount,
     token_amount::TokenAmount,
-    types::{AccountsNonce, BlockIndex, CanisterId, Cycles, NotifyTopUpResult},
+    types::{CanisterId, Cycles, NotifyTopUpResult, TransferBlockIndex, WalletAccountsNonce},
 };
 use b3_wallet_lib::ledger::{
     chain::ChainTrait,
@@ -46,7 +46,7 @@ pub fn get_account_count() -> usize {
 
 #[candid_method(query)]
 #[query(guard = "caller_is_owner")]
-pub fn get_account_counters() -> AccountsNonce {
+pub fn get_account_counters() -> WalletAccountsNonce {
     with_wallet(|s| s.counters().clone())
 }
 
@@ -72,7 +72,7 @@ pub fn get_addresses(account_id: AccountId) -> AddressMap {
 #[query(guard = "caller_is_owner")]
 pub async fn retrieve_btc_status(
     network: BtcNetwork,
-    block_index: BlockIndex,
+    block_index: TransferBlockIndex,
 ) -> RetrieveBtcStatus {
     let minter = Minter(network);
 
@@ -240,7 +240,7 @@ pub async fn account_swap_ckbtc_to_btc(
     network: BtcNetwork,
     retrieve_address: String,
     amount: Satoshi,
-) -> BlockIndex {
+) -> TransferBlockIndex {
     let ckbtc = with_chain(&account_id, &ChainEnum::CKBTC(network), |chain| {
         chain.ckbtc()
     })

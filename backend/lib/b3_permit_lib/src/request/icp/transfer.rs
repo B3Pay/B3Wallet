@@ -7,7 +7,7 @@ use crate::request::result::TopUpTransfered;
 use async_trait::async_trait;
 use b3_helper_lib::icp_token::ICPToken;
 use b3_helper_lib::identifier::AccountIdentifier;
-use b3_helper_lib::types::{CanisterId, Memo, NotifyTopUpResult, TransferResult};
+use b3_helper_lib::types::{CanisterId, ICPTransferResult, NotifyTopUpResult, TransferMemo};
 use b3_wallet_lib::error::WalletError;
 use b3_wallet_lib::ledger::types::ChainEnum;
 use b3_wallet_lib::store::with_chain;
@@ -20,7 +20,7 @@ pub struct IcpTransfer {
     pub to: AccountIdentifier,
     pub amount: ICPToken,
     pub fee: Option<ICPToken>,
-    pub memo: Option<Memo>,
+    pub memo: Option<TransferMemo>,
 }
 
 #[async_trait]
@@ -38,8 +38,8 @@ impl RequestTrait for IcpTransfer {
             .await?;
 
         match result {
-            TransferResult::Ok(block_number) => Ok(IcpTransfered(self, block_number).into()),
-            TransferResult::Err(err) => Err(WalletError::NotifyTopUpError(err.to_string())),
+            ICPTransferResult::Ok(block_number) => Ok(IcpTransfered(self, block_number).into()),
+            ICPTransferResult::Err(err) => Err(WalletError::NotifyTopUpError(err.to_string())),
         }
     }
 

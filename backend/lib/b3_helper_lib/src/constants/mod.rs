@@ -1,10 +1,8 @@
 mod test;
 
 use crate::{
-    icp_token::ICPToken,
-    subaccount::Subaccount,
-    timestamp::NanoTimeStamp,
-    types::{CanisterId, Memo},
+    icp_token::ICPToken, icp_transfer::TransferMemo, subaccount::Subaccount,
+    timestamp::NanoTimeStamp, wallet::CanisterId,
 };
 
 pub const DEVELOPMENT_PREFIX: u8 = 255;
@@ -19,11 +17,11 @@ pub const IC_TRANSACTION_FEE_ICP: ICPToken = ICPToken::from_e8s(10_000);
 
 pub const CREATE_WALLET_CANISTER_CYCLES: u128 = 200_000_000_000;
 
-pub const CANISTER_CREATE_MEMO: Memo = Memo(0x41455243);
+pub const CANISTER_CREATE_MEMO: TransferMemo = TransferMemo(0x41455243);
 
-pub const CANISTER_TOP_UP_MEMO: Memo = Memo(0x50555054);
+pub const CANISTER_TOP_UP_MEMO: TransferMemo = TransferMemo(0x50555054);
 
-pub const CANISTER_TRANSFER_MEMO: Memo = Memo(0x544153);
+pub const CANISTER_TRANSFER_MEMO: TransferMemo = TransferMemo(0x544153);
 
 pub const GET_BALANCE_COST_CYCLES: u64 = 100_000_000;
 

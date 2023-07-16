@@ -1,7 +1,7 @@
 use b3_helper_lib::owner::{caller_is_owner, with_owner};
 use b3_helper_lib::revert;
 use b3_helper_lib::timestamp::NanoTimeStamp;
-use b3_helper_lib::types::{InititializeWalletArgs, SignerId};
+use b3_helper_lib::types::{SignerId, WalletInititializeArgs};
 use b3_helper_lib::wasm::with_wasm;
 use b3_helper_lib::{ic_canister_status, types::WalletCanisterStatus};
 use b3_wallet_lib::error::WalletError;
@@ -16,7 +16,7 @@ use ic_cdk::{query, update};
 
 #[candid_method(update)]
 #[update(guard = "caller_is_owner")]
-pub async fn init_wallet(args: InititializeWalletArgs) {
+pub async fn init_wallet(args: WalletInititializeArgs) {
     if with_wallet(|w| w.is_initialised()) {
         return revert(WalletError::WalletAlreadyInitialized);
     }

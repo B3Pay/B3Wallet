@@ -10,7 +10,7 @@ use super::{
 use b3_helper_lib::{
     account::ICRCAccount,
     constants::{CKBTC_MINTER_CANISTER_MAINNET, CKBTC_MINTER_CANISTER_TESTNET},
-    types::{BlockIndex, CanisterId},
+    types::{CanisterId, TransferBlockIndex},
 };
 use ic_cdk::api::call::call;
 use ic_cdk::export::{
@@ -89,7 +89,7 @@ impl Minter {
 
     pub async fn retrieve_btc_status(
         &self,
-        block_index: BlockIndex,
+        block_index: TransferBlockIndex,
     ) -> Result<RetrieveBtcStatus, MinterError> {
         let args = RetrieveBtcStatusRequest { block_index };
 

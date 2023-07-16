@@ -1,13 +1,15 @@
 mod test;
+pub mod types;
 pub mod utils;
 
-use crate::types::{Blob, WasmHash, WasmSize};
 use ic_cdk::export::{
     candid::CandidType,
     serde::{Deserialize, Serialize},
 };
 use serde_bytes::ByteBuf;
 use std::cell::RefCell;
+
+use types::{Blob, WasmHash, WasmSize};
 use utils::{sha256_wasm_hash, sha256_wasm_hash_string};
 
 #[derive(CandidType, Deserialize, Serialize, Clone)]

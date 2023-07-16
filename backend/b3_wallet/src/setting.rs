@@ -1,7 +1,7 @@
 use crate::permit::{caller_is_admin, caller_is_signer};
 use b3_helper_lib::{
     revert,
-    types::{Controller, ControllerId, ControllerMap, Metadata},
+    types::{ControllerId, Metadata, WalletController, WalletControllerMap},
 };
 use b3_permit_lib::{store::with_permit, types::WalletSettingsAndSigners};
 use b3_wallet_lib::store::{with_setting, with_setting_mut, with_wallet_mut};
@@ -23,7 +23,7 @@ async fn add_controller_and_update(
     name: String,
     metadata: Option<Metadata>,
 ) {
-    let controller = Controller::new(name, metadata);
+    let controller = WalletController::new(name, metadata);
 
     let mut settings = with_setting(|s| s.clone());
 
@@ -37,7 +37,7 @@ async fn add_controller_and_update(
 
 #[candid_method(update)]
 #[update(guard = "caller_is_admin")]
-async fn update_controller(controller_map: ControllerMap) -> ControllerMap {
+async fn update_controller(controller_map: WalletControllerMap) -> WalletControllerMap {
     let mut settings = with_setting(|s| s.clone());
 
     settings

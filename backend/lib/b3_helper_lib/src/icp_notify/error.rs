@@ -1,4 +1,4 @@
-use crate::{icp_token::ICPToken, types::BlockIndex};
+use crate::{icp_token::ICPToken, icp_transfer::TransferBlockIndex};
 use ic_cdk::export::{
     candid::CandidType,
     serde::{Deserialize, Serialize},
@@ -11,7 +11,7 @@ pub enum NotifyError {
     BadFee { expected_fee: ICPToken },
     InsufficientFunds { balance: ICPToken },
     TxTooOld { allowed_window_nanos: u64 },
-    TxDuplicate { duplicate_of: BlockIndex },
+    TxDuplicate { duplicate_of: TransferBlockIndex },
     Refunded { block_index: Option<u64>, reason: String},
     InvalidTransaction(String),
     Other { error_message: String, error_code: u64 },

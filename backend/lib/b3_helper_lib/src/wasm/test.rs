@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::types::WasmHash;
-    use crate::wasm::Wasm;
+    use crate::wasm::{types::WasmHash, Wasm};
 
     #[test]
     fn test_load() {

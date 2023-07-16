@@ -7,7 +7,7 @@ use crate::{
 };
 use b3_helper_lib::{
     timestamp::NanoTimeStamp,
-    types::{RequestId, SignerId, Version},
+    types::{RequestId, SignerId, WalletVersion},
 };
 use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
@@ -23,7 +23,7 @@ pub struct PendingRequest {
     pub created_by: SignerId,
     pub allowed_signers: SignerIds,
     pub consent_message: ConsentMessage,
-    pub version: Version,
+    pub version: WalletVersion,
 }
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
@@ -31,7 +31,7 @@ pub struct RequestArgs {
     pub role: Roles,
     pub request: Request,
     pub reason: String,
-    pub version: Version,
+    pub version: WalletVersion,
     pub allowed_signers: SignerIds,
     pub deadline: Option<NanoTimeStamp>,
 }

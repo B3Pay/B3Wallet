@@ -7,7 +7,7 @@ mod wallet;
 mod wasm;
 
 use b3_helper_lib::{
-    types::{Controller, WalletCanisterInitArgs},
+    types::{WalletCanisterInitArgs, WalletController},
     wasm::with_wasm_mut,
 };
 use b3_permit_lib::{
@@ -56,10 +56,10 @@ pub fn init() {
     // set initial controllers
     with_setting_mut(|s| {
         s.controllers
-            .insert(ic_cdk::id(), Controller::new("Self".to_owned(), None));
+            .insert(ic_cdk::id(), WalletController::new("Self".to_owned(), None));
 
         s.controllers
-            .insert(owner_id, Controller::new("Owner".to_owned(), None));
+            .insert(owner_id, WalletController::new("Owner".to_owned(), None));
     });
 }
 

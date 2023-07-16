@@ -7,7 +7,7 @@ use ic_cdk::api::management_canister::{
 };
 use std::fmt::Display;
 
-use crate::error::helper_error::HelperError;
+use crate::error::HelperError;
 
 pub fn raw_keccak256(data: &[u8]) -> Hash {
     easy_hasher::raw_keccak256(data.to_vec())

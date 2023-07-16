@@ -11,7 +11,7 @@ use super::inner::account::{
 use super::inner::setting::{UpdateCanisterSettings, UpgradeCanister};
 use super::inner::signer::{AddSigner, RemoveSigner, UpdateSignerThreshold};
 
-use b3_helper_lib::types::{BlockIndex, Cycles};
+use b3_helper_lib::types::{Cycles, TransferBlockIndex};
 use b3_wallet_lib::ledger::ckbtc::types::BtcTxId;
 use b3_wallet_lib::ledger::evm::london::EvmTransaction1559;
 use b3_wallet_lib::ledger::types::SendResult;
@@ -79,7 +79,7 @@ impl fmt::Display for ExecutionResult {
 pub struct TokenSent(pub SendToken, pub SendResult);
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
-pub struct IcpTransfered(pub IcpTransfer, pub BlockIndex);
+pub struct IcpTransfered(pub IcpTransfer, pub TransferBlockIndex);
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
 pub struct EvmTransfered(pub EvmTransfer, pub String);
@@ -88,7 +88,7 @@ pub struct EvmTransfered(pub EvmTransfer, pub String);
 pub struct EvmErc20Transfered(pub EvmTransferErc20, pub String);
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
-pub struct TopUpTransfered(pub TopUpTransfer, pub BlockIndex);
+pub struct TopUpTransfered(pub TopUpTransfer, pub TransferBlockIndex);
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
 pub struct CanisterTopUped(pub NotifyTopUp, pub Cycles);
