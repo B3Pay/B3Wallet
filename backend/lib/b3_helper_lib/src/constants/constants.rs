@@ -1,5 +1,5 @@
 use crate::{
-    subaccount::Subaccount, timestamp::NanoTimeStamp, token::ICPToken, transfer::TransferMemo,
+    currency::ICPToken, ledger::TransferMemo, subaccount::Subaccount, timestamp::NanoTimeStamp,
     wallet::CanisterId,
 };
 

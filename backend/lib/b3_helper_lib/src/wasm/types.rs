@@ -1,7 +1,5 @@
-use ic_cdk::export::{
-    candid::CandidType,
-    serde::{Deserialize, Serialize},
-};
+use candid::CandidType;
+use serde::{Deserialize, Serialize};
 
 pub type WasmSize = usize;
 pub type WasmModule = Vec<u8>;

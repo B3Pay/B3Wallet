@@ -1,8 +1,5 @@
-use ic_cdk::export::{
-    candid::CandidType,
-    serde::{Deserialize, Serialize},
-    Principal,
-};
+use candid::{CandidType, Principal};
+use serde::{Deserialize, Serialize};
 
 use crate::subaccount::Subaccount;
 

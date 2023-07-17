@@ -1,11 +1,8 @@
-use super::TransferBlockIndex;
-use crate::token::ICPToken;
+use crate::currency::ICPToken;
+use crate::ledger::TransferBlockIndex;
 
-use ic_cdk::export::{
-    candid::CandidType,
-    serde::{Deserialize, Serialize},
-};
-
+use candid::CandidType;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
 #[derive(CandidType, Clone, Deserialize, Serialize, PartialEq, Debug)]

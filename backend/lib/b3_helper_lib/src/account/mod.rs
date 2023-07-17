@@ -1,6 +1,5 @@
-mod error;
-mod icrc_account;
-mod test;
+mod icrc;
+mod identifier;
 
-pub use error::*;
-pub use icrc_account::*;
+pub use icrc::*;
+pub use identifier::*;

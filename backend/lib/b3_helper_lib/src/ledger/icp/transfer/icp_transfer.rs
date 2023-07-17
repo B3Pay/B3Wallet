@@ -1,10 +1,9 @@
-use super::{ICPTransferError, TransferBlockIndex, TransferMemo};
-use crate::token::ICPToken;
-use crate::{identifier::AccountIdentifier, subaccount::Subaccount};
-use ic_cdk::export::{
-    candid::CandidType,
-    serde::{Deserialize, Serialize},
-};
+use super::error::ICPTransferError;
+use crate::currency::ICPToken;
+use crate::ledger::{TransferBlockIndex, TransferMemo};
+use crate::{account::AccountIdentifier, subaccount::Subaccount};
+use candid::CandidType;
+use serde::{Deserialize, Serialize};
 
 #[derive(CandidType, Clone, Deserialize, Serialize, PartialEq, Debug)]
 pub struct ICPTransferTimestamp {

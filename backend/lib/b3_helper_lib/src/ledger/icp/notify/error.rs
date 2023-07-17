@@ -1,8 +1,6 @@
-use crate::{token::ICPToken, transfer::TransferBlockIndex};
-use ic_cdk::export::{
-    candid::CandidType,
-    serde::{Deserialize, Serialize},
-};
+use crate::{currency::ICPToken, ledger::TransferBlockIndex};
+use candid::CandidType;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
 #[rustfmt::skip]

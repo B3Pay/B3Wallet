@@ -1,7 +1,5 @@
-use ic_cdk::export::{
-    candid::CandidType,
-    serde::{Deserialize, Serialize},
-};
+use candid::CandidType;
+use serde::{Deserialize, Serialize};
 
 #[cfg(test)]
 use crate::utils::mocks::ic_timestamp;

@@ -1,7 +1,5 @@
-use ic_cdk::export::{
-    candid::CandidType,
-    serde::{Deserialize, Serialize},
-};
+use candid::CandidType;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
 use crate::constants::{DEVELOPMENT_PREFIX, STAGING_PREFIX};

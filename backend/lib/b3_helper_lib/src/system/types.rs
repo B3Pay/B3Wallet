@@ -1,11 +1,7 @@
-use crate::{identifier::AccountIdentifier, timestamp::NanoTimeStamp, wallet::CanisterId};
-use ic_cdk::{
-    api::management_canister::main::CanisterStatusResponse,
-    export::{
-        candid::CandidType,
-        serde::{Deserialize, Serialize},
-    },
-};
+use crate::{account::AccountIdentifier, timestamp::NanoTimeStamp, wallet::CanisterId};
+use candid::CandidType;
+use ic_cdk::api::management_canister::main::CanisterStatusResponse;
+use serde::{Deserialize, Serialize};
 
 #[derive(CandidType, Deserialize, Serialize)]
 pub struct SystemCanisterStatus {

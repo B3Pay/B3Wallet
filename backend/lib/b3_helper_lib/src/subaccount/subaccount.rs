@@ -1,15 +1,12 @@
 use crate::{
+    account::AccountIdentifier,
     account::ICRCAccount,
     constants::{DEVELOPMENT_PREFIX, STAGING_PREFIX},
     environment::Environment,
-    identifier::AccountIdentifier,
     wallet::SignerId,
 };
-use ic_cdk::export::{
-    candid::CandidType,
-    serde::{Deserialize, Serialize},
-    Principal,
-};
+use candid::{CandidType, Principal};
+use serde::{Deserialize, Serialize};
 
 use std::{cmp, fmt, hash, mem::size_of, ops::Add, str::FromStr};
 
@@ -62,7 +59,7 @@ impl Subaccount {
     ///
     /// ```
     /// use b3_helper_lib::{environment::Environment, subaccount::{Subaccount}};
-    /// use ic_cdk::export::Principal;
+    /// use candid::Principal;
     ///
     /// let principal = Principal::from_text("2chl6-4hpzw-vqaaa-aaaaa-c").unwrap();
     ///
@@ -91,7 +88,7 @@ impl Subaccount {
     ///
     /// ```
     /// use b3_helper_lib::{environment::Environment, subaccount::{Subaccount}};
-    /// use ic_cdk::export::Principal;
+    /// use candid::Principal;
     ///
     /// let principal = Principal::from_text("b7pqa-qqaaa-aaaap-abdva-cai").unwrap();
     ///
@@ -120,7 +117,7 @@ impl Subaccount {
     ///
     /// ```
     /// use b3_helper_lib::{environment::Environment, subaccount::{Subaccount}};
-    /// use ic_cdk::export::Principal;
+    /// use candid::Principal;
     ///
     /// let principal = Principal::from_text("b7pqa-qqaaa-aaaap-abdva-cai").unwrap();
     ///
@@ -322,7 +319,7 @@ impl Subaccount {
     ///
     /// ```
     /// use b3_helper_lib::{environment::Environment, subaccount::{ Subaccount}};
-    /// use ic_cdk::export::Principal;
+    /// use candid::Principal;
     ///
     /// let principal = Principal::from_text("b7pqa-qqaaa-aaaap-abdva-cai").unwrap();
     ///
@@ -359,7 +356,7 @@ impl Subaccount {
     ///
     /// ```
     /// use b3_helper_lib::{environment::Environment, subaccount::{ Subaccount}};
-    /// use ic_cdk::export::Principal;
+    /// use candid::Principal;
     ///
     /// let subaccount = Subaccount::new(Environment::Production, 0);
     /// assert_eq!(subaccount.to_hex(), "".to_string());
@@ -380,7 +377,7 @@ impl Subaccount {
     ///
     /// ```
     /// use b3_helper_lib::{environment::Environment, subaccount::{ Subaccount}};
-    /// use ic_cdk::export::Principal;
+    /// use candid::Principal;
     ///
     /// let subaccount = Subaccount::from_hex("").unwrap();
     /// assert!(subaccount.is_default());

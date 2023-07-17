@@ -1,7 +1,5 @@
-use ic_cdk::export::{
-    candid::CandidType,
-    serde::{Deserialize, Serialize},
-};
+use candid::CandidType;
+use serde::{Deserialize, Serialize};
 
 #[derive(CandidType, Deserialize, Serialize, Debug, PartialEq, Clone)]
 pub struct TransferMemo(pub u64);

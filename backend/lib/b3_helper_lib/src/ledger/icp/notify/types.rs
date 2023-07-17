@@ -1,9 +1,6 @@
-use ic_cdk::export::{
-    candid::CandidType,
-    serde::{Deserialize, Serialize},
-};
-
-use crate::{transfer::TransferBlockIndex, wallet::CanisterId};
+use crate::{ledger::TransferBlockIndex, wallet::CanisterId};
+use candid::CandidType;
+use serde::{Deserialize, Serialize};
 
 use super::NotifyError;
 

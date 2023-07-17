@@ -1,10 +1,7 @@
 use crate::{constants::DEFAULT_SUBACCOUNT, subaccount::Subaccount, utils::base32_encode_account};
+use candid::{CandidType, Principal};
 use easy_hasher::easy_hasher;
-use ic_cdk::export::{
-    candid::CandidType,
-    serde::{Deserialize, Serialize},
-    Principal,
-};
+use serde::{Deserialize, Serialize};
 use std::{cmp, fmt, hash, str::FromStr};
 
 #[cfg(test)]

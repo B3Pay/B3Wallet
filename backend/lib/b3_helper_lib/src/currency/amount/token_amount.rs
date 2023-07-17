@@ -1,9 +1,7 @@
-use crate::token::ICPToken;
+use crate::currency::ICPToken;
+use candid::CandidType;
 use candid::Nat;
-use ic_cdk::export::{
-    candid::CandidType,
-    serde::{Deserialize, Serialize},
-};
+use serde::{Deserialize, Serialize};
 use std::{
     fmt,
     ops::{Add, Div, Mul, Sub},
@@ -44,7 +42,7 @@ impl TokenAmount {
     /// Otherwise returns an error.
     /// # Example
     /// ```
-    /// use b3_helper_lib::amount::TokenAmount;
+    /// use b3_helper_lib::currency::TokenAmount;
     ///
     /// let amount = TokenAmount::new(100, 0);
     ///
@@ -70,7 +68,7 @@ impl TokenAmount {
     ///
     /// # Example
     /// ```
-    /// use b3_helper_lib::amount::TokenAmount;
+    /// use b3_helper_lib::currency::TokenAmount;
     ///
     /// let amount = TokenAmount::new(100, 0);
     ///

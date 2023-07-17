@@ -3,8 +3,8 @@ mod test {
     use candid::Nat;
 
     use crate::{
-        amount::{error::TokenAmountError, TokenAmount},
-        token::ICPToken,
+        currency::ICPToken,
+        currency::{TokenAmount, TokenAmountError},
     };
 
     #[test]
