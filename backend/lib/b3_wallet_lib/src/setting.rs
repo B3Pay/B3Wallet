@@ -3,14 +3,12 @@ use b3_helper_lib::{
     ic_canister_status,
     types::{ControllerId, ControllerIds, Metadata, WalletController, WalletControllerMap},
 };
+use candid::{CandidType, Nat};
 use ic_cdk::api::management_canister::{
     main::{update_settings, UpdateSettingsArgument},
     provisional::CanisterSettings,
 };
-use ic_cdk::export::{
-    candid::{CandidType, Nat},
-    serde::Deserialize,
-};
+use serde::Deserialize;
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct WalletSettings {
@@ -214,7 +212,7 @@ impl WalletSettings {
 mod tests {
     use super::*;
     use b3_helper_lib::types::ControllerIds;
-    use ic_cdk::export::Principal;
+    use candid::Principal;
 
     #[test]
     fn test_remove_controller() {

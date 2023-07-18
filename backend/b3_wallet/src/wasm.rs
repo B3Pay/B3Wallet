@@ -1,9 +1,10 @@
 use crate::permit::{caller_is_admin, caller_is_canister_or_admin, caller_is_signer};
 use b3_helper_lib::{
-    types::{WasmDetails, WasmHash, WasmSize},
     wasm::{with_wasm, with_wasm_mut},
+    wasm::{WasmDetails, WasmHash, WasmSize},
 };
-use ic_cdk::{export::candid::candid_method, query, update};
+use candid::candid_method;
+use ic_cdk::{query, update};
 
 #[candid_method(query)]
 #[query(guard = "caller_is_canister_or_admin")]

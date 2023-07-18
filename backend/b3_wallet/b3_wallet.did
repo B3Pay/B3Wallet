@@ -1,8 +1,3 @@
-type AccountsNonce = record {
-  staging : nat64;
-  production : nat64;
-  development : nat64;
-};
 type AddSigner = record {
   threshold : opt nat8;
   name : text;
@@ -10,7 +5,6 @@ type AddSigner = record {
   signer_id : principal;
   expires_at : opt nat64;
 };
-type Amount = record { decimals : nat8; amount : nat };
 type BtcChain = record {
   pendings : vec BtcPending;
   subaccount : vec nat8;
@@ -25,7 +19,7 @@ type BtcTransfer = record {
   to : text;
   account_id : text;
   network : Minter;
-  amount : Amount;
+  amount : TokenAmount;
 };
 type CanisterSettings = record {
   freezing_threshold : opt nat;
@@ -67,7 +61,6 @@ type CkbtcChain = record {
 };
 type CkbtcPending = record { block_index : nat64; txid : opt nat };
 type ConsentMessage = record { title : text; message : text; reason : text };
-type Controller = record { metadata : vec record { text; text }; name : text };
 type CreateAccount = record { env : opt Environment; name : opt text };
 type DefiniteCanisterSettings = record {
   freezing_threshold : nat;
@@ -199,6 +192,8 @@ type ExecutionResult = variant {
   AccountRemoved : HideAccount;
 };
 type HideAccount = record { account_id : text };
+type ICPToken = record { e8s : nat64 };
+type ICPTransferTimestamp = record { timestamp_nanos : nat64 };
 type ICRC1MetadataValue = variant {
   Int : int;
   Nat : nat;
@@ -207,19 +202,19 @@ type ICRC1MetadataValue = variant {
 };
 type ICRCAccount = record { owner : principal; subaccount : opt vec nat8 };
 type IcpChain = record {
-  fee : Tokens;
+  fee : ICPToken;
   pendings : vec IcpPending;
   memo : nat64;
   subaccount : vec nat8;
-  created_at_time : opt Timestamp;
+  created_at_time : opt ICPTransferTimestamp;
 };
 type IcpPending = record { block_index : nat64; canister_id : text };
 type IcpTransfer = record {
   to : vec nat8;
-  fee : opt Tokens;
+  fee : opt ICPToken;
   account_id : text;
   memo : opt nat64;
-  amount : Tokens;
+  amount : ICPToken;
 };
 type IcrcChain = record {
   fee : opt nat;
@@ -231,10 +226,6 @@ type IcrcChain = record {
   created_at_time : opt nat64;
 };
 type IcrcPending = record { tx_index : nat; block_index : nat64 };
-type InititializeWalletArgs = record {
-  controllers : vec record { principal; Controller };
-  metadata : opt vec record { text; text };
-};
 type Ledger = record {
   public_key : opt vec nat8;
   subaccount : vec nat8;
@@ -324,7 +315,7 @@ type SendToken = record {
   to : text;
   account_id : text;
   chain : ChainEnum;
-  amount : Amount;
+  amount : TokenAmount;
 };
 type Signer = record {
   threshold : opt nat8;
@@ -333,13 +324,12 @@ type Signer = record {
   role : Roles;
   expires_at : opt nat64;
 };
-type Timestamp = record { timestamp_nanos : nat64 };
-type Tokens = record { e8s : nat64 };
+type TokenAmount = record { decimals : nat8; amount : nat };
 type TopUpTransfer = record {
-  fee : opt Tokens;
+  fee : opt ICPToken;
   account_id : text;
   canister_id : principal;
-  amount : Tokens;
+  amount : ICPToken;
 };
 type UpdateCanisterSettings = record {
   canister_id : principal;
@@ -370,17 +360,30 @@ type WalletAccountView = record {
   addresses : vec record { ChainEnum; text };
   environment : Environment;
 };
+type WalletAccountsNonce = record {
+  staging : nat64;
+  production : nat64;
+  development : nat64;
+};
 type WalletCanisterStatus = record {
   name : text;
   canister_id : principal;
   status_at : nat64;
   version : text;
   canister_status : CanisterStatusResponse;
-  account_status : AccountsNonce;
+  account_status : WalletAccountsNonce;
+};
+type WalletController = record {
+  metadata : vec record { text; text };
+  name : text;
+};
+type WalletInititializeArgs = record {
+  controllers : vec record { principal; WalletController };
+  metadata : opt vec record { text; text };
 };
 type WalletSettings = record {
   freezing_threshold : opt nat;
-  controllers : vec record { principal; Controller };
+  controllers : vec record { principal; WalletController };
   initialised : bool;
   metadata : vec record { text; text };
   memory_allocation : opt nat;
@@ -404,10 +407,10 @@ service : () -> {
   account_remove_pending : (text, ChainEnum, nat64) -> ();
   account_rename : (text, text) -> ();
   account_restore : (Environment, nat64) -> ();
-  account_send : (text, ChainEnum, text, Amount) -> (SendResult);
+  account_send : (text, ChainEnum, text, TokenAmount) -> (SendResult);
   account_swap_btc_to_ckbtc : (text, BtcNetwork, nat64) -> (BtcPending);
   account_swap_ckbtc_to_btc : (text, BtcNetwork, text, nat64) -> (nat64);
-  account_top_up_and_notify : (text, Tokens, opt principal) -> (Result);
+  account_top_up_and_notify : (text, ICPToken, opt principal) -> (Result);
   account_update_balance : (text, BtcNetwork) -> (vec UtxoStatus);
   add_controller_and_update : (
       principal,
@@ -419,7 +422,7 @@ service : () -> {
   canister_version : () -> (nat64) query;
   get_account : (text) -> (WalletAccount) query;
   get_account_count : () -> (nat64) query;
-  get_account_counters : () -> (AccountsNonce) query;
+  get_account_counters : () -> (WalletAccountsNonce) query;
   get_account_view : (text) -> (WalletAccountView) query;
   get_account_views : () -> (vec WalletAccountView) query;
   get_addresses : (text) -> (vec record { ChainEnum; text }) query;
@@ -427,7 +430,7 @@ service : () -> {
   get_processed : (nat64) -> (ProcessedRequest) query;
   get_processed_list : () -> (vec ProcessedRequest) query;
   get_signers : () -> (vec record { principal; Signer }) query;
-  init_wallet : (InititializeWalletArgs) -> ();
+  init_wallet : (WalletInititializeArgs) -> ();
   is_connected : () -> (bool) query;
   load_wasm : (vec nat8) -> (nat64);
   name : () -> (text) query;
@@ -456,8 +459,8 @@ service : () -> {
   status : () -> (WalletCanisterStatus);
   uninstall_wallet : () -> ();
   unload_wasm : () -> (nat64);
-  update_controller : (vec record { principal; Controller }) -> (
-      vec record { principal; Controller },
+  update_controller : (vec record { principal; WalletController }) -> (
+      vec record { principal; WalletController },
     );
   update_settings : () -> ();
   upgrage_wallet : () -> ();

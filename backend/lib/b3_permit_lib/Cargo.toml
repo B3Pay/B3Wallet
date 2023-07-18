@@ -11,6 +11,6 @@ b3_helper_lib = { path = "../b3_helper_lib" }
 b3_wallet_lib = { path = "../b3_wallet_lib" }
 candid = { workspace = true }
 ic-cdk = { workspace = true }
-async-trait = "0.1.68"
-enum_dispatch = "0.3.11"
+async-trait = "0.1.71"
+enum_dispatch = "0.3.12"
 serde = "1"

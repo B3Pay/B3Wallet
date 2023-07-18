@@ -9,9 +9,9 @@ use super::{
     types::{Balance, ChainId, PendingEnum, SendResult},
 };
 use async_trait::async_trait;
-use b3_helper_lib::{amount::TokenAmount, subaccount::Subaccount, types::CanisterId};
+use b3_helper_lib::{currency::TokenAmount, types::CanisterId, Subaccount};
+use candid::{CandidType, Deserialize};
 use enum_dispatch::enum_dispatch;
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 #[async_trait]
 #[enum_dispatch]

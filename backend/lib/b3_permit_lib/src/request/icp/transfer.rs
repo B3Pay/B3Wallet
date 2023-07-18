@@ -5,13 +5,13 @@ use crate::request::result::ExecutionResult;
 use crate::request::result::IcpTransfered;
 use crate::request::result::TopUpTransfered;
 use async_trait::async_trait;
-use b3_helper_lib::identifier::AccountIdentifier;
-use b3_helper_lib::token::ICPToken;
+use b3_helper_lib::currency::ICPToken;
 use b3_helper_lib::types::{CanisterId, ICPTransferResult, NotifyTopUpResult, TransferMemo};
+use b3_helper_lib::AccountIdentifier;
 use b3_wallet_lib::error::WalletError;
 use b3_wallet_lib::ledger::types::ChainEnum;
 use b3_wallet_lib::store::with_chain;
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use candid::{CandidType, Deserialize};
 
 // TRANSFER ICP
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]

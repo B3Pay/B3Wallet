@@ -129,19 +129,16 @@ impl BtcUtxos {
 mod test {
     use std::str::FromStr;
 
-    use crate::{
-        ledger::{
-            btc::{network::BtcNetwork, utxos::BtcUtxos},
-            chain::{Chain, ChainTrait},
-            ecdsa::EcdsaPublicKey,
-            ledger::Ledger,
-            types::{ChainEnum, ChainMap},
-        },
-        mocks::ic_cdk_id,
+    use crate::ledger::{
+        btc::{network::BtcNetwork, utxos::BtcUtxos},
+        chain::{Chain, ChainTrait},
+        ecdsa::EcdsaPublicKey,
+        ledger::Ledger,
+        types::{ChainEnum, ChainMap},
     };
 
     use super::*;
-    use b3_helper_lib::{identifier::AccountIdentifier, subaccount::Subaccount};
+    use b3_helper_lib::{mocks::id_mock, AccountIdentifier, Subaccount};
     use ic_cdk::api::management_canister::bitcoin::{Outpoint, Utxo};
 
     #[test]
@@ -151,7 +148,7 @@ mod test {
             0, 0, 0,
         ]);
 
-        let account_identifier = AccountIdentifier::new(ic_cdk_id(), subaccount.clone());
+        let account_identifier = AccountIdentifier::new(id_mock(), subaccount.clone());
 
         let icp_chain = Chain::new_icp_chain(subaccount.clone());
 

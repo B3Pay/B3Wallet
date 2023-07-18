@@ -8,7 +8,7 @@ use crate::store::with_permit_mut;
 use async_trait::async_trait;
 use b3_helper_lib::types::{Metadata, SignerId};
 use b3_wallet_lib::error::WalletError;
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use candid::{CandidType, Deserialize};
 
 // ADD SIGNER
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]

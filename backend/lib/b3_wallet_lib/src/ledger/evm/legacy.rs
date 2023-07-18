@@ -5,7 +5,7 @@ use super::utils::{
 };
 use b3_helper_lib::raw_keccak256;
 use bitcoin::secp256k1::PublicKey;
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
 pub struct EvmTransactionLegacy {

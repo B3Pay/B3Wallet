@@ -7,7 +7,7 @@ use crate::{
 };
 use b3_helper_lib::types::{RequestId, SignerId};
 use b3_wallet_lib::setting::WalletSettings;
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use candid::{CandidType, Deserialize};
 use std::collections::{BTreeMap, HashMap};
 
 pub type Signers = Vec<Signer>;

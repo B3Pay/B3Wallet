@@ -3,7 +3,7 @@ use b3_helper_lib::types::{CanisterId, RequestId};
 use b3_permit_lib::processed::processed::ProcessedRequest;
 use b3_permit_lib::request::request::Request;
 use b3_permit_lib::types::{PendingRequestList, ProcessedRequestList};
-use ic_cdk::export::candid::candid_method;
+use candid::candid_method;
 use ic_cdk::update;
 
 // UPDATE ---------------------------------------------------------------------

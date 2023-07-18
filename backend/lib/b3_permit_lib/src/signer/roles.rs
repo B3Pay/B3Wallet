@@ -1,4 +1,4 @@
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use candid::{CandidType, Deserialize};
 use std::fmt;
 
 #[derive(CandidType, Deserialize, PartialEq, Debug, Copy, Clone)]

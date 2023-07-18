@@ -6,15 +6,14 @@ use b3_helper_lib::{
         CANISTER_TOP_UP_MEMO, CANISTER_TRANSFER_MEMO, CYCLES_MINTING_CANISTER_ID,
         IC_TRANSACTION_FEE_ICP, LEDGER_CANISTER_ID,
     },
-    identifier::AccountIdentifier,
-    subaccount::Subaccount,
-    token::ICPToken,
+    currency::ICPToken,
     types::{
         CanisterId, ICPAccountBalanceArgs, ICPTransferArgs, ICPTransferResult,
         ICPTransferTimestamp, NotifyTopUpResult, NotifyTopupArgs, TransferBlockIndex, TransferMemo,
     },
+    AccountIdentifier, Subaccount,
 };
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub struct IcpChain {
@@ -83,7 +82,7 @@ impl IcpChain {
         let block_index = self
             .transfer(to, amount, None, Some(CANISTER_TOP_UP_MEMO))
             .await?
-            .map_err(IcpError::TransferError)?;
+            .map_err(IcpError::ICPTransferError)?;
 
         Ok(block_index)
     }

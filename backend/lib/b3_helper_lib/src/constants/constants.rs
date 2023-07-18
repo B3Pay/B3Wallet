@@ -1,6 +1,6 @@
 use crate::{
-    currency::ICPToken, ledger::TransferMemo, subaccount::Subaccount, timestamp::NanoTimeStamp,
-    wallet::CanisterId,
+    currency::ICPToken, timestamp::NanoTimeStamp, types::CanisterId, types::TransferMemo,
+    Subaccount,
 };
 
 pub const DEVELOPMENT_PREFIX: u8 = 255;

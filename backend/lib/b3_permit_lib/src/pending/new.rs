@@ -9,7 +9,7 @@ use b3_helper_lib::{
     timestamp::NanoTimeStamp,
     types::{RequestId, SignerId, WalletVersion},
 };
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
 pub struct PendingRequest {

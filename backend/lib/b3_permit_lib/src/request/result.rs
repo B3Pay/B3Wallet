@@ -15,8 +15,8 @@ use b3_helper_lib::types::{Cycles, TransferBlockIndex};
 use b3_wallet_lib::ledger::ckbtc::types::BtcTxId;
 use b3_wallet_lib::ledger::evm::london::EvmTransaction1559;
 use b3_wallet_lib::ledger::types::SendResult;
+use candid::{CandidType, Deserialize};
 use enum_dispatch::enum_dispatch;
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 #[enum_dispatch]
 pub trait ExecutionTrait {}

@@ -20,7 +20,8 @@ use b3_wallet_lib::{
     state::WalletState,
     store::{with_setting_mut, with_wallet, with_wallet_mut},
 };
-use ic_cdk::{api::call::arg_data, export::candid::candid_method, init, post_upgrade, pre_upgrade};
+use candid::candid_method;
+use ic_cdk::{api::call::arg_data, init, post_upgrade, pre_upgrade};
 
 #[init]
 #[candid_method(init)]
@@ -85,11 +86,11 @@ pub fn post_upgrade() {
 
 #[cfg(test)]
 mod tests {
-    use b3_helper_lib::amount::TokenAmount;
-    use b3_helper_lib::environment::Environment;
+    use b3_helper_lib::currency::ICPToken;
+    use b3_helper_lib::currency::TokenAmount;
     use b3_helper_lib::timestamp::NanoTimeStamp;
-    use b3_helper_lib::token::ICPToken;
     use b3_helper_lib::types::*;
+    use b3_helper_lib::Environment;
     use b3_permit_lib::processed::processed::ProcessedRequest;
     use b3_permit_lib::request::{
         btc::transfer::*, global::*, icp::transfer::*, inner::account::*, inner::setting::*,
@@ -98,14 +99,15 @@ mod tests {
     use b3_permit_lib::signer::roles::Roles;
     use b3_permit_lib::types::*;
 
+    use b3_helper_lib::wasm::*;
     use b3_wallet_lib::account::WalletAccount;
     use b3_wallet_lib::ledger::btc::network::BtcNetwork;
     use b3_wallet_lib::ledger::ckbtc::types::*;
     use b3_wallet_lib::ledger::types::*;
     use b3_wallet_lib::types::*;
 
+    use candid::export_service;
     use ic_cdk::api::management_canister::bitcoin::Satoshi;
-    use ic_cdk::export::candid::export_service;
 
     #[test]
     fn generate_candid() {

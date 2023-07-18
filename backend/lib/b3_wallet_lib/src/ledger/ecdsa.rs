@@ -1,12 +1,9 @@
 use bitcoin::{secp256k1, Address, Network, PublicKey};
-use ic_cdk::export::{
-    candid::CandidType,
-    serde::{Deserialize, Serialize},
-};
+use candid::{CandidType, Deserialize};
 
 use super::error::LedgerError;
 
-#[derive(CandidType, Clone, Deserialize, Serialize, PartialEq, Debug)]
+#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub struct EcdsaPublicKey(pub Vec<u8>);
 
 impl EcdsaPublicKey {

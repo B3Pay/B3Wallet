@@ -1,11 +1,10 @@
 use b3_helper_lib::{
-    amount::TokenAmount,
-    environment::Environment,
+    currency::ICPToken,
+    currency::TokenAmount,
     owner::caller_is_owner,
     revert,
-    subaccount::Subaccount,
-    token::ICPToken,
     types::{CanisterId, Cycles, NotifyTopUpResult, TransferBlockIndex, WalletAccountsNonce},
+    Environment, Subaccount,
 };
 use b3_wallet_lib::ledger::{
     chain::ChainTrait,
@@ -26,9 +25,8 @@ use b3_wallet_lib::{
     },
     types::{AccountId, WalletAccountView},
 };
-use ic_cdk::{
-    api::management_canister::bitcoin::Satoshi, export::candid::candid_method, query, update,
-};
+use candid::candid_method;
+use ic_cdk::{api::management_canister::bitcoin::Satoshi, query, update};
 
 // QUERY ---------------------------------------------------------------------
 

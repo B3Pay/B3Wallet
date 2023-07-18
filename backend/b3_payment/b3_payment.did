@@ -5,13 +5,12 @@ type AddSigner = record {
   signer_id : principal;
   expires_at : opt nat64;
 };
-type Amount = record { decimals : nat8; amount : nat };
 type BtcNetwork = variant { Mainnet; Regtest; Testnet };
 type BtcTransfer = record {
   to : text;
   account_id : text;
   network : BtcNetwork;
-  amount : Amount;
+  amount : TokenAmount;
 };
 type CanisterSettings = record {
   freezing_threshold : opt nat;
@@ -146,12 +145,13 @@ type ExecutionResult = variant {
   AccountRemoved : HideAccount;
 };
 type HideAccount = record { account_id : text };
+type ICPToken = record { e8s : nat64 };
 type IcpTransfer = record {
   to : vec nat8;
-  fee : opt Tokens;
+  fee : opt ICPToken;
   account_id : text;
   memo : opt nat64;
-  amount : Tokens;
+  amount : ICPToken;
 };
 type NotifyTopUp = record {
   account_id : text;
@@ -217,14 +217,14 @@ type SendToken = record {
   to : text;
   account_id : text;
   chain : ChainEnum;
-  amount : Amount;
+  amount : TokenAmount;
 };
-type Tokens = record { e8s : nat64 };
+type TokenAmount = record { decimals : nat8; amount : nat };
 type TopUpTransfer = record {
-  fee : opt Tokens;
+  fee : opt ICPToken;
   account_id : text;
   canister_id : principal;
-  amount : Tokens;
+  amount : ICPToken;
 };
 type UpdateCanisterSettings = record {
   canister_id : principal;

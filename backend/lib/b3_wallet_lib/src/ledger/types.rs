@@ -1,12 +1,9 @@
 use super::{btc::network::BtcNetwork, chain::Chain, ckbtc::types::BtcTxId, icrc::types::TxIndex};
 use b3_helper_lib::types::{CanisterId, TransferBlockIndex};
 use bitcoin::{AddressType, OutPoint, Transaction, TxIn, TxOut};
-use candid::Nat;
+use candid::{CandidType, Nat};
 use enum_dispatch::enum_dispatch;
-use ic_cdk::export::{
-    candid::CandidType,
-    serde::{Deserialize, Serialize},
-};
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt;
 

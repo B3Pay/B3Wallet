@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 
-use crate::wallet::SignerId;
+use crate::types::SignerId;
 
 thread_local! {
     static STATE: RefCell<SignerId> = RefCell::new(SignerId::anonymous());

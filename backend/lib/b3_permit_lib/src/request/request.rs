@@ -15,8 +15,8 @@ use crate::request::global::SendToken;
 use async_trait::async_trait;
 use b3_wallet_lib::error::WalletError;
 
+use candid::{CandidType, Deserialize};
 use enum_dispatch::enum_dispatch;
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 #[async_trait]
 #[enum_dispatch]

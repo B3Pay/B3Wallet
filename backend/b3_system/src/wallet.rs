@@ -18,10 +18,8 @@ use b3_system_lib::{
     user::UserState,
     wallet::WalletCanister,
 };
-use ic_cdk::{
-    api::management_canister::main::CanisterInstallMode, export::candid::candid_method, query,
-    update,
-};
+use candid::candid_method;
+use ic_cdk::{api::management_canister::main::CanisterInstallMode, query, update};
 
 // QUERY CALLS
 

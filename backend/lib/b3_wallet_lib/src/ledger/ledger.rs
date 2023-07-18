@@ -5,9 +5,9 @@ use super::{
     types::{AddressMap, Balance, ChainEnum, ChainMap, PendingEnum, SendResult},
 };
 use crate::ledger::chain::ChainTrait;
-use b3_helper_lib::{amount::TokenAmount, raw_keccak256, subaccount::Subaccount};
+use b3_helper_lib::{currency::TokenAmount, raw_keccak256, Subaccount};
 use bitcoin::secp256k1;
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct Ledger {

@@ -1,9 +1,10 @@
 use b3_helper_lib::{
     release::ReleaseTypes,
     timestamp::NanoTimeStamp,
-    types::{ControllerId, SignerId, WalletVersion, Wasm, WasmHash, WasmSize},
+    types::{ControllerId, SignerId, WalletVersion},
+    wasm::{Wasm, WasmHash, WasmSize},
 };
-use ic_cdk::export::candid::{CandidType, Deserialize};
+use candid::{CandidType, Deserialize};
 use std::collections::HashMap;
 
 use crate::{user::UserState, wallet::WalletCanister};

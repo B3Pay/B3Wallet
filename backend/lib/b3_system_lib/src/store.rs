@@ -1,6 +1,7 @@
 use b3_helper_lib::{
     release::ReleaseTypes,
-    types::{SignerId, WalletVersion, Wasm, WasmHash},
+    types::{SignerId, WalletVersion},
+    wasm::{Wasm, WasmHash},
 };
 
 use crate::{

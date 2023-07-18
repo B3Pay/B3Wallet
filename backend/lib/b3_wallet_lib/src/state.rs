@@ -6,10 +6,11 @@ use crate::nonces::NonceTrait;
 use crate::setting::WalletSettings;
 use crate::types::{WalletAccountMap, WalletAccountView};
 use crate::{account::WalletAccount, types::AccountId};
-use b3_helper_lib::environment::Environment;
-use b3_helper_lib::subaccount::Subaccount;
 use b3_helper_lib::types::WalletAccountsNonce;
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use b3_helper_lib::Environment;
+use b3_helper_lib::Subaccount;
+use candid::CandidType;
+use serde::Deserialize;
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct WalletState {
@@ -180,7 +181,7 @@ impl WalletState {
 #[cfg(test)]
 mod test {
     use super::*;
-    use b3_helper_lib::environment::Environment;
+    use b3_helper_lib::Environment;
 
     #[test]
     fn test_init_wallet() {

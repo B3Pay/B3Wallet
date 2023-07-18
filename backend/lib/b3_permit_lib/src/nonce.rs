@@ -1,5 +1,5 @@
 use b3_helper_lib::types::RequestId;
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct RequestNonce(pub RequestId);

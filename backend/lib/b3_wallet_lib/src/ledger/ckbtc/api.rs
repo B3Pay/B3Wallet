@@ -9,7 +9,7 @@ use crate::{
     },
 };
 use async_trait::async_trait;
-use b3_helper_lib::{account::ICRCAccount, amount::TokenAmount};
+use b3_helper_lib::{currency::TokenAmount, ICRCAccount};
 use std::str::FromStr;
 
 #[async_trait]

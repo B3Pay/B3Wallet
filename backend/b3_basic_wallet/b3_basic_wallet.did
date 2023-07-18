@@ -1,9 +1,3 @@
-type AccountsNonce = record {
-  staging : nat64;
-  production : nat64;
-  development : nat64;
-};
-type Amount = record { decimals : nat8; amount : nat };
 type BtcChain = record {
   pendings : vec BtcPending;
   subaccount : vec nat8;
@@ -47,7 +41,6 @@ type CkbtcChain = record {
   created_at_time : opt nat64;
 };
 type CkbtcPending = record { block_index : nat64; txid : opt nat };
-type Controller = record { metadata : vec record { text; text }; name : text };
 type DefiniteCanisterSettings = record {
   freezing_threshold : nat;
   controllers : vec principal;
@@ -61,6 +54,8 @@ type EvmChain = record {
   address : text;
 };
 type EvmPending = record { block_index : nat64 };
+type ICPToken = record { e8s : nat64 };
+type ICPTransferTimestamp = record { timestamp_nanos : nat64 };
 type ICRC1MetadataValue = variant {
   Int : int;
   Nat : nat;
@@ -69,11 +64,11 @@ type ICRC1MetadataValue = variant {
 };
 type ICRCAccount = record { owner : principal; subaccount : opt vec nat8 };
 type IcpChain = record {
-  fee : Tokens;
+  fee : ICPToken;
   pendings : vec IcpPending;
   memo : nat64;
   subaccount : vec nat8;
-  created_at_time : opt Timestamp;
+  created_at_time : opt ICPTransferTimestamp;
 };
 type IcpPending = record { block_index : nat64; canister_id : text };
 type IcrcChain = record {
@@ -86,10 +81,6 @@ type IcrcChain = record {
   created_at_time : opt nat64;
 };
 type IcrcPending = record { tx_index : nat; block_index : nat64 };
-type InititializeWalletArgs = record {
-  controllers : vec record { principal; Controller };
-  metadata : opt vec record { text; text };
-};
 type Ledger = record {
   public_key : opt vec nat8;
   subaccount : vec nat8;
@@ -121,8 +112,7 @@ type SendResult = variant {
   ICRC : nat;
   CKBTC : nat;
 };
-type Timestamp = record { timestamp_nanos : nat64 };
-type Tokens = record { e8s : nat64 };
+type TokenAmount = record { decimals : nat8; amount : nat };
 type Utxo = record { height : nat32; value : nat64; outpoint : OutPoint };
 type UtxoStatus = variant {
   ValueTooSmall : Utxo;
@@ -146,17 +136,30 @@ type WalletAccountView = record {
   addresses : vec record { ChainEnum; text };
   environment : Environment;
 };
+type WalletAccountsNonce = record {
+  staging : nat64;
+  production : nat64;
+  development : nat64;
+};
 type WalletCanisterStatus = record {
   name : text;
   canister_id : principal;
   status_at : nat64;
   version : text;
   canister_status : CanisterStatusResponse;
-  account_status : AccountsNonce;
+  account_status : WalletAccountsNonce;
+};
+type WalletController = record {
+  metadata : vec record { text; text };
+  name : text;
+};
+type WalletInititializeArgs = record {
+  controllers : vec record { principal; WalletController };
+  metadata : opt vec record { text; text };
 };
 type WalletSettings = record {
   freezing_threshold : opt nat;
-  controllers : vec record { principal; Controller };
+  controllers : vec record { principal; WalletController };
   initialised : bool;
   metadata : vec record { text; text };
   memory_allocation : opt nat;
@@ -176,10 +179,10 @@ service : () -> {
   account_remove_pending : (text, ChainEnum, nat64) -> ();
   account_rename : (text, text) -> ();
   account_restore : (Environment, nat64) -> ();
-  account_send : (text, ChainEnum, text, Amount) -> (SendResult);
+  account_send : (text, ChainEnum, text, TokenAmount) -> (SendResult);
   account_swap_btc_to_ckbtc : (text, BtcNetwork, nat64) -> (BtcPending);
   account_swap_ckbtc_to_btc : (text, BtcNetwork, text, nat64) -> (nat64);
-  account_top_up_and_notify : (text, Tokens, opt principal) -> (Result);
+  account_top_up_and_notify : (text, ICPToken, opt principal) -> (Result);
   account_update_balance : (text, BtcNetwork) -> (vec UtxoStatus);
   add_controller_and_update : (
       principal,
@@ -192,11 +195,11 @@ service : () -> {
   change_owner : (principal) -> ();
   get_account : (text) -> (WalletAccount) query;
   get_account_count : () -> (nat64) query;
-  get_account_counters : () -> (AccountsNonce) query;
+  get_account_counters : () -> (WalletAccountsNonce) query;
   get_account_view : (text) -> (WalletAccountView) query;
   get_account_views : () -> (vec WalletAccountView) query;
   get_addresses : (text) -> (vec record { ChainEnum; text }) query;
-  init_wallet : (InititializeWalletArgs) -> ();
+  init_wallet : (WalletInititializeArgs) -> ();
   load_wasm : (vec nat8) -> (nat64);
   name : () -> (text) query;
   refresh_settings : () -> ();
@@ -207,8 +210,8 @@ service : () -> {
   status : () -> (WalletCanisterStatus);
   uninstall_wallet : () -> ();
   unload_wasm : () -> (nat64);
-  update_controller : (vec record { principal; Controller }) -> (
-      vec record { principal; Controller },
+  update_controller : (vec record { principal; WalletController }) -> (
+      vec record { principal; WalletController },
     );
   update_settings : () -> ();
   upgrage_wallet : () -> ();

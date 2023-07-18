@@ -8,11 +8,11 @@ use crate::ledger::{
     types::{Balance, PendingEnum, SendResult},
 };
 use async_trait::async_trait;
-use b3_helper_lib::{account::ICRCAccount, amount::TokenAmount};
+use b3_helper_lib::{currency::TokenAmount, ICRCAccount};
 use std::str::FromStr;
 
 #[cfg(test)]
-use crate::mocks::ic_cdk_id;
+use b3_helper_lib::mocks::id_mock as ic_cdk_id;
 #[cfg(not(test))]
 use ic_cdk::api::id as ic_cdk_id;
 

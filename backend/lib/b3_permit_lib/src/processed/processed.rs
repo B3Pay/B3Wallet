@@ -1,10 +1,10 @@
 #[cfg(test)]
-use crate::mocks::ic_timestamp;
+use b3_helper_lib::mocks::time_mock as ic_timestamp;
 #[cfg(not(test))]
 use ic_cdk::api::time as ic_timestamp;
 
 use crate::{error::PermitError, pending::new::PendingRequest, request::result::ExecutionResult};
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Deserialize, PartialEq, Debug, Copy, Clone)]
 pub enum RequestStatus {

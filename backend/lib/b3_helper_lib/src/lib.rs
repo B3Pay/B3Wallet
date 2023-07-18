@@ -14,7 +14,7 @@
 //! - **Subaccount** - Subaccount types and conversion functions.
 //! - **System** - System types and conversion functions.
 //! - **Timestamp** - Timestamp types and conversion functions.
-//! - **Ledger** - Ledger types and conversion functions.
+//! - **Types** - Types used by the library.
 //! - **Utils** - Utility functions.
 //! - **Wallet** - Wallet types and conversion functions.
 //! - **Wasm** - Wasm types and conversion functions.
@@ -51,22 +51,16 @@
 //!
 //! This project is licensed under the [MIT License](LICENSE).
 
-pub mod account;
 pub mod constants;
-pub mod currency;
-pub mod environment;
 pub mod error;
-pub mod ledger;
+pub mod mocks;
 pub mod owner;
 pub mod release;
-pub mod subaccount;
-pub mod system;
-pub mod timestamp;
-pub mod utils;
-pub mod wallet;
+pub mod types;
 pub mod wasm;
 
-pub use account::*;
-pub use environment::*;
-pub use subaccount::*;
+mod ledger;
+mod utils;
+
+pub use ledger::*;
 pub use utils::*;

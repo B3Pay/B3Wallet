@@ -1,17 +1,13 @@
 use crate::{error::SystemError, types::Controllers};
 use b3_helper_lib::{
     ic_canister_status,
-    types::{
-        CanisterId, SignerId, WalletCanisterInstallArg, WalletCanisterStatus, WalletVersion,
-        WasmHash,
-    },
+    types::{CanisterId, SignerId, WalletCanisterInstallArg, WalletCanisterStatus, WalletVersion},
+    wasm::WasmHash,
 };
-use ic_cdk::{
-    api::management_canister::{
-        main::{install_code, update_settings, InstallCodeArgument, UpdateSettingsArgument},
-        provisional::CanisterSettings,
-    },
-    export::candid::{CandidType, Deserialize},
+use candid::{CandidType, Deserialize};
+use ic_cdk::api::management_canister::{
+    main::{install_code, update_settings, InstallCodeArgument, UpdateSettingsArgument},
+    provisional::CanisterSettings,
 };
 
 #[derive(CandidType, Deserialize, PartialEq, Clone)]

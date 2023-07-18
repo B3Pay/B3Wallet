@@ -3,7 +3,7 @@ use b3_wallet_lib::{
     error::WalletError,
     ledger::{error::LedgerError, evm::error::EvmError},
 };
-use ic_cdk::export::candid::{CandidType, Deserialize};
+use candid::{CandidType, Deserialize};
 use std::fmt;
 
 #[rustfmt::skip]

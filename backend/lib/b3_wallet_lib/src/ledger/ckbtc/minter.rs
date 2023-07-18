@@ -8,17 +8,14 @@ use super::{
     },
 };
 use b3_helper_lib::{
-    account::ICRCAccount,
     constants::{CKBTC_MINTER_CANISTER_MAINNET, CKBTC_MINTER_CANISTER_TESTNET},
     types::{CanisterId, TransferBlockIndex},
+    ICRCAccount,
 };
+use candid::{CandidType, Deserialize};
 use ic_cdk::api::call::call;
-use ic_cdk::export::{
-    candid::CandidType,
-    serde::{Deserialize, Serialize},
-};
 
-#[derive(CandidType, Clone, Deserialize, Serialize, PartialEq, Debug)]
+#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub struct Minter(pub BtcNetwork);
 
 impl Minter {

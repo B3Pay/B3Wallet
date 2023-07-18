@@ -1,18 +1,17 @@
 use async_trait::async_trait;
 use b3_helper_lib::{
-    types::{CanisterId, WasmHashString, WasmVersion},
+    types::CanisterId,
     wasm::with_wasm,
+    wasm::{WasmHashString, WasmVersion},
 };
 use b3_wallet_lib::error::WalletError;
-use ic_cdk::{
-    api::management_canister::{
-        main::{
-            install_code, update_settings, CanisterInstallMode, InstallCodeArgument,
-            UpdateSettingsArgument,
-        },
-        provisional::CanisterSettings,
+use candid::{CandidType, Deserialize};
+use ic_cdk::api::management_canister::{
+    main::{
+        install_code, update_settings, CanisterInstallMode, InstallCodeArgument,
+        UpdateSettingsArgument,
     },
-    export::{candid::CandidType, serde::Deserialize},
+    provisional::CanisterSettings,
 };
 
 use crate::{
@@ -21,7 +20,7 @@ use crate::{
 };
 
 #[cfg(test)]
-use crate::mocks::ic_cdk_id;
+use b3_helper_lib::mocks::id_mock as ic_cdk_id;
 #[cfg(not(test))]
 use ic_cdk::api::id as ic_cdk_id;
 

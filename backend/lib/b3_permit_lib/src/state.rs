@@ -6,7 +6,7 @@ use crate::{
     types::{PendingRequestMap, ProcessedRequestList, ProcessedRequestMap, SignerMap},
 };
 use b3_helper_lib::types::{RequestId, SignerId};
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct PrmitState {

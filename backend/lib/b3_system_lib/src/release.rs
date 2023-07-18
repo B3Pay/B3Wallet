@@ -1,6 +1,6 @@
 use b3_helper_lib::{
     timestamp::NanoTimeStamp,
-    types::{Wasm, WasmHash, WasmModule, WasmSize},
+    wasm::{Wasm, WasmHash, WasmModule, WasmSize},
 };
 
 use crate::{

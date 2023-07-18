@@ -1,12 +1,12 @@
 use crate::request::result::ExecutionResult;
 use async_trait::async_trait;
-use b3_helper_lib::amount::TokenAmount;
+use b3_helper_lib::currency::TokenAmount;
 use b3_wallet_lib::{
     error::WalletError,
     ledger::{chain::ChainTrait, types::ChainEnum},
     store::{with_account, with_chain},
 };
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use candid::{CandidType, Deserialize};
 
 use crate::error::PermitError;
 

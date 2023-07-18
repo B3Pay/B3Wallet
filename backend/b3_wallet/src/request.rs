@@ -20,7 +20,8 @@ use b3_permit_lib::{
     store::{with_permit, with_permit_mut, with_signer_check, with_signer_ids_by_role},
     types::PendingRequestList,
 };
-use ic_cdk::{export::candid::candid_method, query, update};
+use candid::candid_method;
+use ic_cdk::{query, update};
 
 // QUERY ---------------------------------------------------------------------
 

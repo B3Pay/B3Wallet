@@ -3,7 +3,8 @@ use std::str::FromStr;
 use b3_helper_lib::{
     release::ReleaseTypes,
     revert,
-    types::{Blob, WalletVersion, WasmHash},
+    types::WalletVersion,
+    wasm::{Blob, WasmHash},
 };
 use b3_system_lib::{
     error::SystemError,
@@ -13,7 +14,8 @@ use b3_system_lib::{
     },
     types::{LoadRelease, Release, ReleaseArgs, ReleaseMap, Releases},
 };
-use ic_cdk::{export::candid::candid_method, query, update};
+use candid::candid_method;
+use ic_cdk::{query, update};
 
 use crate::guard::caller_is_controller;
 

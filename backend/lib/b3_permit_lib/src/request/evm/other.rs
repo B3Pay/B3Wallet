@@ -17,7 +17,7 @@ use b3_wallet_lib::{
     },
     store::{with_chain, with_ledger},
 };
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use candid::{CandidType, Deserialize};
 
 // DEPLOY CONTRACT
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]

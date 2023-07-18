@@ -6,7 +6,8 @@ use b3_permit_lib::{
     store::{with_pending_mut, with_permit, with_permit_mut, with_processed_request},
     types::{ProcessedRequestList, Response},
 };
-use ic_cdk::{export::candid::candid_method, query, update};
+use candid::candid_method;
+use ic_cdk::{query, update};
 
 // QUERY
 

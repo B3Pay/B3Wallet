@@ -9,7 +9,8 @@ use b3_wallet_lib::{
     store::{with_setting, with_setting_mut},
 };
 
-use ic_cdk::{export::candid::candid_method, query, update};
+use candid::candid_method;
+use ic_cdk::{query, update};
 
 #[candid_method(query)]
 #[query(guard = "caller_is_owner")]
