@@ -1,5 +1,5 @@
 use crate::permit::{caller_is_admin, caller_is_canister_or_admin, caller_is_signer};
-use b3_helper_lib::{
+use b3_utils::{
     wasm::{with_wasm, with_wasm_mut},
     wasm::{WasmDetails, WasmHash, WasmSize},
 };

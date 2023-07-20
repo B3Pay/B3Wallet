@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use b3_helper_lib::{
+use b3_utils::{
     currency::TokenAmount,
     types::{ICPTransferResult, NotifyTopUpResult},
     AccountIdentifier,
@@ -8,7 +8,7 @@ use candid::Principal;
 use std::str::FromStr;
 
 #[cfg(test)]
-use b3_helper_lib::mocks::id_mock as ic_cdk_id;
+use b3_utils::mocks::id_mock as ic_cdk_id;
 #[cfg(not(test))]
 use ic_cdk::api::id as ic_cdk_id;
 

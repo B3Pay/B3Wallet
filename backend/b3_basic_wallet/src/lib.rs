@@ -3,7 +3,7 @@ mod setting;
 mod wallet;
 mod wasm;
 
-use b3_helper_lib::{
+use b3_utils::{
     owner::{with_owner, with_owner_mut},
     types::{SignerId, WalletCanisterInitArgs, WalletController},
     wasm::with_wasm_mut,
@@ -60,11 +60,11 @@ pub fn post_upgrade() {
 
 #[cfg(test)]
 mod tests {
-    use b3_helper_lib::currency::ICPToken;
-    use b3_helper_lib::currency::TokenAmount;
-    use b3_helper_lib::types::*;
-    use b3_helper_lib::wasm::*;
-    use b3_helper_lib::Environment;
+    use b3_utils::currency::ICPToken;
+    use b3_utils::currency::TokenAmount;
+    use b3_utils::types::*;
+    use b3_utils::wasm::*;
+    use b3_utils::Environment;
     use b3_wallet_lib::account::WalletAccount;
     use b3_wallet_lib::ledger::btc::network::BtcNetwork;
     use b3_wallet_lib::ledger::ckbtc::types::*;

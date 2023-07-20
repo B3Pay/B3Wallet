@@ -1,4 +1,4 @@
-use b3_helper_lib::{
+use b3_utils::{
     currency::ICPToken,
     currency::TokenAmount,
     owner::caller_is_owner,

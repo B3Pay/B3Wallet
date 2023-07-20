@@ -1,4 +1,4 @@
-use b3_helper_lib::error::HelperError;
+use b3_utils::error::HelperError;
 use candid::{CandidType, Deserialize};
 use std::fmt;
 

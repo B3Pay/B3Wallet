@@ -1,9 +1,9 @@
 use crate::permit::{caller_is_admin, caller_is_signer};
-use b3_helper_lib::{
+use b3_operations::{store::with_permit, types::WalletSettingsAndSigners};
+use b3_utils::{
     revert,
     types::{ControllerId, Metadata, WalletController, WalletControllerMap},
 };
-use b3_permit_lib::{store::with_permit, types::WalletSettingsAndSigners};
 use b3_wallet_lib::store::{with_setting, with_setting_mut, with_wallet_mut};
 use candid::candid_method;
 use ic_cdk::{query, update};

@@ -1,4 +1,4 @@
-use b3_helper_lib::{types::CanisterId, ICRCAccount};
+use b3_utils::{types::CanisterId, ICRCAccount};
 use ic_cdk::api::call::call;
 
 use super::{

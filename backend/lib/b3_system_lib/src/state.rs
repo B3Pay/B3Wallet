@@ -5,7 +5,7 @@ use crate::{
     user::UserState,
     wallet::WalletCanister,
 };
-use b3_helper_lib::{
+use b3_utils::{
     release::ReleaseTypes,
     types::{
         CanisterId, ControllerId, SignerId, WalletCanisterInitArgs, WalletCanisterInstallArg,

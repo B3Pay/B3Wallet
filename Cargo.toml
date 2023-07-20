@@ -4,12 +4,13 @@ members = [
     "backend/b3_wallet",
     "backend/b3_payment",
     "backend/b3_basic_wallet",
-    "backend/lib/b3_helper_lib",
+    "backend/lib/b3_utils",
     "backend/lib/b3_system_lib",
     "backend/lib/b3_wallet_lib",
-    "backend/lib/b3_permit_lib",
+    "backend/lib/b3_operations",
 ]
 
 [workspace.dependencies]
 candid = "0.9.1"
 ic-cdk = "0.10.0"
+serde = { version = "1", features = ["derive"] }

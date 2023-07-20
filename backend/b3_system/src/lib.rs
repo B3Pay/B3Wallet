@@ -43,10 +43,10 @@ pub fn post_upgrade() {
 
 #[cfg(test)]
 mod tests {
-    use b3_helper_lib::types::*;
-    use b3_helper_lib::wasm::{Blob, WasmHash};
     use b3_system_lib::types::*;
     use b3_system_lib::user::UserState;
+    use b3_utils::types::*;
+    use b3_utils::wasm::{Blob, WasmHash};
     use candid::export_service;
 
     #[test]

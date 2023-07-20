@@ -1,4 +1,4 @@
-use b3_helper_lib::{
+use b3_utils::{
     timestamp::NanoTimeStamp,
     wasm::{Wasm, WasmHash, WasmModule, WasmSize},
 };

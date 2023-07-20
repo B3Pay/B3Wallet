@@ -3,7 +3,7 @@ use crate::ledger::ckbtc::types::BtcTxId;
 use crate::ledger::ecdsa::EcdsaPublicKey;
 use crate::ledger::subaccount::SubaccountTrait;
 use crate::ledger::types::BtcPending;
-use b3_helper_lib::{ICRCAccount, Subaccount};
+use b3_utils::{ICRCAccount, Subaccount};
 use bitcoin::consensus::serialize;
 use bitcoin::secp256k1::ecdsa::Signature;
 use bitcoin::sighash::{EcdsaSighashType, SighashCache};

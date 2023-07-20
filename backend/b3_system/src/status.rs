@@ -1,9 +1,9 @@
 use crate::guard::caller_is_controller;
-use b3_helper_lib::ic_canister_status;
-use b3_helper_lib::revert;
-use b3_helper_lib::timestamp::NanoTimeStamp;
-use b3_helper_lib::types::SystemCanisterStatus;
 use b3_system_lib::store::with_state;
+use b3_utils::ic_canister_status;
+use b3_utils::revert;
+use b3_utils::timestamp::NanoTimeStamp;
+use b3_utils::types::SystemCanisterStatus;
 use candid::candid_method;
 use ic_cdk::{query, update};
 

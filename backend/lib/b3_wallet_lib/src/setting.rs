@@ -1,5 +1,5 @@
 use crate::error::WalletError;
-use b3_helper_lib::{
+use b3_utils::{
     ic_canister_status,
     types::{ControllerId, ControllerIds, Metadata, WalletController, WalletControllerMap},
 };
@@ -211,7 +211,7 @@ impl WalletSettings {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use b3_helper_lib::types::ControllerIds;
+    use b3_utils::types::ControllerIds;
     use candid::Principal;
 
     #[test]

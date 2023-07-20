@@ -1,9 +1,9 @@
 use crate::permit::{caller_is_admin, caller_is_signer};
-use b3_helper_lib::revert;
-use b3_helper_lib::timestamp::NanoTimeStamp;
-use b3_helper_lib::types::WalletInititializeArgs;
-use b3_helper_lib::wasm::with_wasm;
-use b3_helper_lib::{ic_canister_status, types::WalletCanisterStatus};
+use b3_utils::revert;
+use b3_utils::timestamp::NanoTimeStamp;
+use b3_utils::types::WalletInititializeArgs;
+use b3_utils::wasm::with_wasm;
+use b3_utils::{ic_canister_status, types::WalletCanisterStatus};
 use b3_wallet_lib::error::WalletError;
 use b3_wallet_lib::setting::WalletSettings;
 use b3_wallet_lib::store::{with_wallet, with_wallet_mut};

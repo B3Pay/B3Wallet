@@ -1,9 +1,9 @@
-use b3_helper_lib::types::SignerId;
-use b3_permit_lib::{
-    signer::{roles::Roles, signer::Signer},
+use b3_operations::{
+    signer::{roles::SignerRoles, signer::Signer},
     store::{with_permit, with_permit_mut, with_signer_check},
     types::SignerMap,
 };
+use b3_utils::types::SignerId;
 use candid::candid_method;
 use ic_cdk::{query, update};
 
@@ -45,7 +45,7 @@ pub fn get_signers() -> SignerMap {
 
 #[update(guard = "caller_is_admin")]
 #[candid_method(update)]
-pub fn signer_add(signer_id: SignerId, role: Roles) -> SignerMap {
+pub fn signer_add(signer_id: SignerId, role: SignerRoles) -> SignerMap {
     let signer = Signer::from(role);
 
     with_permit_mut(|u| {

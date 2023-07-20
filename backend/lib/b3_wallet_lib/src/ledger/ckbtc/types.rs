@@ -1,5 +1,5 @@
 use super::error::{RetrieveBtcError, UpdateBalanceError};
-use b3_helper_lib::{types::CanisterId, Subaccount};
+use b3_utils::{types::CanisterId, Subaccount};
 use candid::{CandidType, Deserialize};
 
 use std::fmt;

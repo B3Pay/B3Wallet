@@ -1,5 +1,5 @@
-use b3_helper_lib::types::ControllerId;
 use b3_system_lib::store::{with_state, with_state_mut};
+use b3_utils::types::ControllerId;
 use candid::candid_method;
 use ic_cdk::{caller, query, update};
 

@@ -3,7 +3,7 @@ use crate::ledger::{
     error::LedgerError,
     types::{Balance, ChainId, EvmPending, PendingEnum, SendResult},
 };
-use b3_helper_lib::currency::TokenAmount;
+use b3_utils::currency::TokenAmount;
 use candid::{CandidType, Deserialize};
 
 use async_trait::async_trait;

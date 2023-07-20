@@ -1,5 +1,5 @@
 use crate::ledger::types::Balance;
-use b3_helper_lib::{ICRCAccount, Subaccount};
+use b3_utils::{ICRCAccount, Subaccount};
 use candid::{CandidType, Deserialize, Int, Nat};
 use serde_bytes::ByteBuf;
 

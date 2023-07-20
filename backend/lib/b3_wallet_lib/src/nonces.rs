@@ -1,4 +1,4 @@
-use b3_helper_lib::{types::WalletAccountsNonce, Environment};
+use b3_utils::{types::WalletAccountsNonce, Environment};
 
 pub trait NonceTrait {
     fn reset(&mut self);

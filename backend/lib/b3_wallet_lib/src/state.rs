@@ -6,9 +6,9 @@ use crate::nonces::NonceTrait;
 use crate::setting::WalletSettings;
 use crate::types::{WalletAccountMap, WalletAccountView};
 use crate::{account::WalletAccount, types::AccountId};
-use b3_helper_lib::types::WalletAccountsNonce;
-use b3_helper_lib::Environment;
-use b3_helper_lib::Subaccount;
+use b3_utils::types::WalletAccountsNonce;
+use b3_utils::Environment;
+use b3_utils::Subaccount;
 use candid::CandidType;
 use serde::Deserialize;
 
@@ -181,7 +181,7 @@ impl WalletState {
 #[cfg(test)]
 mod test {
     use super::*;
-    use b3_helper_lib::Environment;
+    use b3_utils::Environment;
 
     #[test]
     fn test_init_wallet() {

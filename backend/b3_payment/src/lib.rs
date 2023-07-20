@@ -1,8 +1,8 @@
-use b3_helper_lib::timestamp::NanoTimeStamp;
-use b3_helper_lib::types::{CanisterId, RequestId};
-use b3_permit_lib::processed::processed::ProcessedRequest;
-use b3_permit_lib::request::request::Request;
-use b3_permit_lib::types::{PendingRequestList, ProcessedRequestList};
+use b3_operations::operation::Operations;
+use b3_operations::processed::processed::ProcessedRequest;
+use b3_operations::types::{PendingRequestList, ProcessedRequestList};
+use b3_utils::timestamp::NanoTimeStamp;
+use b3_utils::types::{CanisterId, RequestId};
 use candid::candid_method;
 use ic_cdk::update;
 
@@ -11,7 +11,7 @@ use ic_cdk::update;
 #[update]
 pub async fn request_maker(
     canister_id: CanisterId,
-    request: Request,
+    request: Operations,
     reason: String,
     deadline: Option<NanoTimeStamp>,
 ) -> RequestId {
@@ -81,7 +81,7 @@ pub struct WalletCanister(pub CanisterId);
 impl WalletCanister {
     pub async fn request_maker(
         &self,
-        request: Request,
+        request: Operations,
         reason: String,
         deadline: Option<NanoTimeStamp>,
     ) -> Result<RequestId, String> {

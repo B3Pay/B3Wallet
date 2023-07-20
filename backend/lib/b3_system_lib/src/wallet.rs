@@ -1,5 +1,5 @@
 use crate::{error::SystemError, types::Controllers};
-use b3_helper_lib::{
+use b3_utils::{
     ic_canister_status,
     types::{CanisterId, SignerId, WalletCanisterInstallArg, WalletCanisterStatus, WalletVersion},
     wasm::WasmHash,

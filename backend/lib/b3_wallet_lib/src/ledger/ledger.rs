@@ -5,7 +5,7 @@ use super::{
     types::{AddressMap, Balance, ChainEnum, ChainMap, PendingEnum, SendResult},
 };
 use crate::ledger::chain::ChainTrait;
-use b3_helper_lib::{currency::TokenAmount, raw_keccak256, Subaccount};
+use b3_utils::{currency::TokenAmount, raw_keccak256, Subaccount};
 use bitcoin::secp256k1;
 use candid::{CandidType, Deserialize};
 

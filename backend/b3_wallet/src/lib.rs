@@ -6,15 +6,15 @@ mod setting;
 mod wallet;
 mod wasm;
 
-use b3_helper_lib::{
-    types::{WalletCanisterInitArgs, WalletController},
-    wasm::with_wasm_mut,
-};
-use b3_permit_lib::{
-    signer::{roles::Roles, signer::Signer},
+use b3_operations::{
+    signer::{roles::SignerRoles, signer::Signer},
     state::PrmitState,
     store::{with_permit, with_permit_mut},
     types::SignerMap,
+};
+use b3_utils::{
+    types::{WalletCanisterInitArgs, WalletController},
+    wasm::with_wasm_mut,
 };
 use b3_wallet_lib::{
     state::WalletState,
@@ -41,7 +41,7 @@ pub fn init() {
             // is added as trusted Canister
             signers.insert(
                 system_id,
-                Signer::new(Roles::Canister, "System".to_owned(), None),
+                Signer::new(SignerRoles::Canister, "System".to_owned(), None),
             );
             owner_id
         }
@@ -50,7 +50,7 @@ pub fn init() {
 
     signers.insert(
         owner_id,
-        Signer::new(Roles::Admin, "Owner".to_owned(), None),
+        Signer::new(SignerRoles::Admin, "Owner".to_owned(), None),
     );
 
     with_permit_mut(|p| p.signers = signers);
@@ -86,20 +86,20 @@ pub fn post_upgrade() {
 
 #[cfg(test)]
 mod tests {
-    use b3_helper_lib::currency::ICPToken;
-    use b3_helper_lib::currency::TokenAmount;
-    use b3_helper_lib::timestamp::NanoTimeStamp;
-    use b3_helper_lib::types::*;
-    use b3_helper_lib::Environment;
-    use b3_permit_lib::processed::processed::ProcessedRequest;
-    use b3_permit_lib::request::{
+    use b3_operations::operation::{
         btc::transfer::*, global::*, icp::transfer::*, inner::account::*, inner::setting::*,
-        inner::signer::*, request::Request,
+        inner::signer::*, Operations,
     };
-    use b3_permit_lib::signer::roles::Roles;
-    use b3_permit_lib::types::*;
+    use b3_operations::processed::processed::ProcessedRequest;
+    use b3_operations::signer::roles::SignerRoles;
+    use b3_operations::types::*;
+    use b3_utils::currency::ICPToken;
+    use b3_utils::currency::TokenAmount;
+    use b3_utils::timestamp::NanoTimeStamp;
+    use b3_utils::types::*;
+    use b3_utils::Environment;
 
-    use b3_helper_lib::wasm::*;
+    use b3_utils::wasm::*;
     use b3_wallet_lib::account::WalletAccount;
     use b3_wallet_lib::ledger::btc::network::BtcNetwork;
     use b3_wallet_lib::ledger::ckbtc::types::*;

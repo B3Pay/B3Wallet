@@ -7,7 +7,7 @@ use super::{
         RetrieveBtcStatusRequest, UpdateBalanceArgs, UpdateBalanceResult,
     },
 };
-use b3_helper_lib::{
+use b3_utils::{
     constants::{CKBTC_MINTER_CANISTER_MAINNET, CKBTC_MINTER_CANISTER_TESTNET},
     types::{CanisterId, TransferBlockIndex},
     ICRCAccount,

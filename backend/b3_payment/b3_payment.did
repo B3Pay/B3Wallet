@@ -1,7 +1,7 @@
 type AddSigner = record {
   threshold : opt nat8;
   name : text;
-  role : Roles;
+  role : SignerRoles;
   signer_id : principal;
   expires_at : opt nat64;
 };
@@ -121,7 +121,21 @@ type EvmTransferErc20 = record {
   gas_limit : opt nat64;
   contract_address : text;
 };
-type ExecutionResult = variant {
+type HideAccount = record { account_id : text };
+type ICPToken = record { e8s : nat64 };
+type IcpTransfer = record {
+  to : vec nat8;
+  fee : opt ICPToken;
+  account_id : text;
+  memo : opt nat64;
+  amount : ICPToken;
+};
+type NotifyTopUp = record {
+  account_id : text;
+  block_index : nat64;
+  canister_id : principal;
+};
+type OperationResult = variant {
   AccountCreated : CreateAccount;
   CanisterTopUped : record { NotifyTopUp; nat };
   BtcTransfered : record { BtcTransfer; text };
@@ -144,44 +158,7 @@ type ExecutionResult = variant {
   AccountUnhidden : HideAccount;
   AccountRemoved : HideAccount;
 };
-type HideAccount = record { account_id : text };
-type ICPToken = record { e8s : nat64 };
-type IcpTransfer = record {
-  to : vec nat8;
-  fee : opt ICPToken;
-  account_id : text;
-  memo : opt nat64;
-  amount : ICPToken;
-};
-type NotifyTopUp = record {
-  account_id : text;
-  block_index : nat64;
-  canister_id : principal;
-};
-type PendingRequest = record {
-  id : nat64;
-  status : RequestStatus;
-  responses : vec record { principal; Response };
-  allowed_signers : vec principal;
-  request : Request;
-  role : Roles;
-  deadline : nat64;
-  consent_message : ConsentMessage;
-  created_at : nat64;
-  created_by : principal;
-  version : text;
-};
-type ProcessedRequest = record {
-  status : RequestStatus;
-  result : opt ExecutionResult;
-  method : text;
-  request : PendingRequest;
-  error : opt text;
-  timestamp : nat64;
-};
-type RemoveSigner = record { signer_id : principal };
-type RenameAccount = record { account_id : text; new_name : text };
-type Request = variant {
+type Operations = variant {
   UnhideAccount : HideAccount;
   EvmDeployContract : EvmDeployContract;
   AddSigner : AddSigner;
@@ -203,9 +180,31 @@ type Request = variant {
   RemoveSigner : RemoveSigner;
   UpdateSignerThreshold : UpdateSignerThreshold;
 };
+type PendingRequest = record {
+  id : nat64;
+  status : RequestStatus;
+  responses : vec record { principal; Response };
+  allowed_signers : vec principal;
+  request : Operations;
+  role : SignerRoles;
+  deadline : nat64;
+  consent_message : ConsentMessage;
+  created_at : nat64;
+  created_by : principal;
+  version : text;
+};
+type ProcessedRequest = record {
+  status : RequestStatus;
+  result : opt OperationResult;
+  method : text;
+  request : PendingRequest;
+  error : opt text;
+  timestamp : nat64;
+};
+type RemoveSigner = record { signer_id : principal };
+type RenameAccount = record { account_id : text; new_name : text };
 type RequestStatus = variant { Fail; Success; Expired; Pending };
 type Response = variant { Reject; Confirm };
-type Roles = variant { User; Canister; Admin };
 type SendResult = variant {
   BTC : text;
   EVM;
@@ -219,6 +218,7 @@ type SendToken = record {
   chain : ChainEnum;
   amount : TokenAmount;
 };
+type SignerRoles = variant { User; Canister; Admin };
 type TokenAmount = record { decimals : nat8; amount : nat };
 type TopUpTransfer = record {
   fee : opt ICPToken;
@@ -238,5 +238,5 @@ service : {
   check_processed_requests : (principal) -> (vec ProcessedRequest);
   is_connected : (principal) -> (bool);
   request_connect : (principal) -> (nat64);
-  request_maker : (principal, Request, text, opt nat64) -> (nat64);
+  request_maker : (principal, Operations, text, opt nat64) -> (nat64);
 }

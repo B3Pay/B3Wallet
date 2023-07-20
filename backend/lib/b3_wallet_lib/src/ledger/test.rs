@@ -7,7 +7,7 @@ mod tests {
         ledger::Ledger,
         types::{ChainEnum, ChainMap},
     };
-    use b3_helper_lib::{mocks::id_mock, types::CanisterId, AccountIdentifier, Subaccount};
+    use b3_utils::{mocks::id_mock, types::CanisterId, AccountIdentifier, Subaccount};
 
     #[test]
     fn test_generate_address1() {

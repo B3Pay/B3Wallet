@@ -1,7 +1,7 @@
 use crate::ledger::types::IcpPending;
 
 use super::error::IcpError;
-use b3_helper_lib::{
+use b3_utils::{
     constants::{
         CANISTER_TOP_UP_MEMO, CANISTER_TRANSFER_MEMO, CYCLES_MINTING_CANISTER_ID,
         IC_TRANSACTION_FEE_ICP, LEDGER_CANISTER_ID,

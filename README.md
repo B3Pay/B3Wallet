@@ -66,9 +66,9 @@ Also, there are three libraries to facilitate other developers in building their
 
 ## The Libraries:
 
-- `b3_helper_lib`: This foundational library provides core functionalities essential for every wallet. It equips developers with fundamental tools to initiate and manage various wallet operations.
+- `b3_utils`: This foundational library provides core functionalities essential for every wallet. It equips developers with fundamental tools to initiate and manage various wallet operations.
 
-- `b3_permit_lib`: This library is designed to handle the authorization and permissions within the wallet. It simplifies the process of assigning and managing permissions for different wallet operations, enabling you to create wallets that support various levels of user access.
+- `b3_operations`: This library is designed to handle the authorization and permissions within the wallet. It simplifies the process of assigning and managing permissions for different wallet operations, enabling you to create wallets that support various levels of user access.
 
 - `b3_wallet_lib`: This comprehensive library ties everything together and manages key aspects of wallet functionality. It handles account creation, key management, balance queries, and transfer processes for different blockchains and tokens. It also takes care of derivation processes, providing a versatile suite of wallet management tools. By using `b3_wallet_lib`, developers can interact with a clear and convenient interface, making the creation, management, and interaction with wallets a seamless experience.
 
@@ -88,7 +88,7 @@ The `b3_wallet` presents numerous practical applications in everyday life and th
 
 5. **Custom Wallets**: With the help of `b3_wallet_lib`, `b3_helper`, and `b3_permit`, developers can create custom wallet solutions tailored to specific needs. This opens up a world of possibilities for innovative financial products and services built on top of the `b3_wallet`.
 
-This project harnesses the power of the Internet Computer blockchain. By utilizing the blockchain's features such as scalability, security, and seamless interoperability, `b3_wallet` is able to provide a decentralized, robust, and versatile solution for managing crypto assets. 
+This project harnesses the power of the Internet Computer blockchain. By utilizing the blockchain's features such as scalability, security, and seamless interoperability, `b3_wallet` is able to provide a decentralized, robust, and versatile solution for managing crypto assets.
 
 As the digital economy continues to grow, the `b3_wallet` has the potential to play a crucial role in various sectors, making crypto asset management more accessible and secure for all, with the incredible capabilities of the Internet Computer blockchain backing it.
 

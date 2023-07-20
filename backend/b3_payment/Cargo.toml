@@ -7,7 +7,7 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-b3_helper_lib = { path = "../lib/b3_helper_lib" }
-b3_permit_lib = { path = "../lib/b3_permit_lib" }
+b3_utils = { path = "../lib/b3_utils" }
+b3_operations = { path = "../lib/b3_operations" }
 candid = { workspace = true }
 ic-cdk = { workspace = true }

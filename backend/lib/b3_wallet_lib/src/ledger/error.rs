@@ -1,4 +1,4 @@
-use b3_helper_lib::ICRCAccountError;
+use b3_utils::ICRCAccountError;
 use candid::{CandidType, Deserialize};
 use std::fmt;
 

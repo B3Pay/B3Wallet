@@ -1,4 +1,4 @@
-use b3_helper_lib::{
+use b3_utils::{
     release::ReleaseTypes,
     types::{SignerId, WalletVersion},
     wasm::{Wasm, WasmHash},

@@ -1,8 +1,6 @@
-use b3_helper_lib::owner::{caller_is_owner, with_owner_mut};
-use b3_helper_lib::revert;
-use b3_helper_lib::types::{
-    ControllerId, Metadata, SignerId, WalletController, WalletControllerMap,
-};
+use b3_utils::owner::{caller_is_owner, with_owner_mut};
+use b3_utils::revert;
+use b3_utils::types::{ControllerId, Metadata, SignerId, WalletController, WalletControllerMap};
 use b3_wallet_lib::store::with_wallet_mut;
 use b3_wallet_lib::{
     setting::WalletSettings,

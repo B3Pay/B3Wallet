@@ -1,5 +1,5 @@
 use crate::ledger::types::IcrcPending;
-use b3_helper_lib::{types::CanisterId, Subaccount};
+use b3_utils::{types::CanisterId, Subaccount};
 use candid::{CandidType, Deserialize};
 
 use super::{

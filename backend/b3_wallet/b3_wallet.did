@@ -1,7 +1,7 @@
 type AddSigner = record {
   threshold : opt nat8;
   name : text;
-  role : Roles;
+  role : SignerRoles;
   signer_id : principal;
   expires_at : opt nat64;
 };
@@ -168,29 +168,6 @@ type EvmTransferErc20 = record {
   gas_limit : opt nat64;
   contract_address : text;
 };
-type ExecutionResult = variant {
-  AccountCreated : CreateAccount;
-  CanisterTopUped : record { NotifyTopUp; nat };
-  BtcTransfered : record { BtcTransfer; text };
-  IcpTransfered : record { IcpTransfer; nat64 };
-  TokenSent : record { SendToken; SendResult };
-  AccountRenamed : RenameAccount;
-  EvmContractDeployed : EvmContractDeployed;
-  EvmErc20Transfered : record { EvmTransferErc20; text };
-  SignerRemoved : RemoveSigner;
-  EvmTransfered : record { EvmTransfer; text };
-  EvmRawTransactionSigned : record { EvmSignRawTransaction; text };
-  TopUpTransfered : record { TopUpTransfer; nat64 };
-  SignerThresholdUpdated : UpdateSignerThreshold;
-  AccountHidden : HideAccount;
-  EvmMessageSigned : record { EvmSignMessage; vec nat8 };
-  CanisterSettingsUpdated : UpdateCanisterSettings;
-  SignerAdded : AddSigner;
-  CanisterUpgraded : UpgradeCanister;
-  EvmTransactionSigned : record { EvmSignTranscation; text };
-  AccountUnhidden : HideAccount;
-  AccountRemoved : HideAccount;
-};
 type HideAccount = record { account_id : text };
 type ICPToken = record { e8s : nat64 };
 type ICPTransferTimestamp = record { timestamp_nanos : nat64 };
@@ -237,38 +214,30 @@ type NotifyTopUp = record {
   block_index : nat64;
   canister_id : principal;
 };
-type OutPoint = record { txid : vec nat8; vout : nat32 };
-type PendingEnum = variant {
-  BTC : BtcPending;
-  EVM : EvmPending;
-  ICP : IcpPending;
-  ICRC : IcrcPending;
-  CKBTC : CkbtcPending;
+type OperationResult = variant {
+  AccountCreated : CreateAccount;
+  CanisterTopUped : record { NotifyTopUp; nat };
+  BtcTransfered : record { BtcTransfer; text };
+  IcpTransfered : record { IcpTransfer; nat64 };
+  TokenSent : record { SendToken; SendResult };
+  AccountRenamed : RenameAccount;
+  EvmContractDeployed : EvmContractDeployed;
+  EvmErc20Transfered : record { EvmTransferErc20; text };
+  SignerRemoved : RemoveSigner;
+  EvmTransfered : record { EvmTransfer; text };
+  EvmRawTransactionSigned : record { EvmSignRawTransaction; text };
+  TopUpTransfered : record { TopUpTransfer; nat64 };
+  SignerThresholdUpdated : UpdateSignerThreshold;
+  AccountHidden : HideAccount;
+  EvmMessageSigned : record { EvmSignMessage; vec nat8 };
+  CanisterSettingsUpdated : UpdateCanisterSettings;
+  SignerAdded : AddSigner;
+  CanisterUpgraded : UpgradeCanister;
+  EvmTransactionSigned : record { EvmSignTranscation; text };
+  AccountUnhidden : HideAccount;
+  AccountRemoved : HideAccount;
 };
-type PendingRequest = record {
-  id : nat64;
-  status : RequestStatus;
-  responses : vec record { principal; Response };
-  allowed_signers : vec principal;
-  request : Request;
-  role : Roles;
-  deadline : nat64;
-  consent_message : ConsentMessage;
-  created_at : nat64;
-  created_by : principal;
-  version : text;
-};
-type ProcessedRequest = record {
-  status : RequestStatus;
-  result : opt ExecutionResult;
-  method : text;
-  request : PendingRequest;
-  error : opt text;
-  timestamp : nat64;
-};
-type RemoveSigner = record { signer_id : principal };
-type RenameAccount = record { account_id : text; new_name : text };
-type Request = variant {
+type Operations = variant {
   UnhideAccount : HideAccount;
   EvmDeployContract : EvmDeployContract;
   AddSigner : AddSigner;
@@ -290,6 +259,37 @@ type Request = variant {
   RemoveSigner : RemoveSigner;
   UpdateSignerThreshold : UpdateSignerThreshold;
 };
+type OutPoint = record { txid : vec nat8; vout : nat32 };
+type PendingEnum = variant {
+  BTC : BtcPending;
+  EVM : EvmPending;
+  ICP : IcpPending;
+  ICRC : IcrcPending;
+  CKBTC : CkbtcPending;
+};
+type PendingRequest = record {
+  id : nat64;
+  status : RequestStatus;
+  responses : vec record { principal; Response };
+  allowed_signers : vec principal;
+  request : Operations;
+  role : SignerRoles;
+  deadline : nat64;
+  consent_message : ConsentMessage;
+  created_at : nat64;
+  created_by : principal;
+  version : text;
+};
+type ProcessedRequest = record {
+  status : RequestStatus;
+  result : opt OperationResult;
+  method : text;
+  request : PendingRequest;
+  error : opt text;
+  timestamp : nat64;
+};
+type RemoveSigner = record { signer_id : principal };
+type RenameAccount = record { account_id : text; new_name : text };
 type RequestStatus = variant { Fail; Success; Expired; Pending };
 type Response = variant { Reject; Confirm };
 type Result = variant { Ok : nat; Err : text };
@@ -303,7 +303,6 @@ type RetrieveBtcStatus = variant {
   Submitted : record { txid : vec nat8 };
   Pending;
 };
-type Roles = variant { User; Canister; Admin };
 type SendResult = variant {
   BTC : text;
   EVM;
@@ -321,9 +320,10 @@ type Signer = record {
   threshold : opt nat8;
   metadata : vec record { text; text };
   name : text;
-  role : Roles;
+  role : SignerRoles;
   expires_at : opt nat64;
 };
+type SignerRoles = variant { User; Canister; Admin };
 type TokenAmount = record { decimals : nat8; amount : nat };
 type TopUpTransfer = record {
   fee : opt ICPToken;
@@ -442,7 +442,7 @@ service : () -> {
   request_connect : () -> (nat64);
   request_create_account : (CreateAccount, text, opt nat64) -> (nat64);
   request_delete_account : (HideAccount, text, opt nat64) -> (nat64);
-  request_maker : (Request, text, opt nat64) -> (nat64);
+  request_maker : (Operations, text, opt nat64) -> (nat64);
   request_send : (SendToken, text, opt nat64) -> (nat64);
   request_transfer_btc : (BtcTransfer, text, opt nat64) -> (nat64);
   request_transfer_icp : (IcpTransfer, text, opt nat64) -> (nat64);
@@ -454,7 +454,7 @@ service : () -> {
   response : (nat64, Response) -> (Result_1);
   retrieve_btc_status : (Minter, nat64) -> (RetrieveBtcStatus) query;
   setting_and_signer : () -> (WalletSettingsAndSigners) query;
-  signer_add : (principal, Roles) -> (vec record { principal; Signer });
+  signer_add : (principal, SignerRoles) -> (vec record { principal; Signer });
   signer_remove : (principal) -> (vec record { principal; Signer });
   status : () -> (WalletCanisterStatus);
   uninstall_wallet : () -> ();

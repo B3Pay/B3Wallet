@@ -1,0 +1,16 @@
+[package]
+name = "b3_utils"
+version = "0.0.5"
+edition = "2021"
+description = "This is helper library for B3Wallet project"
+license = "MIT"
+readme = "./README.md"
+
+[dependencies]
+serde = { workspace = true }
+candid = { workspace = true }
+ic-cdk = { workspace = true }
+ic-cdk-timers = "0.4.0"
+hex = "0.4.3"
+serde_bytes = "0.11.12"
+easy-hasher = "2.2.1"

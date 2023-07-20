@@ -1,4 +1,4 @@
-use b3_helper_lib::{
+use b3_utils::{
     owner::caller_is_owner,
     wasm::{with_wasm, with_wasm_mut},
     wasm::{WasmDetails, WasmHash, WasmSize},

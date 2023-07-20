@@ -1,12 +1,6 @@
 use std::{str::FromStr, vec};
 
 use crate::guard::caller_is_controller;
-use b3_helper_lib::{
-    constants::CREATE_WALLET_CANISTER_CYCLES,
-    release::ReleaseTypes,
-    revert,
-    types::{CanisterId, SignerId, WalletCanisterInitArgs, WalletVersion},
-};
 use b3_system_lib::{
     error::SystemError,
     store::{
@@ -17,6 +11,12 @@ use b3_system_lib::{
     types::UserStates,
     user::UserState,
     wallet::WalletCanister,
+};
+use b3_utils::{
+    constants::CREATE_WALLET_CANISTER_CYCLES,
+    release::ReleaseTypes,
+    revert,
+    types::{CanisterId, SignerId, WalletCanisterInitArgs, WalletVersion},
 };
 use candid::candid_method;
 use ic_cdk::{api::management_canister::main::CanisterInstallMode, query, update};

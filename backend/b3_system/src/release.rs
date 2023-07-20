@@ -1,11 +1,5 @@
 use std::str::FromStr;
 
-use b3_helper_lib::{
-    release::ReleaseTypes,
-    revert,
-    types::WalletVersion,
-    wasm::{Blob, WasmHash},
-};
 use b3_system_lib::{
     error::SystemError,
     store::{
@@ -13,6 +7,12 @@ use b3_system_lib::{
         with_releases, with_releases_mut, with_version_release, with_version_release_mut,
     },
     types::{LoadRelease, Release, ReleaseArgs, ReleaseMap, Releases},
+};
+use b3_utils::{
+    release::ReleaseTypes,
+    revert,
+    types::WalletVersion,
+    wasm::{Blob, WasmHash},
 };
 use candid::candid_method;
 use ic_cdk::{query, update};

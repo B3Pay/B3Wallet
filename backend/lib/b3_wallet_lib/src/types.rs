@@ -2,7 +2,7 @@ use crate::{
     account::WalletAccount,
     ledger::types::{AddressMap, Pendings},
 };
-use b3_helper_lib::{types::Metadata, Environment};
+use b3_utils::{types::Metadata, Environment};
 use candid::CandidType;
 use serde::Deserialize;
 

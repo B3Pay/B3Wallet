@@ -7,7 +7,7 @@ use crate::ledger::{
     types::{Balance, BtcPending, PendingEnum, SendResult},
 };
 use async_trait::async_trait;
-use b3_helper_lib::{currency::TokenAmount, ICRCAccount};
+use b3_utils::{currency::TokenAmount, ICRCAccount};
 
 use super::btc::BtcChain;
 

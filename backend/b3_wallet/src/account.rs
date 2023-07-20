@@ -1,5 +1,5 @@
 use crate::permit::caller_is_signer;
-use b3_helper_lib::{
+use b3_utils::{
     currency::ICPToken,
     currency::TokenAmount,
     revert,

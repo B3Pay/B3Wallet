@@ -1,5 +1,5 @@
 use crate::{ledger::ledger::Ledger, types::WalletAccountView};
-use b3_helper_lib::{types::Metadata, Environment, Subaccount};
+use b3_utils::{types::Metadata, Environment, Subaccount};
 use candid::{CandidType, Deserialize};
 
 impl From<&WalletAccount> for WalletAccountView {
