@@ -25,6 +25,5 @@ target/
 .env
 declarations/
 frontend/declarations/
-payment/declarations/
 frontend/public/wasm/**
 wasm/**

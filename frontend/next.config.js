@@ -1,6 +1,7 @@
-const DFXWebPackConfig = require("./dfx.webpack.config")
+// load env from ../.env file
+const envList = require("dotenv").config({ path: "../.env" }).parsed
 
-const envList = DFXWebPackConfig.initCanisterIds()
+console.log("envList", envList)
 
 const webpack = require("webpack")
 

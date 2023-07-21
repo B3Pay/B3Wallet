@@ -55,16 +55,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "b3_payment"
-version = "0.0.10"
-dependencies = [
- "b3_operations",
- "b3_utils",
- "candid",
- "ic-cdk",
-]
-
-[[package]]
 name = "b3_system"
 version = "0.0.16"
 dependencies = [
