@@ -11,10 +11,10 @@
     "dfinity"
   ],
   "scripts": {
-    "dev": "source ../.env && DFX_NETWORK=local next dev",
-    "ic:dev": "source ../.env && DFX_NETWORK=ic next dev",
-    "build": "DFX_NETWORK=ic next build",
-    "build:local": "DFX_NETWORK=local next build",
+    "dev": "source ../.env && next dev",
+    "ic:dev": "source ../.env && next dev",
+    "build": "next build",
+    "build:local": "next build",
     "start": "next start",
     "lint": "next lint",
     "export": "next build",
