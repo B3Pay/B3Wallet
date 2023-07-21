@@ -20,13 +20,6 @@ pub trait ChainTrait {
     fn pendings(&self) -> Vec<PendingEnum>;
     async fn balance(&self) -> Result<Balance, LedgerError>;
     async fn send(&self, to: String, amount: TokenAmount) -> Result<SendResult, LedgerError>;
-    async fn send_mut(
-        &mut self,
-        to: String,
-        amount: TokenAmount,
-        fee: Option<u64>,
-        memo: Option<String>,
-    ) -> Result<SendResult, LedgerError>;
     async fn check_pending(&self, pending_index: usize) -> Result<(), LedgerError>;
     fn add_pending(&mut self, pending: PendingEnum);
     fn remove_pending(&mut self, pending_index: usize);

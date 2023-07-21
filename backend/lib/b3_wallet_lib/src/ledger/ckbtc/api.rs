@@ -53,17 +53,6 @@ impl ChainTrait for CkbtcChain {
         }
     }
 
-    async fn send_mut(
-        &mut self,
-        to: String,
-        amount: TokenAmount,
-        _fee: Option<u64>,
-        _memo: Option<String>,
-    ) -> Result<SendResult, LedgerError> {
-        // TODO: update the struct if the user want that
-        self.send(to, amount).await
-    }
-
     async fn check_pending(&self, pending_index: usize) -> Result<(), LedgerError> {
         let CkbtcPending {
             block_index,

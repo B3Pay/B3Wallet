@@ -58,19 +58,6 @@ impl Ledger {
         chain.send(to, amount).await
     }
 
-    pub async fn send_mut(
-        &mut self,
-        chain_type: ChainEnum,
-        to: String,
-        amount: TokenAmount,
-        fee: Option<u64>,
-        memo: Option<String>,
-    ) -> Result<SendResult, LedgerError> {
-        let chain = self.chain_mut(chain_type)?;
-
-        chain.send_mut(to, amount, fee, memo).await
-    }
-
     pub async fn balance(&self, chain_type: ChainEnum) -> Result<Balance, LedgerError> {
         match self.chains.get(&chain_type) {
             Some(chain) => chain.balance().await,

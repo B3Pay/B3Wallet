@@ -31,16 +31,6 @@ impl ChainTrait for EvmChain {
         todo!("implement the async method for EVM...")
     }
 
-    async fn send_mut(
-        &mut self,
-        _to: String,
-        _amount: TokenAmount,
-        _fee: Option<u64>,
-        _memo: Option<String>,
-    ) -> Result<SendResult, LedgerError> {
-        todo!("implement the async method for EVM...")
-    }
-
     async fn check_pending(&self, _pending_index: usize) -> Result<(), LedgerError> {
         todo!("implement the async method for EVM...")
     }

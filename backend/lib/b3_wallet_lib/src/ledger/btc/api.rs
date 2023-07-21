@@ -39,16 +39,6 @@ impl ChainTrait for BtcChain {
         }
     }
 
-    async fn send_mut(
-        &mut self,
-        _to: String,
-        _amount: TokenAmount,
-        _fee: Option<u64>,
-        _memo: Option<String>,
-    ) -> Result<SendResult, LedgerError> {
-        todo!("implement the async method for BTC...")
-    }
-
     async fn check_pending(&self, pending_index: usize) -> Result<(), LedgerError> {
         let BtcPending { account, txid: _ } = self
             .pendings

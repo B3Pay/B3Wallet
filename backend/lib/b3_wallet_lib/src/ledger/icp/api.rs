@@ -59,17 +59,6 @@ impl ChainTrait for IcpChain {
         }
     }
 
-    async fn send_mut(
-        &mut self,
-        to: String,
-        amount: TokenAmount,
-        _fee: Option<u64>,
-        _memo: Option<String>,
-    ) -> Result<SendResult, LedgerError> {
-        // TODO: This is a hack to get around the fact that we can't have mutable self and
-        self.send(to, amount).await
-    }
-
     async fn check_pending(&self, pending_index: usize) -> Result<(), LedgerError> {
         let IcpPending {
             block_index,

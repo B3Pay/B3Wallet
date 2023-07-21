@@ -53,18 +53,6 @@ impl ChainTrait for IcrcChain {
         Ok(SendResult::ICRC(res))
     }
 
-    async fn send_mut(
-        &mut self,
-        to: String,
-        amount: TokenAmount,
-        _fee: Option<u64>,
-        _memo: Option<String>,
-    ) -> Result<SendResult, LedgerError> {
-        // TODO: implement the update of the fee and memo fields if user wants to change them
-
-        self.send(to, amount).await
-    }
-
     async fn check_pending(&self, _pending_index: usize) -> Result<(), LedgerError> {
         Ok(())
     }
