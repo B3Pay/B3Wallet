@@ -24,7 +24,7 @@ use b3_utils::mocks::id_mock as ic_cdk_id;
 #[cfg(not(test))]
 use ic_cdk::api::id as ic_cdk_id;
 
-// UPDATE SETTINGS - START
+// UPDATE SETTINGS
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub struct UpdateCanisterSettings {
     pub canister_id: CanisterId,
@@ -78,9 +78,7 @@ impl OperationTrait for UpdateCanisterSettings {
     }
 }
 
-// UPDATE SETTINGS - END
-
-// UPGRADE CANISTER - START
+// UPGRADE CANISTER
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub struct UpgradeCanister {
     pub wasm_version: WasmVersion,
