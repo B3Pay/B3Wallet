@@ -9,7 +9,7 @@ use crate::{
     },
 };
 use async_trait::async_trait;
-use b3_helper_lib::{account::ICRCAccount, amount::Amount};
+use b3_utils::{currency::TokenAmount, ICRCAccount};
 use std::str::FromStr;
 
 #[async_trait]
@@ -29,7 +29,7 @@ impl ChainTrait for CkbtcChain {
         }
     }
 
-    async fn send(&self, to: String, amount: Amount) -> Result<SendResult, LedgerError> {
+    async fn send(&self, to: String, amount: TokenAmount) -> Result<SendResult, LedgerError> {
         let to = ICRCAccount::from_str(&to).map_err(LedgerError::ICRCAccountError)?;
 
         let transfer_args = ICRC1TransferArgs {
@@ -51,17 +51,6 @@ impl ChainTrait for CkbtcChain {
             Ok(tx_index) => Ok(SendResult::CKBTC(tx_index)),
             Err(err) => Err(LedgerError::IcrcError(IcrcError::ICRC1TransferError(err))),
         }
-    }
-
-    async fn send_mut(
-        &mut self,
-        to: String,
-        amount: Amount,
-        _fee: Option<u64>,
-        _memo: Option<String>,
-    ) -> Result<SendResult, LedgerError> {
-        // TODO: update the struct if the user want that
-        self.send(to, amount).await
     }
 
     async fn check_pending(&self, pending_index: usize) -> Result<(), LedgerError> {

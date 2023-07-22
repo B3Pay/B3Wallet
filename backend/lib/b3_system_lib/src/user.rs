@@ -1,15 +1,13 @@
 use crate::{error::SystemError, types::Canisters, wallet::WalletCanister};
-use b3_helper_lib::{
+use b3_utils::{
     constants::RATE_LIMIT,
-    time::NanoTimeStamp,
+    timestamp::NanoTimeStamp,
     types::{CanisterId, ControllerId},
 };
-use ic_cdk::{
-    api::management_canister::{
-        main::{create_canister_with_extra_cycles, CreateCanisterArgument},
-        provisional::CanisterSettings,
-    },
-    export::candid::{CandidType, Deserialize},
+use candid::{CandidType, Deserialize};
+use ic_cdk::api::management_canister::{
+    main::{create_canister, CreateCanisterArgument},
+    provisional::CanisterSettings,
 };
 
 #[derive(CandidType, Deserialize, Clone)]
@@ -96,7 +94,7 @@ impl UserState {
             }),
         };
 
-        let result = create_canister_with_extra_cycles(args, cycles).await;
+        let result = create_canister(args, cycles).await;
 
         match result {
             Ok(result) => {

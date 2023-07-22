@@ -1,12 +1,13 @@
 use crate::permit::{caller_is_admin, caller_is_signer};
-use b3_helper_lib::{revert, types::RequestId};
-use b3_permit_lib::{
-    error::PermitError,
+use b3_operations::{
+    error::OperationError,
     processed::processed::ProcessedRequest,
     store::{with_pending_mut, with_permit, with_permit_mut, with_processed_request},
     types::{ProcessedRequestList, Response},
 };
-use ic_cdk::{export::candid::candid_method, query, update};
+use b3_utils::{revert, types::RequestId};
+use candid::candid_method;
+use ic_cdk::{query, update};
 
 // QUERY
 
@@ -72,7 +73,7 @@ pub fn process_request(request_id: RequestId) {
         let mut processed: ProcessedRequest =
             s.request(&request_id).unwrap_or_else(revert).clone().into();
 
-        processed.fail(PermitError::RequestRemovedByAdmin(caller.to_string()));
+        processed.fail(OperationError::RequestRemovedByAdmin(caller.to_string()));
 
         s.insert_processed(request_id, processed)
             .unwrap_or_else(revert);

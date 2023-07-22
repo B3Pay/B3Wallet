@@ -1,16 +1,13 @@
 #[cfg(test)]
 mod tests {
-    use crate::{
-        ledger::{
-            btc::network::BtcNetwork,
-            chain::{Chain, ChainTrait},
-            ecdsa::EcdsaPublicKey,
-            ledger::Ledger,
-            types::{ChainEnum, ChainMap},
-        },
-        mocks::ic_cdk_id,
+    use crate::ledger::{
+        btc::network::BtcNetwork,
+        chain::{Chain, ChainTrait},
+        ecdsa::EcdsaPublicKey,
+        ledger::Ledger,
+        types::{ChainEnum, ChainMap},
     };
-    use b3_helper_lib::{identifier::AccountIdentifier, subaccount::Subaccount, types::CanisterId};
+    use b3_utils::{mocks::id_mock, types::CanisterId, AccountIdentifier, Subaccount};
 
     #[test]
     fn test_generate_address1() {
@@ -116,7 +113,7 @@ mod tests {
             0, 0, 0,
         ]);
 
-        let identifier = AccountIdentifier::new(ic_cdk_id(), subaccount.clone());
+        let identifier = AccountIdentifier::new(id_mock(), subaccount.clone());
 
         let expected_identifier = AccountIdentifier::from(vec![
             45, 14, 137, 127, 126, 134, 45, 43, 87, 217, 188, 158, 165, 198, 95, 154, 36, 172, 108,

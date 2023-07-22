@@ -9,9 +9,9 @@ use super::{
     types::{Balance, ChainId, PendingEnum, SendResult},
 };
 use async_trait::async_trait;
-use b3_helper_lib::{amount::Amount, subaccount::Subaccount, types::CanisterId};
+use b3_utils::{currency::TokenAmount, types::CanisterId, Subaccount};
+use candid::{CandidType, Deserialize};
 use enum_dispatch::enum_dispatch;
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 
 #[async_trait]
 #[enum_dispatch]
@@ -19,14 +19,7 @@ pub trait ChainTrait {
     fn address(&self) -> String;
     fn pendings(&self) -> Vec<PendingEnum>;
     async fn balance(&self) -> Result<Balance, LedgerError>;
-    async fn send(&self, to: String, amount: Amount) -> Result<SendResult, LedgerError>;
-    async fn send_mut(
-        &mut self,
-        to: String,
-        amount: Amount,
-        fee: Option<u64>,
-        memo: Option<String>,
-    ) -> Result<SendResult, LedgerError>;
+    async fn send(&self, to: String, amount: TokenAmount) -> Result<SendResult, LedgerError>;
     async fn check_pending(&self, pending_index: usize) -> Result<(), LedgerError>;
     fn add_pending(&mut self, pending: PendingEnum);
     fn remove_pending(&mut self, pending_index: usize);

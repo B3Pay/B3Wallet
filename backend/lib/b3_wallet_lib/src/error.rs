@@ -1,5 +1,5 @@
-use b3_helper_lib::error::HelperError;
-use ic_cdk::export::candid::{CandidType, Deserialize};
+use b3_utils::error::HelperError;
+use candid::{CandidType, Deserialize};
 use std::fmt;
 
 use crate::ledger::{

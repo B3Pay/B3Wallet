@@ -1,6 +1,6 @@
 import { Stack, Text } from "@chakra-ui/react"
 import {
-  InititializeWalletArgs,
+  WalletInititializeArgs,
   WalletSettingsAndSigners
 } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
@@ -32,7 +32,7 @@ const InitialSetup: React.FC<InitialSetupProps> = ({
     console.log("handleInitialize", controllers)
     setIsInitializing(true)
 
-    const args: InititializeWalletArgs = {
+    const args: WalletInititializeArgs = {
       controllers,
       metadata: []
     }

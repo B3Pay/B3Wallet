@@ -4,19 +4,20 @@
   "author": "b3hr4d",
   "description": "Wallet and System Canister for the B3wallet on the Internet Computer",
   "keywords": [
-    "nextjs",
+    "wallet",
+    "bitcoin",
+    "ethereum",
+    "blockchain",
     "internet computer",
     "icp",
-    "starter",
     "dfinity"
   ],
   "scripts": {
-    "install": "cd frontend && yarn install && cd ../payment && yarn install",
+    "install": "cd frontend && yarn install",
     "dfx:start": "scripts/start.sh",
     "dfx:install": "scripts/install.sh",
     "dfx:stop": "dfx stop",
     "build:wallet": "./scripts/b3_wallet.sh",
-    "build:basic-wallet": "./scripts/b3_basic_wallet.sh",
     "deploy": "cargo test && dfx deploy",
     "ic:deploy": "dfx generate b3_wallet && dfx deploy b3_wallet --network ic",
     "generate": "cargo test && dfx generate",
@@ -25,20 +26,18 @@
     "ledger:account-id": "ts-node ./scripts/ledger.account-id.ts",
     "load-wasm:wallet": "ts-node ./scripts/load-wasm.wallet.ts",
     "load-wasm:system": "ts-node ./scripts/load-wasm.system.ts",
-    "copy-wasm": "yarn build:wallet && yarn build:basic-wallet && ts-node ./scripts/copy-wasm.ts",
-    "payment:dev": "cd payment && yarn dev",
-    "payment:ic:dev": "cd payment && yarn ic:dev",
+    "copy-wasm": "yarn build:wallet && ts-node ./scripts/copy-wasm.ts",
     "ic:dev": "cd frontend && yarn ic:dev",
     "dev": "cd frontend && yarn dev",
     "build": "yarn build:ic",
     "build:ic": "cd frontend && yarn build",
-    "build:local": "cd frontend && yarn build:local",
-    "build:payment": "cd payment && yarn build"
+    "build:local": "cd frontend && yarn build:local"
   },
   "devDependencies": {
     "@types/node": "^18.15.13",
     "@types/node-fetch": "^2.6.3",
     "@types/semver": "^7.5.0",
+    "dotenv": "^16.3.1",
     "typescript": "5.0.4"
   },
   "dependencies": {

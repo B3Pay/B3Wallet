@@ -1,13 +1,13 @@
 import { AccordionPanel, Skeleton, Stack } from "@chakra-ui/react"
 import Loading from "components/Loading"
 import {
-  Amount,
   BtcPending,
   ChainEnum,
   CkbtcPending,
   IcpPending,
   PendingEnum,
-  SendToken
+  SendToken,
+  TokenAmount
 } from "declarations/b3_wallet/b3_wallet.did"
 import { ChainNetwork, ChainSymbol, extractConfirmations } from "helpers/utiles"
 import useToastMessage from "hooks/useToastMessage"
@@ -140,7 +140,7 @@ const ChainCards: React.FC<ChainCardsProps> = ({
         isClosable: true
       })
 
-      let amount: Amount = {
+      let amount: TokenAmount = {
         amount: value,
         decimals
       }

@@ -25,13 +25,13 @@ import {
 } from "@chakra-ui/react"
 import { Principal } from "@dfinity/principal"
 import Loading from "components/Loading"
-import { Controller } from "declarations/b3_wallet/b3_wallet.did"
+import { WalletController } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useEffect, useState } from "react"
 import { B3BasicWallet, B3Wallet } from "service"
 import Address from "../Address"
 
-export type ControllerMap = Array<[Principal, Controller]>
+export type ControllerMap = Array<[Principal, WalletController]>
 
 interface ControllersProps extends StackProps {
   actor: B3Wallet | B3BasicWallet
@@ -102,7 +102,7 @@ const Controllers: React.FC<ControllersProps> = ({
       })
     }
 
-    const newController: Controller = {
+    const newController: WalletController = {
       name,
       metadata: []
     }
@@ -204,7 +204,7 @@ const Controllers: React.FC<ControllersProps> = ({
                       <Table size="sm">
                         <Thead>
                           <Tr>
-                            <Th>Controller ID</Th>
+                            <Th>WalletController ID</Th>
                             <Th>Name</Th>
                             <Th></Th>
                           </Tr>

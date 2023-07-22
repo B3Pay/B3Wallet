@@ -1,6 +1,6 @@
-use b3_helper_lib::error::{NotifyError, TransferError};
+use b3_utils::types::{ICPTransferError, NotifyError};
+use candid::{CandidType, Deserialize};
 use enum_dispatch::enum_dispatch;
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use std::fmt;
 
 #[rustfmt::skip]
@@ -9,7 +9,7 @@ use std::fmt;
 pub enum IcpError {
     CallError(String),
     TopUpPending(String),
-    TransferError,
+    ICPTransferError,
     NotifyError
 }
 
@@ -17,7 +17,7 @@ pub enum IcpError {
 impl fmt::Display for IcpError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            IcpError::TransferError(ref err) => write!(f, "Transfer error: {}", err),
+            IcpError::ICPTransferError(ref err) => write!(f, "ICP Transfer error: {}", err),
             IcpError::NotifyError(ref err) => write!(f, "Notify error: {}", err),
             IcpError::CallError(ref msg) => write!(f, "Call error: {}", msg),
             IcpError::TopUpPending(ref msg) => write!(f, "Top up pending: {}", msg),

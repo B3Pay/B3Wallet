@@ -1,6 +1,6 @@
 use crate::ledger::icrc::error::{ICRC1TransferError, IcrcError};
+use candid::{CandidType, Deserialize};
 use enum_dispatch::enum_dispatch;
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
 use std::fmt;
 
 use super::types::RetrieveBtcStatus;

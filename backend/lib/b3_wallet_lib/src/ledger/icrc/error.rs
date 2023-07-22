@@ -1,10 +1,8 @@
 use super::types::ICRCTimestamp;
 use crate::ledger::ckbtc::error::UpdateBalanceError;
+use candid::{CandidType, Deserialize, Nat};
 use enum_dispatch::enum_dispatch;
-use ic_cdk::export::{
-    candid::{CandidType, Nat},
-    serde::Deserialize,
-};
+
 use std::fmt;
 
 #[rustfmt::skip]

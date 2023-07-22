@@ -5,9 +5,9 @@ use super::{
     types::{AddressMap, Balance, ChainEnum, ChainMap, PendingEnum, SendResult},
 };
 use crate::ledger::chain::ChainTrait;
-use b3_helper_lib::{amount::Amount, raw_keccak256, subaccount::Subaccount};
+use b3_utils::{currency::TokenAmount, raw_keccak256, Subaccount};
 use bitcoin::secp256k1;
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct Ledger {
@@ -51,24 +51,11 @@ impl Ledger {
         &self,
         chain_type: &ChainEnum,
         to: String,
-        amount: Amount,
+        amount: TokenAmount,
     ) -> Result<SendResult, LedgerError> {
         let chain = self.chain(chain_type)?;
 
         chain.send(to, amount).await
-    }
-
-    pub async fn send_mut(
-        &mut self,
-        chain_type: ChainEnum,
-        to: String,
-        amount: Amount,
-        fee: Option<u64>,
-        memo: Option<String>,
-    ) -> Result<SendResult, LedgerError> {
-        let chain = self.chain_mut(chain_type)?;
-
-        chain.send_mut(to, amount, fee, memo).await
     }
 
     pub async fn balance(&self, chain_type: ChainEnum) -> Result<Balance, LedgerError> {

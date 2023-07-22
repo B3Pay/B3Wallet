@@ -1,27 +1,5 @@
 {
   "canisters": {
-    "b3_basic_wallet": {
-      "build": "scripts/b3_basic_wallet.sh",
-      "candid": "backend/b3_basic_wallet/b3_basic_wallet.did",
-      "declarations": {
-        "node_compatibility": true,
-        "output": "frontend/declarations/b3_basic_wallet"
-      },
-      "package": "b3_basic_wallet",
-      "type": "custom",
-      "wasm": "wasm/b3_basic_wallet/b3_basic_wallet.wasm"
-    },
-    "b3_payment": {
-      "build": "scripts/b3_payment.sh",
-      "candid": "backend/b3_payment/b3_payment.did",
-      "declarations": {
-        "node_compatibility": true,
-        "output": "payment/declarations/b3_payment"
-      },
-      "package": "b3_payment",
-      "type": "custom",
-      "wasm": "wasm/b3_payment/b3_payment_candid.wasm"
-    },
     "b3_system": {
       "candid": "backend/b3_system/b3_system.did",
       "declarations": {
@@ -42,31 +20,65 @@
       "type": "custom",
       "wasm": "wasm/b3_wallet/b3_wallet.wasm"
     },
-    "ckbtc": {
-      "build": "",
-      "candid": "wasm/ckbtc/ledger.did",
-      "declarations": {
-        "node_compatibility": false,
-        "output": "declarations"
+    "wallet_assets": {
+      "build": "yarn build:local",
+      "frontend": {
+        "entrypoint": "out/index.html"
       },
+      "declarations": {
+        "node_compatibility": true,
+        "output": "frontend/declarations/wallet_assets"
+      },
+      "source": ["frontend/out"],
+      "type": "assets"
+    },
+    "ckbtc": {
+      "build": ["true"],
+      "candid": "wasm/ckbtc/ledger.did",
       "remote": {
-        "candid": "ledger.public.did",
         "id": {
-          "ic": "ryjl3-tyaaa-aaaaa-aaaba-cai"
+          "app": "mxzaz-hqaaa-aaaar-qaada-cai",
+          "mainnet": "mxzaz-hqaaa-aaaar-qaada-cai"
         }
       },
       "type": "custom",
       "wasm": "wasm/ckbtc/ledger.wasm"
     },
     "index": {
-      "build": "",
+      "build": ["true"],
       "candid": "wasm/index/index.did",
-      "declarations": {
-        "node_compatibility": false,
-        "output": "declarations"
+      "remote": {
+        "id": {
+          "app": "n5wcd-faaaa-aaaar-qaaea-cai",
+          "mainnet": "n5wcd-faaaa-aaaar-qaaea-cai"
+        }
       },
       "type": "custom",
       "wasm": "wasm/index/index.wasm"
+    },
+    "kyt": {
+      "build": ["true"],
+      "candid": "wasm/kyt/kyt.did",
+      "remote": {
+        "id": {
+          "app": "bkyz2-fmaaa-aaaaa-qaaaq-cai",
+          "mainnet": "bkyz2-fmaaa-aaaaa-qaaaq-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": "wasm/kyt/kyt.wasm"
+    },
+    "minter": {
+      "build": ["true"],
+      "candid": "wasm/minter/minter.did",
+      "remote": {
+        "id": {
+          "app": "mqygn-kiaaa-aaaar-qaadq-cai",
+          "mainnet": "mqygn-kiaaa-aaaar-qaadq-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": "wasm/minter/minter.wasm"
     },
     "internet_identity": {
       "build": "",
@@ -78,26 +90,6 @@
       },
       "type": "custom",
       "wasm": ""
-    },
-    "kyt": {
-      "build": "",
-      "candid": "wasm/kyt/kyt.did",
-      "declarations": {
-        "node_compatibility": false,
-        "output": "declarations"
-      },
-      "type": "custom",
-      "wasm": "wasm/kyt/kyt.wasm"
-    },
-    "minter": {
-      "build": "",
-      "candid": "wasm/minter/minter.did",
-      "declarations": {
-        "node_compatibility": false,
-        "output": "declarations"
-      },
-      "type": "custom",
-      "wasm": "wasm/minter/minter.wasm"
     },
     "nns-cycles-minting": {
       "build": "",
@@ -205,35 +197,12 @@
       },
       "type": "custom",
       "wasm": ""
-    },
-    "payment_assets": {
-      "build": "yarn build:payment",
-      "frontend": {
-        "entrypoint": "out/index.html"
-      },
-      "declarations": {
-        "node_compatibility": false,
-        "output": "declarations"
-      },
-      "source": ["payment/out"],
-      "type": "assets"
-    },
-    "wallet_assets": {
-      "build": "yarn build:local",
-      "frontend": {
-        "entrypoint": "out/index.html"
-      },
-      "declarations": {
-        "node_compatibility": false,
-        "output": "declarations"
-      },
-      "source": ["frontend/out"],
-      "type": "assets"
     }
   },
   "defaults": {
     "replica": {
       "subnet_type": "system"
     }
-  }
+  },
+  "output_env_file": ".env"
 }

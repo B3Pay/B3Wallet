@@ -1,16 +1,13 @@
 use crate::{error::SystemError, types::Controllers};
-use b3_helper_lib::{
+use b3_utils::{
     ic_canister_status,
-    types::{
-        CanisterId, SignerId, Version, WalletCanisterInstallArg, WalletCanisterStatus, WasmHash,
-    },
+    types::{CanisterId, SignerId, WalletCanisterInstallArg, WalletCanisterStatus, WalletVersion},
+    wasm::WasmHash,
 };
-use ic_cdk::{
-    api::management_canister::{
-        main::{install_code, update_settings, InstallCodeArgument, UpdateSettingsArgument},
-        provisional::CanisterSettings,
-    },
-    export::candid::{CandidType, Deserialize},
+use candid::{CandidType, Deserialize};
+use ic_cdk::api::management_canister::{
+    main::{install_code, update_settings, InstallCodeArgument, UpdateSettingsArgument},
+    provisional::CanisterSettings,
 };
 
 #[derive(CandidType, Deserialize, PartialEq, Clone)]
@@ -42,8 +39,8 @@ impl WalletCanister {
     }
 
     /// Get the version of the canister.
-    pub async fn version(&self) -> Result<Version, SystemError> {
-        let (version,): (Version,) = ic_cdk::call(self.0, "version", ())
+    pub async fn version(&self) -> Result<WalletVersion, SystemError> {
+        let (version,): (WalletVersion,) = ic_cdk::call(self.0, "version", ())
             .await
             .map_err(|err| SystemError::VersionError(err.1))?;
 

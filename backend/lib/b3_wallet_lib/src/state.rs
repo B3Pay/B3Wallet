@@ -6,14 +6,15 @@ use crate::nonces::NonceTrait;
 use crate::setting::WalletSettings;
 use crate::types::{WalletAccountMap, WalletAccountView};
 use crate::{account::WalletAccount, types::AccountId};
-use b3_helper_lib::environment::Environment;
-use b3_helper_lib::subaccount::Subaccount;
-use b3_helper_lib::types::AccountsNonce;
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use b3_utils::types::WalletAccountsNonce;
+use b3_utils::Environment;
+use b3_utils::Subaccount;
+use candid::CandidType;
+use serde::Deserialize;
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct WalletState {
-    pub nonces: AccountsNonce,
+    pub nonces: WalletAccountsNonce,
     pub settings: WalletSettings,
     pub accounts: WalletAccountMap,
 }
@@ -27,7 +28,7 @@ impl Default for WalletState {
         accounts.insert("-default".to_owned(), default_account);
 
         WalletState {
-            nonces: AccountsNonce::default(),
+            nonces: WalletAccountsNonce::default(),
             settings: WalletSettings::default(),
             accounts,
         }
@@ -97,7 +98,7 @@ impl WalletState {
         self.accounts.insert(id.clone(), account);
     }
 
-    pub fn counters(&self) -> &AccountsNonce {
+    pub fn counters(&self) -> &WalletAccountsNonce {
         &self.nonces
     }
 
@@ -131,7 +132,7 @@ impl WalletState {
         self.accounts.len()
     }
 
-    pub fn account_status(&self) -> AccountsNonce {
+    pub fn account_status(&self) -> WalletAccountsNonce {
         self.nonces.clone().into()
     }
 
@@ -180,7 +181,7 @@ impl WalletState {
 #[cfg(test)]
 mod test {
     use super::*;
-    use b3_helper_lib::environment::Environment;
+    use b3_utils::Environment;
 
     #[test]
     fn test_init_wallet() {

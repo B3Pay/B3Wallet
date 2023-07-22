@@ -1,11 +1,10 @@
 use crate::permit::caller_is_signer;
-use b3_helper_lib::{
-    amount::Amount,
-    environment::Environment,
+use b3_utils::{
+    currency::ICPToken,
+    currency::TokenAmount,
     revert,
-    subaccount::Subaccount,
-    tokens::Tokens,
-    types::{AccountsNonce, BlockIndex, CanisterId, Cycles, NotifyTopUpResult},
+    types::{CanisterId, Cycles, NotifyTopUpResult, TransferBlockIndex, WalletAccountsNonce},
+    Environment, Subaccount,
 };
 use b3_wallet_lib::ledger::{
     chain::ChainTrait,
@@ -26,9 +25,8 @@ use b3_wallet_lib::{
     },
     types::{AccountId, WalletAccountView},
 };
-use ic_cdk::{
-    api::management_canister::bitcoin::Satoshi, export::candid::candid_method, query, update,
-};
+use candid::candid_method;
+use ic_cdk::{api::management_canister::bitcoin::Satoshi, query, update};
 
 // QUERY ---------------------------------------------------------------------
 
@@ -46,7 +44,7 @@ pub fn get_account_count() -> usize {
 
 #[candid_method(query)]
 #[query(guard = "caller_is_signer")]
-pub fn get_account_counters() -> AccountsNonce {
+pub fn get_account_counters() -> WalletAccountsNonce {
     with_wallet(|s| s.counters().clone())
 }
 
@@ -72,7 +70,7 @@ pub fn get_addresses(account_id: AccountId) -> AddressMap {
 #[query(guard = "caller_is_signer")]
 pub async fn retrieve_btc_status(
     network: BtcNetwork,
-    block_index: BlockIndex,
+    block_index: TransferBlockIndex,
 ) -> RetrieveBtcStatus {
     let minter = Minter(network);
 
@@ -163,7 +161,7 @@ pub async fn account_send(
     account_id: AccountId,
     chain: ChainEnum,
     to: String,
-    amount: Amount,
+    amount: TokenAmount,
 ) -> SendResult {
     let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
@@ -240,7 +238,7 @@ pub async fn account_swap_ckbtc_to_btc(
     network: BtcNetwork,
     retrieve_address: String,
     amount: Satoshi,
-) -> BlockIndex {
+) -> TransferBlockIndex {
     let ckbtc = with_chain(&account_id, &ChainEnum::CKBTC(network), |chain| {
         chain.ckbtc()
     })
@@ -270,7 +268,7 @@ pub async fn account_swap_ckbtc_to_btc(
 #[update(guard = "caller_is_signer")]
 pub async fn account_top_up_and_notify(
     account_id: AccountId,
-    amount: Tokens,
+    amount: ICPToken,
     canister_id: Option<CanisterId>,
 ) -> Result<Cycles, String> {
     let icp = with_chain(&account_id, &ChainEnum::ICP, |chain| chain.icp())
