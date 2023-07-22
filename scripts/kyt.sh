@@ -13,7 +13,7 @@ curl -o wasm/kyt/kyt.wasm.gz "https://download.dfinity.systems/ic/$IC_VERSION/ca
 gunzip -f wasm/kyt/kyt.wasm.gz
 curl -o wasm/kyt/kyt.did "https://raw.githubusercontent.com/dfinity/ic/$IC_VERSION/rs/bitcoin/ckbtc/kyt/kyt.did"
 
-# Deploy kyt (know your token)
+# Deploy kyt (know your transaction) canister
 # if the user pass the no-deploy flag, then skip this step
 if [ "$1" = "--no-deploy" ]; then
   exit 0

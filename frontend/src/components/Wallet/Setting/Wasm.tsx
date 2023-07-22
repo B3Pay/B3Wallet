@@ -118,7 +118,7 @@ const Wasm: React.FC<WasmProps> = ({
     setReleaseLoading(true)
 
     try {
-      const response = await fetch("wasm/releases.json")
+      const response = await fetch("releases/index.json")
 
       const releases = (await response.json()) as JsonFile[]
 
