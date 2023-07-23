@@ -1,5 +1,5 @@
 use b3_operations::{
-    signer::{roles::SignerRoles, signer::Signer},
+    signer::{roles::SignerRoles, Signer},
     store::{with_permit, with_permit_mut, with_signer_check},
     types::SignerMap,
 };

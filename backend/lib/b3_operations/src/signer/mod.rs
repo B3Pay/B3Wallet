@@ -1,2 +1,4 @@
 pub mod roles;
-pub mod signer;
+
+mod signer;
+pub use signer::*;

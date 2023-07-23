@@ -1,1 +1,3 @@
-pub mod processed;
+mod processed;
+
+pub use processed::*;

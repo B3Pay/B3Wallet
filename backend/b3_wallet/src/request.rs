@@ -14,7 +14,7 @@ use b3_operations::{
         },
         {OperationTrait, Operations},
     },
-    pending::new::RequestArgs,
+    pending::RequestArgs,
     signer::roles::SignerRoles,
     store::{with_permit, with_permit_mut, with_signer_check, with_signer_ids_by_role},
     types::PendingRequestList,

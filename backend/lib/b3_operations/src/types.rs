@@ -1,9 +1,10 @@
 use crate::{
     error::OperationError,
     operation::{OperationTrait, Operations},
-    pending::new::PendingRequest,
-    processed::processed::ProcessedRequest,
-    signer::signer::Signer,
+    pending::PendingRequest,
+    processed::ProcessedRequest,
+    response::Response,
+    signer::Signer,
 };
 use b3_utils::types::{RequestId, SignerId};
 use b3_wallet_lib::setting::WalletSettings;
@@ -30,28 +31,6 @@ pub type ProcessedRequestMap = BTreeMap<RequestId, ProcessedRequest>;
 pub struct WalletSettingsAndSigners {
     pub signers: SignerMap,
     pub settings: WalletSettings,
-}
-
-#[derive(CandidType, Clone, Deserialize, Debug)]
-pub enum Response {
-    Confirm,
-    Reject,
-}
-
-impl Response {
-    pub fn is_confirm(&self) -> bool {
-        match self {
-            Response::Confirm => true,
-            _ => false,
-        }
-    }
-
-    pub fn is_reject(&self) -> bool {
-        match self {
-            Response::Reject => true,
-            _ => false,
-        }
-    }
 }
 
 #[derive(CandidType, Clone, Debug, Deserialize)]

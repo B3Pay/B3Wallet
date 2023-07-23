@@ -5,5 +5,5 @@ pub mod icp;
 pub mod inner;
 pub mod result;
 
-mod operations;
-pub use operations::*;
+mod operation;
+pub use operation::*;

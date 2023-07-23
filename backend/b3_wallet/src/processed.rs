@@ -1,9 +1,10 @@
 use crate::permit::{caller_is_admin, caller_is_signer};
 use b3_operations::{
     error::OperationError,
-    processed::processed::ProcessedRequest,
+    processed::ProcessedRequest,
+    response::Response,
     store::{with_pending_mut, with_permit, with_permit_mut, with_processed_request},
-    types::{ProcessedRequestList, Response},
+    types::ProcessedRequestList,
 };
 use b3_utils::{revert, types::RequestId};
 use candid::candid_method;

@@ -1,16 +1,16 @@
 use crate::{
     error::OperationError,
-    pending::new::PendingRequest,
-    processed::processed::ProcessedRequest,
-    signer::{roles::SignerRoles, signer::Signer},
-    state::PrmitState,
+    pending::PendingRequest,
+    processed::ProcessedRequest,
+    signer::{roles::SignerRoles, Signer},
+    state::OperationState,
     types::{ProcessedRequestMap, SignerIds},
 };
 use b3_utils::types::{RequestId, SignerId};
 use std::cell::RefCell;
 
 thread_local! {
-    static STATE: RefCell<PrmitState> = RefCell::default();
+    static STATE: RefCell<OperationState> = RefCell::default();
 }
 // STATE ----------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ thread_local! {
 /// This will retrieve all states.
 pub fn with_permit<T, F>(callback: F) -> T
 where
-    F: FnOnce(&PrmitState) -> T,
+    F: FnOnce(&OperationState) -> T,
 {
     STATE.with(|states| {
         let state = states.borrow();
@@ -31,7 +31,7 @@ where
 /// This will retrieve all states.
 pub fn with_permit_mut<T, F>(callback: F) -> T
 where
-    F: FnOnce(&mut PrmitState) -> T,
+    F: FnOnce(&mut OperationState) -> T,
 {
     STATE.with(|states| {
         let mut state = states.borrow_mut();

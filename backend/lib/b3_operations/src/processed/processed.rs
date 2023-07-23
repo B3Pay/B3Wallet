@@ -3,9 +3,7 @@ use b3_utils::mocks::time_mock as ic_timestamp;
 #[cfg(not(test))]
 use ic_cdk::api::time as ic_timestamp;
 
-use crate::{
-    error::OperationError, operation::result::OperationResult, pending::new::PendingRequest,
-};
+use crate::{error::OperationError, operation::result::OperationResult, pending::PendingRequest};
 use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Deserialize, PartialEq, Debug, Copy, Clone)]

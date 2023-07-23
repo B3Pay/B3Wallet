@@ -7,8 +7,8 @@ mod wallet;
 mod wasm;
 
 use b3_operations::{
-    signer::{roles::SignerRoles, signer::Signer},
-    state::PrmitState,
+    signer::{roles::SignerRoles, Signer},
+    state::OperationState,
     store::{with_permit, with_permit_mut},
     types::SignerMap,
 };
@@ -76,7 +76,7 @@ pub fn pre_upgrade() {
 
 #[post_upgrade]
 pub fn post_upgrade() {
-    let (state_prev, sign_prev): (WalletState, PrmitState) =
+    let (state_prev, sign_prev): (WalletState, OperationState) =
         ic_cdk::storage::stable_restore().unwrap();
 
     with_wallet_mut(|state| *state = state_prev);
@@ -90,7 +90,8 @@ mod tests {
         btc::transfer::*, global::*, icp::transfer::*, inner::account::*, inner::setting::*,
         inner::signer::*, Operations,
     };
-    use b3_operations::processed::processed::ProcessedRequest;
+    use b3_operations::processed::ProcessedRequest;
+    use b3_operations::response::Response;
     use b3_operations::signer::roles::SignerRoles;
     use b3_operations::types::*;
     use b3_utils::currency::ICPToken;

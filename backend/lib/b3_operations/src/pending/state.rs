@@ -1,9 +1,9 @@
 use b3_utils::types::{RequestId, SignerId};
 
-use super::new::{PendingRequest, RequestArgs};
-use crate::{error::OperationError, state::PrmitState, types::PendingRequestList};
+use super::pending::{PendingRequest, RequestArgs};
+use crate::{error::OperationError, state::OperationState, types::PendingRequestList};
 
-impl PrmitState {
+impl OperationState {
     pub fn new_request(&self, signer_id: SignerId, args: RequestArgs) -> PendingRequest {
         let id = self.request_counter();
 

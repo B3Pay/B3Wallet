@@ -1,24 +1,24 @@
 use crate::{
     error::OperationError,
     nonce::RequestNonce,
-    processed::processed::ProcessedRequest,
-    signer::signer::Signer,
+    processed::ProcessedRequest,
+    signer::Signer,
     types::{PendingRequestMap, ProcessedRequestList, ProcessedRequestMap, SignerMap},
 };
 use b3_utils::types::{RequestId, SignerId};
 use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Deserialize, Clone)]
-pub struct PrmitState {
+pub struct OperationState {
     pub counters: RequestNonce,
     pub signers: SignerMap,
     pub pending: PendingRequestMap,
     pub processed: ProcessedRequestMap,
 }
 
-impl Default for PrmitState {
+impl Default for OperationState {
     fn default() -> Self {
-        PrmitState {
+        OperationState {
             signers: SignerMap::new(),
             pending: PendingRequestMap::new(),
             processed: ProcessedRequestMap::new(),
@@ -27,7 +27,7 @@ impl Default for PrmitState {
     }
 }
 
-impl PrmitState {
+impl OperationState {
     pub fn init_signers(&mut self, signers: SignerMap) {
         self.signers = signers;
     }

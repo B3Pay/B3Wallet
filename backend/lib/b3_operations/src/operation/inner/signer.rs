@@ -2,7 +2,7 @@ use crate::error::OperationError;
 use crate::operation::result::OperationResult;
 use crate::operation::OperationTrait;
 use crate::signer::roles::SignerRoles;
-use crate::signer::signer::Signer;
+use crate::signer::Signer;
 use crate::store::with_permit;
 use crate::store::with_permit_mut;
 use async_trait::async_trait;
