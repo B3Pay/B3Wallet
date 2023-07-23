@@ -1,11 +1,11 @@
 use crate::{
     error::OperationError,
     nonce::RequestNonce,
-    processed::ProcessedRequest,
+    processed::ProcessedOperation,
     signer::Signer,
     types::{PendingRequestMap, ProcessedRequestList, ProcessedRequestMap, SignerMap},
 };
-use b3_utils::types::{RequestId, SignerId};
+use b3_utils::types::{OperationId, SignerId};
 use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Deserialize, Clone)]
@@ -77,8 +77,8 @@ impl OperationState {
 
     pub fn insert_processed(
         &mut self,
-        request_id: RequestId,
-        processed: ProcessedRequest,
+        request_id: OperationId,
+        processed: ProcessedOperation,
     ) -> Result<(), OperationError> {
         self.pending
             .remove(&request_id)
@@ -89,7 +89,10 @@ impl OperationState {
         Ok(())
     }
 
-    pub fn processed(&self, request_id: &RequestId) -> Result<&ProcessedRequest, OperationError> {
+    pub fn processed(
+        &self,
+        request_id: &OperationId,
+    ) -> Result<&ProcessedOperation, OperationError> {
         self.processed
             .get(&request_id)
             .ok_or(OperationError::RequestNotFound(request_id.to_owned()))

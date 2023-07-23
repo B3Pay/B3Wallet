@@ -26,7 +26,7 @@ pub trait OperationTrait {
 
 #[enum_dispatch(OperationTrait)]
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
-pub enum Operations {
+pub enum Operation {
     SendToken,
     // EVM
     EvmTransfer,
@@ -53,7 +53,7 @@ pub enum Operations {
     UpdateCanisterSettings,
 }
 
-impl fmt::Display for Operations {
+impl fmt::Display for Operation {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
     }

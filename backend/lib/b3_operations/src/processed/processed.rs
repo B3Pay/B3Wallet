@@ -3,11 +3,11 @@ use b3_utils::mocks::time_mock as ic_timestamp;
 #[cfg(not(test))]
 use ic_cdk::api::time as ic_timestamp;
 
-use crate::{error::OperationError, operation::result::OperationResult, pending::PendingRequest};
+use crate::{error::OperationError, operation::result::OperationResult, pending::PendingOperation};
 use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Deserialize, PartialEq, Debug, Copy, Clone)]
-pub enum RequestStatus {
+pub enum OperationStatus {
     Expired,
     Pending,
     Success,
@@ -15,32 +15,32 @@ pub enum RequestStatus {
 }
 
 #[derive(CandidType, Deserialize, Debug, Clone)]
-pub struct ProcessedRequest {
+pub struct ProcessedOperation {
     timestamp: u64,
     method: String,
     error: Option<String>,
-    status: RequestStatus,
-    request: PendingRequest,
+    status: OperationStatus,
+    request: PendingOperation,
     result: Option<OperationResult>,
 }
 
-impl From<ProcessedRequest> for PendingRequest {
-    fn from(request: ProcessedRequest) -> Self {
+impl From<ProcessedOperation> for PendingOperation {
+    fn from(request: ProcessedOperation) -> Self {
         request.request
     }
 }
 
-impl From<PendingRequest> for ProcessedRequest {
-    fn from(request: PendingRequest) -> Self {
+impl From<PendingOperation> for ProcessedOperation {
+    fn from(request: PendingOperation) -> Self {
         let error = request.get_error();
 
         let status = if error.is_some() {
-            RequestStatus::Fail
+            OperationStatus::Fail
         } else {
-            RequestStatus::Success
+            OperationStatus::Success
         };
 
-        ProcessedRequest {
+        ProcessedOperation {
             error,
             timestamp: ic_timestamp(),
             method: request.method(),
@@ -51,21 +51,21 @@ impl From<PendingRequest> for ProcessedRequest {
     }
 }
 
-impl ProcessedRequest {
-    pub fn new(request: &PendingRequest) -> Self {
-        ProcessedRequest {
+impl ProcessedOperation {
+    pub fn new(request: &PendingOperation) -> Self {
+        ProcessedOperation {
             error: None,
             result: None,
             timestamp: ic_timestamp(),
             method: request.method(),
             request: request.clone(),
-            status: RequestStatus::Pending,
+            status: OperationStatus::Pending,
         }
     }
 
     pub fn succeed(&mut self, message: OperationResult) -> Self {
-        self.status = RequestStatus::Success;
-        self.request.status = RequestStatus::Success;
+        self.status = OperationStatus::Success;
+        self.request.status = OperationStatus::Success;
         self.timestamp = ic_timestamp();
         self.result = Some(message);
 
@@ -73,8 +73,8 @@ impl ProcessedRequest {
     }
 
     pub fn fail(&mut self, error: OperationError) -> Self {
-        self.status = RequestStatus::Fail;
-        self.request.status = RequestStatus::Fail;
+        self.status = OperationStatus::Fail;
+        self.request.status = OperationStatus::Fail;
         self.error = Some(error.to_string());
         self.timestamp = ic_timestamp();
 
@@ -82,15 +82,15 @@ impl ProcessedRequest {
     }
 
     pub fn is_successful(&self) -> bool {
-        self.status == RequestStatus::Success
+        self.status == OperationStatus::Success
     }
 
     pub fn is_failed(&self) -> bool {
-        self.status == RequestStatus::Fail
+        self.status == OperationStatus::Fail
     }
 
     pub fn is_pending(&self) -> bool {
-        self.status == RequestStatus::Pending
+        self.status == OperationStatus::Pending
     }
 
     pub fn get_error(&self) -> Option<&String> {

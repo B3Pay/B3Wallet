@@ -1,12 +1,12 @@
 use crate::{
     error::OperationError,
-    operation::{OperationTrait, Operations},
-    pending::PendingRequest,
-    processed::ProcessedRequest,
+    operation::{Operation, OperationTrait},
+    pending::PendingOperation,
+    processed::ProcessedOperation,
     response::Response,
     signer::Signer,
 };
-use b3_utils::types::{RequestId, SignerId};
+use b3_utils::types::{OperationId, SignerId};
 use b3_wallet_lib::setting::WalletSettings;
 use candid::{CandidType, Deserialize};
 use std::collections::{BTreeMap, HashMap};
@@ -17,15 +17,15 @@ pub type SignerIds = Vec<SignerId>;
 
 pub type SignerMap = HashMap<SignerId, Signer>;
 
-pub type PendingRequestList = Vec<PendingRequest>;
+pub type PendingRequestList = Vec<PendingOperation>;
 
-pub type ProcessedRequestList = Vec<ProcessedRequest>;
+pub type ProcessedRequestList = Vec<ProcessedOperation>;
 
 pub type ResponseMap = BTreeMap<SignerId, Response>;
 
-pub type PendingRequestMap = BTreeMap<RequestId, PendingRequest>;
+pub type PendingRequestMap = BTreeMap<OperationId, PendingOperation>;
 
-pub type ProcessedRequestMap = BTreeMap<RequestId, ProcessedRequest>;
+pub type ProcessedRequestMap = BTreeMap<OperationId, ProcessedOperation>;
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct WalletSettingsAndSigners {
@@ -41,7 +41,7 @@ pub struct ConsentMessage {
 }
 
 impl ConsentMessage {
-    pub fn new(request: &Operations, reason: String) -> Self {
+    pub fn new(request: &Operation, reason: String) -> Self {
         let title = request.title();
         let message = request.message();
 

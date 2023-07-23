@@ -1,16 +1,16 @@
-use b3_utils::types::{RequestId, SignerId};
+use b3_utils::types::{OperationId, SignerId};
 
-use super::pending::{PendingRequest, RequestArgs};
+use super::pending::{PendingOperation, RequestArgs};
 use crate::{error::OperationError, state::OperationState, types::PendingRequestList};
 
 impl OperationState {
-    pub fn new_request(&self, signer_id: SignerId, args: RequestArgs) -> PendingRequest {
+    pub fn new_request(&self, signer_id: SignerId, args: RequestArgs) -> PendingOperation {
         let id = self.request_counter();
 
-        PendingRequest::new(id, signer_id, args)
+        PendingOperation::new(id, signer_id, args)
     }
 
-    pub fn insert_new_request(&mut self, sign_request: PendingRequest) -> RequestId {
+    pub fn insert_new_request(&mut self, sign_request: PendingOperation) -> OperationId {
         let id = sign_request.id;
 
         self.pending.insert(id.clone(), sign_request);
@@ -24,7 +24,7 @@ impl OperationState {
         self.counters.request()
     }
 
-    pub fn remove_request(&mut self, request_id: &RequestId) {
+    pub fn remove_request(&mut self, request_id: &OperationId) {
         self.pending.remove(request_id);
     }
 
@@ -35,7 +35,7 @@ impl OperationState {
             .collect()
     }
 
-    pub fn request(&self, request_id: &RequestId) -> Result<&PendingRequest, OperationError> {
+    pub fn request(&self, request_id: &OperationId) -> Result<&PendingOperation, OperationError> {
         self.pending
             .get(request_id)
             .ok_or(OperationError::RequestNotFound(request_id.to_owned()))
@@ -43,14 +43,14 @@ impl OperationState {
 
     pub fn request_mut(
         &mut self,
-        request_id: &RequestId,
-    ) -> Result<&mut PendingRequest, OperationError> {
+        request_id: &OperationId,
+    ) -> Result<&mut PendingOperation, OperationError> {
         self.pending
             .get_mut(request_id)
             .ok_or(OperationError::RequestNotFound(request_id.to_owned()))
     }
 
-    pub fn check_request(&self, request_id: &RequestId) -> Result<(), OperationError> {
+    pub fn check_request(&self, request_id: &OperationId) -> Result<(), OperationError> {
         if self.processed.get(request_id).is_some() {
             return Err(OperationError::RequestAlreadyProcessed(
                 request_id.to_owned(),

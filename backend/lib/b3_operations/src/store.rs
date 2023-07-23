@@ -1,12 +1,12 @@
 use crate::{
     error::OperationError,
-    pending::PendingRequest,
-    processed::ProcessedRequest,
+    pending::PendingOperation,
+    processed::ProcessedOperation,
     signer::{roles::SignerRoles, Signer},
     state::OperationState,
     types::{ProcessedRequestMap, SignerIds},
 };
-use b3_utils::types::{RequestId, SignerId};
+use b3_utils::types::{OperationId, SignerId};
 use std::cell::RefCell;
 
 thread_local! {
@@ -43,17 +43,17 @@ where
 // REQUEST ------------------------------------------------------------------------
 
 /// Get Request.
-pub fn with_pending<T, F>(request_id: &RequestId, callback: F) -> Result<T, OperationError>
+pub fn with_pending<T, F>(request_id: &OperationId, callback: F) -> Result<T, OperationError>
 where
-    F: FnOnce(&PendingRequest) -> T,
+    F: FnOnce(&PendingOperation) -> T,
 {
     with_permit(|permit| permit.request(request_id).map(callback))
 }
 
 /// Get Request mutably.
-pub fn with_pending_mut<T, F>(request_id: &RequestId, callback: F) -> Result<T, OperationError>
+pub fn with_pending_mut<T, F>(request_id: &OperationId, callback: F) -> Result<T, OperationError>
 where
-    F: FnOnce(&mut PendingRequest) -> T,
+    F: FnOnce(&mut PendingOperation) -> T,
 {
     with_permit_mut(|permit| permit.request_mut(&request_id).map(callback))
 }
@@ -77,11 +77,11 @@ where
 }
 
 pub fn with_processed_request<T, F>(
-    request_id: &RequestId,
+    request_id: &OperationId,
     callback: F,
 ) -> Result<T, OperationError>
 where
-    F: FnOnce(&ProcessedRequest) -> T,
+    F: FnOnce(&ProcessedOperation) -> T,
 {
     with_permit(|state| state.processed(request_id).map(callback))
 }

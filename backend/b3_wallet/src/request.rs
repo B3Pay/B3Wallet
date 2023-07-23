@@ -12,14 +12,14 @@ use b3_operations::{
             setting::{UpdateCanisterSettings, UpgradeCanister},
             signer::AddSigner,
         },
-        {OperationTrait, Operations},
+        {Operation, OperationTrait},
     },
     pending::RequestArgs,
     signer::roles::SignerRoles,
     store::{with_permit, with_permit_mut, with_signer_check, with_signer_ids_by_role},
     types::PendingRequestList,
 };
-use b3_utils::{revert, timestamp::NanoTimeStamp, types::RequestId, wasm::with_wasm};
+use b3_utils::{revert, timestamp::NanoTimeStamp, types::OperationId, wasm::with_wasm};
 use candid::candid_method;
 use ic_cdk::{query, update};
 
@@ -43,10 +43,10 @@ pub fn is_connected() -> bool {
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub fn request_maker(
-    request: Operations,
+    request: Operation,
     reason: String,
     deadline: Option<NanoTimeStamp>,
-) -> RequestId {
+) -> OperationId {
     let caller = ic_cdk::caller();
 
     let role = SignerRoles::Admin;
@@ -73,7 +73,7 @@ pub fn request_add_signer(
     request: AddSigner,
     reason: String,
     deadline: Option<NanoTimeStamp>,
-) -> RequestId {
+) -> OperationId {
     let caller = ic_cdk::caller();
 
     let role = SignerRoles::Admin;
@@ -96,7 +96,7 @@ pub fn request_add_signer(
 
 #[update]
 #[candid_method(update)]
-pub fn request_connect() -> RequestId {
+pub fn request_connect() -> OperationId {
     let caller = ic_cdk::caller();
 
     let request = AddSigner {
@@ -112,7 +112,7 @@ pub fn request_connect() -> RequestId {
         let pending_list = s.pending_list();
 
         for pending_request in pending_list.iter() {
-            if pending_request.request == Operations::AddSigner(request.clone()) {
+            if pending_request.request == Operation::AddSigner(request.clone()) {
                 return revert("Already Pending!");
             }
         }
@@ -146,7 +146,7 @@ pub fn request_update_settings(
     request: UpdateCanisterSettings,
     reason: String,
     deadline: Option<NanoTimeStamp>,
-) -> RequestId {
+) -> OperationId {
     let caller = ic_cdk::caller();
 
     request.validate_request().unwrap_or_else(revert);
@@ -175,7 +175,7 @@ pub fn request_account_rename(
     request: RenameAccount,
     reason: String,
     deadline: Option<NanoTimeStamp>,
-) -> RequestId {
+) -> OperationId {
     let caller = ic_cdk::caller();
 
     let role = SignerRoles::Admin;
@@ -202,7 +202,7 @@ pub fn request_create_account(
     request: CreateAccount,
     reason: String,
     deadline: Option<NanoTimeStamp>,
-) -> RequestId {
+) -> OperationId {
     let caller = ic_cdk::caller();
 
     let role = SignerRoles::Admin;
@@ -229,7 +229,7 @@ pub fn request_delete_account(
     request: RemoveAccount,
     reason: String,
     deadline: Option<NanoTimeStamp>,
-) -> RequestId {
+) -> OperationId {
     let caller = ic_cdk::caller();
 
     let role = SignerRoles::Admin;
@@ -256,7 +256,7 @@ pub fn request_transfer_icp(
     request: IcpTransfer,
     reason: String,
     deadline: Option<NanoTimeStamp>,
-) -> RequestId {
+) -> OperationId {
     let caller = ic_cdk::caller();
 
     let role = SignerRoles::Admin;
@@ -283,7 +283,7 @@ pub fn request_transfer_btc(
     request: BtcTransfer,
     reason: String,
     deadline: Option<NanoTimeStamp>,
-) -> RequestId {
+) -> OperationId {
     let caller = ic_cdk::caller();
 
     let role = SignerRoles::Admin;
@@ -310,7 +310,7 @@ pub fn request_send(
     request: SendToken,
     reason: String,
     deadline: Option<NanoTimeStamp>,
-) -> RequestId {
+) -> OperationId {
     let caller = ic_cdk::caller();
 
     request.validate_request().unwrap_or_else(revert);
@@ -336,7 +336,7 @@ pub fn request_send(
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub async fn request_upgrade_canister(wasm_version: String) -> RequestId {
+pub async fn request_upgrade_canister(wasm_version: String) -> OperationId {
     let caller = ic_cdk::caller();
 
     let upgrade_request = with_wasm(|w| UpgradeCanister {

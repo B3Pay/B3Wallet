@@ -1,12 +1,12 @@
 use crate::permit::{caller_is_admin, caller_is_signer};
 use b3_operations::{
     error::OperationError,
-    processed::ProcessedRequest,
+    processed::ProcessedOperation,
     response::Response,
     store::{with_pending_mut, with_permit, with_permit_mut, with_processed_request},
     types::ProcessedRequestList,
 };
-use b3_utils::{revert, types::RequestId};
+use b3_utils::{revert, types::OperationId};
 use candid::candid_method;
 use ic_cdk::{query, update};
 
@@ -14,7 +14,7 @@ use ic_cdk::{query, update};
 
 #[candid_method(query)]
 #[query(guard = "caller_is_signer")]
-pub fn get_processed(request_id: RequestId) -> ProcessedRequest {
+pub fn get_processed(request_id: OperationId) -> ProcessedOperation {
     with_processed_request(&request_id, |processed| processed.clone()).unwrap_or_else(revert)
 }
 
@@ -28,7 +28,10 @@ pub fn get_processed_list() -> ProcessedRequestList {
 
 #[candid_method(update)]
 #[update(guard = "caller_is_signer")]
-pub async fn response(request_id: RequestId, answer: Response) -> Result<ProcessedRequest, String> {
+pub async fn response(
+    request_id: OperationId,
+    answer: Response,
+) -> Result<ProcessedOperation, String> {
     let caller = ic_cdk::caller();
 
     let request = with_pending_mut(&request_id, |request| {
@@ -43,7 +46,7 @@ pub async fn response(request_id: RequestId, answer: Response) -> Result<Process
     .unwrap_or_else(revert);
 
     if request.is_failed() {
-        let processed = ProcessedRequest::from(request);
+        let processed = ProcessedOperation::from(request);
 
         if let Err(err) = with_permit_mut(|s| s.insert_processed(request_id, processed.clone())) {
             return Err(err.to_string());
@@ -67,11 +70,11 @@ pub async fn response(request_id: RequestId, answer: Response) -> Result<Process
 
 #[candid_method(update)]
 #[update(guard = "caller_is_admin")]
-pub fn process_request(request_id: RequestId) {
+pub fn process_request(request_id: OperationId) {
     let caller = ic_cdk::caller();
 
     with_permit_mut(|s| {
-        let mut processed: ProcessedRequest =
+        let mut processed: ProcessedOperation =
             s.request(&request_id).unwrap_or_else(revert).clone().into();
 
         processed.fail(OperationError::RequestRemovedByAdmin(caller.to_string()));

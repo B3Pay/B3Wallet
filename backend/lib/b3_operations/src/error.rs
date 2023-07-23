@@ -1,4 +1,4 @@
-use b3_utils::types::RequestId;
+use b3_utils::types::OperationId;
 use b3_wallet_lib::{
     error::WalletError,
     ledger::{error::LedgerError, evm::error::EvmError},
@@ -15,8 +15,8 @@ pub enum OperationError {
     RequestAlreadySigned(String),
     RequestRejected,
     RequestExpired,
-    RequestNotFound(RequestId),
-    RequestAlreadyProcessed(RequestId),
+    RequestNotFound(OperationId),
+    RequestAlreadyProcessed(OperationId),
     RequestRemovedByAdmin(String),
     SignerNotAllowed(String),
     SignerNotFound(String),

@@ -88,9 +88,9 @@ pub fn post_upgrade() {
 mod tests {
     use b3_operations::operation::{
         btc::transfer::*, global::*, icp::transfer::*, inner::account::*, inner::setting::*,
-        inner::signer::*, Operations,
+        inner::signer::*, Operation,
     };
-    use b3_operations::processed::ProcessedRequest;
+    use b3_operations::processed::ProcessedOperation;
     use b3_operations::response::Response;
     use b3_operations::signer::roles::SignerRoles;
     use b3_operations::types::*;

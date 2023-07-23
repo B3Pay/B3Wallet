@@ -1,23 +1,23 @@
 use crate::{
     error::OperationError,
-    operation::{OperationTrait, Operations},
-    processed::{ProcessedRequest, RequestStatus},
+    operation::{Operation, OperationTrait},
+    processed::{OperationStatus, ProcessedOperation},
     response::Response,
     signer::roles::SignerRoles,
     types::{ConsentMessage, ResponseMap, SignerIds},
 };
 use b3_utils::{
     timestamp::NanoTimeStamp,
-    types::{RequestId, SignerId, WalletVersion},
+    types::{OperationId, SignerId, WalletVersion},
 };
 use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
-pub struct PendingRequest {
-    pub id: RequestId,
+pub struct PendingOperation {
+    pub id: OperationId,
     pub role: SignerRoles,
-    pub request: Operations,
-    pub status: RequestStatus,
+    pub request: Operation,
+    pub status: OperationStatus,
     pub responses: ResponseMap,
     pub deadline: NanoTimeStamp,
     pub created_at: NanoTimeStamp,
@@ -30,15 +30,15 @@ pub struct PendingRequest {
 #[derive(CandidType, Clone, Deserialize, Debug)]
 pub struct RequestArgs {
     pub role: SignerRoles,
-    pub request: Operations,
+    pub request: Operation,
     pub reason: String,
     pub version: WalletVersion,
     pub allowed_signers: SignerIds,
     pub deadline: Option<NanoTimeStamp>,
 }
 
-impl PendingRequest {
-    pub fn new(id: RequestId, created_by: SignerId, args: RequestArgs) -> PendingRequest {
+impl PendingOperation {
+    pub fn new(id: OperationId, created_by: SignerId, args: RequestArgs) -> PendingOperation {
         let deadline = if let Some(deadline) = args.deadline {
             deadline
         } else {
@@ -47,14 +47,14 @@ impl PendingRequest {
 
         let consent_message = ConsentMessage::new(&args.request, args.reason);
 
-        PendingRequest {
+        PendingOperation {
             id,
             created_by,
             responses: ResponseMap::new(),
             allowed_signers: args.allowed_signers,
             request: args.request,
             role: args.role,
-            status: RequestStatus::Pending,
+            status: OperationStatus::Pending,
             deadline,
             created_at: NanoTimeStamp::now(),
             consent_message,
@@ -62,8 +62,8 @@ impl PendingRequest {
         }
     }
 
-    pub async fn execute(self) -> ProcessedRequest {
-        let mut confirmed = ProcessedRequest::new(&self);
+    pub async fn execute(self) -> ProcessedOperation {
+        let mut confirmed = ProcessedOperation::new(&self);
 
         let match_result = self.request.execute().await;
 
