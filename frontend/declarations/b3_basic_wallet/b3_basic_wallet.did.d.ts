@@ -6,6 +6,7 @@ export interface AccountsNonce {
   'production' : bigint,
   'development' : bigint,
 }
+export interface Amount { 'decimals' : number, 'amount' : bigint }
 export interface BtcChain {
   'pendings' : Array<BtcPending>,
   'subaccount' : Uint8Array | number[],
@@ -198,7 +199,7 @@ export interface _SERVICE {
   >,
   'account_rename' : ActorMethod<[string, string], undefined>,
   'account_restore' : ActorMethod<[Environment, bigint], undefined>,
-  'account_send' : ActorMethod<[string, ChainEnum, string, bigint], SendResult>,
+  'account_send' : ActorMethod<[string, ChainEnum, string, Amount], SendResult>,
   'account_swap_btc_to_ckbtc' : ActorMethod<
     [string, BtcNetwork, bigint],
     BtcPending
@@ -222,6 +223,7 @@ export interface _SERVICE {
   'add_setting' : ActorMethod<[string, string], undefined>,
   'canister_cycle_balance' : ActorMethod<[], bigint>,
   'canister_version' : ActorMethod<[], bigint>,
+  'change_owner' : ActorMethod<[Principal], undefined>,
   'get_account' : ActorMethod<[string], WalletAccount>,
   'get_account_count' : ActorMethod<[], bigint>,
   'get_account_counters' : ActorMethod<[], AccountsNonce>,
@@ -245,6 +247,7 @@ export interface _SERVICE {
   >,
   'update_settings' : ActorMethod<[], undefined>,
   'upgrage_wallet' : ActorMethod<[], undefined>,
+  'validate_signer' : ActorMethod<[Principal], boolean>,
   'version' : ActorMethod<[], string>,
   'wasm_details' : ActorMethod<[], WasmDetails>,
   'wasm_hash' : ActorMethod<[], Uint8Array | number[]>,
