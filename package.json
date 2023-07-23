@@ -2,6 +2,7 @@
   "name": "b3wallet",
   "version": "0.4.8",
   "author": "b3hr4d",
+  "license": "MIT",
   "description": "Wallet and System Canister for the B3wallet on the Internet Computer",
   "keywords": [
     "wallet",
@@ -38,28 +39,27 @@
     "@types/node-fetch": "^2.6.3",
     "@types/semver": "^7.5.0",
     "dotenv": "^16.3.1",
-    "typescript": "5.0.4"
+    "typescript": "5.1.6"
   },
   "dependencies": {
-    "@dfinity/agent": "^0.15",
-    "@dfinity/auth-client": "^0.15.6",
-    "@dfinity/candid": "^0.15.6",
-    "@dfinity/identity": "^0.15.6",
-    "@dfinity/identity-secp256k1": "^0.15.6",
-    "@dfinity/ledger": "^0.0.7",
-    "@dfinity/nns": "^0.15.1",
-    "@dfinity/principal": "^0.15",
-    "@dfinity/utils": "^0.0.14",
+    "@dfinity/agent": "^0.18",
+    "@dfinity/auth-client": "^0.18",
+    "@dfinity/candid": "^0.18",
+    "@dfinity/identity": "^0.18",
+    "@dfinity/identity-secp256k1": "^0.18",
+    "@dfinity/ledger": "^0.0.11",
+    "@dfinity/nns": "^0.16",
+    "@dfinity/principal": "^0.18",
+    "@dfinity/utils": "^0.0.18",
     "assert": "^2.0.0",
     "buffer": "^6.0.3",
     "compressorjs": "^1.2.1",
     "events": "^3.3.0",
-    "framer-motion": "^10.12.16",
-    "node-fetch": "^2.6.6",
+    "node-fetch": "^3.3",
     "pem-file": "^1.0.1",
     "react-dropzone": "^14.2",
-    "semver": "^7.5.2",
-    "stream-browserify": "^3.0.0",
-    "util": "^0.12.5"
+    "semver": "^7.5",
+    "stream-browserify": "^3.0",
+    "util": "^0.12"
   }
 }
