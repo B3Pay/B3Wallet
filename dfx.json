@@ -35,10 +35,13 @@
     "ckbtc": {
       "build": ["true"],
       "candid": "wasm/ckbtc/ledger.did",
+      "declarations": {
+        "node_compatibility": true,
+        "output": "frontend/declarations/ckbtc"
+      },
       "remote": {
         "id": {
-          "app": "mxzaz-hqaaa-aaaar-qaada-cai",
-          "mainnet": "mxzaz-hqaaa-aaaar-qaada-cai"
+          "ic": "mxzaz-hqaaa-aaaar-qaada-cai"
         }
       },
       "type": "custom",
@@ -47,10 +50,13 @@
     "index": {
       "build": ["true"],
       "candid": "wasm/index/index.did",
+      "declarations": {
+        "node_compatibility": true,
+        "output": "frontend/declarations/index"
+      },
       "remote": {
         "id": {
-          "app": "n5wcd-faaaa-aaaar-qaaea-cai",
-          "mainnet": "n5wcd-faaaa-aaaar-qaaea-cai"
+          "ic": "n5wcd-faaaa-aaaar-qaaea-cai"
         }
       },
       "type": "custom",
@@ -59,10 +65,13 @@
     "kyt": {
       "build": ["true"],
       "candid": "wasm/kyt/kyt.did",
+      "declarations": {
+        "node_compatibility": true,
+        "output": "frontend/declarations/kyt"
+      },
       "remote": {
         "id": {
-          "app": "bkyz2-fmaaa-aaaaa-qaaaq-cai",
-          "mainnet": "bkyz2-fmaaa-aaaaa-qaaaq-cai"
+          "ic": "bkyz2-fmaaa-aaaaa-qaaaq-cai"
         }
       },
       "type": "custom",
@@ -71,10 +80,13 @@
     "minter": {
       "build": ["true"],
       "candid": "wasm/minter/minter.did",
+      "declarations": {
+        "node_compatibility": true,
+        "output": "frontend/declarations/minter"
+      },
       "remote": {
         "id": {
-          "app": "mqygn-kiaaa-aaaar-qaadq-cai",
-          "mainnet": "mqygn-kiaaa-aaaar-qaadq-cai"
+          "ic": "mqygn-kiaaa-aaaar-qaadq-cai"
         }
       },
       "type": "custom",

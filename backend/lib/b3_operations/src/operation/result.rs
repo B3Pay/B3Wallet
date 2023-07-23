@@ -46,6 +46,7 @@ pub enum OperationResult {
     EvmContractDeployed(EvmContractDeployed),
     EvmMessageSigned(EvmMessageSigned),
 }
+
 #[rustfmt::skip]
 impl fmt::Display for OperationResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

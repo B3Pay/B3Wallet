@@ -24,6 +24,4 @@ target/
 
 .env
 src/
-declarations/
-frontend/declarations/
 wasm/
