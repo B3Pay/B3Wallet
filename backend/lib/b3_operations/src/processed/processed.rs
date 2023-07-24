@@ -20,13 +20,13 @@ pub struct ProcessedOperation {
     method: String,
     error: Option<String>,
     status: OperationStatus,
-    request: PendingOperation,
     result: Option<OperationResult>,
+    operation: PendingOperation,
 }
 
 impl From<ProcessedOperation> for PendingOperation {
     fn from(request: ProcessedOperation) -> Self {
-        request.request
+        request.operation
     }
 }
 
@@ -46,7 +46,7 @@ impl From<PendingOperation> for ProcessedOperation {
             method: request.method(),
             result: None,
             status,
-            request,
+            operation: request,
         }
     }
 }
@@ -58,14 +58,14 @@ impl ProcessedOperation {
             result: None,
             timestamp: ic_timestamp(),
             method: request.method(),
-            request: request.clone(),
+            operation: request.clone(),
             status: OperationStatus::Pending,
         }
     }
 
     pub fn succeed(&mut self, message: OperationResult) -> Self {
         self.status = OperationStatus::Success;
-        self.request.status = OperationStatus::Success;
+        self.operation.status = OperationStatus::Success;
         self.timestamp = ic_timestamp();
         self.result = Some(message);
 
@@ -74,7 +74,7 @@ impl ProcessedOperation {
 
     pub fn fail(&mut self, error: OperationError) -> Self {
         self.status = OperationStatus::Fail;
-        self.request.status = OperationStatus::Fail;
+        self.operation.status = OperationStatus::Fail;
         self.error = Some(error.to_string());
         self.timestamp = ic_timestamp();
 
