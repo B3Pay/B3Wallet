@@ -1,6 +1,16 @@
-const DFXWebPackConfig = require("./dfx.webpack.config")
+// load env from ../.env file
+const envList = require("dotenv").config({ path: "../.env" }).parsed
+// get version from package.json
+const { version } = require("../package.json")
 
-const envList = DFXWebPackConfig.initCanisterIds()
+console.log("version", version)
+
+envList.NEXT_PUBLIC_IC_HOST =
+  envList.DFX_NETWORK === "ic" ? "https://ic0.app" : "http://localhost:8080"
+
+console.log("network", envList.DFX_NETWORK)
+
+envList.NEXT_PUBLIC_VERSION = version
 
 const webpack = require("webpack")
 

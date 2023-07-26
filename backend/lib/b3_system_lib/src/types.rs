@@ -1,9 +1,10 @@
-use b3_helper_lib::{
-    release::ReleaseName,
-    time::NanoTimeStamp,
-    types::{ControllerId, SignerId, Version, Wasm, WasmHash, WasmSize},
+use b3_utils::{
+    release::ReleaseTypes,
+    timestamp::NanoTimeStamp,
+    types::{ControllerId, UserId, WalletVersion},
+    wasm::{Wasm, WasmHash, WasmSize},
 };
-use ic_cdk::export::candid::{CandidType, Deserialize};
+use candid::{CandidType, Deserialize};
 use std::collections::HashMap;
 
 use crate::{user::UserState, wallet::WalletCanister};
@@ -12,15 +13,15 @@ pub type UserStates = Vec<UserState>;
 pub type Controllers = Vec<ControllerId>;
 
 pub type Releases = Vec<Release>;
-pub type ReleaseMap = HashMap<ReleaseName, Vec<Release>>;
+pub type ReleaseMap = HashMap<ReleaseTypes, Vec<Release>>;
 
 pub type Features = Vec<String>;
-pub type Users = Vec<SignerId>;
+pub type Users = Vec<UserId>;
 
 pub type Canisters = Vec<WalletCanister>;
 
-pub type UserMap = HashMap<SignerId, UserState>;
-pub type WasmMap = HashMap<Version, Wasm>;
+pub type UserMap = HashMap<UserId, UserState>;
+pub type WasmMap = HashMap<WalletVersion, Wasm>;
 
 #[derive(CandidType, Deserialize, Clone, Default)]
 pub struct State {
@@ -33,7 +34,7 @@ pub struct State {
 pub struct LoadRelease {
     pub total: usize,
     pub chunks: usize,
-    pub version: Version,
+    pub version: WalletVersion,
 }
 
 #[derive(CandidType, Deserialize, Clone)]
@@ -42,7 +43,7 @@ pub struct Release {
     pub date: NanoTimeStamp,
     pub size: WasmSize,
     pub hash: WasmHash,
-    pub version: Version,
+    pub version: WalletVersion,
     pub deprecated: bool,
     pub features: Option<Features>,
 }
@@ -51,6 +52,6 @@ pub struct Release {
 pub struct ReleaseArgs {
     pub size: usize,
     pub name: String,
-    pub version: Version,
+    pub version: WalletVersion,
     pub features: Option<Features>,
 }

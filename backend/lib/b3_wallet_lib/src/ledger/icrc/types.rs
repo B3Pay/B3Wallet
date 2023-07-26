@@ -1,9 +1,6 @@
 use crate::ledger::types::Balance;
-use b3_helper_lib::{account::ICRCAccount, subaccount::Subaccount};
-use ic_cdk::export::{
-    candid::{CandidType, Int, Nat},
-    serde::{Deserialize, Serialize},
-};
+use b3_utils::{ICRCAccount, Subaccount};
+use candid::{CandidType, Deserialize, Int, Nat};
 use serde_bytes::ByteBuf;
 
 use super::error::ICRC1TransferError;
@@ -31,7 +28,7 @@ pub struct ICRC1TransferArgs {
 }
 
 /// Variant type for the `metadata` endpoint values.
-#[derive(CandidType, Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
+#[derive(CandidType, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum ICRC1MetadataValue {
     Nat(Nat),
     Int(Int),

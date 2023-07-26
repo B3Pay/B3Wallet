@@ -1,27 +1,26 @@
 use crate::ledger::types::IcpPending;
 
 use super::error::IcpError;
-use b3_helper_lib::{
+use b3_utils::{
     constants::{
         CANISTER_TOP_UP_MEMO, CANISTER_TRANSFER_MEMO, CYCLES_MINTING_CANISTER_ID,
         IC_TRANSACTION_FEE_ICP, LEDGER_CANISTER_ID,
     },
-    identifier::AccountIdentifier,
-    subaccount::Subaccount,
-    tokens::Tokens,
+    currency::ICPToken,
     types::{
-        AccountBalanceArgs, BlockIndex, CanisterId, Memo, NotifyTopUpResult, NotifyTopupArgs,
-        Timestamp, TransferArgs, TransferResult,
+        CanisterId, ICPAccountBalanceArgs, ICPTransferArgs, ICPTransferResult,
+        ICPTransferTimestamp, NotifyTopUpResult, NotifyTopupArgs, TransferBlockIndex, TransferMemo,
     },
+    AccountIdentifier, Subaccount,
 };
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub struct IcpChain {
     pub subaccount: Subaccount,
-    pub memo: Memo,
-    pub fee: Tokens,
-    pub created_at_time: Option<Timestamp>,
+    pub memo: TransferMemo,
+    pub fee: ICPToken,
+    pub created_at_time: Option<ICPTransferTimestamp>,
     pub pendings: Vec<IcpPending>,
 }
 
@@ -38,10 +37,10 @@ impl IcpChain {
 }
 
 impl IcpChain {
-    pub async fn account_balance(&self, account: AccountIdentifier) -> Result<Tokens, IcpError> {
-        let args = AccountBalanceArgs { account };
+    pub async fn account_balance(&self, account: AccountIdentifier) -> Result<ICPToken, IcpError> {
+        let args = ICPAccountBalanceArgs { account };
 
-        let (res,): (Tokens,) = ic_cdk::call(LEDGER_CANISTER_ID, "account_balance", (args,))
+        let (res,): (ICPToken,) = ic_cdk::call(LEDGER_CANISTER_ID, "account_balance", (args,))
             .await
             .map_err(|e| IcpError::CallError(e.1))?;
 
@@ -51,11 +50,11 @@ impl IcpChain {
     pub async fn transfer(
         &self,
         to: AccountIdentifier,
-        amount: Tokens,
-        fee: Option<Tokens>,
-        memo: Option<Memo>,
-    ) -> Result<TransferResult, IcpError> {
-        let args = TransferArgs {
+        amount: ICPToken,
+        fee: Option<ICPToken>,
+        memo: Option<TransferMemo>,
+    ) -> Result<ICPTransferResult, IcpError> {
+        let args = ICPTransferArgs {
             memo: memo.unwrap_or(self.memo.clone()),
             fee: fee.unwrap_or(self.fee.clone()),
             amount,
@@ -64,7 +63,7 @@ impl IcpChain {
             created_at_time: None,
         };
 
-        let (res,): (TransferResult,) = ic_cdk::call(LEDGER_CANISTER_ID, "transfer", (args,))
+        let (res,): (ICPTransferResult,) = ic_cdk::call(LEDGER_CANISTER_ID, "transfer", (args,))
             .await
             .map_err(|e| IcpError::CallError(e.1))?;
 
@@ -74,8 +73,8 @@ impl IcpChain {
     pub async fn top_up(
         &self,
         canister_id: CanisterId,
-        amount: Tokens,
-    ) -> Result<BlockIndex, IcpError> {
+        amount: ICPToken,
+    ) -> Result<TransferBlockIndex, IcpError> {
         let canister_subaccount = Subaccount::from(canister_id);
 
         let to = AccountIdentifier::new(CYCLES_MINTING_CANISTER_ID, canister_subaccount);
@@ -83,7 +82,7 @@ impl IcpChain {
         let block_index = self
             .transfer(to, amount, None, Some(CANISTER_TOP_UP_MEMO))
             .await?
-            .map_err(IcpError::TransferError)?;
+            .map_err(IcpError::ICPTransferError)?;
 
         Ok(block_index)
     }
@@ -91,7 +90,7 @@ impl IcpChain {
     pub async fn notify_top_up(
         &self,
         canister_id: CanisterId,
-        block_index: BlockIndex,
+        block_index: TransferBlockIndex,
     ) -> Result<NotifyTopUpResult, IcpError> {
         let args = NotifyTopupArgs {
             block_index,

@@ -1,21 +1,19 @@
 use crate::error::WalletError;
-use b3_helper_lib::{
+use b3_utils::{
     ic_canister_status,
-    types::{Controller, ControllerId, ControllerIds, ControllerMap, Metadata},
+    types::{ControllerId, ControllerIds, Metadata, WalletController, WalletControllerMap},
 };
+use candid::{CandidType, Nat};
 use ic_cdk::api::management_canister::{
     main::{update_settings, UpdateSettingsArgument},
     provisional::CanisterSettings,
 };
-use ic_cdk::export::{
-    candid::{CandidType, Nat},
-    serde::Deserialize,
-};
+use serde::Deserialize;
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct WalletSettings {
     pub metadata: Metadata,
-    pub controllers: ControllerMap,
+    pub controllers: WalletControllerMap,
     pub compute_allocation: Option<Nat>,
     pub memory_allocation: Option<Nat>,
     pub freezing_threshold: Option<Nat>,
@@ -26,7 +24,7 @@ impl Default for WalletSettings {
     fn default() -> Self {
         WalletSettings {
             metadata: Metadata::default(),
-            controllers: ControllerMap::default(),
+            controllers: WalletControllerMap::default(),
             compute_allocation: None,
             memory_allocation: None,
             freezing_threshold: None,
@@ -36,7 +34,7 @@ impl Default for WalletSettings {
 }
 
 impl WalletSettings {
-    pub fn new(controllers: ControllerMap, metadata: Option<Metadata>) -> Self {
+    pub fn new(controllers: WalletControllerMap, metadata: Option<Metadata>) -> Self {
         WalletSettings {
             controllers,
             metadata: metadata.unwrap_or_default(),
@@ -48,11 +46,11 @@ impl WalletSettings {
         &self.metadata
     }
 
-    pub fn controllers(&self) -> &ControllerMap {
+    pub fn controllers(&self) -> &WalletControllerMap {
         &self.controllers
     }
 
-    pub fn controllers_mut(&mut self) -> &mut ControllerMap {
+    pub fn controllers_mut(&mut self) -> &mut WalletControllerMap {
         &mut self.controllers
     }
 
@@ -88,7 +86,7 @@ impl WalletSettings {
 
     pub async fn update_controller_and_update(
         &mut self,
-        canister_map: ControllerMap,
+        canister_map: WalletControllerMap,
     ) -> Result<(), WalletError> {
         if canister_map.len() > 10 {
             return Err(WalletError::TooManyControllers);
@@ -108,7 +106,7 @@ impl WalletSettings {
     pub async fn add_controller_and_update(
         &mut self,
         controller_id: ControllerId,
-        controller: Controller,
+        controller: WalletController,
     ) -> Result<(), WalletError> {
         let canister_id = ic_cdk::id();
 
@@ -192,7 +190,7 @@ impl WalletSettings {
 
         controller_ids
             .iter()
-            .fold(ControllerMap::new(), |mut acc, id| {
+            .fold(WalletControllerMap::new(), |mut acc, id| {
                 if let Some(controller) = self.controllers.get(id) {
                     acc.insert(id.clone(), controller.clone());
                 } else {
@@ -202,7 +200,7 @@ impl WalletSettings {
                         "unknown"
                     };
 
-                    let controller = Controller::new(name.to_owned(), None);
+                    let controller = WalletController::new(name.to_owned(), None);
                     acc.insert(id.clone(), controller);
                 }
                 acc
@@ -213,24 +211,24 @@ impl WalletSettings {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use b3_helper_lib::types::ControllerIds;
-    use ic_cdk::export::Principal;
+    use b3_utils::types::ControllerIds;
+    use candid::Principal;
 
     #[test]
     fn test_remove_controller() {
-        let mut controller_map = ControllerMap::default();
+        let mut controller_map = WalletControllerMap::default();
 
         for i in 0..4u8 {
             let canister_id = Principal::from_slice(&[i; 29]);
 
-            let controller = Controller::new(format!("controller-{}", i), None);
+            let controller = WalletController::new(format!("controller-{}", i), None);
 
             controller_map.insert(canister_id, controller);
         }
 
         let canister_id = Principal::from_slice(&[4; 29]);
 
-        let controller = Controller::new(format!("controller-{}", 4), None);
+        let controller = WalletController::new(format!("controller-{}", 4), None);
 
         controller_map.insert(canister_id, controller);
 
@@ -246,11 +244,11 @@ mod tests {
 
         controller_map = controllers
             .iter()
-            .fold(ControllerMap::new(), |mut acc, id| {
+            .fold(WalletControllerMap::new(), |mut acc, id| {
                 if let Some(controller) = controller_map.get(id) {
                     acc.insert(id.clone(), controller.clone());
                 } else {
-                    let controller = Controller::new("unknown".to_owned(), None);
+                    let controller = WalletController::new("unknown".to_owned(), None);
                     acc.insert(id.clone(), controller);
                 }
                 acc

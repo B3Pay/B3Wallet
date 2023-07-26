@@ -1,6 +1,6 @@
 use crate::{ledger::ledger::Ledger, types::WalletAccountView};
-use b3_helper_lib::{environment::Environment, subaccount::Subaccount, types::Metadata};
-use ic_cdk::export::{candid::CandidType, serde::Deserialize};
+use b3_utils::{types::Metadata, Environment, Subaccount};
+use candid::{CandidType, Deserialize};
 
 impl From<&WalletAccount> for WalletAccountView {
     fn from(account: &WalletAccount) -> Self {

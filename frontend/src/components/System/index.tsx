@@ -23,7 +23,7 @@ import {
 import { Principal } from "@dfinity/principal"
 import Address from "components/Wallet/Address"
 import PrincipalCard from "components/Wallet/PrincipalCard"
-import { Release, ReleaseName } from "declarations/b3_system/b3_system.did"
+import { Release, ReleaseTypes } from "declarations/b3_system/b3_system.did"
 import { B3_SYSTEM_CANISTER_ID, IS_LOCAL } from "helpers/config"
 import { useCallback, useEffect, useState } from "react"
 import { B3System } from "../../service"
@@ -31,7 +31,7 @@ import Disclaimer from "../Disclaimer"
 import Loading from "../Loading"
 import WalletError from "../WalletError"
 
-type ReleaseMap = [ReleaseName, Array<Release>][]
+type ReleaseMap = [ReleaseTypes, Array<Release>][]
 
 interface SystemProps {
   principal: string

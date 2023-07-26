@@ -5,18 +5,18 @@ use crate::{
     user::UserState,
     wallet::WalletCanister,
 };
-use b3_helper_lib::{
-    release::ReleaseName,
+use b3_utils::{
+    release::ReleaseTypes,
     types::{
-        CanisterId, ControllerId, SignerId, Version, WalletCanisterInitArgs,
-        WalletCanisterInstallArg,
+        CanisterId, ControllerId, UserId, WalletCanisterInitArgs, WalletCanisterInstallArg,
+        WalletVersion,
     },
 };
 use ic_cdk::api::management_canister::main::CanisterInstallMode;
 
 impl State {
     // user
-    pub fn init_user(&mut self, user: SignerId) -> Result<UserState, SystemError> {
+    pub fn init_user(&mut self, user: UserId) -> Result<UserState, SystemError> {
         let canister = self.users.get(&user);
 
         if canister.is_some() {
@@ -32,7 +32,7 @@ impl State {
 
     pub fn get_or_init_user(
         &mut self,
-        user: SignerId,
+        user: UserId,
         opt_canister_id: Option<CanisterId>,
     ) -> Result<UserState, SystemError> {
         if let Some(states) = self.users.get_mut(&user) {
@@ -52,11 +52,11 @@ impl State {
         Ok(user_state)
     }
 
-    pub fn add_user(&mut self, user: SignerId, user_state: UserState) {
+    pub fn add_user(&mut self, user: UserId, user_state: UserState) {
         self.users.insert(user, user_state);
     }
 
-    pub fn remove_user(&mut self, user: &SignerId) {
+    pub fn remove_user(&mut self, user: &UserId) {
         self.users.remove(user);
     }
 
@@ -72,7 +72,7 @@ impl State {
             .collect()
     }
 
-    pub fn user_state(&self, user_id: SignerId) -> Result<UserState, SystemError> {
+    pub fn user_state(&self, user_id: UserId) -> Result<UserState, SystemError> {
         self.users
             .get(&user_id)
             .cloned()
@@ -101,7 +101,7 @@ impl State {
     }
 
     // release
-    pub fn get_release(&self, name: ReleaseName, version: &str) -> Result<&Release, SystemError> {
+    pub fn get_release(&self, name: ReleaseTypes, version: &str) -> Result<&Release, SystemError> {
         let releases = self
             .releases
             .get(&name)
@@ -115,8 +115,8 @@ impl State {
 
     pub fn get_release_install_args(
         &self,
-        name: ReleaseName,
-        version: &Version,
+        name: ReleaseTypes,
+        version: &WalletVersion,
         mode: CanisterInstallMode,
         init_args: WalletCanisterInitArgs,
     ) -> Result<WalletCanisterInstallArg, SystemError> {
@@ -133,7 +133,7 @@ impl State {
         })
     }
 
-    pub fn latest_release(&self, name: ReleaseName) -> Result<&Release, SystemError> {
+    pub fn latest_release(&self, name: ReleaseTypes) -> Result<&Release, SystemError> {
         self.releases
             .get(&name)
             .ok_or(SystemError::ReleaseNameNotFound)?
@@ -143,7 +143,7 @@ impl State {
 
     pub fn get_latest_install_args(
         &self,
-        name: ReleaseName,
+        name: ReleaseTypes,
         mode: CanisterInstallMode,
         init_args: WalletCanisterInitArgs,
     ) -> Result<WalletCanisterInstallArg, SystemError> {

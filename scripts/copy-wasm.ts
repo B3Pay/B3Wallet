@@ -13,22 +13,29 @@ interface Release {
   version: string
 }
 
-const wasmPublicDirPath = path.join(__dirname, "../frontend", "public", "wasm")
+const frontendReleasesPath = path.join(
+  __dirname,
+  "../frontend",
+  "public",
+  "releases"
+)
 
-const walletNames = ["b3_wallet", "b3_basic_wallet"]
+const walletNames = ["b3_wallet"]
 
 const copy = async () => {
   for await (const walletName of walletNames) {
     const walletPath = path.join("wasm", walletName)
 
-    for await (const fileName of readdirSync(walletPath, {
+    const files = readdirSync(walletPath, {
       withFileTypes: true
-    })) {
-      const src = path.join("wasm", walletName, fileName.name)
+    })
+
+    for await (const file of files) {
+      const src = path.join("wasm", walletName, file.name)
 
       await readVersion(walletName).then(async version => {
         const destFolder = path.join(
-          wasmPublicDirPath,
+          frontendReleasesPath,
           walletName,
           version || "latest"
         )
@@ -37,24 +44,26 @@ const copy = async () => {
           mkdirSync(destFolder, { recursive: true })
         }
 
-        const dest = path.join(destFolder, fileName.name)
+        const dest = path.join(destFolder, file.name)
 
         await copyFile(src, dest)
       })
     }
   }
 
-  // Get all folders in the directory
-  const walletName = readdirSync(wasmPublicDirPath, { withFileTypes: true })
+  // Get the list of files
+  const existingWallets = readdirSync(frontendReleasesPath, {
+    withFileTypes: true
+  })
     .filter(dirent => dirent.isDirectory())
     .map(dirent => dirent.name)
 
   // Build the JSON object
-  const result: Release[] = []
+  const releases: Release[] = []
 
-  // get folder name inside wasmPublicDirPath
-  for await (const name of walletName) {
-    const walletPath = path.join(wasmPublicDirPath, name)
+  // get folder name inside frontendReleasesPath
+  for await (const name of existingWallets) {
+    const walletPath = path.join(frontendReleasesPath, name)
 
     const walletVersion = readdirSync(walletPath, { withFileTypes: true })
       .filter(dirent => dirent.isDirectory())
@@ -72,11 +81,11 @@ const copy = async () => {
 
         const sizeInMb = (size / 1000000.0).toFixed(2)
 
-        const url = path.join("wasm", name, version, wasmFile)
+        const url = path.join("releases", name, version, wasmFile)
 
         console.log(`${version}/${wasmFile}: ${sizeInMb} MB`)
 
-        result.push({
+        releases.push({
           url,
           name,
           size,
@@ -88,11 +97,11 @@ const copy = async () => {
     }
   }
 
-  result.sort((a, b) => semver.compare(b.version, a.version))
+  releases.sort((a, b) => semver.compare(b.version, a.version))
 
   // Convert the object to a JSON string
-  const json = JSON.stringify(result, null, 2)
-  const wamsJson = path.join(wasmPublicDirPath, "releases.json")
+  const json = JSON.stringify(releases, null, 2)
+  const wamsJson = path.join(frontendReleasesPath, "index.json")
 
   // Write the JSON string to a file
   writeFileSync(wamsJson, json)

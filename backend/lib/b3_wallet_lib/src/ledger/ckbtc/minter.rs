@@ -7,18 +7,15 @@ use super::{
         RetrieveBtcStatusRequest, UpdateBalanceArgs, UpdateBalanceResult,
     },
 };
-use b3_helper_lib::{
-    account::ICRCAccount,
+use b3_utils::{
     constants::{CKBTC_MINTER_CANISTER_MAINNET, CKBTC_MINTER_CANISTER_TESTNET},
-    types::{BlockIndex, CanisterId},
+    types::{CanisterId, TransferBlockIndex},
+    ICRCAccount,
 };
+use candid::{CandidType, Deserialize};
 use ic_cdk::api::call::call;
-use ic_cdk::export::{
-    candid::CandidType,
-    serde::{Deserialize, Serialize},
-};
 
-#[derive(CandidType, Clone, Deserialize, Serialize, PartialEq, Debug)]
+#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub struct Minter(pub BtcNetwork);
 
 impl Minter {
@@ -89,7 +86,7 @@ impl Minter {
 
     pub async fn retrieve_btc_status(
         &self,
-        block_index: BlockIndex,
+        block_index: TransferBlockIndex,
     ) -> Result<RetrieveBtcStatus, MinterError> {
         let args = RetrieveBtcStatusRequest { block_index };
 

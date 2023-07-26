@@ -27,7 +27,11 @@ import {
 } from "@chakra-ui/react"
 import { Principal } from "@dfinity/principal"
 import Loading from "components/Loading"
-import { AddSigner, Roles, Signer } from "declarations/b3_wallet/b3_wallet.did"
+import {
+  AddSigner,
+  Signer,
+  SignerRoles
+} from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useMemo, useState } from "react"
 import { B3Wallet } from "service"
@@ -114,7 +118,7 @@ const Signers: React.FC<SignerProps> = ({
 
     const roles = {
       [role]: null
-    } as Roles
+    } as SignerRoles
 
     let signerId: Principal
     setLoading(true)

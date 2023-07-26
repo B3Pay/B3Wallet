@@ -1,9 +1,7 @@
 use super::error::{RetrieveBtcError, UpdateBalanceError};
-use b3_helper_lib::{subaccount::Subaccount, types::CanisterId};
-use ic_cdk::export::{
-    candid::CandidType,
-    serde::{Deserialize, Serialize},
-};
+use b3_utils::{types::CanisterId, Subaccount};
+use candid::{CandidType, Deserialize};
+
 use std::fmt;
 
 pub type BtcTxId = String;
@@ -16,22 +14,20 @@ pub type RetrieveBtcResult = Result<RetrieveBtcOk, RetrieveBtcError>;
 
 pub type UpdateBalanceResult = Result<Vec<UtxoStatus>, UpdateBalanceError>;
 
-#[derive(CandidType, Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq)]
 pub struct GetBtcAddressArgs {
     pub owner: Option<CanisterId>,
     pub subaccount: Option<Subaccount>,
 }
 
-#[derive(CandidType, Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq)]
 pub struct UpdateBalanceArgs {
     pub owner: Option<CanisterId>,
     pub subaccount: Option<Subaccount>,
 }
 
 /// A reference to a transaction output.
-#[derive(
-    CandidType, Clone, Debug, Deserialize, Serialize, PartialEq, Eq, Hash, PartialOrd, Ord,
-)]
+#[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct OutPoint {
     /// A cryptographic hash of the transaction.
     /// A transaction can output multiple UTXOs.
@@ -42,14 +38,14 @@ pub struct OutPoint {
 }
 
 /// An unspent transaction output.
-#[derive(CandidType, Debug, Deserialize, PartialEq, Serialize, Clone, Hash, Eq)]
+#[derive(CandidType, Debug, Deserialize, PartialEq, Clone, Hash, Eq)]
 pub struct Utxo {
     pub outpoint: OutPoint,
     pub value: Satoshi,
     pub height: u32,
 }
 
-#[derive(CandidType, Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq)]
 pub enum UtxoStatus {
     ValueTooSmall(Utxo),
     Tainted(Utxo),

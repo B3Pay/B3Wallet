@@ -1,14 +1,14 @@
 use async_trait::async_trait;
-use b3_helper_lib::{
-    amount::Amount,
-    identifier::AccountIdentifier,
-    types::{NotifyTopUpResult, TransferResult},
+use b3_utils::{
+    currency::TokenAmount,
+    types::{ICPTransferResult, NotifyTopUpResult},
+    AccountIdentifier,
 };
 use candid::Principal;
 use std::str::FromStr;
 
 #[cfg(test)]
-use crate::mocks::ic_cdk_id;
+use b3_utils::mocks::id_mock as ic_cdk_id;
 #[cfg(not(test))]
 use ic_cdk::api::id as ic_cdk_id;
 
@@ -38,7 +38,7 @@ impl ChainTrait for IcpChain {
         Ok(res.e8s().into())
     }
 
-    async fn send(&self, to: String, amount: Amount) -> Result<SendResult, LedgerError> {
+    async fn send(&self, to: String, amount: TokenAmount) -> Result<SendResult, LedgerError> {
         let to =
             AccountIdentifier::from_str(&to).map_err(|e| LedgerError::CallError(e.to_string()))?;
 
@@ -52,22 +52,11 @@ impl ChainTrait for IcpChain {
             .map_err(|e| LedgerError::CallError(e.to_string()))?;
 
         match result {
-            TransferResult::Ok(block_index) => Ok(SendResult::ICP(block_index)),
-            TransferResult::Err(err) => {
-                return Err(LedgerError::IcpError(IcpError::TransferError(err)))
+            ICPTransferResult::Ok(block_index) => Ok(SendResult::ICP(block_index)),
+            ICPTransferResult::Err(err) => {
+                return Err(LedgerError::IcpError(IcpError::ICPTransferError(err)))
             }
         }
-    }
-
-    async fn send_mut(
-        &mut self,
-        to: String,
-        amount: Amount,
-        _fee: Option<u64>,
-        _memo: Option<String>,
-    ) -> Result<SendResult, LedgerError> {
-        // TODO: This is a hack to get around the fact that we can't have mutable self and
-        self.send(to, amount).await
     }
 
     async fn check_pending(&self, pending_index: usize) -> Result<(), LedgerError> {

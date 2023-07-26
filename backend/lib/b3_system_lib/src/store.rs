@@ -1,6 +1,7 @@
-use b3_helper_lib::{
-    release::ReleaseName,
-    types::{SignerId, Version, Wasm, WasmHash},
+use b3_utils::{
+    release::ReleaseTypes,
+    types::{UserId, WalletVersion},
+    wasm::{Wasm, WasmHash},
 };
 
 use crate::{
@@ -52,7 +53,7 @@ pub fn with_releases<F, T>(name: &str, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&Releases) -> T,
 {
-    let release_name = ReleaseName::from_str(name).map_err(SystemError::HelperError)?;
+    let release_name = ReleaseTypes::from_str(name).map_err(SystemError::HelperError)?;
 
     with_release_map(|releases| {
         releases
@@ -62,7 +63,7 @@ where
     })
 }
 
-pub fn with_releases_mut<F, T>(release_name: ReleaseName, f: F) -> T
+pub fn with_releases_mut<F, T>(release_name: ReleaseTypes, f: F) -> T
 where
     F: FnOnce(&mut Releases) -> T,
 {
@@ -88,7 +89,7 @@ pub fn with_release_mut<F, T>(name: &str, index: usize, f: F) -> Result<T, Syste
 where
     F: FnOnce(&mut Release) -> T,
 {
-    let release_name = ReleaseName::from_str(name).map_err(SystemError::HelperError)?;
+    let release_name = ReleaseTypes::from_str(name).map_err(SystemError::HelperError)?;
 
     with_releases_mut(release_name, |releases| {
         releases
@@ -98,7 +99,11 @@ where
     })
 }
 
-pub fn with_version_release<F, T>(name: &str, version: Version, f: F) -> Result<T, SystemError>
+pub fn with_version_release<F, T>(
+    name: &str,
+    version: WalletVersion,
+    f: F,
+) -> Result<T, SystemError>
 where
     F: FnOnce(&Release) -> T,
 {
@@ -112,8 +117,8 @@ where
 }
 
 pub fn with_version_release_mut<F, T>(
-    release_name: ReleaseName,
-    version: Version,
+    release_name: ReleaseTypes,
+    version: WalletVersion,
     f: F,
 ) -> Result<T, SystemError>
 where
@@ -166,14 +171,14 @@ where
     with_state_mut(|state| f(&mut state.users))
 }
 
-pub fn with_user_state<F, T>(user_id: &SignerId, f: F) -> Result<T, SystemError>
+pub fn with_user_state<F, T>(user_id: &UserId, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&UserState) -> T,
 {
     with_users(|signers| signers.get(user_id).ok_or(SystemError::UserNotFound).map(f))
 }
 
-pub fn with_user_state_mut<F, T>(user_id: &SignerId, f: F) -> Result<T, SystemError>
+pub fn with_user_state_mut<F, T>(user_id: &UserId, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&mut UserState) -> T,
 {
@@ -185,7 +190,7 @@ where
     })
 }
 
-pub fn with_wallet_canister<F, T>(user_id: &SignerId, index: usize, f: F) -> Result<T, SystemError>
+pub fn with_wallet_canister<F, T>(user_id: &UserId, index: usize, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&WalletCanister) -> T,
 {
@@ -199,7 +204,7 @@ where
 }
 
 pub fn with_wallet_canister_mut<F, T>(
-    user_id: &SignerId,
+    user_id: &UserId,
     index: usize,
     f: F,
 ) -> Result<T, SystemError>
@@ -231,7 +236,7 @@ where
     WASM.with(|wasm| f(&mut wasm.borrow_mut()))
 }
 
-pub fn with_wasm<F, T>(version: &Version, f: F) -> Result<T, SystemError>
+pub fn with_wasm<F, T>(version: &WalletVersion, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&Wasm) -> T,
 {
@@ -243,7 +248,7 @@ where
     })
 }
 
-pub fn with_wasm_mut<F, T>(version: &Version, f: F) -> Result<T, SystemError>
+pub fn with_wasm_mut<F, T>(version: &WalletVersion, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&mut Wasm) -> T,
 {

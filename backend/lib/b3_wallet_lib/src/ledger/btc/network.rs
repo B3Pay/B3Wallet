@@ -1,4 +1,4 @@
-use b3_helper_lib::constants::{
+use b3_utils::constants::{
     GET_BALANCE_COST_CYCLES, GET_CURRENT_FEE_PERCENTILES_CYCLES, GET_UTXOS_COST_CYCLES,
 };
 use candid::{CandidType, Deserialize, Principal};

@@ -9,22 +9,18 @@ use crate::ledger::{
         types::{ICRC1TransferArgs, ICRCMemo, ICRCTimestamp, ICRCTokens},
     },
 };
-use b3_helper_lib::{
-    account::ICRCAccount,
+use b3_utils::{
     constants::{CKBTC_LEDGER_CANISTER_MAINNET, CKBTC_LEDGER_CANISTER_TESTNET},
-    subaccount::Subaccount,
+    ICRCAccount, Subaccount,
 };
-use ic_cdk::export::{
-    candid::CandidType,
-    serde::{Deserialize, Serialize},
-};
+use candid::{CandidType, Deserialize};
 
 #[cfg(test)]
-use crate::mocks::ic_cdk_id;
+use b3_utils::mocks::id_mock as ic_cdk_id;
 #[cfg(not(test))]
 use ic_cdk::api::id as ic_cdk_id;
 
-#[derive(CandidType, Clone, Deserialize, Serialize, PartialEq, Debug)]
+#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub struct CkbtcChain {
     pub ledger: ICRC1,
     pub minter: Minter,

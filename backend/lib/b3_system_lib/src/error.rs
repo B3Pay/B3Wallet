@@ -1,5 +1,5 @@
-use b3_helper_lib::error::HelperError;
-use ic_cdk::export::candid::{CandidType, Deserialize};
+use b3_utils::error::HelperError;
+use candid::{CandidType, Deserialize};
 
 #[rustfmt::skip]
 #[derive(CandidType, Deserialize)]
@@ -46,8 +46,8 @@ impl fmt::Display for SystemError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             SystemError::HelperError(e) => write!(f, "{}", e),
-            SystemError::InvalidSigner => write!(f, "Invalid signer!"),
-            SystemError::ValidateSignerError(e) => write!(f, "Validate signer error: {}", e),
+            SystemError::InvalidSigner => write!(f, "Invalid user!"),
+            SystemError::ValidateSignerError(e) => write!(f, "Validate user error: {}", e),
             SystemError::UpdateCanisterControllersError(e) => write!(f, "Update canister controllers error: {}", e),
             SystemError::VersionError(e) => write!(f, "Version error: {}", e),
             SystemError::RateLimitExceeded => write!(f, "Rate limit exceeded!"),

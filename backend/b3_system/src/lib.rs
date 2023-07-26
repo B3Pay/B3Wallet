@@ -7,7 +7,7 @@ use b3_system_lib::{
     store::{with_state, with_state_mut, with_wasm_map, with_wasm_map_mut},
     types::{State, WasmMap},
 };
-use ic_cdk::export::candid::candid_method;
+use candid::candid_method;
 use ic_cdk::{caller, init, post_upgrade, pre_upgrade};
 
 #[init]
@@ -43,10 +43,11 @@ pub fn post_upgrade() {
 
 #[cfg(test)]
 mod tests {
-    use b3_helper_lib::types::*;
     use b3_system_lib::types::*;
     use b3_system_lib::user::UserState;
-    use ic_cdk::export::candid::export_service;
+    use b3_utils::types::*;
+    use b3_utils::wasm::{Blob, WasmHash};
+    use candid::export_service;
 
     #[test]
     fn generate_candid() {

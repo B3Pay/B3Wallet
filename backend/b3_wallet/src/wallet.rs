@@ -1,22 +1,22 @@
 use crate::permit::{caller_is_admin, caller_is_signer};
-use b3_helper_lib::revert;
-use b3_helper_lib::time::NanoTimeStamp;
-use b3_helper_lib::types::InititializeWalletArgs;
-use b3_helper_lib::wasm::with_wasm;
-use b3_helper_lib::{ic_canister_status, types::WalletCanisterStatus};
+use b3_utils::revert;
+use b3_utils::timestamp::NanoTimeStamp;
+use b3_utils::types::WalletInititializeArgs;
+use b3_utils::wasm::with_wasm;
+use b3_utils::{ic_canister_status, types::WalletCanisterStatus};
 use b3_wallet_lib::error::WalletError;
 use b3_wallet_lib::setting::WalletSettings;
 use b3_wallet_lib::store::{with_wallet, with_wallet_mut};
+use candid::candid_method;
 use ic_cdk::api::management_canister::main::{
     install_code, uninstall_code, CanisterInstallMode, InstallCodeArgument,
 };
 use ic_cdk::api::management_canister::provisional::CanisterIdRecord;
-use ic_cdk::export::candid::candid_method;
 use ic_cdk::{query, update};
 
 #[candid_method(update)]
 #[update(guard = "caller_is_admin")]
-pub async fn init_wallet(args: InititializeWalletArgs) {
+pub async fn init_wallet(args: WalletInititializeArgs) {
     if with_wallet(|w| w.is_initialised()) {
         return revert(WalletError::WalletAlreadyInitialized);
     }

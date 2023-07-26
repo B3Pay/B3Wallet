@@ -1,4 +1,4 @@
-use b3_helper_lib::{environment::Environment, types::AccountsNonce};
+use b3_utils::{types::WalletAccountsNonce, Environment};
 
 pub trait NonceTrait {
     fn reset(&mut self);
@@ -8,7 +8,7 @@ pub trait NonceTrait {
     fn generate_next_name(&mut self, environment: Environment) -> String;
 }
 
-impl NonceTrait for AccountsNonce {
+impl NonceTrait for WalletAccountsNonce {
     fn total(&self) -> u64 {
         self.development + self.production + self.staging
     }

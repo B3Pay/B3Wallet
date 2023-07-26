@@ -4,8 +4,8 @@ use super::types::{
 };
 use super::{config::EcdsaConfig, types::EcdsaKeyId};
 use async_trait::async_trait;
-use b3_helper_lib::constants::MANAGMENT_CANISTER_ID;
-use b3_helper_lib::subaccount::Subaccount;
+use b3_utils::constants::MANAGMENT_CANISTER_ID;
+use b3_utils::Subaccount;
 use ic_cdk::api::call::{call, call_with_payment};
 
 #[async_trait]
@@ -81,7 +81,7 @@ impl SubaccountTrait for Subaccount {
 
 #[cfg(test)]
 mod tests {
-    use b3_helper_lib::environment::Environment;
+    use b3_utils::Environment;
     use candid::Principal;
 
     use super::*;
@@ -133,7 +133,10 @@ mod tests {
         assert_eq!(subaccount.environment(), Environment::Production);
         assert_eq!(subaccount.nonce(), 0);
         assert_eq!(subaccount.name(), "Principal");
-        assert_eq!(subaccount.id(), "principal");
+        assert_eq!(
+            subaccount.id(),
+            "principal_sqyeh-pqaaa-aaaaa-aaadq-caiaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaa"
+        );
     }
 
     #[test]

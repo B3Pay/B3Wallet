@@ -1,10 +1,5 @@
 use std::str::FromStr;
 
-use b3_helper_lib::{
-    release::ReleaseName,
-    revert,
-    types::{Blob, Version, WasmHash},
-};
 use b3_system_lib::{
     error::SystemError,
     store::{
@@ -13,7 +8,14 @@ use b3_system_lib::{
     },
     types::{LoadRelease, Release, ReleaseArgs, ReleaseMap, Releases},
 };
-use ic_cdk::{export::candid::candid_method, query, update};
+use b3_utils::{
+    release::ReleaseTypes,
+    revert,
+    types::WalletVersion,
+    wasm::{Blob, WasmHash},
+};
+use candid::candid_method;
+use ic_cdk::{query, update};
 
 use crate::guard::caller_is_controller;
 
@@ -39,7 +41,7 @@ fn latest_release(name: String) -> Release {
 
 #[candid_method(query)]
 #[query]
-pub fn get_release(name: String, version: Version) -> Release {
+pub fn get_release(name: String, version: WalletVersion) -> Release {
     with_version_release(&name, version, |r| r.clone()).unwrap_or_else(revert)
 }
 
@@ -61,7 +63,7 @@ pub fn get_release_by_hash_string(name: String, hash: WasmHash) -> Release {
 #[update(guard = "caller_is_controller")]
 fn update_release(name: String, release_args: ReleaseArgs) {
     let version = release_args.version.clone();
-    let release_name = ReleaseName::from_str(&name).unwrap_or_else(revert);
+    let release_name = ReleaseTypes::from_str(&name).unwrap_or_else(revert);
 
     with_version_release_mut(release_name, version, |vrs| {
         vrs.update(release_args);
@@ -73,7 +75,7 @@ fn update_release(name: String, release_args: ReleaseArgs) {
 #[update(guard = "caller_is_controller")]
 fn load_release(name: String, blob: Blob, release_args: ReleaseArgs) -> LoadRelease {
     let version = release_args.version.clone();
-    let release_name = ReleaseName::from_str(&name).unwrap_or_else(revert);
+    let release_name = ReleaseTypes::from_str(&name).unwrap_or_else(revert);
 
     let release_index = with_releases_mut(release_name, |rs| {
         match rs.iter().position(|r| r.version == version) {
@@ -103,8 +105,8 @@ fn load_release(name: String, blob: Blob, release_args: ReleaseArgs) -> LoadRele
 
 #[candid_method(update)]
 #[update(guard = "caller_is_controller")]
-pub fn remove_release(name: String, version: Version) -> Release {
-    let release_name = ReleaseName::from_str(&name).unwrap_or_else(revert);
+pub fn remove_release(name: String, version: WalletVersion) -> Release {
+    let release_name = ReleaseTypes::from_str(&name).unwrap_or_else(revert);
 
     with_releases_mut(release_name, |rs| {
         match rs.iter().position(|r| r.version == version) {
@@ -118,7 +120,7 @@ pub fn remove_release(name: String, version: Version) -> Release {
 #[candid_method(update)]
 #[update(guard = "caller_is_controller")]
 fn remove_latest_release(name: String) {
-    let release_name = ReleaseName::from_str(&name).unwrap_or_else(revert);
+    let release_name = ReleaseTypes::from_str(&name).unwrap_or_else(revert);
 
     with_releases_mut(release_name, |rs| {
         rs.pop();
@@ -127,8 +129,8 @@ fn remove_latest_release(name: String) {
 
 #[candid_method(update)]
 #[update(guard = "caller_is_controller")]
-fn deprecate_release(name: String, version: Version) {
-    let release_name = ReleaseName::from_str(&name).unwrap_or_else(revert);
+fn deprecate_release(name: String, version: WalletVersion) {
+    let release_name = ReleaseTypes::from_str(&name).unwrap_or_else(revert);
 
     with_version_release_mut(release_name, version, |vrs| {
         vrs.deprecate();
