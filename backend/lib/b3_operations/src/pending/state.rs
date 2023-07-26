@@ -1,10 +1,10 @@
-use b3_utils::types::{OperationId, UserId};
+use b3_utils::types::{OperationId, SignerId};
 
 use super::pending::{PendingOperation, RequestArgs};
 use crate::{error::OperationError, state::OperationState, types::PendingRequestList};
 
 impl OperationState {
-    pub fn new_request(&self, signer_id: UserId, args: RequestArgs) -> PendingOperation {
+    pub fn new_request(&self, signer_id: SignerId, args: RequestArgs) -> PendingOperation {
         let id = self.request_counter();
 
         PendingOperation::new(id, signer_id, args)

@@ -9,7 +9,7 @@ use super::inner::account::{
     CreateAccount, HideAccount, RemoveAccount, RenameAccount, UnhideAccount,
 };
 use super::inner::setting::{UpdateCanisterSettings, UpgradeCanister};
-use super::inner::user::{AddUser, RemoveUser};
+use super::inner::signer::{AddSigner, RemoveSigner, UpdateSignerThreshold};
 
 use b3_utils::types::{Cycles, TransferBlockIndex};
 use b3_wallet_lib::ledger::ckbtc::types::BtcTxId;
@@ -31,8 +31,9 @@ pub enum OperationResult {
     TopUpTransfered(TopUpTransfered),
     CanisterTopUped(CanisterTopUped),
     BtcTransfered(BtcTransfered),
-    SignerAdded(AddUser),
-    SignerRemoved(RemoveUser),
+    SignerAdded(AddSigner),
+    SignerRemoved(RemoveSigner),
+    SignerThresholdUpdated(UpdateSignerThreshold),
     CanisterUpgraded(UpgradeCanister),
     CanisterSettingsUpdated(UpdateCanisterSettings),
     AccountCreated(CreateAccount),
@@ -59,6 +60,7 @@ impl fmt::Display for OperationResult {
             OperationResult::CanisterTopUped(CanisterTopUped(args, cycles)) => write!(f, "CanisterTopUped: from {} top up {} cycles for {}", args.account_id, cycles, args.canister_id),
             OperationResult::SignerAdded(_) => write!(f, "SignerAdded"),
             OperationResult::SignerRemoved(_) => write!(f, "SignerRemoved"),
+            OperationResult::SignerThresholdUpdated(_) => write!(f, "SignerThresholdUpdated"),
             OperationResult::CanisterUpgraded(_) => write!(f, "CanisterUpgraded"),
             OperationResult::CanisterSettingsUpdated(_) => write!(f, "CanisterSettingsUpdated"),
             OperationResult::AccountCreated(_) => write!(f, "AccountCreated"),

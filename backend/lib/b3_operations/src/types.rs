@@ -4,24 +4,24 @@ use crate::{
     pending::PendingOperation,
     processed::ProcessedOperation,
     response::Response,
-    user::UserState,
+    signer::Signer,
 };
-use b3_utils::types::{OperationId, UserId};
+use b3_utils::types::{OperationId, SignerId};
 use b3_wallet_lib::setting::WalletSettings;
 use candid::{CandidType, Deserialize};
 use std::collections::{BTreeMap, HashMap};
 
-pub type Signers = Vec<UserState>;
+pub type Signers = Vec<Signer>;
 
-pub type UserIds = Vec<UserId>;
+pub type SignerIds = Vec<SignerId>;
 
-pub type UserMap = HashMap<UserId, UserState>;
+pub type SignerMap = HashMap<SignerId, Signer>;
 
 pub type PendingRequestList = Vec<PendingOperation>;
 
 pub type ProcessedRequestList = Vec<ProcessedOperation>;
 
-pub type ResponseMap = BTreeMap<UserId, Response>;
+pub type ResponseMap = BTreeMap<SignerId, Response>;
 
 pub type PendingRequestMap = BTreeMap<OperationId, PendingOperation>;
 
@@ -29,7 +29,7 @@ pub type ProcessedRequestMap = BTreeMap<OperationId, ProcessedOperation>;
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct WalletSettingsAndSigners {
-    pub signers: UserMap,
+    pub signers: SignerMap,
     pub settings: WalletSettings,
 }
 
