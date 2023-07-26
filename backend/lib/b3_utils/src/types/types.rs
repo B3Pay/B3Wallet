@@ -7,7 +7,7 @@ pub type ControllerId = Principal;
 pub type ControllerIds = Vec<ControllerId>;
 
 pub type CanisterId = Principal;
-pub type SignerId = Principal;
+pub type UserId = Principal;
 
 pub type OperationId = usize;
 pub type Deadline = u64;

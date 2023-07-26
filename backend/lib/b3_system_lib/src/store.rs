@@ -1,6 +1,6 @@
 use b3_utils::{
     release::ReleaseTypes,
-    types::{SignerId, WalletVersion},
+    types::{UserId, WalletVersion},
     wasm::{Wasm, WasmHash},
 };
 
@@ -171,14 +171,14 @@ where
     with_state_mut(|state| f(&mut state.users))
 }
 
-pub fn with_user_state<F, T>(user_id: &SignerId, f: F) -> Result<T, SystemError>
+pub fn with_user_state<F, T>(user_id: &UserId, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&UserState) -> T,
 {
     with_users(|signers| signers.get(user_id).ok_or(SystemError::UserNotFound).map(f))
 }
 
-pub fn with_user_state_mut<F, T>(user_id: &SignerId, f: F) -> Result<T, SystemError>
+pub fn with_user_state_mut<F, T>(user_id: &UserId, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&mut UserState) -> T,
 {
@@ -190,7 +190,7 @@ where
     })
 }
 
-pub fn with_wallet_canister<F, T>(user_id: &SignerId, index: usize, f: F) -> Result<T, SystemError>
+pub fn with_wallet_canister<F, T>(user_id: &UserId, index: usize, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&WalletCanister) -> T,
 {
@@ -204,7 +204,7 @@ where
 }
 
 pub fn with_wallet_canister_mut<F, T>(
-    user_id: &SignerId,
+    user_id: &UserId,
     index: usize,
     f: F,
 ) -> Result<T, SystemError>

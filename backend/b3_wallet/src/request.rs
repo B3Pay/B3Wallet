@@ -10,14 +10,14 @@ use b3_operations::{
         inner::{
             account::{CreateAccount, RemoveAccount, RenameAccount},
             setting::{UpdateCanisterSettings, UpgradeCanister},
-            signer::AddSigner,
+            user::AddUser,
         },
         {Operation, OperationTrait},
     },
     pending::RequestArgs,
-    signer::roles::SignerRoles,
-    store::{with_permit, with_permit_mut, with_signer_check, with_signer_ids_by_role},
+    store::{with_permit, with_permit_mut, with_user_check, with_user_ids_by_role},
     types::PendingRequestList,
+    user::role::UserRole,
 };
 use b3_utils::{revert, timestamp::NanoTimeStamp, types::OperationId, wasm::with_wasm};
 use candid::candid_method;
@@ -36,7 +36,7 @@ pub fn get_pending_list() -> PendingRequestList {
 pub fn is_connected() -> bool {
     let caller = ic_cdk::caller();
 
-    with_signer_check(caller, |signer| signer.is_canister()).is_ok()
+    with_user_check(caller, |signer| signer.is_canister()).is_ok()
 }
 
 // UPDATE ---------------------------------------------------------------------
@@ -49,8 +49,8 @@ pub fn request_maker(
 ) -> OperationId {
     let caller = ic_cdk::caller();
 
-    let role = SignerRoles::Admin;
-    let allowed_signers = with_signer_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+    let role = UserRole::Admin;
+    let allowed_signers = with_user_ids_by_role(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         allowed_signers,
@@ -70,14 +70,14 @@ pub fn request_maker(
 #[candid_method(update)]
 #[update(guard = "caller_is_admin")]
 pub fn request_add_signer(
-    request: AddSigner,
+    request: AddUser,
     reason: String,
     deadline: Option<NanoTimeStamp>,
 ) -> OperationId {
     let caller = ic_cdk::caller();
 
-    let role = SignerRoles::Admin;
-    let allowed_signers = with_signer_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+    let role = UserRole::Admin;
+    let allowed_signers = with_user_ids_by_role(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         allowed_signers,
@@ -99,9 +99,9 @@ pub fn request_add_signer(
 pub fn request_connect() -> OperationId {
     let caller = ic_cdk::caller();
 
-    let request = AddSigner {
+    let request = AddUser {
         name: "B3Peyment".to_string(),
-        role: SignerRoles::Canister,
+        role: UserRole::Canister,
         signer_id: caller,
         expires_at: None,
         threshold: None,
@@ -118,12 +118,12 @@ pub fn request_connect() -> OperationId {
         }
     });
 
-    if with_signer_check(caller, |signer| signer.is_canister()).is_ok() {
+    if with_user_check(caller, |signer| signer.is_canister()).is_ok() {
         return revert("Already connected!");
     }
 
-    let role = SignerRoles::Admin;
-    let allowed_signers = with_signer_ids_by_role(role.clone(), |signer_ids| signer_ids.to_vec());
+    let role = UserRole::Admin;
+    let allowed_signers = with_user_ids_by_role(role.clone(), |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         allowed_signers,
@@ -151,8 +151,8 @@ pub fn request_update_settings(
 
     request.validate_request().unwrap_or_else(revert);
 
-    let role = SignerRoles::Admin;
-    let allowed_signers = with_signer_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+    let role = UserRole::Admin;
+    let allowed_signers = with_user_ids_by_role(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         allowed_signers,
@@ -178,8 +178,8 @@ pub fn request_account_rename(
 ) -> OperationId {
     let caller = ic_cdk::caller();
 
-    let role = SignerRoles::Admin;
-    let allowed_signers = with_signer_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+    let role = UserRole::Admin;
+    let allowed_signers = with_user_ids_by_role(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         allowed_signers,
@@ -205,8 +205,8 @@ pub fn request_create_account(
 ) -> OperationId {
     let caller = ic_cdk::caller();
 
-    let role = SignerRoles::Admin;
-    let allowed_signers = with_signer_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+    let role = UserRole::Admin;
+    let allowed_signers = with_user_ids_by_role(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         allowed_signers,
@@ -232,8 +232,8 @@ pub fn request_delete_account(
 ) -> OperationId {
     let caller = ic_cdk::caller();
 
-    let role = SignerRoles::Admin;
-    let allowed_signers = with_signer_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+    let role = UserRole::Admin;
+    let allowed_signers = with_user_ids_by_role(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         allowed_signers,
@@ -259,8 +259,8 @@ pub fn request_transfer_icp(
 ) -> OperationId {
     let caller = ic_cdk::caller();
 
-    let role = SignerRoles::Admin;
-    let allowed_signers = with_signer_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+    let role = UserRole::Admin;
+    let allowed_signers = with_user_ids_by_role(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         allowed_signers,
@@ -286,8 +286,8 @@ pub fn request_transfer_btc(
 ) -> OperationId {
     let caller = ic_cdk::caller();
 
-    let role = SignerRoles::Admin;
-    let allowed_signers = with_signer_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+    let role = UserRole::Admin;
+    let allowed_signers = with_user_ids_by_role(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         allowed_signers,
@@ -315,8 +315,8 @@ pub fn request_send(
 
     request.validate_request().unwrap_or_else(revert);
 
-    let role = SignerRoles::Admin;
-    let allowed_signers = with_signer_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+    let role = UserRole::Admin;
+    let allowed_signers = with_user_ids_by_role(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         allowed_signers,
@@ -346,8 +346,8 @@ pub async fn request_upgrade_canister(wasm_version: String) -> OperationId {
 
     upgrade_request.validate_request().unwrap_or_else(revert);
 
-    let role = SignerRoles::Admin;
-    let allowed_signers = with_signer_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+    let role = UserRole::Admin;
+    let allowed_signers = with_user_ids_by_role(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         role,

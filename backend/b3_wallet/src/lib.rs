@@ -7,10 +7,10 @@ mod wallet;
 mod wasm;
 
 use b3_operations::{
-    signer::{roles::SignerRoles, Signer},
     state::OperationState,
     store::{with_permit, with_permit_mut},
-    types::SignerMap,
+    types::UserMap,
+    user::{role::UserRole, UserState},
 };
 use b3_utils::{
     types::{WalletCanisterInitArgs, WalletController},
@@ -30,7 +30,7 @@ pub fn init() {
     // this function is called with the arguments passed to the canister constructor.
     let (call_arg,) = arg_data::<(Option<WalletCanisterInitArgs>,)>();
 
-    let mut signers = SignerMap::new();
+    let mut signers = UserMap::new();
 
     let owner_id = match call_arg {
         Some(WalletCanisterInitArgs {
@@ -41,7 +41,7 @@ pub fn init() {
             // is added as trusted Canister
             signers.insert(
                 system_id,
-                Signer::new(SignerRoles::Canister, "System".to_owned(), None),
+                UserState::new(UserRole::Canister, "System".to_owned(), None),
             );
             owner_id
         }
@@ -50,10 +50,10 @@ pub fn init() {
 
     signers.insert(
         owner_id,
-        Signer::new(SignerRoles::Admin, "Owner".to_owned(), None),
+        UserState::new(UserRole::Admin, "Owner".to_owned(), None),
     );
 
-    with_permit_mut(|p| p.signers = signers);
+    with_permit_mut(|p| p.users = signers);
     // set initial controllers
     with_setting_mut(|s| {
         s.controllers
@@ -88,12 +88,12 @@ pub fn post_upgrade() {
 mod tests {
     use b3_operations::operation::{
         btc::transfer::*, global::*, icp::transfer::*, inner::account::*, inner::setting::*,
-        inner::signer::*, Operation,
+        inner::user::*, Operation,
     };
     use b3_operations::processed::ProcessedOperation;
     use b3_operations::response::Response;
-    use b3_operations::signer::roles::SignerRoles;
     use b3_operations::types::*;
+    use b3_operations::user::role::UserRole;
     use b3_utils::currency::ICPToken;
     use b3_utils::currency::TokenAmount;
     use b3_utils::timestamp::NanoTimeStamp;

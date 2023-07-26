@@ -16,7 +16,7 @@ use b3_utils::{
     constants::CREATE_WALLET_CANISTER_CYCLES,
     release::ReleaseTypes,
     revert,
-    types::{CanisterId, SignerId, WalletCanisterInitArgs, WalletVersion},
+    types::{CanisterId, UserId, WalletCanisterInitArgs, WalletVersion},
 };
 use candid::candid_method;
 use ic_cdk::{api::management_canister::main::CanisterInstallMode, query, update};
@@ -39,7 +39,7 @@ fn get_create_canister_wallet_cycle() -> u128 {
 
 #[candid_method(query)]
 #[query(guard = "caller_is_controller")]
-fn get_user_ids() -> Vec<SignerId> {
+fn get_user_ids() -> Vec<UserId> {
     with_state(|s| s.user_ids())
 }
 
@@ -71,7 +71,7 @@ async fn get_canister_version(canister_id: CanisterId) -> WalletVersion {
 
 #[candid_method(update)]
 #[update(guard = "caller_is_controller")]
-async fn get_canister_version_by_user(user_id: SignerId, index: usize) -> WalletVersion {
+async fn get_canister_version_by_user(user_id: UserId, index: usize) -> WalletVersion {
     let wallet = with_wallet_canister(&user_id, index, |w| w.clone()).unwrap_or_else(revert);
 
     wallet.version().await.unwrap_or_else(revert)
@@ -205,7 +205,7 @@ fn change_wallet_canister(canister_id: CanisterId, index: usize) {
 
 #[candid_method(update)]
 #[update(guard = "caller_is_controller")]
-fn remove_wallet_canister(user_id: SignerId) {
+fn remove_wallet_canister(user_id: UserId) {
     with_state_mut(|s| s.remove_user(&user_id));
 }
 

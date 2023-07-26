@@ -2,11 +2,11 @@ use crate::{
     error::OperationError,
     pending::PendingOperation,
     processed::ProcessedOperation,
-    signer::{roles::SignerRoles, Signer},
     state::OperationState,
-    types::{ProcessedRequestMap, SignerIds},
+    types::{ProcessedRequestMap, UserIds},
+    user::{role::UserRole, UserState},
 };
-use b3_utils::types::{OperationId, SignerId};
+use b3_utils::types::{OperationId, UserId};
 use std::cell::RefCell;
 
 thread_local! {
@@ -88,46 +88,46 @@ where
 
 // SIGNERS ----------------------------------------------------------------------
 
-/// Get a signer.
-pub fn with_signer<T, F>(signer_id: &SignerId, callback: F) -> Result<T, OperationError>
+/// Get a user.
+pub fn with_user<T, F>(user_id: &UserId, callback: F) -> Result<T, OperationError>
 where
-    F: FnOnce(&Signer) -> T,
+    F: FnOnce(&UserState) -> T,
 {
-    with_permit(|permit| permit.signer(signer_id).map(callback))
+    with_permit(|permit| permit.user(user_id).map(callback))
 }
 
-/// Check if a signer exists, and optionally check if it has a role.
-pub fn with_signer_check<F>(signer_id: SignerId, callback: F) -> Result<(), String>
+/// Check if a user exists, and optionally check if it has a role.
+pub fn with_user_check<F>(user_id: UserId, callback: F) -> Result<(), String>
 where
-    F: FnOnce(&Signer) -> bool,
+    F: FnOnce(&UserState) -> bool,
 {
     with_permit(|permit| {
         permit
-            .signers
-            .get(&signer_id)
-            .ok_or(OperationError::SignerNotFound(signer_id.to_string()).to_string())
+            .users
+            .get(&user_id)
+            .ok_or(OperationError::UserNotFound(user_id.to_string()).to_string())
             .map(callback)
             .and_then(|result| {
                 if result {
                     Ok(())
                 } else {
-                    Err(OperationError::SignerNotFound(signer_id.to_string()).to_string())
+                    Err(OperationError::UserNotFound(user_id.to_string()).to_string())
                 }
             })
     })
 }
 
-/// Get all signer with a role, admins is always included.
-pub fn with_signer_ids_by_role<T, F>(role: SignerRoles, callback: F) -> T
+/// Get all user with a role, admins is always included.
+pub fn with_user_ids_by_role<T, F>(role: UserRole, callback: F) -> T
 where
-    F: FnOnce(&SignerIds) -> T,
+    F: FnOnce(&UserIds) -> T,
 {
     with_permit(|permit| {
-        let filtered_signers: SignerIds = permit
-            .signers
+        let filtered_signers: UserIds = permit
+            .users
             .iter()
-            .filter(|(_, signer)| signer.has_role(role))
-            .map(|(signer_id, _)| signer_id.clone())
+            .filter(|(_, user)| user.has_role(role.to_owned()))
+            .map(|(user_id, _)| user_id.clone())
             .collect();
 
         callback(&filtered_signers)

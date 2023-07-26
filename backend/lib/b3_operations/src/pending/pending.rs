@@ -3,42 +3,42 @@ use crate::{
     operation::{Operation, OperationTrait},
     processed::{OperationStatus, ProcessedOperation},
     response::Response,
-    signer::roles::SignerRoles,
-    types::{ConsentMessage, ResponseMap, SignerIds},
+    types::{ConsentMessage, ResponseMap, UserIds},
+    user::role::UserRole,
 };
 use b3_utils::{
     timestamp::NanoTimeStamp,
-    types::{OperationId, SignerId, WalletVersion},
+    types::{OperationId, UserId, WalletVersion},
 };
 use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
 pub struct PendingOperation {
     pub id: OperationId,
-    pub role: SignerRoles,
+    pub role: UserRole,
     pub request: Operation,
     pub status: OperationStatus,
     pub responses: ResponseMap,
     pub deadline: NanoTimeStamp,
     pub created_at: NanoTimeStamp,
-    pub created_by: SignerId,
-    pub allowed_signers: SignerIds,
+    pub created_by: UserId,
+    pub allowed_signers: UserIds,
     pub consent_message: ConsentMessage,
     pub version: WalletVersion,
 }
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
 pub struct RequestArgs {
-    pub role: SignerRoles,
+    pub role: UserRole,
     pub request: Operation,
     pub reason: String,
     pub version: WalletVersion,
-    pub allowed_signers: SignerIds,
+    pub allowed_signers: UserIds,
     pub deadline: Option<NanoTimeStamp>,
 }
 
 impl PendingOperation {
-    pub fn new(id: OperationId, created_by: SignerId, args: RequestArgs) -> PendingOperation {
+    pub fn new(id: OperationId, created_by: UserId, args: RequestArgs) -> PendingOperation {
         let deadline = if let Some(deadline) = args.deadline {
             deadline
         } else {
@@ -81,11 +81,11 @@ impl PendingOperation {
         &self.responses
     }
 
-    pub fn is_allowed(&self, signer_id: &SignerId) -> bool {
+    pub fn is_allowed(&self, signer_id: &UserId) -> bool {
         self.allowed_signers.iter().any(|id| id == signer_id)
     }
 
-    pub fn is_signed(&self, signer_id: &SignerId) -> bool {
+    pub fn is_signed(&self, signer_id: &UserId) -> bool {
         self.responses.keys().any(|id| id == signer_id)
     }
 
@@ -109,9 +109,7 @@ impl PendingOperation {
         let confirmed_responses = self
             .responses
             .iter()
-            .filter(|(signer, response)| {
-                self.allowed_signers.contains(signer) && response.is_confirm()
-            })
+            .filter(|(user, response)| self.allowed_signers.contains(user) && response.is_confirm())
             .count();
 
         confirmed_responses * 2 > total_signers
@@ -129,16 +127,16 @@ impl PendingOperation {
         None
     }
 
-    pub fn response(&mut self, signer: SignerId, response: Response) -> Result<(), OperationError> {
-        if self.is_signed(&signer) {
-            return Err(OperationError::RequestAlreadySigned(signer.to_string()));
+    pub fn response(&mut self, user: UserId, response: Response) -> Result<(), OperationError> {
+        if self.is_signed(&user) {
+            return Err(OperationError::RequestAlreadySigned(user.to_string()));
         }
 
-        if !self.is_allowed(&signer) {
-            return Err(OperationError::SignerNotAllowed(signer.to_string()));
+        if !self.is_allowed(&user) {
+            return Err(OperationError::UserNotAllowed(user.to_string()));
         }
 
-        self.responses.insert(signer, response);
+        self.responses.insert(user, response);
 
         Ok(())
     }

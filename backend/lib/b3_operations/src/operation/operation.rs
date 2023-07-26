@@ -41,15 +41,14 @@ pub enum Operation {
     IcpTransfer,
     TopUpTransfer,
     // INNER
-    AddSigner,
-    RemoveSigner,
+    AddUser,
+    RemoveUser,
     CreateAccount,
     RemoveAccount,
     RenameAccount,
     HideAccount,
     UnhideAccount,
     UpgradeCanister,
-    UpdateSignerThreshold,
     UpdateCanisterSettings,
 }
 

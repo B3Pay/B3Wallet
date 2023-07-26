@@ -2,7 +2,7 @@ use crate::{
     constants::{DEVELOPMENT_PREFIX, STAGING_PREFIX},
     ledger::AccountIdentifier,
     ledger::ICRCAccount,
-    types::SignerId,
+    types::UserId,
     Environment,
 };
 use candid::{CandidType, Principal};
@@ -420,11 +420,11 @@ impl Subaccount {
 }
 
 impl Subaccount {
-    pub fn account_identifier(&self, owner: SignerId) -> AccountIdentifier {
+    pub fn account_identifier(&self, owner: UserId) -> AccountIdentifier {
         AccountIdentifier::new(owner, self.clone())
     }
 
-    pub fn icrc_account(&self, owner: SignerId) -> ICRCAccount {
+    pub fn icrc_account(&self, owner: UserId) -> ICRCAccount {
         ICRCAccount::new(owner, Some(self.clone()))
     }
 }

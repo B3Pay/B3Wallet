@@ -2,16 +2,16 @@ use crate::{
     error::OperationError,
     nonce::RequestNonce,
     processed::ProcessedOperation,
-    signer::Signer,
-    types::{PendingRequestMap, ProcessedRequestList, ProcessedRequestMap, SignerMap},
+    types::{PendingRequestMap, ProcessedRequestList, ProcessedRequestMap, UserMap},
+    user::UserState,
 };
-use b3_utils::types::{OperationId, SignerId};
+use b3_utils::types::{OperationId, UserId};
 use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct OperationState {
     pub counters: RequestNonce,
-    pub signers: SignerMap,
+    pub users: UserMap,
     pub pending: PendingRequestMap,
     pub processed: ProcessedRequestMap,
 }
@@ -19,7 +19,7 @@ pub struct OperationState {
 impl Default for OperationState {
     fn default() -> Self {
         OperationState {
-            signers: SignerMap::new(),
+            users: UserMap::new(),
             pending: PendingRequestMap::new(),
             processed: ProcessedRequestMap::new(),
             counters: RequestNonce::new(),
@@ -28,36 +28,36 @@ impl Default for OperationState {
 }
 
 impl OperationState {
-    pub fn init_signers(&mut self, signers: SignerMap) {
-        self.signers = signers;
+    pub fn init_users(&mut self, signers: UserMap) {
+        self.users = signers;
     }
 
-    pub fn add_signer(&mut self, signer_id: SignerId, signer: Signer) {
-        self.signers.insert(signer_id, signer);
+    pub fn add_user(&mut self, user_id: UserId, user: UserState) {
+        self.users.insert(user_id, user);
     }
 
-    pub fn remove_signer(&mut self, signer_id: &SignerId) {
-        self.signers.remove(signer_id);
+    pub fn remove_user(&mut self, user_id: &UserId) {
+        self.users.remove(user_id);
     }
 
-    pub fn signer(&self, signer_id: &SignerId) -> Result<&Signer, OperationError> {
-        self.signers
-            .get(signer_id)
-            .ok_or(OperationError::SignerNotFound(signer_id.to_string()))
+    pub fn user(&self, user_id: &UserId) -> Result<&UserState, OperationError> {
+        self.users
+            .get(user_id)
+            .ok_or(OperationError::UserNotFound(user_id.to_string()))
     }
 
-    pub fn signer_mut(&mut self, signer_id: &SignerId) -> Result<&mut Signer, OperationError> {
-        self.signers
-            .get_mut(signer_id)
-            .ok_or(OperationError::SignerNotFound(signer_id.to_string()))
+    pub fn user_mut(&mut self, user_id: &UserId) -> Result<&mut UserState, OperationError> {
+        self.users
+            .get_mut(user_id)
+            .ok_or(OperationError::UserNotFound(user_id.to_string()))
     }
 
-    pub fn signers(&self) -> &SignerMap {
-        &self.signers
+    pub fn users(&self) -> &UserMap {
+        &self.users
     }
 
-    pub fn signers_mut(&mut self) -> &mut SignerMap {
-        &mut self.signers
+    pub fn users_mut(&mut self) -> &mut UserMap {
+        &mut self.users
     }
 
     pub fn pending(&self) -> &PendingRequestMap {

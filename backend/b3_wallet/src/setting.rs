@@ -12,7 +12,7 @@ use ic_cdk::{query, update};
 #[query(guard = "caller_is_signer")]
 fn setting_and_signer() -> WalletSettingsAndSigners {
     let settings = with_setting(|s| s.clone());
-    let signers = with_permit(|s| s.signers.clone());
+    let signers = with_permit(|s| s.users.clone());
 
     WalletSettingsAndSigners { settings, signers }
 }
