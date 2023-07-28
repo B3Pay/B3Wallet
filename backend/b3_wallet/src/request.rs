@@ -15,8 +15,8 @@ use b3_operations::{
         {Operation, OperationTrait},
     },
     pending::RequestArgs,
-    store::{with_permit, with_permit_mut, with_user_check, with_user_ids_by_role},
-    types::PendingRequestList,
+    store::{with_operation, with_operation_mut, with_users_can_operate, with_verified_user},
+    types::PendingOperations,
     user::role::UserRole,
 };
 use b3_utils::{revert, timestamp::NanoTimeStamp, types::OperationId, wasm::with_wasm};
@@ -27,8 +27,8 @@ use ic_cdk::{query, update};
 
 #[candid_method(query)]
 #[query(guard = "caller_is_signer")]
-pub fn get_pending_list() -> PendingRequestList {
-    with_permit(|s| s.pending_list())
+pub fn get_pending_list() -> PendingOperations {
+    with_operation(|s| s.pending_list())
 }
 
 #[candid_method(query)]
@@ -36,7 +36,7 @@ pub fn get_pending_list() -> PendingRequestList {
 pub fn is_connected() -> bool {
     let caller = ic_cdk::caller();
 
-    with_user_check(caller, |signer| signer.is_canister()).is_ok()
+    with_verified_user(caller, |signer| signer.is_canister()).is_ok()
 }
 
 // UPDATE ---------------------------------------------------------------------
@@ -50,7 +50,7 @@ pub fn request_maker(
     let caller = ic_cdk::caller();
 
     let role = UserRole::Admin;
-    let allowed_signers = with_user_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+    let allowed_signers = with_users_can_operate(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         allowed_signers,
@@ -61,7 +61,7 @@ pub fn request_maker(
         deadline,
     };
 
-    with_permit_mut(|s| {
+    with_operation_mut(|s| {
         let new_request = s.new_request(caller, request_args);
         s.insert_new_request(new_request)
     })
@@ -77,7 +77,7 @@ pub fn request_add_signer(
     let caller = ic_cdk::caller();
 
     let role = UserRole::Admin;
-    let allowed_signers = with_user_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+    let allowed_signers = with_users_can_operate(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         allowed_signers,
@@ -88,7 +88,7 @@ pub fn request_add_signer(
         deadline,
     };
 
-    with_permit_mut(|s| {
+    with_operation_mut(|s| {
         let new_request = s.new_request(caller, request_args);
         s.insert_new_request(new_request)
     })
@@ -107,7 +107,7 @@ pub fn request_connect() -> OperationId {
         threshold: None,
     };
 
-    with_permit(|s| {
+    with_operation(|s| {
         // check if the request is already in the pending list
         let pending_list = s.pending_list();
 
@@ -118,12 +118,12 @@ pub fn request_connect() -> OperationId {
         }
     });
 
-    if with_user_check(caller, |signer| signer.is_canister()).is_ok() {
+    if with_verified_user(caller, |signer| signer.is_canister()).is_ok() {
         return revert("Already connected!");
     }
 
     let role = UserRole::Admin;
-    let allowed_signers = with_user_ids_by_role(role.clone(), |signer_ids| signer_ids.to_vec());
+    let allowed_signers = with_users_can_operate(role.clone(), |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         allowed_signers,
@@ -134,7 +134,7 @@ pub fn request_connect() -> OperationId {
         deadline: None,
     };
 
-    with_permit_mut(|s| {
+    with_operation_mut(|s| {
         let new_request = s.new_request(caller, request_args);
         s.insert_new_request(new_request)
     })
@@ -152,7 +152,7 @@ pub fn request_update_settings(
     request.validate_request().unwrap_or_else(revert);
 
     let role = UserRole::Admin;
-    let allowed_signers = with_user_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+    let allowed_signers = with_users_can_operate(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         allowed_signers,
@@ -163,7 +163,7 @@ pub fn request_update_settings(
         deadline,
     };
 
-    with_permit_mut(|s| {
+    with_operation_mut(|s| {
         let new_request = s.new_request(caller, request_args);
         s.insert_new_request(new_request)
     })
@@ -179,7 +179,7 @@ pub fn request_account_rename(
     let caller = ic_cdk::caller();
 
     let role = UserRole::Admin;
-    let allowed_signers = with_user_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+    let allowed_signers = with_users_can_operate(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         allowed_signers,
@@ -190,7 +190,7 @@ pub fn request_account_rename(
         deadline,
     };
 
-    with_permit_mut(|s| {
+    with_operation_mut(|s| {
         let new_request = s.new_request(caller, request_args);
         s.insert_new_request(new_request)
     })
@@ -206,7 +206,7 @@ pub fn request_create_account(
     let caller = ic_cdk::caller();
 
     let role = UserRole::Admin;
-    let allowed_signers = with_user_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+    let allowed_signers = with_users_can_operate(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         allowed_signers,
@@ -217,7 +217,7 @@ pub fn request_create_account(
         deadline,
     };
 
-    with_permit_mut(|s| {
+    with_operation_mut(|s| {
         let new_request = s.new_request(caller, request_args);
         s.insert_new_request(new_request)
     })
@@ -233,7 +233,7 @@ pub fn request_delete_account(
     let caller = ic_cdk::caller();
 
     let role = UserRole::Admin;
-    let allowed_signers = with_user_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+    let allowed_signers = with_users_can_operate(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         allowed_signers,
@@ -244,7 +244,7 @@ pub fn request_delete_account(
         deadline,
     };
 
-    with_permit_mut(|s| {
+    with_operation_mut(|s| {
         let new_request = s.new_request(caller, request_args);
         s.insert_new_request(new_request)
     })
@@ -260,7 +260,7 @@ pub fn request_transfer_icp(
     let caller = ic_cdk::caller();
 
     let role = UserRole::Admin;
-    let allowed_signers = with_user_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+    let allowed_signers = with_users_can_operate(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         allowed_signers,
@@ -271,7 +271,7 @@ pub fn request_transfer_icp(
         deadline,
     };
 
-    with_permit_mut(|s| {
+    with_operation_mut(|s| {
         let new_request = s.new_request(caller, request_args);
         s.insert_new_request(new_request)
     })
@@ -287,7 +287,7 @@ pub fn request_transfer_btc(
     let caller = ic_cdk::caller();
 
     let role = UserRole::Admin;
-    let allowed_signers = with_user_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+    let allowed_signers = with_users_can_operate(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         allowed_signers,
@@ -298,7 +298,7 @@ pub fn request_transfer_btc(
         deadline,
     };
 
-    with_permit_mut(|s| {
+    with_operation_mut(|s| {
         let new_request = s.new_request(caller, request_args);
         s.insert_new_request(new_request)
     })
@@ -316,7 +316,7 @@ pub fn request_send(
     request.validate_request().unwrap_or_else(revert);
 
     let role = UserRole::Admin;
-    let allowed_signers = with_user_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+    let allowed_signers = with_users_can_operate(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         allowed_signers,
@@ -327,7 +327,7 @@ pub fn request_send(
         deadline,
     };
 
-    with_permit_mut(|s| {
+    with_operation_mut(|s| {
         let new_request = s.new_request(caller, request_args);
 
         s.insert_new_request(new_request)
@@ -347,7 +347,7 @@ pub async fn request_upgrade_canister(wasm_version: String) -> OperationId {
     upgrade_request.validate_request().unwrap_or_else(revert);
 
     let role = UserRole::Admin;
-    let allowed_signers = with_user_ids_by_role(role, |signer_ids| signer_ids.to_vec());
+    let allowed_signers = with_users_can_operate(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
         role,
@@ -358,7 +358,7 @@ pub async fn request_upgrade_canister(wasm_version: String) -> OperationId {
         deadline: None,
     };
 
-    with_permit_mut(|s| {
+    with_operation_mut(|s| {
         let new_request = s.new_request(caller, request_args);
 
         s.insert_new_request(new_request)

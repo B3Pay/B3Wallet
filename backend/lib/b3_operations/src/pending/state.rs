@@ -1,7 +1,7 @@
 use b3_utils::types::{OperationId, UserId};
 
 use super::pending::{PendingOperation, RequestArgs};
-use crate::{error::OperationError, state::OperationState, types::PendingRequestList};
+use crate::{error::OperationError, state::OperationState, types::PendingOperations};
 
 impl OperationState {
     pub fn new_request(&self, signer_id: UserId, args: RequestArgs) -> PendingOperation {
@@ -15,27 +15,27 @@ impl OperationState {
 
         self.pending.insert(id.clone(), sign_request);
 
-        self.counters.increment_request();
+        self.nonce.increment();
 
         id
     }
 
     pub fn request_counter(&self) -> usize {
-        self.counters.request()
+        self.nonce.current()
     }
 
     pub fn remove_request(&mut self, request_id: &OperationId) {
         self.pending.remove(request_id);
     }
 
-    pub fn pending_list(&self) -> PendingRequestList {
+    pub fn pending_list(&self) -> PendingOperations {
         self.pending
             .iter()
             .map(|(_, request)| request.clone())
             .collect()
     }
 
-    pub fn request(&self, request_id: &OperationId) -> Result<&PendingOperation, OperationError> {
+    pub fn pending(&self, request_id: &OperationId) -> Result<&PendingOperation, OperationError> {
         self.pending
             .get(request_id)
             .ok_or(OperationError::RequestNotFound(request_id.to_owned()))

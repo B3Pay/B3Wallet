@@ -1,5 +1,5 @@
 use crate::permit::{caller_is_admin, caller_is_signer};
-use b3_operations::{store::with_permit, types::WalletSettingsAndSigners};
+use b3_operations::{store::with_users, types::WalletSettingsAndSigners};
 use b3_utils::{
     revert,
     types::{ControllerId, Metadata, WalletController, WalletControllerMap},
@@ -12,7 +12,7 @@ use ic_cdk::{query, update};
 #[query(guard = "caller_is_signer")]
 fn setting_and_signer() -> WalletSettingsAndSigners {
     let settings = with_setting(|s| s.clone());
-    let signers = with_permit(|s| s.users.clone());
+    let signers = with_users(|s| s.clone());
 
     WalletSettingsAndSigners { settings, signers }
 }

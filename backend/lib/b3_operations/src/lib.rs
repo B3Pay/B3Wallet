@@ -1,5 +1,4 @@
 pub mod error;
-pub mod nonce;
 pub mod operation;
 pub mod pending;
 pub mod processed;

@@ -125,7 +125,9 @@ function HomePage() {
             </Card>
             <Card p={2}>
               <Stack>
-                <Text fontSize="sm">Connect your wallet to get started</Text>
+                <Text fontSize="sm">
+                  Login with your Internet Identity to continue
+                </Text>
                 <Button onClick={login} colorScheme="green">
                   Login
                 </Button>

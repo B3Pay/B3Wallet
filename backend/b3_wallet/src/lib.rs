@@ -8,9 +8,9 @@ mod wasm;
 
 use b3_operations::{
     state::OperationState,
-    store::{with_permit, with_permit_mut},
+    store::{with_operation, with_operation_mut},
     types::UserMap,
-    user::{role::UserRole, UserState},
+    user::{role::UserRole, User},
 };
 use b3_utils::{
     types::{WalletCanisterInitArgs, WalletController},
@@ -41,7 +41,7 @@ pub fn init() {
             // is added as trusted Canister
             signers.insert(
                 system_id,
-                UserState::new(UserRole::Canister, "System".to_owned(), None),
+                User::new(UserRole::Canister, "System".to_owned(), None),
             );
             owner_id
         }
@@ -50,10 +50,10 @@ pub fn init() {
 
     signers.insert(
         owner_id,
-        UserState::new(UserRole::Admin, "Owner".to_owned(), None),
+        User::new(UserRole::Admin, "Owner".to_owned(), None),
     );
 
-    with_permit_mut(|p| p.users = signers);
+    with_operation_mut(|p| p.users = signers);
     // set initial controllers
     with_setting_mut(|s| {
         s.controllers
@@ -68,7 +68,7 @@ pub fn init() {
 pub fn pre_upgrade() {
     with_wasm_mut(|wasm| wasm.unload());
 
-    let permit = with_permit(|o| o.clone());
+    let permit = with_operation(|o| o.clone());
     let state = with_wallet(|s| s.clone());
 
     ic_cdk::storage::stable_save((state, permit)).unwrap();
@@ -81,7 +81,7 @@ pub fn post_upgrade() {
 
     with_wallet_mut(|state| *state = state_prev);
 
-    with_permit_mut(|permit| *permit = sign_prev);
+    with_operation_mut(|permit| *permit = sign_prev);
 }
 
 #[cfg(test)]

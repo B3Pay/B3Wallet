@@ -6,16 +6,16 @@ use crate::operation::Operation;
 use super::role::UserRole;
 
 #[derive(CandidType, Deserialize, Clone)]
-pub struct UserState {
+pub struct User {
     pub role: UserRole,
     pub name: String,
     pub metadata: Metadata,
     pub expires_at: Option<u64>,
 }
 
-impl Default for UserState {
+impl Default for User {
     fn default() -> Self {
-        UserState {
+        User {
             role: UserRole::default(),
             name: "".to_string(),
             expires_at: None,
@@ -24,9 +24,9 @@ impl Default for UserState {
     }
 }
 
-impl From<UserRole> for UserState {
+impl From<UserRole> for User {
     fn from(role: UserRole) -> Self {
-        UserState {
+        User {
             role,
             name: "".to_string(),
             expires_at: None,
@@ -35,9 +35,9 @@ impl From<UserRole> for UserState {
     }
 }
 
-impl UserState {
+impl User {
     pub fn new(role: UserRole, name: String, expires_at: Option<u64>) -> Self {
-        UserState {
+        User {
             role,
             name,
             expires_at,
@@ -45,7 +45,7 @@ impl UserState {
         }
     }
 
-    pub fn can(&self, operation: Operation) -> bool {
+    pub fn can_operate(&self, operation: Operation) -> bool {
         self.role.has_operation(operation)
     }
 
@@ -59,9 +59,5 @@ impl UserState {
 
     pub fn set_role(&mut self, role: UserRole) {
         self.role = role;
-    }
-
-    pub fn has_role(&self, role: UserRole) -> bool {
-        role == self.role
     }
 }

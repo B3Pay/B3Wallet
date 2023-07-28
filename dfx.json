@@ -21,7 +21,7 @@
       "wasm": "wasm/b3_wallet/b3_wallet.wasm"
     },
     "wallet_assets": {
-      "build": "yarn build:local",
+      "build": "yarn build",
       "frontend": {
         "entrypoint": "out/index.html"
       },

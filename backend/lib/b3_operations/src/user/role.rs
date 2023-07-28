@@ -25,7 +25,7 @@ pub struct UserRole {
 impl Default for UserRole {
     fn default() -> Self {
         UserRole {
-            name: "".to_string(),
+            name: "default".to_string(),
             access_level: AccessLevel::Full,
         }
     }

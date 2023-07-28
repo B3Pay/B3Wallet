@@ -1,10 +1,10 @@
 use crate::error::OperationError;
 use crate::operation::result::OperationResult;
 use crate::operation::OperationTrait;
-use crate::store::with_permit;
-use crate::store::with_permit_mut;
+use crate::store::with_users;
+use crate::store::with_users_mut;
 use crate::user::role::UserRole;
-use crate::user::UserState;
+use crate::user::User;
 use async_trait::async_trait;
 use b3_utils::types::{Metadata, UserId};
 use b3_wallet_lib::error::WalletError;
@@ -20,9 +20,9 @@ pub struct AddUser {
     pub threshold: Option<u8>,
 }
 
-impl From<&AddUser> for UserState {
+impl From<&AddUser> for User {
     fn from(args: &AddUser) -> Self {
-        UserState {
+        User {
             name: args.name.clone(),
             role: args.role.to_owned(),
             expires_at: args.expires_at,
@@ -35,14 +35,14 @@ impl From<&AddUser> for UserState {
 impl OperationTrait for AddUser {
     async fn execute(self) -> Result<OperationResult, WalletError> {
         let signer_id = self.signer_id.clone();
-        with_permit_mut(|state| {
-            if state.users.contains_key(&signer_id) {
+        with_users_mut(|users| {
+            if users.contains_key(&signer_id) {
                 return Err(WalletError::SignerAlreadyExists(signer_id.to_string()));
             }
 
-            let user = UserState::from(&self);
+            let user = User::from(&self);
 
-            state.users.insert(signer_id, user);
+            users.insert(signer_id, user);
 
             Ok(self.into())
         })
@@ -79,12 +79,12 @@ pub struct RemoveUser {
 impl OperationTrait for RemoveUser {
     async fn execute(self) -> Result<OperationResult, WalletError> {
         let signer_id = self.signer_id.clone();
-        with_permit_mut(|permit| {
-            if !permit.users.contains_key(&signer_id) {
+        with_users_mut(|users| {
+            if !users.contains_key(&signer_id) {
                 return Err(WalletError::SignerDoesNotExist(signer_id.to_string()));
             }
 
-            permit.users.remove(&signer_id);
+            users.remove(&signer_id);
 
             Ok(self.into())
         })
@@ -92,11 +92,13 @@ impl OperationTrait for RemoveUser {
 
     fn validate_request(&self) -> Result<(), OperationError> {
         // check if the user exists
-        if !with_permit(|permit| permit.users.contains_key(&self.signer_id)) {
-            return Err(OperationError::UserDoesNotExist(self.signer_id.to_string()));
-        }
+        with_users(|users| {
+            if !users.contains_key(&self.signer_id) {
+                return Err(OperationError::UserDoesNotExist(self.signer_id.to_string()));
+            }
 
-        Ok(())
+            Ok(())
+        })
     }
 
     fn method_name(&self) -> String {

@@ -1,8 +1,5 @@
 export const B3_SYSTEM_CANISTER_ID =
-  process.env.B3_SYSTEM_CANISTER_ID ?? "rrkah-fqaaa-aaaaa-aaaaq-cai"
-
-export const B3_USER_CANISTER_ID =
-  process.env.B3_USER_CANISTER_ID ?? "rno2w-sqaaa-aaaaa-aaacq-cai"
+  process.env.B3_SYSTEM_CANISTER_ID ?? "jdm7b-3iaaa-aaaap-abcbq-cai"
 
 export const IDENTITY_CANISTER_ID =
   process.env.INTERNET_IDENTITY_CANISTER_ID ?? "qhbym-qaaaa-aaaaa-aaafq-cai"
