@@ -1,6 +1,6 @@
 use easy_hasher::easy_hasher;
 
-use super::{types::WasmHash, Wasm, WASM};
+use super::types::WasmHash;
 
 pub fn sha256_wasm_hash(data: &[u8]) -> WasmHash {
     let hash = easy_hasher::raw_sha256(data.to_vec());
@@ -14,28 +14,4 @@ pub fn sha256_wasm_hash(data: &[u8]) -> WasmHash {
 pub fn sha256_wasm_hash_string(data: &[u8]) -> String {
     let hash = easy_hasher::raw_sha256(data.to_vec());
     hash.to_hex_string()
-}
-
-/// Get wasm.
-pub fn with_wasm<T, F>(callback: F) -> T
-where
-    F: FnOnce(&Wasm) -> T,
-{
-    WASM.with(|wasm| {
-        let wasm = wasm.borrow();
-
-        callback(&wasm)
-    })
-}
-
-/// Get wasm mutably.
-pub fn with_wasm_mut<T, F>(callback: F) -> T
-where
-    F: FnOnce(&mut Wasm) -> T,
-{
-    WASM.with(|wasm| {
-        let mut wasm = wasm.borrow_mut();
-
-        callback(&mut wasm)
-    })
 }

@@ -14,7 +14,7 @@ use b3_system_lib::{
 };
 use b3_utils::{
     constants::CREATE_WALLET_CANISTER_CYCLES,
-    release::ReleaseTypes,
+    release::ReleaseNames,
     revert,
     types::{CanisterId, UserId, WalletCanisterInitArgs, WalletVersion},
 };
@@ -83,7 +83,7 @@ async fn create_wallet_canister(name: String) -> Result<UserState, String> {
     let owner_id = ic_cdk::caller();
     let system_id = ic_cdk::id();
 
-    let release_name = ReleaseTypes::from_str(&name).unwrap_or_else(revert);
+    let release_name = ReleaseNames::from_str(&name).unwrap_or_else(revert);
 
     let mut user_state = with_state_mut(|s| s.init_user(owner_id)).unwrap_or_else(revert);
 
@@ -133,7 +133,7 @@ async fn install_wallet_canister(
     let system_id = ic_cdk::id();
     let owner_id = ic_cdk::caller();
 
-    let release_name = ReleaseTypes::from_str(&name).unwrap_or_else(revert);
+    let release_name = ReleaseNames::from_str(&name).unwrap_or_else(revert);
 
     let user_state =
         with_state_mut(|s| s.get_or_init_user(owner_id, Some(canister_id))).unwrap_or_else(revert);

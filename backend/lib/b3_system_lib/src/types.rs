@@ -1,5 +1,5 @@
 use b3_utils::{
-    release::ReleaseTypes,
+    release::ReleaseNames,
     timestamp::NanoTimeStamp,
     types::{ControllerId, UserId, WalletVersion},
     wasm::{Wasm, WasmHash, WasmSize},
@@ -13,7 +13,7 @@ pub type UserStates = Vec<UserState>;
 pub type Controllers = Vec<ControllerId>;
 
 pub type Releases = Vec<Release>;
-pub type ReleaseMap = HashMap<ReleaseTypes, Vec<Release>>;
+pub type ReleaseMap = HashMap<ReleaseNames, Vec<Release>>;
 
 pub type Features = Vec<String>;
 pub type Users = Vec<UserId>;

@@ -49,18 +49,4 @@ impl OperationState {
             .get_mut(request_id)
             .ok_or(OperationError::RequestNotFound(request_id.to_owned()))
     }
-
-    pub fn check_request(&self, request_id: &OperationId) -> Result<(), OperationError> {
-        if self.processed.get(request_id).is_some() {
-            return Err(OperationError::RequestAlreadyProcessed(
-                request_id.to_owned(),
-            ));
-        }
-
-        if !self.pending.contains_key(&request_id) {
-            return Err(OperationError::RequestNotFound(request_id.to_owned()));
-        }
-
-        Ok(())
-    }
 }

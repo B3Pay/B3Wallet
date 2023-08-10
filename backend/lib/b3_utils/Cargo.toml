@@ -1,6 +1,6 @@
 [package]
 name = "b3_utils"
-version = "0.0.6"
+version = "0.2.0"
 edition = "2021"
 description = "This is helper library for B3Wallet project"
 license = "MIT"
@@ -14,4 +14,4 @@ ic-cdk = { workspace = true }
 hex = "0.4"
 easy-hasher = "2.2"
 serde_bytes = "0.11"
-ic-cdk-timers = "0.4"
+b3-stable-structures = "0.5"

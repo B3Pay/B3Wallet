@@ -1,5 +1,5 @@
 use b3_utils::{
-    release::ReleaseTypes,
+    release::ReleaseNames,
     types::{UserId, WalletVersion},
     wasm::{Wasm, WasmHash},
 };
@@ -53,7 +53,7 @@ pub fn with_releases<F, T>(name: &str, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&Releases) -> T,
 {
-    let release_name = ReleaseTypes::from_str(name).map_err(SystemError::HelperError)?;
+    let release_name = ReleaseNames::from_str(name).map_err(SystemError::HelperError)?;
 
     with_release_map(|releases| {
         releases
@@ -63,7 +63,7 @@ where
     })
 }
 
-pub fn with_releases_mut<F, T>(release_name: ReleaseTypes, f: F) -> T
+pub fn with_releases_mut<F, T>(release_name: ReleaseNames, f: F) -> T
 where
     F: FnOnce(&mut Releases) -> T,
 {
@@ -89,7 +89,7 @@ pub fn with_release_mut<F, T>(name: &str, index: usize, f: F) -> Result<T, Syste
 where
     F: FnOnce(&mut Release) -> T,
 {
-    let release_name = ReleaseTypes::from_str(name).map_err(SystemError::HelperError)?;
+    let release_name = ReleaseNames::from_str(name).map_err(SystemError::HelperError)?;
 
     with_releases_mut(release_name, |releases| {
         releases
@@ -117,7 +117,7 @@ where
 }
 
 pub fn with_version_release_mut<F, T>(
-    release_name: ReleaseTypes,
+    release_name: ReleaseNames,
     version: WalletVersion,
     f: F,
 ) -> Result<T, SystemError>

@@ -2,6 +2,7 @@ use crate::{
     error::OperationError,
     operation::Operation,
     pending::PendingOperation,
+    processed::ProccessedState,
     state::OperationState,
     types::{ProcessedOperationMap, UserIds, UserMap},
     user::{state::UserState, User},
@@ -10,7 +11,8 @@ use b3_utils::types::{OperationId, UserId};
 use std::cell::RefCell;
 
 thread_local! {
-    static STATE: RefCell<OperationState> = RefCell::default();
+    static PROCCESSED: RefCell<ProccessedState> = RefCell::default();
+    static OPERATION: RefCell<OperationState> = RefCell::default();
     static USERS: RefCell<UserState> = RefCell::default();
 }
 // STATE ----------------------------------------------------------------------
@@ -21,7 +23,7 @@ pub fn with_operation<T, F>(callback: F) -> T
 where
     F: FnOnce(&OperationState) -> T,
 {
-    STATE.with(|states| {
+    OPERATION.with(|states| {
         let state = states.borrow();
 
         callback(&state)
@@ -34,7 +36,7 @@ pub fn with_operation_mut<T, F>(callback: F) -> T
 where
     F: FnOnce(&mut OperationState) -> T,
 {
-    STATE.with(|states| {
+    OPERATION.with(|states| {
         let mut state = states.borrow_mut();
 
         callback(&mut state)
@@ -65,14 +67,18 @@ where
     with_operation_mut(|permit| permit.request_mut(&request_id).map(callback))
 }
 
-// CONFIRMED ------------------------------------------------------------------------
+// PROCESSED ------------------------------------------------------------------------
 
 /// Get Confirmed.
 pub fn with_processed_operation<T, F>(callback: F) -> T
 where
     F: FnOnce(&ProcessedOperationMap) -> T,
 {
-    with_operation(|state| callback(&state.processed))
+    PROCCESSED.with(|states| {
+        let state = states.borrow();
+
+        callback(&state.processed)
+    })
 }
 
 // SIGNERS ----------------------------------------------------------------------

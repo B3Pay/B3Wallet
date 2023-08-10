@@ -6,7 +6,7 @@ use crate::{
     wallet::WalletCanister,
 };
 use b3_utils::{
-    release::ReleaseTypes,
+    release::ReleaseNames,
     types::{
         CanisterId, ControllerId, UserId, WalletCanisterInitArgs, WalletCanisterInstallArg,
         WalletVersion,
@@ -101,7 +101,7 @@ impl State {
     }
 
     // release
-    pub fn get_release(&self, name: ReleaseTypes, version: &str) -> Result<&Release, SystemError> {
+    pub fn get_release(&self, name: ReleaseNames, version: &str) -> Result<&Release, SystemError> {
         let releases = self
             .releases
             .get(&name)
@@ -115,7 +115,7 @@ impl State {
 
     pub fn get_release_install_args(
         &self,
-        name: ReleaseTypes,
+        name: ReleaseNames,
         version: &WalletVersion,
         mode: CanisterInstallMode,
         init_args: WalletCanisterInitArgs,
@@ -133,7 +133,7 @@ impl State {
         })
     }
 
-    pub fn latest_release(&self, name: ReleaseTypes) -> Result<&Release, SystemError> {
+    pub fn latest_release(&self, name: ReleaseNames) -> Result<&Release, SystemError> {
         self.releases
             .get(&name)
             .ok_or(SystemError::ReleaseNameNotFound)?
@@ -143,7 +143,7 @@ impl State {
 
     pub fn get_latest_install_args(
         &self,
-        name: ReleaseTypes,
+        name: ReleaseNames,
         mode: CanisterInstallMode,
         init_args: WalletCanisterInitArgs,
     ) -> Result<WalletCanisterInstallArg, SystemError> {
