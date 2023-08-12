@@ -1,9 +1,11 @@
+use std::fmt;
+
 use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
-#[cfg(test)]
+#[cfg(not(target_arch = "wasm32"))]
 use crate::mocks::time_mock as ic_timestamp;
-#[cfg(not(test))]
+#[cfg(target_arch = "wasm32")]
 use ic_cdk::api::time as ic_timestamp;
 
 mod test;
@@ -13,7 +15,8 @@ pub struct NanoTimeStamp(pub u64);
 
 impl NanoTimeStamp {
     // Constants for nanosecond conversions
-    pub const NS_PER_SECOND: u64 = 1_000_000_000;
+    pub const NS_PER_MILLISECOND: u64 = 1_000_000;
+    pub const NS_PER_SECOND: u64 = Self::NS_PER_MILLISECOND * 1_000;
     pub const NS_PER_MINUTE: u64 = Self::NS_PER_SECOND * 60;
     pub const NS_PER_HOUR: u64 = Self::NS_PER_MINUTE * 60;
     pub const NS_PER_DAY: u64 = Self::NS_PER_HOUR * 24;
@@ -28,6 +31,14 @@ impl NanoTimeStamp {
         NanoTimeStamp(ic_timestamp() + ns_to_add)
     }
 
+    pub fn from_le_bytes(bytes: [u8; 8]) -> Self {
+        NanoTimeStamp(u64::from_le_bytes(bytes))
+    }
+
+    pub fn to_le_bytes(&self) -> [u8; 8] {
+        self.0.to_le_bytes()
+    }
+
     /// Converts the timestamp to seconds
     pub fn to_secs(&self) -> u64 {
         self.0 / Self::NS_PER_SECOND
@@ -35,7 +46,12 @@ impl NanoTimeStamp {
 
     /// Converts the timestamp to milliseconds
     pub fn to_millis(&self) -> u64 {
-        self.0 / 1_000_000
+        self.0 / Self::NS_PER_MILLISECOND
+    }
+
+    /// Converts the timestamp to milliseconds
+    pub fn as_global_timer(&self) -> i64 {
+        self.0 as i64
     }
 
     /// Checks if the deadline has passed
@@ -45,7 +61,7 @@ impl NanoTimeStamp {
     }
 
     /// Checks if the deadline is still in the future
-    pub fn is_future(&self) -> bool {
+    pub fn in_future(&self) -> bool {
         let now = NanoTimeStamp::now();
         self > &now
     }
@@ -125,5 +141,31 @@ impl NanoTimeStamp {
     /// Get the number of whole days represented by the timestamp
     pub fn get_days(&self) -> u64 {
         self.0 / Self::NS_PER_DAY
+    }
+}
+
+impl From<u64> for NanoTimeStamp {
+    fn from(nanos: u64) -> Self {
+        NanoTimeStamp(nanos)
+    }
+}
+
+impl From<NanoTimeStamp> for u64 {
+    fn from(ts: NanoTimeStamp) -> Self {
+        ts.0
+    }
+}
+
+impl From<NanoTimeStamp> for i64 {
+    fn from(ts: NanoTimeStamp) -> Self {
+        ts.0 as i64
+    }
+}
+
+impl fmt::Display for NanoTimeStamp {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let secs = self.0 / Self::NS_PER_SECOND;
+        let nanos = self.0 % Self::NS_PER_SECOND;
+        write!(f, "{}.{:09}", secs, nanos)
     }
 }

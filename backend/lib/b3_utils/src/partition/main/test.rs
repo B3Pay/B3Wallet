@@ -1,22 +1,22 @@
 #[cfg(test)]
 mod test {
-    use crate::partition::{
-        main::timer::TimerEntry, MainPartition, PartitionManager, PARTITION_MANAGER,
+    use crate::{
+        partition::{main::timer::TimerEntry, with_partition_manager_mut, MainPartition},
+        NanoTimeStamp,
     };
     use b3_stable_structures::Memory;
 
     #[test]
     fn test_init_main_partition() {
-        let main_partition = PARTITION_MANAGER.with(|pm| MainPartition::init(&mut pm.borrow_mut()));
+        let main_partition = with_partition_manager_mut(|pm| MainPartition::init(pm));
 
-        assert_eq!(main_partition.backup_details().size, 0);
-        assert_eq!(main_partition.timer_details().size, 0);
+        assert_eq!(main_partition.backup_details().len, 0);
+        assert_eq!(main_partition.timer_details().len, 0);
     }
 
     #[test]
     fn test_core_backup_partition() {
-        let mut main_partition =
-            PARTITION_MANAGER.with(|pm| MainPartition::init(&mut pm.borrow_mut()));
+        let mut main_partition = with_partition_manager_mut(|pm| MainPartition::init(pm));
 
         let backup = main_partition.backup();
 
@@ -42,20 +42,24 @@ mod test {
         backup.read(4, &mut state_bytes);
 
         println!("{:?}", state_bytes);
+        println!("{:?}", main_partition.get_backup());
+
+        assert_eq!(state_bytes, main_partition.get_backup());
     }
 
     #[test]
     fn test_timer_partition() {
-        let mut partition_manager = PartitionManager::init();
-
-        let mut main_partition = MainPartition::init(&mut partition_manager);
+        let mut main_partition = with_partition_manager_mut(|pm| MainPartition::init(pm));
 
         let timer = main_partition.timer();
 
         assert_eq!(timer.len(), 0);
 
         main_partition
-            .push_timer(&TimerEntry { id: 1, time: 2 })
+            .push_timer(&TimerEntry {
+                id: 1,
+                time: NanoTimeStamp(2),
+            })
             .unwrap();
 
         let timer = main_partition.timer_mut();
@@ -65,6 +69,6 @@ mod test {
         let timer_entry = timer.peek().unwrap();
 
         assert_eq!(timer_entry.id, 1);
-        assert_eq!(timer_entry.time, 2);
+        assert_eq!(timer_entry.time, 2.into());
     }
 }

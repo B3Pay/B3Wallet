@@ -17,6 +17,19 @@ impl MainPartition {
         &mut self.backup
     }
 
+    pub fn get_backup(&self) -> Vec<u8> {
+        // Read the length of the state bytes.
+        let mut state_len_bytes = [0; 4];
+        self.backup.read(0, &mut state_len_bytes);
+
+        let state_len = u32::from_le_bytes(state_len_bytes);
+
+        // Read the bytes
+        let state_bytes = self.read_backup(4, state_len);
+
+        state_bytes
+    }
+
     pub fn set_backup(&mut self, state_bytes: Vec<u8>) {
         let len = state_bytes.len() as u32;
 

@@ -2,15 +2,17 @@ use candid::CandidType;
 use serde::{Deserialize, Serialize};
 mod test;
 
-#[derive(CandidType, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Debug, Clone)]
-pub struct Nonce(usize);
+#[derive(
+    CandidType, Default, Serialize, Deserialize, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Clone,
+)]
+pub struct Nonce(u64);
 
 impl Nonce {
-    pub fn new(from: Option<usize>) -> Self {
+    pub fn new(from: Option<u64>) -> Self {
         Self(from.unwrap_or(0))
     }
 
-    pub fn current(&self) -> usize {
+    pub fn current(&self) -> u64 {
         self.0
     }
 
@@ -19,7 +21,7 @@ impl Nonce {
     }
 
     /// increment the counter and return the new value
-    pub fn next(&mut self) -> usize {
+    pub fn next(&mut self) -> u64 {
         self.increment();
 
         self.0

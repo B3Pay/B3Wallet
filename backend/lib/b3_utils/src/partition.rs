@@ -1,26 +1,26 @@
 use b3_stable_structures::memory_manager::{MemoryId, MemoryManager};
 use b3_stable_structures::{
-    BoundedStorable, DefaultMemoryImpl, StableBTreeMap, StableCell, StableLog, StableMinHeap,
-    StableVec, Storable,
+    BoundedStorable, DefaultMemoryImpl, StableBTreeMap, StableCell, StableLog, StableVec, Storable,
 };
 use std::borrow::BorrowMut;
-use std::cell::RefCell;
 use std::collections::HashMap;
-
-use self::error::PartitionManagerError;
 
 mod test;
 
 pub mod error;
+use error::PartitionManagerError;
+
 mod main;
-mod types;
-
 pub use main::*;
-pub use types::*;
 
-thread_local! {
-    pub static PARTITION_MANAGER: RefCell<PartitionManager> = RefCell::new(PartitionManager::init())
-}
+mod store;
+pub use store::*;
+
+use self::types::{
+    DefaultVM, DefaultVMCell, DefaultVMHeap, DefaultVMLog, DefaultVMMap, DefaultVMVec,
+};
+
+pub mod types;
 
 pub struct PartitionManager {
     memory_manager: MemoryManager<DefaultMemoryImpl>,
@@ -93,7 +93,7 @@ impl PartitionManager {
         &mut self,
         name: &str,
         id: u8,
-    ) -> Result<StableVec<T, DefaultVM>, PartitionManagerError> {
+    ) -> Result<DefaultVMVec<T>, PartitionManagerError> {
         let memory = self.create_partition(name, id)?;
 
         StableVec::init(memory)
@@ -107,7 +107,7 @@ impl PartitionManager {
         &mut self,
         name: &str,
         id: u8,
-    ) -> Result<StableBTreeMap<K, V, DefaultVM>, PartitionManagerError> {
+    ) -> Result<DefaultVMMap<K, V>, PartitionManagerError> {
         let memory = self.create_partition(name, id)?;
 
         let map = StableBTreeMap::init(memory);
@@ -119,10 +119,10 @@ impl PartitionManager {
         &mut self,
         name: &str,
         id: u8,
-    ) -> Result<StableMinHeap<T, DefaultVM>, PartitionManagerError> {
+    ) -> Result<DefaultVMHeap<T>, PartitionManagerError> {
         let memory = self.create_partition(name, id)?;
 
-        StableMinHeap::init(memory)
+        DefaultVMHeap::init(memory)
             .map_err(|e| PartitionManagerError::UnableToCreateMemory(e.to_string()))
     }
 
@@ -131,7 +131,7 @@ impl PartitionManager {
         name: &str,
         index_id: u8,
         data_id: u8,
-    ) -> Result<StableLog<T, DefaultVM, DefaultVM>, PartitionManagerError> {
+    ) -> Result<DefaultVMLog<T>, PartitionManagerError> {
         let index_memory = self.create_partition(&format!("{}_index", name), index_id)?;
         let data_memory = self.create_partition(&format!("{}_data", name), data_id)?;
 
@@ -143,7 +143,7 @@ impl PartitionManager {
         &mut self,
         name: &str,
         id: u8,
-    ) -> Result<StableCell<T, DefaultVM>, PartitionManagerError> {
+    ) -> Result<DefaultVMCell<T>, PartitionManagerError> {
         let memory = self.create_partition(name, id)?;
 
         StableCell::init(memory, T::default())

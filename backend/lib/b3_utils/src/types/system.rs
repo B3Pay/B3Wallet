@@ -1,4 +1,4 @@
-use crate::{timestamp::NanoTimeStamp, types::CanisterId};
+use crate::{types::CanisterId, NanoTimeStamp};
 use candid::CandidType;
 use ic_cdk::api::management_canister::main::CanisterStatusResponse;
 use serde::{Deserialize, Serialize};

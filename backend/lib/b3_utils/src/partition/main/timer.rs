@@ -5,7 +5,7 @@ use b3_stable_structures::{BoundedStorable, GrowFailed, Storable};
 use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
-use crate::partition::DefaultVMHeap;
+use crate::{partition::DefaultVMHeap, NanoTimeStamp};
 
 use super::MainPartition;
 
@@ -13,7 +13,7 @@ pub type MainTimerType = DefaultVMHeap<TimerEntry>;
 
 #[derive(CandidType, Debug, PartialEq, Eq, Ord, Clone, Serialize, Deserialize)]
 pub struct TimerEntry {
-    pub time: u64,
+    pub time: NanoTimeStamp,
     pub id: u64,
 }
 
@@ -73,7 +73,7 @@ impl Storable for TimerEntry {
     }
 
     fn from_bytes(bytes: Cow<[u8]>) -> Self {
-        let time = u64::from_le_bytes(bytes[0..8].try_into().unwrap());
+        let time = NanoTimeStamp::from_le_bytes(bytes[0..8].try_into().unwrap());
         let id = u64::from_le_bytes(bytes[8..16].try_into().unwrap());
 
         Self { time, id }
@@ -86,7 +86,7 @@ mod tests {
     #[test]
     fn test_timer_entry_to_and_from_bytes() {
         let entry = TimerEntry {
-            time: 1234567890,
+            time: 1234567890.into(),
             id: 9876543210,
         };
 

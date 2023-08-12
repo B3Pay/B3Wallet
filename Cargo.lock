@@ -72,7 +72,7 @@ dependencies = [
 
 [[package]]
 name = "b3_utils"
-version = "0.2.0"
+version = "0.2.7"
 dependencies = [
  "b3-stable-structures",
  "candid",

@@ -1,4 +1,4 @@
-use crate::{currency::ICPToken, timestamp::NanoTimeStamp, Subaccount};
+use crate::{currency::ICPToken, NanoTimeStamp, Subaccount};
 
 pub const DEVELOPMENT_PREFIX: u8 = 255;
 

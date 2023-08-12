@@ -1,8 +1,8 @@
 use crate::{
     error::HelperError,
-    timestamp::NanoTimeStamp,
     types::{CanisterId, ControllerId, Metadata, UserId},
     wasm::WasmModule,
+    NanoTimeStamp,
 };
 use candid::{CandidType, Encode};
 use ic_cdk::api::management_canister::main::{CanisterInstallMode, CanisterStatusResponse};

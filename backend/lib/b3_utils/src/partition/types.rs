@@ -9,7 +9,7 @@ pub use b3_stable_structures::{
 #[derive(CandidType, Clone, Debug)]
 pub struct PartitionDetail {
     pub name: String,
-    pub size: u64,
+    pub len: u64,
 }
 
 pub type DefaultVM = VirtualMemory<DefaultMemoryImpl>;

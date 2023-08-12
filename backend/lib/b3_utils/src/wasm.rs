@@ -5,12 +5,13 @@ use serde_bytes::ByteBuf;
 mod test;
 
 mod store;
-mod types;
-mod utils;
-
 pub use store::*;
-pub use types::*;
+
+mod utils;
 pub use utils::*;
+
+mod types;
+pub use types::*;
 
 #[derive(CandidType, Deserialize, Serialize, Clone)]
 pub struct Wasm(pub ByteBuf);

@@ -49,6 +49,7 @@
 
 pub mod constants;
 pub mod error;
+pub mod logs;
 pub mod mocks;
 pub mod nonce;
 pub mod owner;
@@ -57,10 +58,11 @@ pub mod release;
 pub mod types;
 pub mod wasm;
 
-mod ledger;
-mod log;
-mod utils;
+mod timestamp;
+pub use timestamp::*;
 
+mod ledger;
 pub use ledger::*;
-pub use log::*;
+
+mod utils;
 pub use utils::*;

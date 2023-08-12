@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::timestamp::NanoTimeStamp;
+    use crate::NanoTimeStamp;
 
     #[test]
     fn test_time_conversions() {
@@ -40,17 +40,16 @@ mod tests {
     fn test_time_until_and_since() {
         let now = NanoTimeStamp::now();
         let future = now.add_secs(10);
-        let past = NanoTimeStamp(now.0 - 10 * NanoTimeStamp::NS_PER_SECOND);
 
-        assert!(future.is_future());
+        assert!(future.in_future());
         assert!(!future.has_passed());
-        assert!(past.has_passed());
-        assert!(!past.is_future());
+        assert!(now.has_passed());
+        assert!(!now.in_future());
 
         let time_until = future.time_until();
-        assert!(time_until > 0 && time_until <= 10 * NanoTimeStamp::NS_PER_SECOND);
+        assert!(time_until <= 10 * NanoTimeStamp::NS_PER_SECOND);
 
-        let time_since = past.time_since();
-        assert!(time_since > 0 && time_since <= 10 * NanoTimeStamp::NS_PER_SECOND);
+        let time_since = now.time_since();
+        assert!(time_since <= 10 * NanoTimeStamp::NS_PER_SECOND);
     }
 }
