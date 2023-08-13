@@ -48,6 +48,18 @@ impl LogBuffer {
         }
     }
 
+    /// Changes the max capacity of the buffer.
+    /// If the new capacity is smaller than the current capacity, older entries
+    /// are evicted.
+    /// If the new capacity is larger than the current capacity, the buffer is
+    /// not resized.
+    pub fn set_capacity(&mut self, new_capacity: usize) {
+        while self.entries.len() > new_capacity {
+            self.entries.pop_front();
+        }
+        self.max_capacity = new_capacity;
+    }
+
     /// Adds a new entry to the buffer, potentially evicting older entries.
     pub fn append(&mut self, entry: LogEntry) {
         if self.entries.len() >= self.max_capacity {
@@ -59,6 +71,30 @@ impl LogBuffer {
     /// Returns an iterator over entries in the order of their insertion.
     pub fn iter(&self) -> impl Iterator<Item = &LogEntry> {
         self.entries.iter()
+    }
+
+    /// Returns the number of entries in the buffer.
+    /// This is not the same as the max capacity.
+    /// The number of entries is always less than or equal to the max capacity.
+    pub fn len(&self) -> usize {
+        self.entries.len()
+    }
+
+    /// Returns true if the buffer is empty.
+    /// This is the same as `self.len() == 0`.
+    /// This is not the same as the max capacity.
+    /// The buffer is empty if and only if the number of entries is zero.
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+
+    /// Returns the max capacity of the buffer.
+    /// This is the same as the capacity passed to `LogBuffer::with_capacity`.
+    /// This is not the same as the number of entries.
+    /// The max capacity is the maximum number of entries that can be stored in
+    /// the buffer.
+    pub fn max_capacity(&self) -> usize {
+        self.max_capacity
     }
 
     /// Returns the first iterator for which p returns false (or past the end

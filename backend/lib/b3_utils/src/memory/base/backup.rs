@@ -2,13 +2,13 @@ use std::borrow::BorrowMut;
 
 use b3_stable_structures::{writer::Writer, Memory};
 
-use crate::partition::DefaultVM;
+use crate::memory::DefaultVM;
 
-use super::MainPartition;
+use super::BasePartition;
 
 pub type MainBackupType = DefaultVM;
 
-impl MainPartition {
+impl BasePartition {
     pub fn backup(&self) -> &DefaultVM {
         &self.backup
     }

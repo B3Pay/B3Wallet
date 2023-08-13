@@ -12,8 +12,7 @@ candid = { workspace = true }
 ic-cdk = { workspace = true }
 async-trait = { workspace = true }
 enum_dispatch = { workspace = true }
-
-b3_utils = { path = "../b3_utils" }
+b3_utils = { workspace = true }
 
 hex = "0.4"
 serde_bytes = "0.11"

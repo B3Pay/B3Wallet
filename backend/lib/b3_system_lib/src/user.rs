@@ -1,8 +1,8 @@
 use crate::{error::SystemError, types::Canisters, wallet::WalletCanister};
 use b3_utils::{
     constants::RATE_LIMIT,
-    timestamp::NanoTimeStamp,
     types::{CanisterId, ControllerId},
+    NanoTimeStamp,
 };
 use candid::{CandidType, Deserialize};
 use ic_cdk::api::management_canister::{

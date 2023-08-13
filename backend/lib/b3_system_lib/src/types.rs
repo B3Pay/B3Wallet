@@ -1,8 +1,8 @@
 use b3_utils::{
     release::ReleaseNames,
-    timestamp::NanoTimeStamp,
     types::{ControllerId, UserId, WalletVersion},
     wasm::{Wasm, WasmHash, WasmSize},
+    NanoTimeStamp,
 };
 use candid::{CandidType, Deserialize};
 use std::collections::HashMap;

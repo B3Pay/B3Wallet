@@ -55,7 +55,7 @@ macro_rules! log {
             message,
             file: std::file!(),
             line: std::line!(),
-            counter: $crate::logs::counter::increment()
+            counter: $crate::logs::counter::log_increment()
         });
     }}
 }
@@ -84,6 +84,22 @@ pub fn export_log_page(page: u32, page_size: Option<u32>) -> Vec<LogEntry> {
             .collect()
     })
 }
+
+/// Exports the contents of a buffer as a vector of entries in the order of
+/// insertion.
+///
+/// ```
+/// use b3_utils::{log, logs::export_log};
+///
+/// log!("Hello, {}!", "world");
+/// let entries = export_log();
+/// assert_eq!(entries.len(), 1);
+/// assert_eq!(entries[0].message, "Hello, world!");
+/// ```
+pub fn export_log() -> Vec<LogEntry> {
+    with_log(|log| log.iter().cloned().collect())
+}
+
 /// Exports the contents of messages vector of entries in the order of
 /// insertion by page.
 ///
@@ -108,20 +124,7 @@ pub fn export_log_messages_page(page: u32, page_size: Option<u32>) -> Vec<String
             .collect()
     })
 }
-/// Exports the contents of a buffer as a vector of entries in the order of
-/// insertion.
-///
-/// ```
-/// use b3_utils::{log, logs::export_log};
-///
-/// log!("Hello, {}!", "world");
-/// let entries = export_log();
-/// assert_eq!(entries.len(), 1);
-/// assert_eq!(entries[0].message, "Hello, world!");
-/// ```
-pub fn export_log() -> Vec<LogEntry> {
-    with_log(|log| log.iter().cloned().collect())
-}
+
 /// Exports the contents of a buffer as a vector of entries in the order of
 /// insertion.
 ///

@@ -20,7 +20,7 @@ impl OperationState {
         id
     }
 
-    pub fn request_counter(&self) -> usize {
+    pub fn request_counter(&self) -> u64 {
         self.nonce.current()
     }
 

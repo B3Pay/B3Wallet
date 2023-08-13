@@ -1,6 +1,6 @@
 use crate::operation::Operation;
 
-use b3_utils::timestamp::NanoTimeStamp;
+use b3_utils::NanoTimeStamp;
 use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Deserialize, PartialEq, Debug, Clone)]

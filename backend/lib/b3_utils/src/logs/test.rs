@@ -2,7 +2,7 @@
 mod test {
     use crate::{
         log,
-        logs::{store::export_log, LogEntry},
+        logs::{store::export_log, with_log_mut, LogEntry},
     };
 
     #[test]
@@ -75,16 +75,69 @@ mod test {
 
     #[test]
     fn test_log_loop() {
-        for i in 0..105 {
+        for i in 0..109 {
             log!("Hello, {}!", i);
         }
 
         let entries = export_log();
 
         assert_eq!(entries.len(), 100);
-        assert_eq!(entries[0].counter, 6);
-        assert_eq!(entries[99].counter, 105);
-        assert_eq!(entries[0].message, "Hello, 5!");
-        assert_eq!(entries[99].message, "Hello, 104!");
+        assert_eq!(entries[0].counter, 10);
+        assert_eq!(entries[99].counter, 109);
+        assert_eq!(entries[0].message, "Hello, 9!");
+        assert_eq!(entries[99].message, "Hello, 108!");
+    }
+
+    #[test]
+    fn test_log_loop_with_bigger_capacity() {
+        for i in 0..109 {
+            log!("Hello, {}!", i);
+        }
+
+        let entries = export_log();
+
+        assert_eq!(entries.len(), 100);
+        assert_eq!(entries[0].counter, 10);
+        assert_eq!(entries[99].counter, 109);
+        assert_eq!(entries[0].message, "Hello, 9!");
+        assert_eq!(entries[99].message, "Hello, 108!");
+
+        with_log_mut(|log| {
+            assert_eq!(log.len(), 100);
+
+            log.set_capacity(1000);
+
+            assert_eq!(log.len(), 100);
+            assert_eq!(log.max_capacity(), 1000);
+        });
+        let entries = export_log();
+
+        assert_eq!(entries[99].message, "Hello, 108!");
+    }
+
+    #[test]
+    fn test_log_loop_with_smaller_capacity() {
+        for i in 0..109 {
+            log!("Hello, {}!", i);
+        }
+
+        let entries = export_log();
+
+        assert_eq!(entries.len(), 100);
+        assert_eq!(entries[0].counter, 10);
+        assert_eq!(entries[99].counter, 109);
+        assert_eq!(entries[0].message, "Hello, 9!");
+        assert_eq!(entries[99].message, "Hello, 108!");
+
+        with_log_mut(|log| {
+            assert_eq!(log.len(), 100);
+
+            log.set_capacity(10);
+
+            assert_eq!(log.len(), 10);
+        });
+        let entries = export_log();
+
+        assert_eq!(entries[9].message, "Hello, 108!");
     }
 }

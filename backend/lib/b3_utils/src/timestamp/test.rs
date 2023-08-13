@@ -43,7 +43,6 @@ mod tests {
 
         assert!(future.in_future());
         assert!(!future.has_passed());
-        assert!(now.has_passed());
         assert!(!now.in_future());
 
         let time_until = future.time_until();

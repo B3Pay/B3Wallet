@@ -50,10 +50,10 @@
 pub mod constants;
 pub mod error;
 pub mod logs;
+pub mod memory;
 pub mod mocks;
 pub mod nonce;
 pub mod owner;
-pub mod partition;
 pub mod release;
 pub mod types;
 pub mod wasm;

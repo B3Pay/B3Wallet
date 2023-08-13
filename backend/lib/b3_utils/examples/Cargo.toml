@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "stable_memory",
+]
+
+[workspace.dependencies]
+b3_utils = { path = "../" }

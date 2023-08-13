@@ -7,8 +7,8 @@ use crate::{
     user::role::UserRole,
 };
 use b3_utils::{
-    timestamp::NanoTimeStamp,
     types::{OperationId, UserId, WalletVersion},
+    NanoTimeStamp,
 };
 use candid::{CandidType, Deserialize};
 
