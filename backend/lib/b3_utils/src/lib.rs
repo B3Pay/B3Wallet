@@ -56,6 +56,7 @@ pub mod nonce;
 pub mod owner;
 pub mod release;
 pub mod types;
+pub mod vetkd;
 pub mod wasm;
 
 mod timestamp;

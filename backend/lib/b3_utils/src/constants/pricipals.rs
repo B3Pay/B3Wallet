@@ -38,3 +38,10 @@ const CKBTC_MINTER_ID_TESTNET: [u8; 10] = [0, 0, 0, 0, 2, 48, 0, 2, 1, 1];
 
 pub const CKBTC_MINTER_CANISTER_TESTNET: CanisterId =
     CanisterId::from_slice(&CKBTC_MINTER_ID_TESTNET);
+
+// VETKD ----------------------------------------------------------------------
+
+// s55qq-oqaaa-aaaaa-aaakq-cai
+const VETKD_ID_TESTNET: [u8; 10] = [0, 0, 0, 0, 0, 0, 0, 21, 1, 1];
+
+pub const VETKD_CANISTER_TESTNET: CanisterId = CanisterId::from_slice(&VETKD_ID_TESTNET);

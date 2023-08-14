@@ -50,4 +50,11 @@ mod tests {
 
         assert_eq!(minter, CKBTC_MINTER_CANISTER_TESTNET);
     }
+
+    #[test]
+    fn test_testnet_vetkd() {
+        let vetkd = CanisterId::from_text("s55qq-oqaaa-aaaaa-aaakq-cai").unwrap();
+
+        assert_eq!(vetkd, VETKD_CANISTER_TESTNET);
+    }
 }
