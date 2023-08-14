@@ -15,11 +15,11 @@ use b3_operations::{
         {Operation, OperationTrait},
     },
     pending::RequestArgs,
+    role::Role,
     store::{with_operation, with_operation_mut, with_users_can_operate, with_verified_user},
     types::PendingOperations,
-    user::role::UserRole,
 };
-use b3_utils::{revert, timestamp::NanoTimeStamp, types::OperationId, wasm::with_wasm};
+use b3_utils::{revert, types::OperationId, wasm::with_wasm, NanoTimeStamp};
 use candid::candid_method;
 use ic_cdk::{query, update};
 
@@ -49,7 +49,7 @@ pub fn request_maker(
 ) -> OperationId {
     let caller = ic_cdk::caller();
 
-    let role = UserRole::Admin;
+    let role = Role::Admin;
     let allowed_signers = with_users_can_operate(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
@@ -76,7 +76,7 @@ pub fn request_add_signer(
 ) -> OperationId {
     let caller = ic_cdk::caller();
 
-    let role = UserRole::Admin;
+    let role = Role::Admin;
     let allowed_signers = with_users_can_operate(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
@@ -101,7 +101,7 @@ pub fn request_connect() -> OperationId {
 
     let request = AddUser {
         name: "B3Peyment".to_string(),
-        role: UserRole::Canister,
+        role: Role::Canister,
         signer_id: caller,
         expires_at: None,
         threshold: None,
@@ -122,7 +122,7 @@ pub fn request_connect() -> OperationId {
         return revert("Already connected!");
     }
 
-    let role = UserRole::Admin;
+    let role = Role::Admin;
     let allowed_signers = with_users_can_operate(role.clone(), |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
@@ -151,7 +151,7 @@ pub fn request_update_settings(
 
     request.validate_request().unwrap_or_else(revert);
 
-    let role = UserRole::Admin;
+    let role = Role::Admin;
     let allowed_signers = with_users_can_operate(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
@@ -178,7 +178,7 @@ pub fn request_account_rename(
 ) -> OperationId {
     let caller = ic_cdk::caller();
 
-    let role = UserRole::Admin;
+    let role = Role::Admin;
     let allowed_signers = with_users_can_operate(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
@@ -205,7 +205,7 @@ pub fn request_create_account(
 ) -> OperationId {
     let caller = ic_cdk::caller();
 
-    let role = UserRole::Admin;
+    let role = Role::Admin;
     let allowed_signers = with_users_can_operate(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
@@ -232,7 +232,7 @@ pub fn request_delete_account(
 ) -> OperationId {
     let caller = ic_cdk::caller();
 
-    let role = UserRole::Admin;
+    let role = Role::Admin;
     let allowed_signers = with_users_can_operate(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
@@ -259,7 +259,7 @@ pub fn request_transfer_icp(
 ) -> OperationId {
     let caller = ic_cdk::caller();
 
-    let role = UserRole::Admin;
+    let role = Role::Admin;
     let allowed_signers = with_users_can_operate(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
@@ -286,7 +286,7 @@ pub fn request_transfer_btc(
 ) -> OperationId {
     let caller = ic_cdk::caller();
 
-    let role = UserRole::Admin;
+    let role = Role::Admin;
     let allowed_signers = with_users_can_operate(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
@@ -315,7 +315,7 @@ pub fn request_send(
 
     request.validate_request().unwrap_or_else(revert);
 
-    let role = UserRole::Admin;
+    let role = Role::Admin;
     let allowed_signers = with_users_can_operate(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
@@ -346,7 +346,7 @@ pub async fn request_upgrade_canister(wasm_version: String) -> OperationId {
 
     upgrade_request.validate_request().unwrap_or_else(revert);
 
-    let role = UserRole::Admin;
+    let role = Role::Admin;
     let allowed_signers = with_users_can_operate(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {

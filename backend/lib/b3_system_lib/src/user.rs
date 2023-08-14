@@ -1,6 +1,6 @@
 use crate::{error::SystemError, types::Canisters, wallet::WalletCanister};
 use b3_utils::{
-    constants::RATE_LIMIT,
+    constants::SYSTEM_RATE_LIMIT,
     types::{CanisterId, ControllerId},
     NanoTimeStamp,
 };
@@ -72,7 +72,7 @@ impl UserState {
 
     /// Make an function that use updated_at and check the rate of the user.
     pub fn check_rate(&self) -> Result<(), SystemError> {
-        if self.updated_at.rate_limit_exceeded(RATE_LIMIT) {
+        if self.updated_at.rate_limit_exceeded(SYSTEM_RATE_LIMIT) {
             return Err(SystemError::RateLimitExceeded);
         } else {
             Ok(())

@@ -1,18 +1,28 @@
 use std::fmt;
 
-use super::btc::*;
-use super::evm::*;
-use super::icp::*;
-use super::inner::*;
-use super::result::OperationResult;
 use crate::error::OperationError;
-use crate::operation::global::SendToken;
-
 use async_trait::async_trait;
 use b3_wallet_lib::error::WalletError;
-
 use candid::{CandidType, Deserialize};
 use enum_dispatch::enum_dispatch;
+
+pub mod btc;
+pub mod evm;
+pub mod global;
+pub mod icp;
+pub mod inner;
+pub mod result;
+
+use btc::*;
+use evm::*;
+use icp::*;
+use inner::*;
+
+mod state;
+pub use state::*;
+
+use global::SendToken;
+use result::OperationResult;
 
 #[async_trait]
 #[enum_dispatch]

@@ -1,15 +1,13 @@
 use b3_utils::types::Metadata;
 use candid::{CandidType, Deserialize};
 
-pub mod role;
 pub mod state;
 
-use crate::operation::Operation;
-use crate::user::role::UserRole;
+use crate::{operation::Operation, role::Role};
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct User {
-    pub role: UserRole,
+    pub role: Role,
     pub name: String,
     pub metadata: Metadata,
     pub expires_at: Option<u64>,
@@ -18,7 +16,7 @@ pub struct User {
 impl Default for User {
     fn default() -> Self {
         User {
-            role: UserRole::default(),
+            role: Role::default(),
             name: "".to_string(),
             expires_at: None,
             metadata: Metadata::default(),
@@ -26,8 +24,8 @@ impl Default for User {
     }
 }
 
-impl From<UserRole> for User {
-    fn from(role: UserRole) -> Self {
+impl From<Role> for User {
+    fn from(role: Role) -> Self {
         User {
             role,
             name: "".to_string(),
@@ -38,7 +36,7 @@ impl From<UserRole> for User {
 }
 
 impl User {
-    pub fn new(role: UserRole, name: String, expires_at: Option<u64>) -> Self {
+    pub fn new(role: Role, name: String, expires_at: Option<u64>) -> Self {
         User {
             role,
             name,
@@ -59,7 +57,7 @@ impl User {
         self.name = name;
     }
 
-    pub fn set_role(&mut self, role: UserRole) {
+    pub fn set_role(&mut self, role: Role) {
         self.role = role;
     }
 }

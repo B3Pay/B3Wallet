@@ -10,7 +10,7 @@ use candid::{CandidType, Deserialize};
 
 use crate::error::OperationError;
 
-use super::{operation::OperationTrait, result::TokenSent};
+use super::{result::TokenSent, OperationTrait};
 
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
 pub struct SendToken {

@@ -7,10 +7,11 @@ mod wallet;
 mod wasm;
 
 use b3_operations::{
-    state::OperationState,
-    store::{with_operation, with_operation_mut},
+    operation::OperationState,
+    role::{AccessLevel, Role},
+    store::{with_operation, with_operation_mut, with_users_mut},
     types::UserMap,
-    user::{role::UserRole, User},
+    user::User,
 };
 use b3_utils::{
     types::{WalletCanisterInitArgs, WalletController},
@@ -37,23 +38,20 @@ pub fn init() {
             owner_id,
             system_id,
         }) => {
+            let role = Role::new("system".to_owned(), AccessLevel::ReadOnly);
             // if the canister is created by the system canister, the system canister
             // is added as trusted Canister
-            signers.insert(
-                system_id,
-                User::new(UserRole::Canister, "System".to_owned(), None),
-            );
+            signers.insert(system_id, User::new(role, "System".to_owned(), None));
             owner_id
         }
         None => ic_cdk::caller(),
     };
 
-    signers.insert(
-        owner_id,
-        User::new(UserRole::Admin, "Owner".to_owned(), None),
-    );
+    let role = Role::new("owner".to_owned(), AccessLevel::FullAccess);
 
-    with_operation_mut(|p| p.users = signers);
+    signers.insert(owner_id, User::new(role, "Owner".to_owned(), None));
+
+    with_users_mut(|p| p);
     // set initial controllers
     with_setting_mut(|s| {
         s.controllers
@@ -93,12 +91,11 @@ mod tests {
     use b3_operations::processed::ProcessedOperation;
     use b3_operations::response::Response;
     use b3_operations::types::*;
-    use b3_operations::user::role::UserRole;
     use b3_utils::currency::ICPToken;
     use b3_utils::currency::TokenAmount;
-    use b3_utils::timestamp::NanoTimeStamp;
     use b3_utils::types::*;
     use b3_utils::Environment;
+    use b3_utils::NanoTimeStamp;
 
     use b3_utils::wasm::*;
     use b3_wallet_lib::account::WalletAccount;

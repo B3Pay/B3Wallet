@@ -3,6 +3,9 @@ use crate::operation::Operation;
 use b3_utils::NanoTimeStamp;
 use candid::{CandidType, Deserialize};
 
+mod state;
+pub use state::*;
+
 #[derive(CandidType, Deserialize, PartialEq, Debug, Clone)]
 pub struct OperationAccess {
     operation: Operation,
@@ -11,34 +14,34 @@ pub struct OperationAccess {
 
 #[derive(CandidType, Deserialize, PartialEq, Debug, Clone)]
 pub enum AccessLevel {
-    Full,
+    FullAccess,
     ReadOnly,
     Limited(Vec<OperationAccess>),
 }
 
 #[derive(CandidType, Deserialize, PartialEq, Debug, Clone)]
-pub struct UserRole {
+pub struct Role {
     name: String,
     access_level: AccessLevel,
 }
 
-impl Default for UserRole {
+impl Default for Role {
     fn default() -> Self {
-        UserRole {
+        Role {
             name: "default".to_string(),
-            access_level: AccessLevel::Full,
+            access_level: AccessLevel::FullAccess,
         }
     }
 }
 
-impl UserRole {
+impl Role {
     pub fn new(name: String, access_level: AccessLevel) -> Self {
-        UserRole { name, access_level }
+        Role { name, access_level }
     }
 
     pub fn has_operation(&self, operation: Operation) -> bool {
         match &self.access_level {
-            AccessLevel::Full => true,
+            AccessLevel::FullAccess => true,
             AccessLevel::ReadOnly => todo!("ReadOnly"),
             AccessLevel::Limited(operations) => operations.iter().any(|op_access| {
                 if op_access.operation == operation {

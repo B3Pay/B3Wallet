@@ -1,5 +1,5 @@
 use crate::{
-    constants::{DEVELOPMENT_PREFIX, STAGING_PREFIX},
+    constants::{DEVELOPMENT_PREFIX_NUMBER, STAGING_PREFIX_NUMBER},
     ledger::AccountIdentifier,
     ledger::ICRCAccount,
     types::UserId,
@@ -107,8 +107,8 @@ impl Subaccount {
         }
 
         match self.0[23] {
-            STAGING_PREFIX => Environment::Staging,
-            DEVELOPMENT_PREFIX => Environment::Development,
+            STAGING_PREFIX_NUMBER => Environment::Staging,
+            DEVELOPMENT_PREFIX_NUMBER => Environment::Development,
             _ => Environment::Production,
         }
     }
@@ -146,8 +146,8 @@ impl Subaccount {
         }
 
         let env_str = match self.0[23] {
-            STAGING_PREFIX => "staging_account",
-            DEVELOPMENT_PREFIX => "development_account",
+            STAGING_PREFIX_NUMBER => "staging_account",
+            DEVELOPMENT_PREFIX_NUMBER => "development_account",
             _ => "account",
         };
 

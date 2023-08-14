@@ -1,7 +1,11 @@
 use b3_operations::{
-    store::{with_operation, with_operation_mut, with_verified_user},
+    role::Role,
+    store::{
+        with_operation, with_operation_mut, with_user, with_users, with_users_mut,
+        with_verified_user,
+    },
     types::UserMap,
-    user::{role::UserRole, User},
+    user::User,
 };
 use b3_utils::types::UserId;
 use candid::candid_method;
@@ -34,33 +38,33 @@ pub fn caller_is_signer() -> Result<(), String> {
 #[query]
 #[candid_method(query)]
 pub fn validate_signer(signer_id: UserId) -> bool {
-    with_operation(|u| u.users.contains_key(&signer_id))
+    with_user(&signer_id, |_| true).is_ok()
 }
 
 #[query(guard = "caller_is_admin")]
 #[candid_method(query)]
 pub fn get_signers() -> UserMap {
-    with_operation(|u| u.users.clone())
+    with_users(|u| u.users().clone())
 }
 
 #[update(guard = "caller_is_admin")]
 #[candid_method(update)]
-pub fn signer_add(signer_id: UserId, role: UserRole) -> UserMap {
+pub fn signer_add(signer_id: UserId, role: Role) -> UserMap {
     let signer = User::from(role);
 
-    with_operation_mut(|u| {
-        u.users.insert(signer_id.clone(), signer);
+    with_users_mut(|users| {
+        users.add(signer_id.clone(), signer);
 
-        u.users.clone()
+        users.get_users()
     })
 }
 
 #[update(guard = "caller_is_admin")]
 #[candid_method(update)]
 pub fn signer_remove(signer_id: UserId) -> UserMap {
-    with_operation_mut(|u| {
-        u.users.remove(&signer_id);
+    with_users_mut(|users| {
+        users.remove(&signer_id);
 
-        u.users.clone()
+        users.get_users()
     })
 }

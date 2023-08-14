@@ -1,10 +1,11 @@
 use crate::{
     error::OperationError,
     operation::Operation,
+    operation::OperationState,
     pending::PendingOperation,
     processed::ProccessedState,
-    state::OperationState,
-    types::{ProcessedOperationMap, UserIds, UserMap},
+    role::RoleState,
+    types::UserIds,
     user::{state::UserState, User},
 };
 use b3_utils::types::{OperationId, UserId};
@@ -14,7 +15,9 @@ thread_local! {
     static PROCCESSED: RefCell<ProccessedState> = RefCell::default();
     static OPERATION: RefCell<OperationState> = RefCell::default();
     static USERS: RefCell<UserState> = RefCell::default();
+    static ROLES: RefCell<RoleState> = RefCell::default();
 }
+
 // STATE ----------------------------------------------------------------------
 
 /// Get all state.
@@ -23,11 +26,7 @@ pub fn with_operation<T, F>(callback: F) -> T
 where
     F: FnOnce(&OperationState) -> T,
 {
-    OPERATION.with(|states| {
-        let state = states.borrow();
-
-        callback(&state)
-    })
+    OPERATION.with(|states| callback(&states.borrow()))
 }
 
 /// Get all state mutably.
@@ -36,11 +35,7 @@ pub fn with_operation_mut<T, F>(callback: F) -> T
 where
     F: FnOnce(&mut OperationState) -> T,
 {
-    OPERATION.with(|states| {
-        let mut state = states.borrow_mut();
-
-        callback(&mut state)
-    })
+    OPERATION.with(|states| callback(&mut states.borrow_mut()))
 }
 
 // REQUEST ------------------------------------------------------------------------
@@ -72,13 +67,17 @@ where
 /// Get Confirmed.
 pub fn with_processed_operation<T, F>(callback: F) -> T
 where
-    F: FnOnce(&ProcessedOperationMap) -> T,
+    F: FnOnce(&ProccessedState) -> T,
 {
-    PROCCESSED.with(|states| {
-        let state = states.borrow();
+    PROCCESSED.with(|states| callback(&states.borrow()))
+}
 
-        callback(&state.processed)
-    })
+/// Get Confirmed.
+pub fn with_processed_operation_mut<T, F>(callback: F) -> T
+where
+    F: FnOnce(&mut ProccessedState) -> T,
+{
+    PROCCESSED.with(|states| callback(&mut states.borrow_mut()))
 }
 
 // SIGNERS ----------------------------------------------------------------------
@@ -86,25 +85,17 @@ where
 /// Get all users.
 pub fn with_users<T, F>(callback: F) -> T
 where
-    F: FnOnce(&UserMap) -> T,
+    F: FnOnce(&UserState) -> T,
 {
-    USERS.with(|states| {
-        let users = states.borrow();
-
-        callback(&users.users())
-    })
+    USERS.with(|states| callback(&states.borrow()))
 }
 
 /// Get all users mutably.
 pub fn with_users_mut<T, F>(callback: F) -> T
 where
-    F: FnOnce(&mut UserMap) -> T,
+    F: FnOnce(&mut UserState) -> T,
 {
-    USERS.with(|states| {
-        let mut users = states.borrow_mut();
-
-        callback(&mut users.users_mut())
-    })
+    USERS.with(|states| callback(&mut states.borrow_mut()))
 }
 
 /// Get a user.

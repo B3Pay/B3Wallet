@@ -1,9 +1,9 @@
 use crate::error::OperationError;
 use crate::operation::result::OperationResult;
 use crate::operation::OperationTrait;
+use crate::role::Role;
 use crate::store::with_users;
 use crate::store::with_users_mut;
-use crate::user::role::UserRole;
 use crate::user::User;
 use async_trait::async_trait;
 use b3_utils::types::{Metadata, UserId};
@@ -14,7 +14,7 @@ use candid::{CandidType, Deserialize};
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub struct AddUser {
     pub name: String,
-    pub role: UserRole,
+    pub role: Role,
     pub signer_id: UserId,
     pub expires_at: Option<u64>,
     pub threshold: Option<u8>,
@@ -36,13 +36,13 @@ impl OperationTrait for AddUser {
     async fn execute(self) -> Result<OperationResult, WalletError> {
         let signer_id = self.signer_id.clone();
         with_users_mut(|users| {
-            if users.contains_key(&signer_id) {
+            if users.contains(&signer_id) {
                 return Err(WalletError::SignerAlreadyExists(signer_id.to_string()));
             }
 
             let user = User::from(&self);
 
-            users.insert(signer_id, user);
+            users.add(signer_id, user);
 
             Ok(self.into())
         })
@@ -80,7 +80,7 @@ impl OperationTrait for RemoveUser {
     async fn execute(self) -> Result<OperationResult, WalletError> {
         let signer_id = self.signer_id.clone();
         with_users_mut(|users| {
-            if !users.contains_key(&signer_id) {
+            if !users.contains(&signer_id) {
                 return Err(WalletError::SignerDoesNotExist(signer_id.to_string()));
             }
 
@@ -93,7 +93,7 @@ impl OperationTrait for RemoveUser {
     fn validate_request(&self) -> Result<(), OperationError> {
         // check if the user exists
         with_users(|users| {
-            if !users.contains_key(&self.signer_id) {
+            if !users.contains(&self.signer_id) {
                 return Err(OperationError::UserDoesNotExist(self.signer_id.to_string()));
             }
 

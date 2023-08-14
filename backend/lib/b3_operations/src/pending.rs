@@ -3,8 +3,8 @@ use crate::{
     operation::{Operation, OperationTrait},
     processed::{OperationStatus, ProcessedOperation},
     response::Response,
+    role::Role,
     types::{ConsentMessage, ResponseMap, UserIds},
-    user::role::UserRole,
 };
 use b3_utils::{
     types::{OperationId, UserId, WalletVersion},
@@ -15,7 +15,7 @@ use candid::{CandidType, Deserialize};
 #[derive(CandidType, Clone, Deserialize, Debug)]
 pub struct PendingOperation {
     pub id: OperationId,
-    pub role: UserRole,
+    pub role: Role,
     pub request: Operation,
     pub status: OperationStatus,
     pub responses: ResponseMap,
@@ -29,7 +29,7 @@ pub struct PendingOperation {
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
 pub struct RequestArgs {
-    pub role: UserRole,
+    pub role: Role,
     pub request: Operation,
     pub reason: String,
     pub version: WalletVersion,

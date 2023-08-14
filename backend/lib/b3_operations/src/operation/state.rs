@@ -1,7 +1,28 @@
-use b3_utils::types::{OperationId, UserId};
+use crate::{
+    error::OperationError,
+    pending::{PendingOperation, RequestArgs},
+    types::{PendingOperationMap, PendingOperations},
+};
+use b3_utils::{
+    nonce::Nonce,
+    types::{OperationId, UserId},
+};
+use candid::{CandidType, Deserialize};
 
-use super::pending::{PendingOperation, RequestArgs};
-use crate::{error::OperationError, state::OperationState, types::PendingOperations};
+#[derive(CandidType, Deserialize, Clone)]
+pub struct OperationState {
+    pendings: PendingOperationMap,
+    nonce: Nonce,
+}
+
+impl Default for OperationState {
+    fn default() -> Self {
+        OperationState {
+            pendings: PendingOperationMap::new(),
+            nonce: Nonce::new(None),
+        }
+    }
+}
 
 impl OperationState {
     pub fn new_request(&self, signer_id: UserId, args: RequestArgs) -> PendingOperation {
@@ -10,10 +31,10 @@ impl OperationState {
         PendingOperation::new(id, signer_id, args)
     }
 
-    pub fn insert_new_request(&mut self, sign_request: PendingOperation) -> OperationId {
+    pub fn add(&mut self, sign_request: PendingOperation) -> OperationId {
         let id = sign_request.id;
 
-        self.pending.insert(id.clone(), sign_request);
+        self.pendings.insert(id.clone(), sign_request);
 
         self.nonce.increment();
 
@@ -21,22 +42,22 @@ impl OperationState {
     }
 
     pub fn request_counter(&self) -> u64 {
-        self.nonce.current()
+        self.nonce.get()
     }
 
     pub fn remove_request(&mut self, request_id: &OperationId) {
-        self.pending.remove(request_id);
+        self.pendings.remove(request_id);
     }
 
     pub fn pending_list(&self) -> PendingOperations {
-        self.pending
+        self.pendings
             .iter()
             .map(|(_, request)| request.clone())
             .collect()
     }
 
     pub fn pending(&self, request_id: &OperationId) -> Result<&PendingOperation, OperationError> {
-        self.pending
+        self.pendings
             .get(request_id)
             .ok_or(OperationError::RequestNotFound(request_id.to_owned()))
     }
@@ -45,8 +66,16 @@ impl OperationState {
         &mut self,
         request_id: &OperationId,
     ) -> Result<&mut PendingOperation, OperationError> {
-        self.pending
+        self.pendings
             .get_mut(request_id)
             .ok_or(OperationError::RequestNotFound(request_id.to_owned()))
+    }
+
+    pub fn pending_map(&self) -> &PendingOperationMap {
+        &self.pendings
+    }
+
+    pub fn pending_map_mut(&mut self) -> &mut PendingOperationMap {
+        &mut self.pendings
     }
 }

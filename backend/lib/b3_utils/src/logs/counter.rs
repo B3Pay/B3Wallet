@@ -12,6 +12,6 @@ pub fn log_increment() -> u64 {
         nonce.increment();
         cell.set(nonce);
 
-        nonce.current()
+        nonce.get()
     })
 }

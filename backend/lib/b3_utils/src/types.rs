@@ -1,3 +1,4 @@
+use crate::nonce::Nonce;
 use candid::{CandidType, Principal};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -16,6 +17,8 @@ pub type ControllerIds = Vec<ControllerId>;
 
 pub type CanisterId = Principal;
 pub type UserId = Principal;
+
+pub type RoleId = Nonce;
 
 pub type OperationId = u64;
 pub type Deadline = u64;

@@ -4,7 +4,7 @@ use std::fmt;
 
 mod test;
 
-use crate::constants::{DEVELOPMENT_PREFIX, STAGING_PREFIX};
+use crate::constants::{DEVELOPMENT_PREFIX_NUMBER, STAGING_PREFIX_NUMBER};
 
 #[derive(CandidType, Deserialize, Serialize, Clone, PartialEq, Default, Debug)]
 pub enum Environment {
@@ -32,8 +32,8 @@ impl Environment {
     pub fn identifier(&self) -> u8 {
         match self {
             Environment::Production => 0,
-            Environment::Staging => STAGING_PREFIX,
-            Environment::Development => DEVELOPMENT_PREFIX,
+            Environment::Staging => STAGING_PREFIX_NUMBER,
+            Environment::Development => DEVELOPMENT_PREFIX_NUMBER,
         }
     }
 
@@ -50,8 +50,8 @@ impl From<u8> for Environment {
     fn from(value: u8) -> Self {
         match value {
             0 => Environment::Production,
-            STAGING_PREFIX => Environment::Staging,
-            DEVELOPMENT_PREFIX => Environment::Development,
+            STAGING_PREFIX_NUMBER => Environment::Staging,
+            DEVELOPMENT_PREFIX_NUMBER => Environment::Development,
             _ => Environment::Production,
         }
     }

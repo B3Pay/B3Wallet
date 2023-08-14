@@ -8,63 +8,71 @@ use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct ProccessedState {
-    pub(crate) processed: ProcessedOperationMap,
+    processeds: ProcessedOperationMap,
 }
 
 impl Default for ProccessedState {
     fn default() -> Self {
         ProccessedState {
-            processed: ProcessedOperationMap::new(),
+            processeds: ProcessedOperationMap::new(),
         }
     }
 }
 
 impl ProccessedState {
     pub fn processed_list(&self) -> ProcessedOperations {
-        self.processed
+        self.processeds
             .iter()
             .map(|(_, request)| request.clone())
             .collect()
     }
 
-    pub fn insert_processed(
+    pub fn add(
         &mut self,
-        request_id: OperationId,
+        operation_id: OperationId,
         processed: ProcessedOperation,
     ) -> Result<(), OperationError> {
-        self.processed
-            .remove(&request_id)
-            .ok_or(OperationError::RequestNotFound(request_id))?;
+        self.processeds
+            .remove(&operation_id)
+            .ok_or(OperationError::RequestNotFound(operation_id))?;
 
-        self.processed.insert(request_id, processed);
+        self.processeds.insert(operation_id, processed);
 
         Ok(())
     }
 
     pub fn processed(
         &self,
-        request_id: &OperationId,
+        operation_id: &OperationId,
     ) -> Result<&ProcessedOperation, OperationError> {
-        self.processed
-            .get(&request_id)
-            .ok_or(OperationError::RequestNotFound(request_id.to_owned()))
+        self.processeds
+            .get(&operation_id)
+            .ok_or(OperationError::RequestNotFound(operation_id.to_owned()))
     }
 
     pub fn processed_mut(&mut self) -> &mut ProcessedOperationMap {
-        &mut self.processed
+        &mut self.processeds
     }
 
-    pub fn check_request(&self, request_id: &OperationId) -> Result<(), OperationError> {
-        if self.processed.get(request_id).is_some() {
+    pub fn check_request(&self, operation_id: &OperationId) -> Result<(), OperationError> {
+        if self.processeds.get(operation_id).is_some() {
             return Err(OperationError::RequestAlreadyProcessed(
-                request_id.to_owned(),
+                operation_id.to_owned(),
             ));
         }
 
-        if !self.processed.contains_key(&request_id) {
-            return Err(OperationError::RequestNotFound(request_id.to_owned()));
+        if !self.processeds.contains_key(&operation_id) {
+            return Err(OperationError::RequestNotFound(operation_id.to_owned()));
         }
 
         Ok(())
+    }
+
+    pub fn processeds(&self) -> &ProcessedOperationMap {
+        &self.processeds
+    }
+
+    pub fn processeds_mut(&mut self) -> &mut ProcessedOperationMap {
+        &mut self.processeds
     }
 }

@@ -6,6 +6,9 @@ use ic_cdk::api::time as ic_timestamp;
 use crate::{error::OperationError, operation::result::OperationResult, pending::PendingOperation};
 use candid::{CandidType, Deserialize};
 
+mod state;
+pub use state::*;
+
 #[derive(CandidType, Deserialize, PartialEq, Debug, Copy, Clone)]
 pub enum OperationStatus {
     Expired,

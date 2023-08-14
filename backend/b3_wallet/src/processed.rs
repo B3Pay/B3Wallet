@@ -1,9 +1,8 @@
-use crate::permit::{caller_is_admin, caller_is_signer};
+use crate::permit::caller_is_signer;
 use b3_operations::{
-    error::OperationError,
     processed::ProcessedOperation,
     response::Response,
-    store::{with_operation, with_operation_mut, with_pending_operation_mut},
+    store::{with_pending_operation_mut, with_processed_operation, with_processed_operation_mut},
     types::ProcessedOperations,
 };
 use b3_utils::{revert, types::OperationId};
@@ -15,7 +14,7 @@ use ic_cdk::{query, update};
 #[candid_method(query)]
 #[query(guard = "caller_is_signer")]
 pub fn get_processed_list() -> ProcessedOperations {
-    with_operation(|s| s.processed_list())
+    with_processed_operation(|s| s.processed_list())
 }
 
 // UPDATE
@@ -42,8 +41,7 @@ pub async fn response(
     if request.is_failed() {
         let processed = ProcessedOperation::from(request);
 
-        if let Err(err) = with_operation_mut(|s| s.insert_processed(request_id, processed.clone()))
-        {
+        if let Err(err) = with_processed_operation_mut(|s| s.add(request_id, processed.clone())) {
             return Err(err.to_string());
         }
 
@@ -53,8 +51,7 @@ pub async fn response(
     if request.is_confirmed() {
         let processed = request.execute().await;
 
-        if let Err(err) = with_operation_mut(|s| s.insert_processed(request_id, processed.clone()))
-        {
+        if let Err(err) = with_processed_operation_mut(|s| s.add(request_id, processed.clone())) {
             return Err(err.to_string());
         }
 
@@ -62,23 +59,4 @@ pub async fn response(
     }
 
     Ok(request.into())
-}
-
-#[candid_method(update)]
-#[update(guard = "caller_is_admin")]
-pub fn process_request(request_id: OperationId) {
-    let caller = ic_cdk::caller();
-
-    with_operation_mut(|s| {
-        let mut processed: ProcessedOperation = s
-            .processed(&request_id)
-            .unwrap_or_else(revert)
-            .clone()
-            .into();
-
-        processed.fail(OperationError::RequestRemovedByAdmin(caller.to_string()));
-
-        s.insert_processed(request_id, processed)
-            .unwrap_or_else(revert);
-    });
 }
