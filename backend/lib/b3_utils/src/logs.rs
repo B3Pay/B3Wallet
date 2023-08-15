@@ -33,6 +33,40 @@ impl fmt::Display for LogEntry {
     }
 }
 
+/// Adds a new record to a canister log buffer.
+///
+/// ```
+/// use b3_utils::{log, logs::export_log};
+///
+/// // Keep up to 1000 last messages.
+///
+/// fn sum_and_log(x: u64, y: u64) -> u64 {
+///    let result = x.saturating_add(y);
+///    log!("{} + {} = {}", x, y, result);
+///    result
+/// }
+///
+/// assert_eq!(sum_and_log(1, 2), 3);
+/// assert_eq!(export_log()[0].message, "1 + 2 = 3");
+/// assert_eq!(export_log()[0].counter, 1);
+/// ```
+#[macro_export]
+macro_rules! log {
+    ($message:expr $(,$args:expr)* $(,)*) => {{
+        use $crate::logs::Sink;
+        let message = std::format!($message $(,$args)*);
+        // Print the message for convenience for local development (e.g. integration tests)
+        println!("{}", &message);
+        (&$crate::logs::MAIN_LOG).append($crate::logs::LogEntry {
+            timestamp: $crate::NanoTimeStamp::now(),
+            message,
+            file: std::file!(),
+            line: std::line!(),
+            counter: $crate::logs::counter::log_increment()
+        });
+    }}
+}
+
 /// A circular buffer for log messages.
 pub struct LogBuffer {
     max_capacity: usize,

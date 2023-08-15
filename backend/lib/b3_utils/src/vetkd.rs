@@ -22,12 +22,12 @@ impl From<Environment> for VetKDConfig {
         if env == Environment::Production {
             Self {
                 key_name: "key_1".to_string(),
-                sign_cycles: 26_153_846_153,
+                sign_cycles: 0,
             }
         } else if env == Environment::Staging {
             Self {
                 key_name: "test_key_1".to_string(),
-                sign_cycles: 10_000_000_000,
+                sign_cycles: 0,
             }
         } else {
             Self {

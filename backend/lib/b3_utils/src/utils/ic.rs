@@ -19,3 +19,13 @@ pub async fn ic_canister_status(
 pub fn revert<T, E: Display>(err: E) -> T {
     ic_cdk::trap(&format!("Error::{}", err));
 }
+
+#[macro_export]
+macro_rules! require {
+    ($e:expr, $($msg:tt)*) => {
+        if !$e {
+            $crate::log!($($msg)*);
+            $crate::utils::revert::<(), _>(format!($($msg)*));
+        }
+    };
+}
