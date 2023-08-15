@@ -46,6 +46,7 @@ mod test {
             message: "Hello, world!".to_string(),
             file: "foo.rs",
             line: 1,
+            version: "0",
         });
 
         buffer.append(LogEntry {
@@ -54,6 +55,7 @@ mod test {
             message: "Hello, world!".to_string(),
             file: "foo.rs",
             line: 2,
+            version: "0",
         });
 
         buffer.append(LogEntry {
@@ -62,15 +64,18 @@ mod test {
             message: "Hello, world!".to_string(),
             file: "foo.rs",
             line: 3,
+            version: "1",
         });
 
-        let entries: Vec<_> = buffer.iter().cloned().collect();
+        let entries = buffer.export();
 
         assert_eq!(entries.len(), 2);
         assert_eq!(entries[0].counter, 1);
         assert_eq!(entries[1].counter, 2);
         assert_eq!(entries[0].message, "Hello, world!");
         assert_eq!(entries[1].message, "Hello, world!");
+        assert_eq!(entries[0].version, "0");
+        assert_eq!(entries[1].version, "1");
     }
 
     #[test]

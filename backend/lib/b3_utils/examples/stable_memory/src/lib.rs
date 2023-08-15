@@ -1,11 +1,11 @@
 use b3_utils::log;
-use b3_utils::logs::{export_log, export_log_messages_page, LogEntry};
 use b3_utils::memory::base::{timer::TimerEntry, with_base_partition, with_base_partition_mut};
 use b3_utils::memory::types::{
     BoundedStorable, DefaultVMHeap, DefaultVMMap, DefaultVMVec, PartitionDetail, Storable,
 };
 use b3_utils::memory::{with_stable_memory, with_stable_memory_mut};
-use b3_utils::NanoTimeStamp;
+use b3_utils::{export_log, export_log_messages_page, LogEntry};
+use b3_utils::{require, require_log, NanoTimeStamp};
 use candid::{candid_method, CandidType};
 use ciborium::de::from_reader;
 use ciborium::ser::into_writer;
@@ -111,7 +111,7 @@ impl Storable for ProcessedOperation {
 #[init]
 #[candid_method(init)]
 fn init() {
-    log!("init.");
+    log!("init: {}", ic_cdk::api::id());
 }
 
 #[query]
@@ -235,7 +235,7 @@ fn print_log_entries() -> Vec<LogEntry> {
 
 #[query]
 #[candid_method(query)]
-fn print_log_entries_page(page: u32, page_size: Option<u32>) -> Vec<String> {
+fn print_log_entries_page(page: usize, page_size: Option<usize>) -> Vec<String> {
     export_log_messages_page(page, page_size)
 }
 
@@ -247,6 +247,38 @@ fn sum_and_log(x: u64, y: u64) -> u64 {
     log!("sum_and_log: {} + {} = {}", x, y, result);
 
     result
+}
+
+#[update]
+#[candid_method(update)]
+fn sum_and_log_sub(x: u64, y: u64) -> Result<u64, String> {
+    require!(x >= y, "y({}) must be less than x({})", y, x);
+
+    let result = x.saturating_sub(y);
+
+    log!("sum_and_log_sub: {} - {} = {}", x, y, result);
+
+    Ok(result)
+}
+
+pub fn sub(x: u64, y: u64) -> Result<u64, String> {
+    if x < y {
+        return Err(format!("y({}) must be less than x({})", y, x));
+    }
+
+    Ok(x.saturating_sub(y))
+}
+
+#[update]
+#[candid_method(update)]
+fn sum_and_log_sub_with_require(x: u64, y: u64) -> Result<u64, String> {
+    require_log!(x >= y, "y({}) must be less than x({})", y, x);
+
+    let result = x.saturating_sub(y);
+
+    log!("sum_and_log_sub_with_require: {} - {} = {}", x, y, result);
+
+    Ok(result)
 }
 
 #[query]

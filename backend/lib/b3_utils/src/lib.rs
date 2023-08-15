@@ -49,7 +49,6 @@
 
 pub mod constants;
 pub mod error;
-pub mod logs;
 pub mod memory;
 pub mod mocks;
 pub mod nonce;
@@ -67,3 +66,6 @@ pub use ledger::*;
 
 mod utils;
 pub use utils::*;
+
+mod logs;
+pub use logs::*;

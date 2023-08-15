@@ -16,7 +16,7 @@ use b3_wallet_lib::{
     ledger::{
         btc::network::BtcNetwork,
         ckbtc::{minter::Minter, types::RetrieveBtcStatus},
-        subaccount::SubaccountTrait,
+        subaccount::SubaccountEcdsaTrait,
         types::{AddressMap, Balance, ChainEnum},
     },
     store::{

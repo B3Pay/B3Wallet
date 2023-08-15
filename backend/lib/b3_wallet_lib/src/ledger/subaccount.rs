@@ -9,8 +9,7 @@ use b3_utils::Subaccount;
 use ic_cdk::api::call::{call, call_with_payment};
 
 #[async_trait]
-pub trait SubaccountTrait {
-    fn derivation_path(&self) -> Vec<Vec<u8>>;
+pub trait SubaccountEcdsaTrait {
     fn config(&self) -> EcdsaConfig;
     fn key_id(&self) -> EcdsaKeyId;
     fn key_id_with_cycles_and_path(&self) -> (EcdsaKeyId, u64, Vec<Vec<u8>>);
@@ -19,11 +18,7 @@ pub trait SubaccountTrait {
 }
 
 #[async_trait]
-impl SubaccountTrait for Subaccount {
-    fn derivation_path(&self) -> Vec<Vec<u8>> {
-        vec![self.0.to_vec()]
-    }
-
+impl SubaccountEcdsaTrait for Subaccount {
     fn config(&self) -> EcdsaConfig {
         self.environment().into()
     }

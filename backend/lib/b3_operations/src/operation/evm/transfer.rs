@@ -9,7 +9,7 @@ use b3_wallet_lib::{
     error::WalletError,
     ledger::{
         evm::{evm::EvmSignTrait, london::EvmTransaction1559, utils::get_transfer_data},
-        subaccount::SubaccountTrait,
+        subaccount::SubaccountEcdsaTrait,
         types::ChainEnum,
     },
     store::{with_chain, with_ledger},

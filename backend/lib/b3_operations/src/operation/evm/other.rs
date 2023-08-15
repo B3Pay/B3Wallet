@@ -12,7 +12,7 @@ use b3_wallet_lib::{
             london::EvmTransaction1559,
             utils::{create_address_from, vec_u8_to_string},
         },
-        subaccount::SubaccountTrait,
+        subaccount::SubaccountEcdsaTrait,
         types::ChainEnum,
     },
     store::{with_chain, with_ledger},

@@ -2,7 +2,7 @@ use ic_cdk::api::management_canister::{
     main::{canister_status, CanisterStatusResponse},
     provisional::{CanisterId, CanisterIdRecord},
 };
-use std::fmt::Display;
+use std::fmt;
 
 use crate::error::HelperError;
 
@@ -16,16 +16,10 @@ pub async fn ic_canister_status(
     Ok(status)
 }
 
-pub fn revert<T, E: Display>(err: E) -> T {
-    ic_cdk::trap(&format!("Error::{}", err));
+pub fn revert<T, E: fmt::Display>(err: E) -> T {
+    ic_cdk::trap(&format!("{}", err));
 }
 
-#[macro_export]
-macro_rules! require {
-    ($e:expr, $($msg:tt)*) => {
-        if !$e {
-            $crate::log!($($msg)*);
-            $crate::utils::revert::<(), _>(format!($($msg)*));
-        }
-    };
+pub fn report<T, E: fmt::Display>(err: E) -> Result<T, String> {
+    Err(format!("{}", err))
 }

@@ -1,56 +1,90 @@
-use crate::Environment;
-use candid::{CandidType, Deserialize};
+mod error;
+pub use error::*;
 
 mod types;
+use ic_cdk::api::call::{call, call_with_payment};
+pub use types::*;
 
-use types::{VetKDCurve, VetKDKeyId};
+mod config;
+pub use config::*;
 
-#[derive(CandidType, Deserialize, Clone)]
-pub struct VetKDConfig {
-    pub key_name: String,
-    pub sign_cycles: u64,
-}
+use crate::{constants::MANAGMENT_CANISTER_ID, Environment, Subaccount};
 
-impl Default for VetKDConfig {
-    fn default() -> Self {
-        Self::from(Environment::Development)
-    }
-}
+pub struct VetKD(Subaccount);
 
-impl From<Environment> for VetKDConfig {
-    fn from(env: Environment) -> Self {
-        if env == Environment::Production {
-            Self {
-                key_name: "key_1".to_string(),
-                sign_cycles: 0,
-            }
-        } else if env == Environment::Staging {
-            Self {
-                key_name: "test_key_1".to_string(),
-                sign_cycles: 0,
-            }
-        } else {
-            Self {
-                key_name: "dfx_test_key".to_string(),
-                sign_cycles: 0,
-            }
-        }
-    }
-}
-
-impl VetKDConfig {
-    pub fn key_name(&self) -> String {
-        self.key_name.clone()
+impl VetKD {
+    pub fn new(subaccount: Subaccount) -> Self {
+        Self(subaccount)
     }
 
-    pub fn sign_cycles(&self) -> u64 {
-        self.sign_cycles
+    pub fn environment(&self) -> Environment {
+        self.0.environment()
+    }
+
+    pub fn derivation_path(&self) -> Vec<Vec<u8>> {
+        self.0.derivation_path()
+    }
+
+    pub fn derivation_id(&self) -> Vec<u8> {
+        self.0.derivation_id()
     }
 
     pub fn key_id(&self) -> VetKDKeyId {
-        VetKDKeyId {
-            curve: VetKDCurve::Bls12_381,
-            name: self.key_name.clone(),
-        }
+        self.config().key_id()
+    }
+
+    pub fn config(&self) -> VetKDConfig {
+        self.0.environment().into()
+    }
+
+    pub fn key_id_with_cycles_and_path(&self) -> (VetKDKeyId, u64, Vec<Vec<u8>>) {
+        let config = self.config();
+
+        (
+            config.key_id(),
+            config.sign_cycles(),
+            self.0.derivation_path(),
+        )
+    }
+
+    pub async fn verification_key(&self) -> Result<Vec<u8>, VetKDError> {
+        let key_id = self.key_id();
+        let derivation_path = self.derivation_path();
+
+        let request = VetKDPublicKeyRequest {
+            canister_id: None,
+            derivation_path,
+            key_id,
+        };
+
+        let (res,): (VetKDPublicKeyReply,) =
+            call(MANAGMENT_CANISTER_ID, "vetkd_public_key", (request,))
+                .await
+                .map_err(|e| VetKDError::CallError(e.1))?;
+
+        Ok(res.public_key)
+    }
+
+    pub async fn encrypted_key(
+        &self,
+        encryption_public_key: Vec<u8>,
+    ) -> Result<Vec<u8>, VetKDError> {
+        let key_id = self.key_id();
+        let public_key_derivation_path = self.derivation_path();
+        let derivation_id = self.derivation_id();
+
+        let request = VetKDEncryptedKeyRequest {
+            derivation_id,
+            public_key_derivation_path,
+            key_id,
+            encryption_public_key,
+        };
+
+        let (res,): (VetKDEncryptedKeyReply,) =
+            call_with_payment(MANAGMENT_CANISTER_ID, "vetkd_encrypted_key", (request,), 0)
+                .await
+                .map_err(|e| VetKDError::CallError(e.1))?;
+
+        Ok(res.encrypted_key)
     }
 }

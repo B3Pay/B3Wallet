@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 
-use super::{LogBuffer, LogEntry};
+use super::{buffer::LogBuffer, LogEntry};
 
 thread_local! {
     pub static MAIN_LOG: RefCell<LogBuffer> = RefCell::new(LogBuffer::with_capacity(100));
@@ -27,35 +27,10 @@ where
 }
 
 /// Exports the contents of a buffer as a vector of entries in the order of
-/// insertion by page.
-///
-/// ```
-/// use b3_utils::{log, logs::export_log_page};
-///
-/// log!("Hello, {}!", "world");
-/// let entries = export_log_page(0, None);
-/// assert_eq!(entries.len(), 1);
-/// assert_eq!(entries[0].message, "Hello, world!");
-/// ```
-pub fn export_log_page(page: u32, page_size: Option<u32>) -> Vec<LogEntry> {
-    let page_size = page_size.unwrap_or(100);
-
-    with_log(|log| {
-        let start = page * page_size;
-        let end = start + page_size;
-        log.iter()
-            .skip(start as usize)
-            .take(end as usize)
-            .cloned()
-            .collect()
-    })
-}
-
-/// Exports the contents of a buffer as a vector of entries in the order of
 /// insertion.
 ///
 /// ```
-/// use b3_utils::{log, logs::export_log};
+/// use b3_utils::{log, export_log};
 ///
 /// log!("Hello, {}!", "world");
 /// let entries = export_log();
@@ -63,39 +38,48 @@ pub fn export_log_page(page: u32, page_size: Option<u32>) -> Vec<LogEntry> {
 /// assert_eq!(entries[0].message, "Hello, world!");
 /// ```
 pub fn export_log() -> Vec<LogEntry> {
-    with_log(|log| log.iter().cloned().collect())
+    with_log(|log| log.export())
+}
+
+/// Exports the contents of a buffer as a vector of entries in the order of
+/// insertion by page.
+///
+/// ```
+/// use b3_utils::{log, export_log_page};
+///
+/// log!("Hello, {}!", "world");
+/// let entries = export_log_page(0, None);
+/// assert_eq!(entries.len(), 1);
+/// assert_eq!(entries[0].message, "Hello, world!");
+/// ```
+pub fn export_log_page(page: usize, page_size: Option<usize>) -> Vec<LogEntry> {
+    let page_size = page_size.unwrap_or(100);
+
+    with_log(|log| log.export_page(page, page_size))
 }
 
 /// Exports the contents of messages vector of entries in the order of
 /// insertion by page.
 ///
 /// ```
-/// use b3_utils::{log, logs::export_log_messages_page};
+/// use b3_utils::{log, export_log_messages_page};
 ///
 /// log!("Hello, {}!", "world");
 /// let entries = export_log_messages_page(0, None);
 ///
 /// assert_eq!(entries.len(), 1);
 /// ```
-pub fn export_log_messages_page(page: u32, page_size: Option<u32>) -> Vec<String> {
+pub fn export_log_messages_page(page: usize, page_size: Option<usize>) -> Vec<String> {
     let page_size = page_size.unwrap_or(100);
 
-    with_log(|log| {
-        let start = page * page_size;
-        let end = start + page_size;
-        log.iter()
-            .skip(start as usize)
-            .take(end as usize)
-            .map(|entry| entry.to_string())
-            .collect()
-    })
+    with_log(|log| log.export_messages_page(page, page_size))
 }
 
 /// Exports the contents of a buffer as a vector of entries in the order of
 /// insertion.
 ///
 /// ```
-/// use b3_utils::{log, logs::export_log_messages};
+/// use b3_utils::{log, export_log_messages};
 ///
 /// log!("Hello, {}!", "world");
 /// let entries = export_log_messages();
@@ -103,5 +87,5 @@ pub fn export_log_messages_page(page: u32, page_size: Option<u32>) -> Vec<String
 /// assert_eq!(entries.len(), 1);
 /// ```
 pub fn export_log_messages() -> Vec<String> {
-    with_log(|log| log.iter().map(|entry| entry.to_string()).collect())
+    with_log(|log| log.export_messages())
 }

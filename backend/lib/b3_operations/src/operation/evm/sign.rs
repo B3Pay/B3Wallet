@@ -12,7 +12,7 @@ use b3_wallet_lib::{
     error::WalletError,
     ledger::{
         evm::evm::{get_evm_transaction, EvmSignTrait, EvmTransaction},
-        subaccount::SubaccountTrait,
+        subaccount::SubaccountEcdsaTrait,
         types::ChainEnum,
     },
     store::{with_chain, with_ledger},

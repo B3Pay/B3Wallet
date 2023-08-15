@@ -423,6 +423,14 @@ impl Subaccount {
 }
 
 impl Subaccount {
+    pub fn derivation_id(&self) -> Vec<u8> {
+        self.0.to_vec()
+    }
+
+    pub fn derivation_path(&self) -> Vec<Vec<u8>> {
+        vec![self.0.to_vec()]
+    }
+
     pub fn account_identifier(&self, owner: UserId) -> AccountIdentifier {
         AccountIdentifier::new(owner, self.clone())
     }

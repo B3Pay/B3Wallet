@@ -1,6 +1,6 @@
 use crate::ledger::error::LedgerError;
 use crate::ledger::ledger::Ledger;
-use crate::ledger::subaccount::SubaccountTrait;
+use crate::ledger::subaccount::SubaccountEcdsaTrait;
 
 use super::berlin::EvmTransaction2930;
 use super::error::EvmError;

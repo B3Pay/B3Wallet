@@ -2,6 +2,7 @@ type LogEntry = record {
   counter : nat64;
   file : text;
   line : nat32;
+  version : text;
   message : text;
   timestamp : nat64;
 };
@@ -17,6 +18,7 @@ type ProcessedOperation = record {
   timestamp : nat64;
 };
 type Result = variant { Ok; Err : text };
+type Result_1 = variant { Ok : nat64; Err : text };
 type State = record { ledger : vec nat8 };
 type TimerEntry = record { id : nat64; time : nat64 };
 type User = record {
@@ -44,8 +46,10 @@ service : () -> {
   get_user_len : () -> (nat64) query;
   get_users : () -> (vec User) query;
   print_log_entries : () -> (vec LogEntry) query;
-  print_log_entries_page : (nat32, opt nat32) -> (vec text) query;
+  print_log_entries_page : (nat64, opt nat64) -> (vec text) query;
   schedule_task : (nat64, nat64) -> ();
   sum_and_log : (nat64, nat64) -> (nat64);
+  sum_and_log_sub : (nat64, nat64) -> (Result_1);
+  sum_and_log_sub_with_require : (nat64, nat64) -> (Result_1);
   update_state : (State) -> ();
 }

@@ -1,7 +1,7 @@
 use crate::ledger::ckbtc::minter::Minter;
 use crate::ledger::ckbtc::types::BtcTxId;
 use crate::ledger::ecdsa::EcdsaPublicKey;
-use crate::ledger::subaccount::SubaccountTrait;
+use crate::ledger::subaccount::SubaccountEcdsaTrait;
 use crate::ledger::types::BtcPending;
 use b3_utils::{ICRCAccount, Subaccount};
 use bitcoin::consensus::serialize;
