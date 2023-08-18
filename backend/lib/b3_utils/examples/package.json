@@ -1,0 +1,20 @@
+{
+  "name": "encrypted-notes-dapp",
+  "version": "0.2.0",
+  "keywords": [
+    "Internet Computer",
+    "Motoko",
+    "Svelte",
+    "Canister",
+    "Docker",
+    "Rust"
+  ],
+  "scripts": {
+    "start": "dfx start --clean --background && dfx nns install",
+    "generate": "dfx generate",
+    "dev": "cd vetkd_notes/frontend && npm run dev",
+    "build": "cd vetkd_notes/frontend && npm run build",
+    "deploy": "cargo test && dfx deploy",
+    "test": "cargo test"
+  }
+}

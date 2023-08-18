@@ -4,13 +4,38 @@
     "stable_memory": {
       "type": "rust",
       "package": "stable_memory",
-      "candid": "stable_memory/candid.did"
-    }
-  },
-  "defaults": {
-    "build": {
-      "packtool": "",
-      "args": ""
+      "candid": "stable_memory/candid.did",
+      "declarations": {
+        "output": "stable_memory/declarations/stable_memory"
+      }
+    },
+    "vetkd_system_api": {
+      "type": "custom",
+      "candid": "vetkd_notes/vetkd_system_api/vetkd_system_api.did",
+      "wasm": "vetkd_notes/vetkd_system_api/vetkd_system_api.wasm",
+      "declarations": {
+        "output": "vetkd_notes/declarations/vetkd_system_api"
+      }
+    },
+    "vetkd_notes": {
+      "type": "rust",
+      "candid": "vetkd_notes/candid.did",
+      "package": "vetkd_notes",
+      "declarations": {
+        "env_override": null,
+        "output": "vetkd_notes/declarations/vetkd_notes"
+      }
+    },
+    "vetkd_notes_frontend": {
+      "dependencies": ["vetkd_notes", "vetkd_system_api"],
+      "frontend": {
+        "entrypoint": "vetkd_notes/frontend/public/index.html"
+      },
+      "source": ["vetkd_notes/frontend/public/"],
+      "type": "assets",
+      "declarations": {
+        "output": "vetkd_notes/declarations/vetkd_system_api"
+      }
     }
   },
   "output_env_file": ".env"

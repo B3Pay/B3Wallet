@@ -29,12 +29,12 @@ impl VetKD {
         self.0.derivation_id()
     }
 
-    pub fn key_id(&self) -> VetKDKeyId {
-        self.config().key_id()
-    }
-
     pub fn config(&self) -> VetKDConfig {
         self.0.environment().into()
+    }
+
+    pub fn key_id(&self) -> VetKDKeyId {
+        self.config().key_id()
     }
 
     pub fn key_id_with_cycles_and_path(&self) -> (VetKDKeyId, u64, Vec<Vec<u8>>) {
@@ -43,7 +43,7 @@ impl VetKD {
         (
             config.key_id(),
             config.sign_cycles(),
-            self.0.derivation_path(),
+            self.derivation_path(),
         )
     }
 

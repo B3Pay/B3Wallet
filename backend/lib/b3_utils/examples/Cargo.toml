@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "stable_memory",
+    "vetkd_notes",
 ]
 
 [workspace.dependencies]

@@ -1,0 +1,40 @@
+type EncryptedNote = record { id : nat; encrypted_text : text };
+type HttpRequest = record {
+  url : text;
+  method : text;
+  body : vec nat8;
+  headers : vec record { text; text };
+};
+type HttpResponse = record {
+  body : vec nat8;
+  headers : vec record { text; text };
+  status_code : nat16;
+};
+type RejectionCode = variant {
+  NoError;
+  CanisterError;
+  SysTransient;
+  DestinationInvalid;
+  Unknown;
+  SysFatal;
+  CanisterReject;
+};
+type Result = variant { Ok : vec nat8; Err : record { RejectionCode; text } };
+type Result_1 = variant { Ok : text; Err : record { RejectionCode; text } };
+service : {
+  add_note : (text) -> ();
+  app_vetkd_public_key : (vec vec nat8) -> (text);
+  delete_note : (nat) -> ();
+  encryptedSymmetricKeyForCaller : () -> (Result) query;
+  encrypted_symmetric_key_for_caller : (vec nat8) -> (text);
+  encrypted_symmetric_key_for_caller_string : () -> (Result_1) query;
+  get_note : (nat) -> (opt EncryptedNote) query;
+  get_notes : () -> (vec EncryptedNote) query;
+  get_user_notes : () -> (vec EncryptedNote) query;
+  get_user_using_symmetric_key : (text) -> (Result_1) query;
+  http_request : (HttpRequest) -> (HttpResponse) query;
+  setEncryptedSymmetricKeyForCaller : (vec nat8) -> ();
+  symmetric_key_verification_key : () -> (text) query;
+  update_note : (EncryptedNote) -> ();
+  whoami : () -> (text) query;
+}
