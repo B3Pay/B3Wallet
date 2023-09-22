@@ -19,7 +19,3 @@ pub async fn ic_canister_status(
 pub fn revert<T, E: fmt::Display>(err: E) -> T {
     ic_cdk::trap(&format!("{}", err));
 }
-
-pub fn report<T, E: fmt::Display>(err: E) -> Result<T, String> {
-    Err(format!("{}", err))
-}

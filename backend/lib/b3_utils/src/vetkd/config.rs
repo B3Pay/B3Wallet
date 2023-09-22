@@ -1,7 +1,7 @@
 use crate::Environment;
 use candid::{CandidType, Deserialize};
 
-use super::{VetKDCurve, VetKDKeyId};
+use super::types::{VetKDCurve, VetKDKeyId};
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct VetKDConfig {

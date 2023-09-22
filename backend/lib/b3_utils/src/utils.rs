@@ -1,9 +1,9 @@
-mod base32;
-mod hasher;
+mod encoder;
 mod ic;
 
-pub(crate) use base32::*;
-pub use hasher::*;
+use std::fmt;
+
+pub use encoder::*;
 pub use ic::*;
 
 #[macro_export]
@@ -13,4 +13,8 @@ macro_rules! require {
             return Err(format!($($msg)*));
         }
     };
+}
+
+pub fn report<T, E: fmt::Display>(err: E) -> Result<T, String> {
+    Err(format!("{}", err))
 }

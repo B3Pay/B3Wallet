@@ -1,5 +1,5 @@
 use super::{btc::network::BtcNetwork, chain::Chain, ckbtc::types::BtcTxId, icrc::types::TxIndex};
-use b3_utils::types::{CanisterId, TransferBlockIndex};
+use b3_utils::types::CanisterId;
 use bitcoin::{AddressType, OutPoint, Transaction, TxIn, TxOut};
 use candid::{CandidType, Nat};
 use enum_dispatch::enum_dispatch;
@@ -33,25 +33,25 @@ pub struct BtcPending {
 
 #[derive(CandidType, PartialEq, Serialize, Eq, PartialOrd, Ord, Deserialize, Clone, Debug)]
 pub struct IcpPending {
-    pub block_index: TransferBlockIndex,
+    pub block_index: u64,
     pub canister_id: String,
 }
 
 #[derive(CandidType, PartialEq, Serialize, Eq, PartialOrd, Ord, Deserialize, Clone, Debug)]
 pub struct EvmPending {
-    pub block_index: TransferBlockIndex,
+    pub block_index: u64,
 }
 
 #[derive(CandidType, PartialEq, Serialize, Eq, PartialOrd, Ord, Deserialize, Clone, Debug)]
 pub struct CkbtcPending {
     pub txid: Option<TxIndex>,
-    pub block_index: TransferBlockIndex,
+    pub block_index: u64,
 }
 
 #[derive(CandidType, PartialEq, Serialize, Eq, PartialOrd, Ord, Deserialize, Clone, Debug)]
 pub struct IcrcPending {
     pub tx_index: TxIndex,
-    pub block_index: TransferBlockIndex,
+    pub block_index: u64,
 }
 
 pub type Pendings = Vec<PendingEnum>;
@@ -67,11 +67,11 @@ pub enum PendingEnum {
 }
 
 impl PendingEnum {
-    pub fn new_ckbtc(block_index: TransferBlockIndex, txid: Option<TxIndex>) -> Self {
+    pub fn new_ckbtc(block_index: u64, txid: Option<TxIndex>) -> Self {
         PendingEnum::CKBTC(CkbtcPending { txid, block_index })
     }
 
-    pub fn new_icrc(block_index: TransferBlockIndex, tx_index: TxIndex) -> Self {
+    pub fn new_icrc(block_index: u64, tx_index: TxIndex) -> Self {
         PendingEnum::ICRC(IcrcPending {
             tx_index,
             block_index,
@@ -82,11 +82,11 @@ impl PendingEnum {
         PendingEnum::BTC(BtcPending { txid, account })
     }
 
-    pub fn new_evm(block_index: TransferBlockIndex) -> Self {
+    pub fn new_evm(block_index: u64) -> Self {
         PendingEnum::EVM(EvmPending { block_index })
     }
 
-    pub fn new_icp(block_index: TransferBlockIndex, canister_id: String) -> Self {
+    pub fn new_icp(block_index: u64, canister_id: String) -> Self {
         PendingEnum::ICP(IcpPending {
             block_index,
             canister_id,
@@ -97,7 +97,7 @@ impl PendingEnum {
 #[enum_dispatch]
 pub trait PendingTrait {}
 
-#[derive(CandidType, PartialEq, Eq, Debug, PartialOrd, Ord, Deserialize, Clone)]
+#[derive(CandidType, Serialize, PartialEq, Eq, Debug, PartialOrd, Ord, Deserialize, Clone)]
 pub enum ChainEnum {
     CKBTC(BtcNetwork),
     ICRC(CanisterId),
@@ -142,7 +142,7 @@ impl ChainEnum {
 
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub enum SendResult {
-    ICP(TransferBlockIndex),
+    ICP(u64),
     CKBTC(TxIndex),
     ICRC(TxIndex),
     BTC(BtcTxId),

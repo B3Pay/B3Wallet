@@ -1,17 +1,20 @@
 #[cfg(test)]
 mod tests {
-    use crate::memory::{with_stable_memory, with_stable_memory_mut, StableMemory};
+    use crate::memory::{
+        types::{DefaultVMHeap, DefaultVMLog, DefaultVMMap, DefaultVMVec},
+        with_stable_mem, with_stable_mem_mut, StableMemoryManager,
+    };
 
     #[test]
     fn test_memory() {
-        with_stable_memory(|memory| {
+        with_stable_mem(|memory| {
             assert_eq!(memory.partitions.len(), 0);
         });
     }
 
     #[test]
     fn test_create_partition() {
-        with_stable_memory_mut(|memory| {
+        with_stable_mem_mut(|memory| {
             let partition1 = memory.create("test", 1);
 
             assert!(partition1.is_ok());
@@ -28,7 +31,7 @@ mod tests {
 
     #[test]
     fn test_partition() {
-        let mut memory = StableMemory::init();
+        let mut memory = StableMemoryManager::init();
 
         let partition_name = "test_partition";
         memory.create(partition_name, 13).unwrap();
@@ -47,8 +50,7 @@ mod tests {
 
     #[test]
     fn test_partition_loop() {
-        // find duplicates
-        let mut stable_memory = StableMemory::init();
+        let mut stable_memory = StableMemoryManager::init();
 
         #[rustfmt::skip]
         let words = [
@@ -97,9 +99,9 @@ mod tests {
 
     #[test]
     fn test_stable_vec() {
-        let mut stable_memory = StableMemory::init();
+        let mut stable_memory = StableMemoryManager::init();
 
-        let vec = stable_memory.init_vec::<u32>("test_partition", 10).unwrap();
+        let vec: DefaultVMVec<u32> = stable_memory.init_memory("test_partition", 10).unwrap();
 
         vec.push(&1).unwrap();
         vec.push(&2).unwrap();
@@ -114,11 +116,9 @@ mod tests {
 
     #[test]
     fn test_stable_map() {
-        let mut stable_memory = StableMemory::init();
+        let mut stable_memory = StableMemoryManager::init();
 
-        let mut map = stable_memory
-            .init_btree_map::<u32, u32>("test", 13)
-            .unwrap();
+        let mut map: DefaultVMMap<u32, u32> = stable_memory.init_memory("test", 13).unwrap();
 
         map.insert(1, 1);
         map.insert(2, 2);
@@ -133,11 +133,9 @@ mod tests {
 
     #[test]
     fn test_stable_heap() {
-        let mut stable_memory = StableMemory::init();
+        let mut stable_memory = StableMemoryManager::init();
 
-        let mut heap = stable_memory
-            .init_min_heap::<u32>("test_partition", 10)
-            .unwrap();
+        let mut heap: DefaultVMHeap<u32> = stable_memory.init_memory("test_partition", 10).unwrap();
 
         heap.push(&1).unwrap();
         heap.push(&2).unwrap();
@@ -152,11 +150,9 @@ mod tests {
 
     #[test]
     fn test_stable_log() {
-        let mut stable_memory = StableMemory::init();
+        let mut stable_memory = StableMemoryManager::init();
 
-        let log = stable_memory
-            .init_log::<u32>("test_partition", 10, 11)
-            .unwrap();
+        let log: DefaultVMLog<u32> = stable_memory.init_memory("test_partition", 10).unwrap();
 
         log.append(&1).unwrap();
         log.append(&2).unwrap();
@@ -171,14 +167,12 @@ mod tests {
 
     #[test]
     fn test_stable_heap_with_stable_vec() {
-        let mut stable_memory = StableMemory::init();
+        let mut stable_memory = StableMemoryManager::init();
 
-        let mut min_heap = stable_memory
-            .init_min_heap::<u32>("test_partition", 10)
-            .unwrap();
-        let vec = stable_memory
-            .init_vec::<u32>("test_partition1", 11)
-            .unwrap();
+        let mut min_heap: DefaultVMHeap<u32> =
+            stable_memory.init_memory("test_partition", 10).unwrap();
+
+        let vec: DefaultVMVec<u32> = stable_memory.init_memory("test_partition1", 11).unwrap();
 
         vec.push(&1).unwrap();
         vec.push(&2).unwrap();
@@ -192,5 +186,100 @@ mod tests {
         assert_eq!(min_heap.pop(), Some(1));
         assert_eq!(min_heap.pop(), Some(2));
         assert_eq!(min_heap.pop(), Some(3));
+    }
+
+    #[test]
+    fn test_init() {
+        let stable_memory = StableMemoryManager::init();
+
+        stable_memory.memory_manager();
+
+        let partitions = stable_memory.partitions();
+
+        assert_eq!(partitions.len(), 0);
+
+        let backup = stable_memory.backup();
+
+        assert_eq!(backup.len(), 0);
+    }
+
+    #[test]
+    fn test_get_or_create() {
+        let mut stable_memory = StableMemoryManager::init();
+
+        let partitions = stable_memory.partitions();
+
+        assert_eq!(partitions.len(), 0);
+
+        let backup = stable_memory.backup();
+
+        assert_eq!(backup.len(), 0);
+
+        stable_memory.create("test", 1).unwrap();
+
+        let partitions = stable_memory.partitions();
+
+        assert_eq!(partitions.len(), 1);
+
+        let backup = stable_memory.backup();
+
+        assert_eq!(backup.len(), 0);
+
+        stable_memory.memory("test").unwrap();
+
+        let partitions = stable_memory.partitions();
+
+        assert_eq!(partitions.len(), 1);
+
+        let backup = stable_memory.backup();
+
+        assert_eq!(backup.len(), 0);
+
+        let memory = stable_memory.create("test", 1);
+
+        assert!(memory.is_ok());
+
+        let memory = stable_memory.create("test2", 1);
+
+        assert!(memory.is_err());
+
+        stable_memory.create("test2", 2).unwrap();
+
+        let partitions = stable_memory.partitions();
+
+        assert_eq!(partitions.len(), 2);
+
+        let backup = stable_memory.backup();
+
+        assert_eq!(backup.len(), 0);
+    }
+
+    #[test]
+    fn test_init_memory() {
+        let mut stable_memory = StableMemoryManager::init();
+
+        let partitions = stable_memory.partitions();
+
+        assert_eq!(partitions.len(), 0);
+
+        let backup = stable_memory.backup();
+
+        assert_eq!(backup.len(), 0);
+
+        let memory = stable_memory
+            .init_memory::<DefaultVMVec<u8>>("test", 1)
+            .unwrap();
+
+        memory.push(&1).unwrap();
+
+        assert_eq!(memory.len(), 1);
+
+        let partitions = stable_memory.partitions();
+
+        assert_eq!(partitions.len(), 1);
+
+        let backup = stable_memory.backup();
+
+        assert_eq!(backup.len(), 0);
     }
 }

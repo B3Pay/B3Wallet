@@ -1,30 +1,58 @@
-use b3_utils::log;
-use b3_utils::memory::base::{timer::TimerEntry, with_base_partition, with_base_partition_mut};
+use b3_utils::logs::{export_log, export_log_messages_page, LogEntry};
+use b3_utils::memory::timer::{DefaultTaskTimer, TaskTimerEntry};
 use b3_utils::memory::types::{
-    BoundedStorable, DefaultVMHeap, DefaultVMMap, DefaultVMVec, PartitionDetail, Storable,
+    Bound, DefaultVMHeap, DefaultVMLog, DefaultVMMap, DefaultVMVec, PartitionDetail, Storable,
 };
-use b3_utils::memory::{with_stable_memory, with_stable_memory_mut};
-use b3_utils::{export_log, export_log_messages_page, LogEntry};
-use b3_utils::{require, require_log, NanoTimeStamp};
-use candid::{candid_method, CandidType};
+use b3_utils::memory::{
+    init_stable_mem_cell, with_backup_mem, with_backup_mem_mut, with_stable_mem,
+};
+use b3_utils::{log, require, require_log, NanoTimeStamp, Subaccount};
+use candid::CandidType;
 use ciborium::de::from_reader;
 use ciborium::ser::into_writer;
 
 use ic_cdk::{init, post_upgrade, pre_upgrade, query, update};
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
-use std::collections::HashMap;
 use std::io::Cursor;
 
-const MAX_OPERATION_SIZE: u32 = 100;
+const MAX_OPERATION_SIZE: u32 = 200;
 
 thread_local! {
-    static MAP: RefCell<DefaultVMMap<u64, User>> = RefCell::new(with_stable_memory_mut(|pm| pm.init_btree_map("map", 10).unwrap()));
-    static HEAP: RefCell<DefaultVMHeap<u64>> = RefCell::new(with_stable_memory_mut(|pm| pm.init_min_heap("heap", 11).unwrap()));
-    static USERS: RefCell<DefaultVMMap<u64, User>> = RefCell::new(with_stable_memory_mut(|pm| pm.init_btree_map("users", 12).unwrap()));
-    static VEC: RefCell<DefaultVMVec<ProcessedOperation>> = RefCell::new(with_stable_memory_mut(|pm| pm.init_vec("ledger", 13).unwrap()));
+    static TASK_TIMER: RefCell<DefaultTaskTimer<Task>> = init_stable_mem_cell("timer", 1).unwrap();
+
+    static MAP: RefCell<DefaultVMMap<u64, User>> = init_stable_mem_cell("map", 10).unwrap();
+    static HEAP: RefCell<DefaultVMHeap<u64>> = init_stable_mem_cell("heap", 11).unwrap();
+    static USERS: RefCell<DefaultVMMap<u64, User>> = init_stable_mem_cell("users", 12).unwrap();
+    static SUBACCOUNTS: RefCell<DefaultVMMap<Subaccount, User>> = init_stable_mem_cell("subaccounts", 13).unwrap();
+    static STABLE_LOG: RefCell<DefaultVMLog<Subaccount>> = init_stable_mem_cell("logs", 14).unwrap();
+    static VEC: RefCell<DefaultVMVec<ProcessedOperation>> = init_stable_mem_cell("ledger", 15).unwrap();
 
     static STATE: RefCell<State> = RefCell::new(State::default());
+}
+
+#[derive(CandidType, Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Deserialize)]
+enum Task {
+    SumAndLog(u64, u64),
+    SumAndLogSub(u64, u64),
+    SumAndLogSubWithRequire(u64, u64),
+}
+
+impl Storable for Task {
+    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
+        let mut bytes = vec![];
+        into_writer(&self, &mut bytes).unwrap();
+        std::borrow::Cow::Owned(bytes)
+    }
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
+        from_reader(&mut Cursor::new(&bytes)).unwrap()
+    }
+
+    const BOUND: Bound = Bound::Bounded {
+        is_fixed_size: true,
+        max_size: MAX_OPERATION_SIZE,
+    };
 }
 
 #[derive(CandidType, PartialEq, Eq, Clone, Serialize, Deserialize)]
@@ -42,11 +70,6 @@ fn default_created_at() -> NanoTimeStamp {
     NanoTimeStamp::from(0)
 }
 
-impl BoundedStorable for User {
-    const MAX_SIZE: u32 = MAX_OPERATION_SIZE;
-    const IS_FIXED_SIZE: bool = false;
-}
-
 impl Storable for User {
     fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
         let mut bytes = vec![];
@@ -57,17 +80,17 @@ impl Storable for User {
     fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
         from_reader(&mut Cursor::new(&bytes)).unwrap()
     }
+
+    const BOUND: Bound = Bound::Bounded {
+        is_fixed_size: false,
+        max_size: MAX_OPERATION_SIZE,
+    };
 }
 
 #[derive(CandidType, PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Deserialize)]
 pub enum OperationStatus {
     Success,
     Fail,
-}
-
-impl BoundedStorable for ProcessedOperation {
-    const MAX_SIZE: u32 = MAX_OPERATION_SIZE;
-    const IS_FIXED_SIZE: bool = false;
 }
 
 #[derive(CandidType, PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Deserialize)]
@@ -106,29 +129,30 @@ impl Storable for ProcessedOperation {
     fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
         from_reader(&mut Cursor::new(&bytes)).unwrap()
     }
+
+    const BOUND: Bound = Bound::Bounded {
+        is_fixed_size: false,
+        max_size: MAX_OPERATION_SIZE,
+    };
 }
 
 #[init]
-#[candid_method(init)]
 fn init() {
     log!("init: {}", ic_cdk::api::id());
 }
 
 #[query]
-#[candid_method(query)]
 fn get_operation(id: u64) -> Option<ProcessedOperation> {
     VEC.with(|p| p.borrow().get(id))
 }
 
 #[update]
-#[candid_method(update)]
 fn append_operation(operation: ProcessedOperation) -> Result<(), String> {
     VEC.with(|p| p.borrow_mut().push(&operation))
         .map_err(|e| e.to_string())
 }
 
 #[query]
-#[candid_method(query)]
 fn get_operations_range(start: u64, end: u64) -> Vec<ProcessedOperation> {
     let mut operations = Vec::new();
     VEC.with(|p| {
@@ -144,7 +168,6 @@ fn get_operations_range(start: u64, end: u64) -> Vec<ProcessedOperation> {
 }
 
 #[query]
-#[candid_method(query)]
 fn get_operations_range_with_state(start: u64, end: u64) -> (Vec<ProcessedOperation>, Vec<User>) {
     let mut operations = Vec::new();
     VEC.with(|p| {
@@ -167,7 +190,6 @@ fn get_operations_range_with_state(start: u64, end: u64) -> (Vec<ProcessedOperat
 }
 
 #[update]
-#[candid_method(update)]
 fn add_user(user: User) -> Option<User> {
     USERS.with(|s| {
         let mut state = s.borrow_mut();
@@ -177,7 +199,6 @@ fn add_user(user: User) -> Option<User> {
 }
 
 #[update]
-#[candid_method(update)]
 fn add_user_with_operation(user: User, operation: ProcessedOperation) {
     USERS.with(|s| {
         let mut state = s.borrow_mut();
@@ -188,7 +209,6 @@ fn add_user_with_operation(user: User, operation: ProcessedOperation) {
 }
 
 #[update]
-#[candid_method(update)]
 fn update_state(state: State) {
     STATE.with(|s| {
         *s.borrow_mut() = state;
@@ -196,13 +216,11 @@ fn update_state(state: State) {
 }
 
 #[query]
-#[candid_method(query)]
 fn get_state() -> State {
     STATE.with(|s| s.borrow().clone())
 }
 
 #[query]
-#[candid_method(query)]
 fn get_users() -> Vec<User> {
     USERS.with(|s| {
         let state = s.borrow();
@@ -212,7 +230,6 @@ fn get_users() -> Vec<User> {
 }
 
 #[query]
-#[candid_method(query)]
 fn get_user_len() -> u64 {
     USERS.with(|s| {
         let state = s.borrow();
@@ -222,35 +239,38 @@ fn get_user_len() -> u64 {
 }
 
 #[query]
-#[candid_method(query)]
-fn get_timers() -> Vec<TimerEntry> {
-    with_base_partition(|s| s.get_timer())
+fn get_timers() -> Vec<TaskTimerEntry<Task>> {
+    TASK_TIMER.with(|s| {
+        let state = s.borrow();
+
+        state.get_timers()
+    })
 }
 
 #[query]
-#[candid_method(query)]
 fn print_log_entries() -> Vec<LogEntry> {
     export_log()
 }
 
 #[query]
-#[candid_method(query)]
 fn print_log_entries_page(page: usize, page_size: Option<usize>) -> Vec<String> {
     export_log_messages_page(page, page_size)
 }
 
 #[update]
-#[candid_method(update)]
 fn sum_and_log(x: u64, y: u64) -> u64 {
     let result = x.saturating_add(y);
 
     log!("sum_and_log: {} + {} = {}", x, y, result);
 
+    STABLE_LOG
+        .with(|s| s.borrow_mut().append(&Subaccount::from([0; 32])))
+        .unwrap();
+
     result
 }
 
 #[update]
-#[candid_method(update)]
 fn sum_and_log_sub(x: u64, y: u64) -> Result<u64, String> {
     require!(x >= y, "y({}) must be less than x({})", y, x);
 
@@ -270,7 +290,6 @@ pub fn sub(x: u64, y: u64) -> Result<u64, String> {
 }
 
 #[update]
-#[candid_method(update)]
 fn sum_and_log_sub_with_require(x: u64, y: u64) -> Result<u64, String> {
     require_log!(x >= y, "y({}) must be less than x({})", y, x);
 
@@ -282,55 +301,13 @@ fn sum_and_log_sub_with_require(x: u64, y: u64) -> Result<u64, String> {
 }
 
 #[query]
-#[candid_method(query)]
-fn get_partition() -> HashMap<String, u8> {
-    MAP.with(|_| {});
-    VEC.with(|_| {});
-    HEAP.with(|_| {});
-    USERS.with(|_| {});
-    STATE.with(|_| {});
-
-    with_stable_memory(|pm| pm.partitions().clone())
-}
-
-#[query]
-#[candid_method(query)]
 fn get_partition_details() -> Vec<PartitionDetail> {
-    let mut details = Vec::new();
-
-    details.push(PartitionDetail {
-        name: "map".to_string(),
-        len: MAP.with(|m| m.borrow().len()) as u64,
-    });
-
-    details.push(PartitionDetail {
-        name: "vec".to_string(),
-        len: VEC.with(|v| v.borrow().len()) as u64,
-    });
-
-    details.push(PartitionDetail {
-        name: "users".to_string(),
-        len: USERS.with(|u| u.borrow().len()) as u64,
-    });
-
-    details.push(PartitionDetail {
-        name: "state".to_string(),
-        len: STATE.with(|s| s.borrow().ledger.len()) as u64,
-    });
-
-    with_base_partition(|bp| {
-        bp.details().iter().for_each(|detail| {
-            details.push(detail.clone());
-        });
-    });
-
-    details
+    with_stable_mem(|pm| pm.partition_details())
 }
 
 #[query]
-#[candid_method(query)]
 fn get_backup_memory() -> Vec<u8> {
-    with_base_partition(|core_partition| core_partition.get_backup())
+    with_backup_mem(|bp| bp.get_backup())
 }
 
 // A pre-upgrade hook for serializing the data stored on the heap.
@@ -346,7 +323,7 @@ fn pre_upgrade() {
     // Write the length of the serialized bytes to memory, followed by the
     // by the bytes themselves.
 
-    with_base_partition_mut(|core_partition| core_partition.set_backup(state_bytes));
+    with_backup_mem_mut(|backup| backup.set_backup(state_bytes));
 }
 
 // A post-upgrade hook for deserializing the data back into the heap.
@@ -354,7 +331,7 @@ fn pre_upgrade() {
 fn post_upgrade() {
     log!("post_upgrade: {}", ic_cdk::api::id());
 
-    let state_bytes = with_base_partition(|core_partition| core_partition.get_backup());
+    let state_bytes = with_backup_mem(|bp| bp.get_backup());
 
     log!("state_bytes: {}", state_bytes.len());
 
@@ -366,69 +343,67 @@ fn post_upgrade() {
 }
 
 #[update]
-#[candid_method(update)]
-fn schedule_task(after_sec: u64, id: u64) {
+fn schedule_task(after_sec: u64, task: Task) {
     let time = NanoTimeStamp::now().add_secs(after_sec);
 
-    let timer = TimerEntry { id, time };
+    let timer = TaskTimerEntry { task, time };
 
-    with_base_partition_mut(|core_partition| core_partition.push_timer(&timer)).unwrap();
+    TASK_TIMER
+        .with(|tt| {
+            let mut tt = tt.borrow_mut();
+
+            tt.push_timer(&timer)
+        })
+        .unwrap();
 
     reschedule();
 }
 
 #[export_name = "canister_global_timer"]
 fn global_timer() {
-    while let Some(task_time) = with_base_partition(|core_partition| core_partition.peek_timer()) {
+    while let Some(task_time) = TASK_TIMER.with(|tt| {
+        let tt = tt.borrow();
+
+        tt.peek_timer()
+    }) {
         if task_time.time.in_future() {
             reschedule();
             return;
         }
-        with_base_partition_mut(|core_partition| core_partition.pop_timer());
+        TASK_TIMER.with(|tt| {
+            let mut tt = tt.borrow_mut();
+
+            tt.pop_timer()
+        });
 
         execute_task(task_time);
         reschedule();
     }
 }
 
-fn execute_task(timer: TimerEntry) {
-    log!("execute_task: {}", timer.id);
+fn execute_task(timer: TaskTimerEntry<Task>) {
+    log!("execute_task: {:?}", timer.task);
     log!("execute_task in : {}", timer.time);
 
     add_user(User {
-        id: timer.id,
-        name: format!("{}", timer.id),
-        email: format!("{}@test.com", timer.time),
+        id: timer.time.clone().into(),
+        name: format!("{:?}", timer.task),
+        email: format!("{}@test.com", timer.time.to_secs()),
         new_field: None,
         created_at: NanoTimeStamp::now(),
     });
 }
 
 fn reschedule() {
-    if let Some(task_time) = with_base_partition(|core_partition| core_partition.peek_timer()) {
+    if let Some(task_time) = TASK_TIMER.with(|tt| {
+        let tt = tt.borrow();
+
+        tt.peek_timer()
+    }) {
         unsafe {
             ic0::global_timer_set(task_time.time.into());
         }
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use candid::export_service;
-
-    #[test]
-    fn generate_candid() {
-        use std::io::Write;
-
-        let mut file = std::fs::File::create("./candid.did").unwrap();
-
-        export_service!();
-
-        let candid = __export_service();
-
-        file.write_all(candid.as_bytes()).unwrap();
-
-        assert!(true);
-    }
-}
+ic_cdk::export_candid!();

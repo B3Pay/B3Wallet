@@ -3,6 +3,8 @@ use b3_utils::{
     NanoTimeStamp,
 };
 
+pub mod names;
+
 use crate::{
     error::SystemError,
     store::{with_wasm, with_wasm_map_mut, with_wasm_mut},

@@ -1,19 +1,28 @@
-use b3_utils::{types::WalletAccountsNonce, Environment};
+use b3_utils::{nonce::Nonce, Environment};
+use candid::CandidType;
+use serde::{Deserialize, Serialize};
 
-pub trait NonceTrait {
-    fn reset(&mut self);
-    fn total(&self) -> u64;
-    fn account(&self, environment: &Environment) -> u64;
-    fn increment(&mut self, environment: Environment) -> u64;
-    fn generate_next_name(&mut self, environment: Environment) -> String;
+#[derive(CandidType, Serialize, Deserialize, Clone)]
+pub struct WalletAccountsNonce {
+    development: Nonce,
+    production: Nonce,
+    staging: Nonce,
 }
 
-impl NonceTrait for WalletAccountsNonce {
-    fn total(&self) -> u64 {
-        self.development + self.production + self.staging
+impl WalletAccountsNonce {
+    pub fn new() -> Self {
+        Self {
+            development: Nonce::zero(),
+            production: Nonce::zero(),
+            staging: Nonce::zero(),
+        }
     }
 
-    fn account(&self, environment: &Environment) -> u64 {
+    pub fn total(&self) -> u64 {
+        (self.development + self.production + self.staging).get()
+    }
+
+    pub fn account(&self, environment: &Environment) -> Nonce {
         match environment {
             Environment::Development => self.development,
             Environment::Production => self.production,
@@ -21,33 +30,24 @@ impl NonceTrait for WalletAccountsNonce {
         }
     }
 
-    fn increment(&mut self, environment: Environment) -> u64 {
+    pub fn increment(&mut self, environment: Environment) -> Nonce {
         match environment {
-            Environment::Development => {
-                self.development += 1;
-                self.development
-            }
-            Environment::Production => {
-                self.production += 1;
-                self.production
-            }
-            Environment::Staging => {
-                self.staging += 1;
-                self.staging
-            }
+            Environment::Development => self.development.add_64(1),
+            Environment::Production => self.production.add_64(1),
+            Environment::Staging => self.staging.add_64(1),
         }
     }
 
     /// Increment the account counter and return the new name based on the environment
-    fn generate_next_name(&mut self, environment: Environment) -> String {
-        let counter = self.increment(environment.clone()).to_string();
+    pub fn generate_next_name(&mut self, environment: Environment) -> String {
+        let nonce = self.increment(environment);
 
-        environment.to_name(counter)
+        environment.to_name(nonce.get())
     }
 
-    fn reset(&mut self) {
-        self.production = 0;
-        self.staging = 0;
-        self.development = 0;
+    pub fn reset(&mut self) {
+        self.development = Nonce::zero();
+        self.production = Nonce::zero();
+        self.staging = Nonce::zero();
     }
 }

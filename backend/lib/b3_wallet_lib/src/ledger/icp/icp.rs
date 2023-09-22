@@ -2,20 +2,23 @@ use crate::ledger::types::IcpPending;
 
 use super::error::IcpError;
 use b3_utils::{
-    constants::{
-        CANISTER_TOP_UP_MEMO, CANISTER_TRANSFER_MEMO, CYCLES_MINTING_CANISTER_ID,
-        IC_TRANSACTION_FEE_ICP, LEDGER_CANISTER_ID,
+    constants::{CYCLES_MINTING_CANISTER_ID, LEDGER_CANISTER_ID},
+    ledger::{
+        constants::{CANISTER_TOP_UP_MEMO, CANISTER_TRANSFER_MEMO, IC_TRANSACTION_FEE_ICP},
+        currency::ICPToken,
+        types::{
+            ICPAccountBalanceArgs, ICPTransferArgs, ICPTransferResult, ICPTransferTimestamp,
+            NotifyTopUpResult, NotifyTopupArgs, TransferBlockIndex, TransferMemo,
+        },
+        AccountIdentifier,
     },
-    currency::ICPToken,
-    types::{
-        CanisterId, ICPAccountBalanceArgs, ICPTransferArgs, ICPTransferResult,
-        ICPTransferTimestamp, NotifyTopUpResult, NotifyTopupArgs, TransferBlockIndex, TransferMemo,
-    },
-    AccountIdentifier, Subaccount,
+    types::CanisterId,
+    Subaccount,
 };
-use candid::{CandidType, Deserialize};
+use candid::CandidType;
+use serde::{Deserialize, Serialize};
 
-#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
+#[derive(CandidType, Clone, Serialize, Deserialize, PartialEq, Debug)]
 pub struct IcpChain {
     pub subaccount: Subaccount,
     pub memo: TransferMemo,

@@ -5,11 +5,12 @@ use super::{
     types::{AddressMap, Balance, ChainEnum, ChainMap, PendingEnum, SendResult},
 };
 use crate::ledger::chain::ChainTrait;
-use b3_utils::{currency::TokenAmount, raw_keccak256, Subaccount};
+use b3_utils::Subaccount;
 use bitcoin::secp256k1;
-use candid::{CandidType, Deserialize};
+use candid::CandidType;
+use serde::{Deserialize, Serialize};
 
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct Ledger {
     pub public_key: Option<EcdsaPublicKey>,
     pub subaccount: Subaccount,

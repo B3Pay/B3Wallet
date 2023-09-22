@@ -10,10 +10,10 @@
     "Rust"
   ],
   "scripts": {
-    "start": "dfx start --clean --background && dfx nns install",
+    "dfx:start": "sh dfx-start.sh",
     "generate": "dfx generate",
-    "dev": "cd vetkd_notes/frontend && npm run dev",
-    "build": "cd vetkd_notes/frontend && npm run build",
+    "dev": "cd vetkd && npm run dev",
+    "build": "cd vetkd && npm install && npm run build",
     "deploy": "cargo test && dfx deploy",
     "test": "cargo test"
   }

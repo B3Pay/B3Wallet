@@ -1,5 +1,3 @@
-use std::fmt;
-
 use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
@@ -9,8 +7,11 @@ use crate::mocks::time_mock as ic_timestamp;
 use ic_cdk::api::time as ic_timestamp;
 
 mod test;
+mod traits;
 
-#[derive(CandidType, Deserialize, Serialize, PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
+#[derive(
+    Default, CandidType, Deserialize, Serialize, PartialEq, Eq, PartialOrd, Ord, Clone, Debug,
+)]
 pub struct NanoTimeStamp(pub u64);
 
 impl NanoTimeStamp {
@@ -33,6 +34,15 @@ impl NanoTimeStamp {
 
     pub fn from_le_bytes(bytes: [u8; 8]) -> Self {
         NanoTimeStamp(u64::from_le_bytes(bytes))
+    }
+
+    pub fn elapsed(&self) -> Self {
+        let now = NanoTimeStamp::now();
+        if self > &now {
+            NanoTimeStamp(0)
+        } else {
+            NanoTimeStamp(now.0 - self.0)
+        }
     }
 
     pub fn to_le_bytes(&self) -> [u8; 8] {
@@ -141,31 +151,5 @@ impl NanoTimeStamp {
     /// Get the number of whole days represented by the timestamp
     pub fn get_days(&self) -> u64 {
         self.0 / Self::NS_PER_DAY
-    }
-}
-
-impl From<u64> for NanoTimeStamp {
-    fn from(nanos: u64) -> Self {
-        NanoTimeStamp(nanos)
-    }
-}
-
-impl From<NanoTimeStamp> for u64 {
-    fn from(ts: NanoTimeStamp) -> Self {
-        ts.0
-    }
-}
-
-impl From<NanoTimeStamp> for i64 {
-    fn from(ts: NanoTimeStamp) -> Self {
-        ts.0 as i64
-    }
-}
-
-impl fmt::Display for NanoTimeStamp {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let secs = self.0 / Self::NS_PER_SECOND;
-        let nanos = self.0 % Self::NS_PER_SECOND;
-        write!(f, "{}.{:09}", secs, nanos)
     }
 }

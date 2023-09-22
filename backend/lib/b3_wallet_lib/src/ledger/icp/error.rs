@@ -1,4 +1,4 @@
-use b3_utils::types::{ICPTransferError, NotifyError};
+use b3_utils::ledger::types::{ICPTransferError, NotifyError};
 use candid::{CandidType, Deserialize};
 use enum_dispatch::enum_dispatch;
 use std::fmt;

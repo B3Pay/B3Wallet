@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::currency::ICPToken;
+    use crate::ledger::currency::ICPToken;
 
     #[test]
     fn test_add() {

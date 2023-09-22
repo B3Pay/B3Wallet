@@ -1,8 +1,4 @@
-use b3_utils::{
-    release::ReleaseNames,
-    types::{UserId, WalletVersion},
-    wasm::{Wasm, WasmHash},
-};
+use b3_utils::wasm::{Wasm, WasmHash};
 
 use crate::{
     error::SystemError,
@@ -10,7 +6,7 @@ use crate::{
     user::UserState,
     wallet::WalletCanister,
 };
-use std::{cell::RefCell, str::FromStr};
+use std::cell::RefCell;
 
 thread_local! {
     static STATE: RefCell<State> = RefCell::new(State::default());

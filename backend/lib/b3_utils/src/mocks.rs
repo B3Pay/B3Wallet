@@ -9,6 +9,10 @@ pub fn time_mock() -> u64 {
     }
 }
 
+pub fn canister_balance_mock() -> u128 {
+    1000
+}
+
 //only use for test cases
 pub fn id_mock() -> Principal {
     Principal::management_canister()

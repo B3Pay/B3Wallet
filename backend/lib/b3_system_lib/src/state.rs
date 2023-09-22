@@ -1,17 +1,12 @@
 use crate::{
     error::SystemError,
+    release::names::ReleaseNames,
     types::{Canisters, Controllers, State, UserStates},
     types::{Release, Users},
     user::UserState,
     wallet::WalletCanister,
 };
-use b3_utils::{
-    release::ReleaseNames,
-    types::{
-        CanisterId, ControllerId, UserId, WalletCanisterInitArgs, WalletCanisterInstallArg,
-        WalletVersion,
-    },
-};
+use b3_utils::types::{CanisterId, ControllerId, UserId};
 use ic_cdk::api::management_canister::main::CanisterInstallMode;
 
 impl State {
@@ -116,7 +111,7 @@ impl State {
     pub fn get_release_install_args(
         &self,
         name: ReleaseNames,
-        version: &WalletVersion,
+        version: &str,
         mode: CanisterInstallMode,
         init_args: WalletCanisterInitArgs,
     ) -> Result<WalletCanisterInstallArg, SystemError> {

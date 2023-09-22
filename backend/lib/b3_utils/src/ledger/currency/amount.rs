@@ -1,4 +1,4 @@
-use crate::currency::ICPToken;
+use crate::ledger::currency::ICPToken;
 use candid::CandidType;
 use candid::Nat;
 use serde::{Deserialize, Serialize};
@@ -45,7 +45,7 @@ impl TokenAmount {
     /// Otherwise returns an error.
     /// # Example
     /// ```
-    /// use b3_utils::currency::TokenAmount;
+    /// use b3_utils::ledger::currency::TokenAmount;
     ///
     /// let amount = TokenAmount::new(100, 0);
     ///
@@ -71,7 +71,7 @@ impl TokenAmount {
     ///
     /// # Example
     /// ```
-    /// use b3_utils::currency::TokenAmount;
+    /// use b3_utils::ledger::currency::TokenAmount;
     ///
     /// let amount = TokenAmount::new(100, 0);
     ///

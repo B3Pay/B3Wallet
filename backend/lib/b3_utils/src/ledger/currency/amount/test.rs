@@ -2,7 +2,7 @@
 mod test {
     use candid::Nat;
 
-    use crate::{
+    use crate::ledger::{
         currency::ICPToken,
         currency::{TokenAmount, TokenAmountError},
     };

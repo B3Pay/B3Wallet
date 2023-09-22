@@ -1,0 +1,16 @@
+[package]
+name = "vetkd_backend"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+candid = "0.9"
+ic-cdk = "0.11.0"
+serde = "1"
+hex = "0.4"
+b3_utils = { workspace = true, features = ["logging", "vetkd"] }

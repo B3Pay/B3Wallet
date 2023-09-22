@@ -26,11 +26,43 @@ where
     })
 }
 
+/// Imports a vector of entries into a buffer.
+/// The entries are inserted in the order of the vector.
+/// Older entries are evicted.
+///
+/// # Example
+/// ```
+/// use b3_utils::{logs::{import_log, LogEntry}, log};
+///
+/// log!("Hello, {}!", "world");
+/// let entries = import_log(vec![LogEntry {
+///     timestamp: b3_utils::NanoTimeStamp::now(),
+///     message: "Hello, log!".to_string(),
+///     file: "src/logs.rs",
+///     line: 123,
+///     cycle: None,
+///     version: env!("CARGO_PKG_VERSION"),
+///     counter: 1,
+/// }]);
+/// assert_eq!(entries.len(), 2);
+/// assert_eq!(entries[0].message, "Hello, world!");
+/// assert_eq!(entries[1].message, "Hello, log!");
+/// ```
+pub fn import_log(entries: Vec<LogEntry>) -> Vec<LogEntry> {
+    with_log_mut(|log| {
+        log.set_capacity(100);
+        for entry in entries {
+            log.append(entry);
+        }
+        log.export()
+    })
+}
+
 /// Exports the contents of a buffer as a vector of entries in the order of
 /// insertion.
 ///
 /// ```
-/// use b3_utils::{log, export_log};
+/// use b3_utils::{logs::export_log, log};
 ///
 /// log!("Hello, {}!", "world");
 /// let entries = export_log();
@@ -45,7 +77,7 @@ pub fn export_log() -> Vec<LogEntry> {
 /// insertion by page.
 ///
 /// ```
-/// use b3_utils::{log, export_log_page};
+/// use b3_utils::{logs::export_log_page, log};
 ///
 /// log!("Hello, {}!", "world");
 /// let entries = export_log_page(0, None);
@@ -62,7 +94,7 @@ pub fn export_log_page(page: usize, page_size: Option<usize>) -> Vec<LogEntry> {
 /// insertion by page.
 ///
 /// ```
-/// use b3_utils::{log, export_log_messages_page};
+/// use b3_utils::{log, logs::export_log_messages_page};
 ///
 /// log!("Hello, {}!", "world");
 /// let entries = export_log_messages_page(0, None);
@@ -79,7 +111,7 @@ pub fn export_log_messages_page(page: usize, page_size: Option<usize>) -> Vec<St
 /// insertion.
 ///
 /// ```
-/// use b3_utils::{log, export_log_messages};
+/// use b3_utils::{log, logs::export_log_messages};
 ///
 /// log!("Hello, {}!", "world");
 /// let entries = export_log_messages();

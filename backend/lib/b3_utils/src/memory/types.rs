@@ -1,7 +1,8 @@
 use candid::CandidType;
 
-pub use b3_stable_structures::{
-    memory_manager::VirtualMemory, BoundedStorable, DefaultMemoryImpl, FileMemory, Memory,
+pub use ic_stable_structures::{
+    cell::InitError as ExternalCellInitError, log::InitError as ExternalLogInitError,
+    memory_manager::VirtualMemory, storable::Bound, DefaultMemoryImpl, FileMemory, Memory,
     RestrictedMemory, StableBTreeMap, StableCell, StableLog, StableMinHeap, StableVec, Storable,
     VectorMemory,
 };
@@ -9,7 +10,8 @@ pub use b3_stable_structures::{
 #[derive(CandidType, Clone, Debug)]
 pub struct PartitionDetail {
     pub name: String,
-    pub len: u64,
+    pub size: u64,
+    pub id: u8,
 }
 
 pub type DefaultVM = VirtualMemory<DefaultMemoryImpl>;

@@ -2,7 +2,32 @@
 mod tests {
     use candid::Principal;
 
-    use crate::{Environment, ICRCAccount, Subaccount};
+    use crate::{ledger::ICRCAccount, mocks::id_mock, Environment, Subaccount};
+
+    #[test]
+    fn test_account_and_subaccount_with_loop() {
+        for i in 0..30 {
+            let env = match i % 3 {
+                0 => Environment::Production,
+                1 => Environment::Staging,
+                2 => Environment::Development,
+                _ => unreachable!(),
+            };
+            let nonce = i / 3;
+
+            let subaccount = Subaccount::new(env.clone(), nonce);
+            let account = ICRCAccount::new(id_mock(), Some(subaccount.clone()));
+
+            assert_eq!(account.effective_subaccount(), &subaccount);
+            println!("{}", account.to_text());
+
+            let recover = ICRCAccount::from_text(&account.to_text()).unwrap();
+            assert_eq!(recover.effective_subaccount().environment(), env);
+            assert_eq!(recover.effective_subaccount().nonce(), nonce);
+
+            assert_eq!(recover, account);
+        }
+    }
 
     #[test]
     fn test_account_display() {

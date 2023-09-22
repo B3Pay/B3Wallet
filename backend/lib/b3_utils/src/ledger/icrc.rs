@@ -1,4 +1,5 @@
-use crate::{constants::DEFAULT_SUBACCOUNT, utils::base32_encode_account, Subaccount};
+use super::{base32::base32_encode_account, constants::DEFAULT_SUBACCOUNT};
+use crate::Subaccount;
 use candid::{CandidType, Principal};
 use easy_hasher::easy_hasher;
 use serde::{Deserialize, Serialize};

@@ -9,9 +9,10 @@ use super::{
     types::{Balance, ChainId, PendingEnum, SendResult},
 };
 use async_trait::async_trait;
-use b3_utils::{currency::TokenAmount, types::CanisterId, Subaccount};
-use candid::{CandidType, Deserialize};
+use b3_utils::{ledger::currency::TokenAmount, types::CanisterId, Subaccount};
+use candid::CandidType;
 use enum_dispatch::enum_dispatch;
+use serde::{Deserialize, Serialize};
 
 #[async_trait]
 #[enum_dispatch]
@@ -27,7 +28,7 @@ pub trait ChainTrait {
 }
 
 #[enum_dispatch(ChainTrait)]
-#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
+#[derive(CandidType, Clone, Serialize, Deserialize, PartialEq, Debug)]
 pub enum Chain {
     CkbtcChain,
     IcrcChain,

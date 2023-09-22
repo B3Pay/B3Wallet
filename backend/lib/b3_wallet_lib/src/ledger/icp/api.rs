@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use b3_utils::{
+use b3_utils::ledger::{
     currency::TokenAmount,
     types::{ICPTransferResult, NotifyTopUpResult},
     AccountIdentifier,

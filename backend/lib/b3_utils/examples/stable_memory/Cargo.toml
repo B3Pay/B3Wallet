@@ -11,7 +11,7 @@ crate-type = ["cdylib"]
 [dependencies]
 ciborium = "0.2"
 candid = "0.9"
-ic-cdk = "0.10"
-ic0 = "0.18"
+ic-cdk = { workspace = true }
+ic0 = "0.18.11"
 serde = { version = "1.0", features = ["derive"] }
-b3_utils = { workspace = true }
+b3_utils = { workspace = true, features = ["logging", "stable_memory"] }

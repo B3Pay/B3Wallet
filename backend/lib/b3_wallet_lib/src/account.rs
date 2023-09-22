@@ -1,6 +1,7 @@
 use crate::{ledger::ledger::Ledger, types::WalletAccountView};
 use b3_utils::{types::Metadata, Environment, Subaccount};
-use candid::{CandidType, Deserialize};
+use candid::CandidType;
+use serde::{Deserialize, Serialize};
 
 impl From<&WalletAccount> for WalletAccountView {
     fn from(account: &WalletAccount) -> Self {
@@ -16,7 +17,7 @@ impl From<&WalletAccount> for WalletAccountView {
     }
 }
 
-#[derive(CandidType, Clone, Deserialize)]
+#[derive(CandidType, Serialize, Clone, Deserialize)]
 pub struct WalletAccount {
     id: String,
     name: String,

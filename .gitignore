@@ -10,7 +10,6 @@
 # dfx temporary files
 .dfx/
 candid
-canister_ids.json
 
 # frontend code
 node_modules/

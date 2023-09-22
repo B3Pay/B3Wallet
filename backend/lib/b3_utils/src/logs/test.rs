@@ -46,6 +46,7 @@ mod test {
             message: "Hello, world!".to_string(),
             file: "foo.rs",
             line: 1,
+            cycle: None,
             version: "0",
         });
 
@@ -55,12 +56,14 @@ mod test {
             message: "Hello, world!".to_string(),
             file: "foo.rs",
             line: 2,
+            cycle: None,
             version: "0",
         });
 
         buffer.append(LogEntry {
             timestamp: NanoTimeStamp(2),
             counter: 2,
+            cycle: None,
             message: "Hello, world!".to_string(),
             file: "foo.rs",
             line: 3,

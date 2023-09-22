@@ -6,10 +6,11 @@ use crate::{
     state::WalletState,
     types::AccountId,
 };
+use b3_utils::memory::{init_stable_mem_cell, types::DefaultVMCell};
 use std::cell::RefCell;
 
 thread_local! {
-    static STATE: RefCell<WalletState> = RefCell::default();
+    static STATE: RefCell<DefaultVMCell<WalletState>> = init_stable_mem_cell("wallet", 10).unwrap();
 }
 
 // STATE ----------------------------------------------------------------------

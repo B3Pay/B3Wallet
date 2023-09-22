@@ -9,13 +9,14 @@ use super::{
 };
 use b3_utils::{
     constants::{CKBTC_MINTER_CANISTER_MAINNET, CKBTC_MINTER_CANISTER_TESTNET},
-    types::{CanisterId, TransferBlockIndex},
-    ICRCAccount,
+    ledger::{types::TransferBlockIndex, ICRCAccount},
+    types::CanisterId,
 };
-use candid::{CandidType, Deserialize};
+use candid::CandidType;
 use ic_cdk::api::call::call;
+use serde::{Deserialize, Serialize};
 
-#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
+#[derive(CandidType, Clone, Serialize, Deserialize, PartialEq, Debug)]
 pub struct Minter(pub BtcNetwork);
 
 impl Minter {

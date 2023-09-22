@@ -1,8 +1,0 @@
-{
-  "extends": "@tsconfig/svelte/tsconfig.json",
-  "include": ["./**/*", "./*"],
-  "exclude": ["node_modules/*", "__sapper__/*", "public/*"],
-  "compilerOptions": {
-    "ignoreDeprecations": "5.0"
-  }
-}

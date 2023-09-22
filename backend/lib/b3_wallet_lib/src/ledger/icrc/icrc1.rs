@@ -1,13 +1,14 @@
-use b3_utils::{types::CanisterId, ICRCAccount};
+use b3_utils::{ledger::ICRCAccount, types::CanisterId};
 use ic_cdk::api::call::call;
 
 use super::{
     error::IcrcError,
     types::{ICRC1TransferArgs, ICRC1TransferResult, ICRCMetadata, ICRCTokens},
 };
-use candid::{CandidType, Deserialize};
+use candid::CandidType;
+use serde::{Deserialize, Serialize};
 
-#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
+#[derive(CandidType, Clone, Serialize, Deserialize, PartialEq, Debug)]
 pub struct ICRC1(pub CanisterId);
 
 impl ICRC1 {

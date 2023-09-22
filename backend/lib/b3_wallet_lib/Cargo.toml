@@ -12,9 +12,14 @@ candid = { workspace = true }
 ic-cdk = { workspace = true }
 async-trait = { workspace = true }
 enum_dispatch = { workspace = true }
-b3_utils = { workspace = true }
+b3_utils = { workspace = true, features = ["stable_memory", "ledger"] }
 
 hex = "0.4"
+ciborium = "0.2"
 serde_bytes = "0.11"
 ethereum-rlp = "0.2"
-bitcoin = { version = "0.30", default-features = false,  features = [ "no-std", "secp-recovery", "secp-lowmemory"] }
+bitcoin = { version = "0.30", default-features = false, features = [
+    "no-std",
+    "secp-recovery",
+    "secp-lowmemory",
+] }

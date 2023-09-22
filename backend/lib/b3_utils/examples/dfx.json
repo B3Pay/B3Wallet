@@ -1,40 +1,52 @@
 {
-  "version": 1,
   "canisters": {
+    "http_request": {
+      "type": "custom",
+      "wasm": "target/wasm32-unknown-unknown/release/http_request-opt.wasm",
+      "candid": "http_request/http_request.did",
+      "package": "http_request",
+      "build": "sh build.sh http_request http_request"
+    },
     "stable_memory": {
-      "type": "rust",
+      "candid": "stable_memory/stable_memory.did",
       "package": "stable_memory",
-      "candid": "stable_memory/candid.did",
+      "type": "custom",
+      "wasm": "target/wasm32-unknown-unknown/release/stable_memory-opt.wasm",
+      "build": "sh build.sh stable_memory stable_memory",
       "declarations": {
-        "output": "stable_memory/declarations/stable_memory"
+        "output": "declarations/stable_memory",
+        "node_compatibility": true
       }
     },
     "vetkd_system_api": {
-      "type": "custom",
-      "candid": "vetkd_notes/vetkd_system_api/vetkd_system_api.did",
-      "wasm": "vetkd_notes/vetkd_system_api/vetkd_system_api.wasm",
+      "type": "rust",
+      "package": "vetkd_system_api",
+      "candid": "vetkd/src/system_api/vetkd_system_api.did",
       "declarations": {
-        "output": "vetkd_notes/declarations/vetkd_system_api"
+        "output": "declarations/system_api"
       }
     },
-    "vetkd_notes": {
+    "vetkd_backend": {
       "type": "rust",
-      "candid": "vetkd_notes/candid.did",
-      "package": "vetkd_notes",
+      "candid": "vetkd/src/vetkd_backend/vetkd_app_backend.did",
+      "package": "vetkd_backend",
       "declarations": {
         "env_override": null,
-        "output": "vetkd_notes/declarations/vetkd_notes"
+        "output": "declarations/vetkd_backend"
       }
     },
-    "vetkd_notes_frontend": {
-      "dependencies": ["vetkd_notes", "vetkd_system_api"],
+    "vetkd_frontend": {
+      "dependencies": ["vetkd_backend", "vetkd_system_api"],
       "frontend": {
-        "entrypoint": "vetkd_notes/frontend/public/index.html"
+        "entrypoint": "vetkd/src/vetkd_frontend_js/src/index.html"
       },
-      "source": ["vetkd_notes/frontend/public/"],
+      "source": [
+        "vetkd/src/vetkd_frontend_js/assets",
+        "vetkd/dist/vetkd_frontend_js/"
+      ],
       "type": "assets",
       "declarations": {
-        "output": "vetkd_notes/declarations/vetkd_system_api"
+        "output": "declarations/vetkd_frontend"
       }
     }
   },
