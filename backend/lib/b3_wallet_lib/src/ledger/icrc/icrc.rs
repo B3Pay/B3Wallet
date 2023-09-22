@@ -1,6 +1,7 @@
 use crate::ledger::types::IcrcPending;
 use b3_utils::{types::CanisterId, Subaccount};
-use candid::{CandidType, Deserialize};
+use candid::CandidType;
+use serde::{Deserialize, Serialize};
 
 use super::{
     error::IcrcError,
@@ -8,7 +9,7 @@ use super::{
     types::{ICRCMemo, ICRCMetadata, ICRCTimestamp, ICRCTokens},
 };
 
-#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
+#[derive(CandidType, Serialize, Clone, Deserialize, PartialEq, Debug)]
 pub struct IcrcChain {
     pub canister_id: CanisterId,
     pub subaccount: Subaccount,

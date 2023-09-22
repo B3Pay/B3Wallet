@@ -8,7 +8,7 @@ use crate::ledger::{
     types::{Balance, PendingEnum, SendResult},
 };
 use async_trait::async_trait;
-use b3_utils::{currency::TokenAmount, ICRCAccount};
+use b3_utils::ledger::{currency::TokenAmount, ICRCAccount};
 use std::str::FromStr;
 
 #[cfg(test)]
@@ -21,11 +21,13 @@ impl ChainTrait for IcrcChain {
     fn address(&self) -> String {
         let owner = ic_cdk_id();
 
-        self.subaccount.icrc_account(owner).to_string()
+        ICRCAccount::new(owner, Some(self.subaccount)).to_string()
     }
 
     async fn balance(&self) -> Result<Balance, LedgerError> {
-        let account = self.subaccount.icrc_account(ic_cdk_id());
+        let canister_id = ic_cdk_id();
+
+        let account = ICRCAccount::new(canister_id, Some(self.subaccount));
 
         let (res,): (Balance,) = ic_cdk::call(self.canister_id, "icrc1_balance_of", (account,))
             .await

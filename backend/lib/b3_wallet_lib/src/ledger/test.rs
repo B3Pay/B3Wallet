@@ -7,7 +7,7 @@ mod tests {
         ledger::Ledger,
         types::{ChainEnum, ChainMap},
     };
-    use b3_utils::{mocks::id_mock, types::CanisterId, AccountIdentifier, Subaccount};
+    use b3_utils::{ledger::AccountIdentifier, mocks::id_mock, types::CanisterId, Subaccount};
 
     #[test]
     fn test_generate_address1() {
@@ -185,7 +185,7 @@ mod tests {
 
         let owner = CanisterId::from_text("bkyz2-fmaaa-aaaaa-qaaaq-cai").unwrap();
 
-        let identifier = subaccount.account_identifier(owner);
+        let identifier = AccountIdentifier::new(owner, subaccount.clone());
 
         println!("identifier: {}", identifier.to_string());
 

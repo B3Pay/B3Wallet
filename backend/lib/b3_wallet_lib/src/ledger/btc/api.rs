@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use crate::ledger::{
     chain::ChainTrait,
     ckbtc::minter::Minter,
@@ -7,7 +5,7 @@ use crate::ledger::{
     types::{Balance, BtcPending, PendingEnum, SendResult},
 };
 use async_trait::async_trait;
-use b3_utils::{currency::TokenAmount, ICRCAccount};
+use b3_utils::ledger::{currency::TokenAmount, ICRCAccount};
 
 use super::btc::BtcChain;
 
@@ -46,7 +44,7 @@ impl ChainTrait for BtcChain {
             .ok_or(LedgerError::PendingIndexError(pending_index))?;
 
         let account =
-            ICRCAccount::from_str(account).map_err(|e| LedgerError::ICRCAccountError(e))?;
+            ICRCAccount::from_text(account).map_err(|e| LedgerError::ICRCAccountError(e))?;
 
         let result = Minter(self.btc_network).update_balance(account).await;
 

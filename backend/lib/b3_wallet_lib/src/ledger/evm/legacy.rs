@@ -3,7 +3,7 @@ use super::evm::{get_recovery_id, EvmSignTrait};
 use super::utils::{
     remove_leading, string_to_vec_u8, u64_to_vec_u8, vec_u8_to_string, vec_u8_to_u64,
 };
-use b3_utils::raw_keccak256;
+use b3_utils::ledger::raw_keccak256;
 use bitcoin::secp256k1::PublicKey;
 use candid::{CandidType, Deserialize};
 

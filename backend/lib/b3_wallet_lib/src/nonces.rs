@@ -2,7 +2,7 @@ use b3_utils::{nonce::Nonce, Environment};
 use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
-#[derive(CandidType, Serialize, Deserialize, Clone)]
+#[derive(CandidType, Default, Serialize, Deserialize, Clone)]
 pub struct WalletAccountsNonce {
     development: Nonce,
     production: Nonce,

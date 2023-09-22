@@ -24,7 +24,7 @@ where
     STATE.with(|states| {
         let state = states.borrow();
 
-        callback(&state)
+        callback(state.get())
     })
 }
 
@@ -37,7 +37,7 @@ where
     STATE.with(|states| {
         let mut state = states.borrow_mut();
 
-        callback(&mut state)
+        callback(state.get_mut())
     })
 }
 

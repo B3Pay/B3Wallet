@@ -1,4 +1,4 @@
-use b3_utils::raw_keccak256;
+use b3_utils::ledger::raw_keccak256;
 use bitcoin::secp256k1::PublicKey;
 
 use super::{error::EvmError, types::PublicKeyTrait};

@@ -3,7 +3,7 @@ use crate::ledger::ckbtc::types::BtcTxId;
 use crate::ledger::ecdsa::EcdsaPublicKey;
 use crate::ledger::subaccount::SubaccountEcdsaTrait;
 use crate::ledger::types::BtcPending;
-use b3_utils::{ICRCAccount, Subaccount};
+use b3_utils::{ledger::ICRCAccount, Subaccount};
 use bitcoin::consensus::serialize;
 use bitcoin::secp256k1::ecdsa::Signature;
 use bitcoin::sighash::{EcdsaSighashType, SighashCache};
@@ -18,9 +18,10 @@ use super::error::BitcoinError;
 use super::network::BtcNetwork;
 use super::utxos::BtcUtxos;
 
-use candid::{CandidType, Deserialize};
+use candid::CandidType;
+use serde::{Deserialize, Serialize};
 
-#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
+#[derive(CandidType, Clone, Serialize, Deserialize, PartialEq, Debug)]
 pub struct BtcChain {
     pub address: String,
     pub subaccount: Subaccount,

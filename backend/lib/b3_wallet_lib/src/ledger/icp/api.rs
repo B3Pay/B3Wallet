@@ -22,13 +22,17 @@ use crate::ledger::{
 #[async_trait]
 impl ChainTrait for IcpChain {
     fn address(&self) -> String {
-        self.subaccount.account_identifier(ic_cdk_id()).to_string()
+        let canister_id = ic_cdk_id();
+
+        let account = AccountIdentifier::new(canister_id, self.subaccount.clone());
+
+        account.to_string()
     }
 
     async fn balance(&self) -> Result<Balance, LedgerError> {
         let canister_id = ic_cdk_id();
 
-        let account = self.subaccount.account_identifier(canister_id);
+        let account = AccountIdentifier::new(canister_id, self.subaccount.clone());
 
         let res = self
             .account_balance(account)

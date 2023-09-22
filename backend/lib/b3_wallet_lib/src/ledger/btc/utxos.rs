@@ -138,7 +138,7 @@ mod test {
     };
 
     use super::*;
-    use b3_utils::{mocks::id_mock, AccountIdentifier, Subaccount};
+    use b3_utils::{ledger::AccountIdentifier, mocks::id_mock, Subaccount};
     use ic_cdk::api::management_canister::bitcoin::{Outpoint, Utxo};
 
     #[test]

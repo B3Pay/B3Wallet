@@ -3,12 +3,14 @@ use crate::ledger::{
     error::LedgerError,
     types::{Balance, ChainId, EvmPending, PendingEnum, SendResult},
 };
-use b3_utils::currency::TokenAmount;
-use candid::{CandidType, Deserialize};
+
+use b3_utils::ledger::currency::TokenAmount;
+use candid::CandidType;
+use serde::{Deserialize, Serialize};
 
 use async_trait::async_trait;
 
-#[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
+#[derive(CandidType, Clone, Deserialize, Serialize, PartialEq, Debug)]
 pub struct EvmChain {
     pub chain_id: ChainId,
     pub address: String,

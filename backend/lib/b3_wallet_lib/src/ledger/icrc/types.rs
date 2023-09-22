@@ -1,6 +1,8 @@
 use crate::ledger::types::Balance;
-use b3_utils::{ICRCAccount, Subaccount};
-use candid::{CandidType, Deserialize, Int, Nat};
+use b3_utils::{ledger::ICRCAccount, Subaccount};
+use candid::{CandidType, Int, Nat};
+use serde::{Deserialize, Serialize};
+
 use serde_bytes::ByteBuf;
 
 use super::error::ICRC1TransferError;
@@ -17,7 +19,7 @@ pub type ICRCTimestamp = u64;
 
 pub type ICRC1TransferResult = Result<TxIndex, ICRC1TransferError>;
 
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct ICRC1TransferArgs {
     pub to: ICRCAccount,
     pub amount: Balance,
@@ -28,7 +30,7 @@ pub struct ICRC1TransferArgs {
 }
 
 /// Variant type for the `metadata` endpoint values.
-#[derive(CandidType, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(CandidType, Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub enum ICRC1MetadataValue {
     Nat(Nat),
     Int(Int),

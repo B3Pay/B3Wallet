@@ -76,7 +76,7 @@ impl SubaccountEcdsaTrait for Subaccount {
 
 #[cfg(test)]
 mod tests {
-    use b3_utils::Environment;
+    use b3_utils::{ledger::AccountIdentifier, Environment};
     use candid::Principal;
 
     use super::*;
@@ -93,7 +93,7 @@ mod tests {
         assert_eq!(subaccount.name(), "Default");
         assert_eq!(subaccount.id(), "-default");
 
-        let identifier = subaccount.account_identifier(TEST_PRINCIPAL);
+        let identifier = AccountIdentifier::new(TEST_PRINCIPAL, subaccount);
 
         println!("{:?}", identifier.to_string());
     }

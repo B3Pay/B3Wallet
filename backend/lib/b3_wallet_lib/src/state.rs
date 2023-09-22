@@ -16,7 +16,7 @@ use std::io::Cursor;
 
 mod test;
 
-#[derive(CandidType, Serialize, Deserialize, Clone)]
+#[derive(CandidType, Default, Serialize, Deserialize, Clone)]
 pub struct WalletState {
     pub nonces: WalletAccountsNonce,
     pub settings: WalletSettings,
