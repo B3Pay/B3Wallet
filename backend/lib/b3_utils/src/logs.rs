@@ -82,6 +82,24 @@ macro_rules! log {
     }}
 }
 
+#[macro_export]
+macro_rules! log_panic {
+    ($message:expr $(,$args:expr)* $(,)*) => {{
+        use $crate::logs::Sink;
+        let message = std::format!($message $(,$args)*);
+        // Print the message for convenience for local development (e.g. integration tests)
+        (&$crate::logs::MAIN_LOG).append($crate::logs::LogEntry {
+            timestamp: $crate::NanoTimeStamp::now(),
+            cycle: None,
+            message: message.clone(),
+            file: std::file!(),
+            line: std::line!(),
+            version: env!("CARGO_PKG_VERSION"),
+            counter: $crate::logs::counter::log_increment()
+        });
+        panic!("{}", &message);
+    }}
+}
 /// Adds a new record to a canister log buffer.
 /// The maximum number of records is 1000.
 /// Older records are evicted.

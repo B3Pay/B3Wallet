@@ -9,6 +9,6 @@ crate-type = ["cdylib"]
 [dependencies]
 b3_wallet_lib = { path = "../lib/b3_wallet_lib" }
 b3_operations = { path = "../lib/b3_operations" }
-b3_utils = { path = "../lib/b3_utils" }
+b3_utils = { path = "../lib/b3_utils", features = ["logging"] }
 candid = { workspace = true }
 ic-cdk = { workspace = true }

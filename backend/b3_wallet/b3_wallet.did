@@ -214,6 +214,15 @@ type Ledger = record {
   subaccount : vec nat8;
   chains : vec record { ChainEnum; Chain };
 };
+type LogEntry = record {
+  counter : nat64;
+  file : text;
+  line : nat32;
+  cycle : opt nat;
+  version : text;
+  message : text;
+  timestamp : nat64;
+};
 type Minter = variant { Mainnet; Regtest; Testnet };
 type NotifyTopUp = record {
   account_id : text;
@@ -570,6 +579,7 @@ service : () -> {
   is_connected : () -> (bool) query;
   load_wasm : (vec nat8) -> (nat64);
   name : () -> (text) query;
+  print_log_entries : () -> (vec LogEntry) query;
   refresh_settings : () -> ();
   remove_setting_metadata : (text) -> ();
   request_account_rename : (RenameAccount, text, opt nat64) -> (nat64);

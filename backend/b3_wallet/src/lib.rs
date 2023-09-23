@@ -1,5 +1,7 @@
 mod guard;
 
+use core::panic;
+
 use crate::guard::{caller_is_admin, caller_is_canister_or_admin, caller_is_signer};
 use b3_operations::{
     error::OperationError,
@@ -34,6 +36,8 @@ use b3_utils::{
             WalletInititializeArgs,
         },
     },
+    log, log_panic,
+    logs::{export_log, LogEntry},
     revert,
     types::{CanisterId, ControllerId, Metadata, OperationId, UserId},
     wasm::{with_wasm, with_wasm_mut, WasmDetails, WasmHash, WasmSize},
@@ -74,6 +78,7 @@ use ic_cdk::{
 
 #[init]
 fn init() {
+    log!("init");
     // when the canister is created by another canister (e.g. the system canister)
     // this function is called with the arguments passed to the canister constructor.
     let (call_arg,) = arg_data::<(Option<WalletCanisterInitArgs>,)>();
@@ -112,6 +117,7 @@ fn init() {
 
 #[pre_upgrade]
 fn pre_upgrade() {
+    log!("pre_upgrade");
     with_wasm_mut(|wasm| wasm.unload());
 
     let permit = with_operation(|o| o.clone());
@@ -122,6 +128,7 @@ fn pre_upgrade() {
 
 #[post_upgrade]
 fn post_upgrade() {
+    log!("post_upgrade");
     let (state_prev, sign_prev): (WalletState, OperationState) =
         ic_cdk::storage::stable_restore().unwrap();
 
@@ -181,6 +188,12 @@ async fn retrieve_btc_status(
 // UPDATE ---------------------------------------------------------------------
 #[update(guard = "caller_is_signer")]
 async fn account_update_balance(account_id: AccountId, network: BtcNetwork) -> Vec<UtxoStatus> {
+    log!(
+        "Update balance for account: {} on network: {}",
+        account_id,
+        network
+    );
+
     let ckbtc = with_chain(&account_id, &ChainEnum::CKBTC(network), |chain| {
         chain.ckbtc()
     })
@@ -197,6 +210,8 @@ async fn account_update_balance(account_id: AccountId, network: BtcNetwork) -> V
 
 #[update(guard = "caller_is_signer")]
 fn account_create(env: Option<Environment>, name: Option<String>) {
+    log!("Create account: {:?} on env: {:?}", name, env);
+
     let subaccount = with_wallet(|s| s.new_subaccount(env));
 
     let new_account = WalletAccount::from(subaccount);
@@ -206,21 +221,29 @@ fn account_create(env: Option<Environment>, name: Option<String>) {
 
 #[update(guard = "caller_is_signer")]
 fn account_rename(account_id: AccountId, name: String) {
+    log!("Rename account: {} to {}", account_id, name);
+
     with_account_mut(&account_id, |a| a.rename(name)).unwrap_or_else(revert)
 }
 
 #[update(guard = "caller_is_signer")]
 fn account_hide(account_id: AccountId) {
+    log!("Hide account: {}", account_id);
+
     with_account_mut(&account_id, |a| a.hide()).unwrap_or_else(revert)
 }
 
 #[update(guard = "caller_is_signer")]
 fn account_remove(account_id: AccountId) {
+    log!("Remove account: {}", account_id);
+
     with_wallet_mut(|s| s.remove_account(&account_id)).unwrap_or_else(revert);
 }
 
 #[update(guard = "caller_is_signer")]
 fn account_remove_address(account_id: AccountId, chain: ChainEnum) {
+    log!("Remove address: {} on chain: {:?}", account_id, chain);
+
     with_ledger_mut(&account_id, |ledger| ledger.remove_address(chain))
         .unwrap_or_else(revert)
         .unwrap_or_else(revert);
@@ -228,6 +251,8 @@ fn account_remove_address(account_id: AccountId, chain: ChainEnum) {
 
 #[update(guard = "caller_is_signer")]
 fn account_restore(env: Environment, nonce: u64) {
+    log!("Restore account: {:?} with nonce: {}", env, nonce);
+
     let subaccount = Subaccount::new(env, nonce);
 
     with_wallet_mut(|s| s.restore_account(subaccount)).unwrap_or_else(revert);
@@ -235,6 +260,12 @@ fn account_restore(env: Environment, nonce: u64) {
 
 #[update(guard = "caller_is_signer")]
 async fn account_balance(account_id: AccountId, chain: ChainEnum) -> Balance {
+    log!(
+        "Get balance for account: {} on chain: {:?}",
+        account_id,
+        chain
+    );
+
     let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
     let balance = ledger.balance(chain).await;
@@ -252,6 +283,14 @@ async fn account_send(
     to: String,
     amount: TokenAmount,
 ) -> SendResult {
+    log!(
+        "Send {} on chain: {:?} from account: {} to: {}",
+        amount,
+        chain,
+        account_id,
+        to
+    );
+
     let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
     ledger.send(&chain, to, amount).await.unwrap_or_else(revert)
@@ -259,6 +298,13 @@ async fn account_send(
 
 #[update(guard = "caller_is_signer")]
 async fn account_check_pending(account_id: AccountId, chain_enum: ChainEnum, pending_index: usize) {
+    log!(
+        "Check pending: {} on chain: {:?} for account: {}",
+        pending_index,
+        chain_enum,
+        account_id
+    );
+
     let chain = with_chain(&account_id, &chain_enum, |chain| chain.clone()).unwrap_or_else(revert);
 
     let result = chain.check_pending(pending_index).await;
@@ -276,11 +322,25 @@ async fn account_check_pending(account_id: AccountId, chain_enum: ChainEnum, pen
 
 #[update(guard = "caller_is_signer")]
 async fn account_add_pending(account_id: AccountId, chain: ChainEnum, pending: PendingEnum) {
+    log!(
+        "Add pending: {:?} on chain: {:?} for account: {}",
+        pending,
+        chain,
+        account_id
+    );
+
     with_chain_mut(&account_id, chain, |chain| chain.add_pending(pending)).unwrap_or_else(revert);
 }
 
 #[update(guard = "caller_is_signer")]
 async fn account_remove_pending(account_id: AccountId, chain: ChainEnum, pending_index: usize) {
+    log!(
+        "Remove pending: {} on chain: {:?} for account: {}",
+        pending_index,
+        chain,
+        account_id
+    );
+
     with_chain_mut(&account_id, chain, |chain| {
         chain.remove_pending(pending_index)
     })
@@ -293,6 +353,13 @@ async fn account_swap_btc_to_ckbtc(
     network: BtcNetwork,
     amount: Satoshi,
 ) -> BtcPending {
+    log!(
+        "Swap {} BTC to CKBTC on network: {} for account: {}",
+        amount,
+        network,
+        account_id
+    );
+
     let btc = with_chain(&account_id, &ChainEnum::BTC(network), |chain| chain.btc())
         .unwrap_or_else(revert)
         .unwrap_or_else(revert);
@@ -319,6 +386,13 @@ async fn account_swap_ckbtc_to_btc(
     retrieve_address: String,
     amount: Satoshi,
 ) -> TransferBlockIndex {
+    log!(
+        "Swap {} CKBTC to BTC on network: {} for account: {}",
+        amount,
+        network,
+        account_id
+    );
+
     let ckbtc = with_chain(&account_id, &ChainEnum::CKBTC(network), |chain| {
         chain.ckbtc()
     })
@@ -350,6 +424,13 @@ async fn account_top_up_and_notify(
     amount: ICPToken,
     canister_id: Option<CanisterId>,
 ) -> Result<Cycles, String> {
+    log!(
+        "Top up {} ICP for account: {} to canister: {:?}",
+        amount,
+        account_id,
+        canister_id
+    );
+
     let icp = with_chain(&account_id, &ChainEnum::ICP, |chain| chain.icp())
         .unwrap_or_else(revert)
         .unwrap_or_else(revert);
@@ -377,6 +458,12 @@ async fn account_top_up_and_notify(
 
 #[update(guard = "caller_is_signer")]
 async fn account_create_address(account_id: AccountId, chain_enum: ChainEnum) {
+    log!(
+        "Create address for account: {} on chain: {:?}",
+        account_id,
+        chain_enum
+    );
+
     let mut ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
     let ecdsa = match chain_enum {
@@ -423,6 +510,12 @@ async fn account_create_address(account_id: AccountId, chain_enum: ChainEnum) {
 
 #[update(guard = "caller_is_signer")]
 async fn account_btc_fees(network: BtcNetwork, num_blocks: u8) -> u64 {
+    log!(
+        "Get fees for network: {} with {} blocks",
+        network,
+        num_blocks
+    );
+
     let rate = network.fee_rate(num_blocks).await;
 
     match rate {
@@ -442,6 +535,8 @@ fn get_processed_list() -> ProcessedOperations {
 
 #[update(guard = "caller_is_signer")]
 async fn response(request_id: OperationId, answer: Response) -> Result<ProcessedOperation, String> {
+    log!("response: {} with {:?}", request_id, answer);
+
     let caller = ic_cdk::caller();
 
     let request = with_pending_operation_mut(&request_id, |request| {
@@ -453,7 +548,7 @@ async fn response(request_id: OperationId, answer: Response) -> Result<Processed
 
         request.clone()
     })
-    .unwrap_or_else(revert);
+    .unwrap_or_else(|err| log_panic!("response failed: {}", err));
 
     if request.is_failed() {
         let processed = ProcessedOperation::from(request);
@@ -480,6 +575,8 @@ async fn response(request_id: OperationId, answer: Response) -> Result<Processed
 
 #[update(guard = "caller_is_signer")]
 fn reset_accounts() {
+    log!("Reset accounts");
+
     with_wallet_mut(|s| s.reset_accounts());
 }
 
@@ -497,6 +594,8 @@ async fn add_controller_and_update(
     name: String,
     metadata: Option<Metadata>,
 ) {
+    log!("Add controller: {} with name: {}", controller_id, name);
+
     let controller = WalletController::new(name, metadata);
 
     let mut settings = with_setting(|s| s.clone());
@@ -511,6 +610,8 @@ async fn add_controller_and_update(
 
 #[update(guard = "caller_is_admin")]
 async fn update_controller(controller_map: WalletControllerMap) -> WalletControllerMap {
+    log!("Update controller: {:?}", controller_map);
+
     let mut settings = with_setting(|s| s.clone());
 
     settings
@@ -525,6 +626,8 @@ async fn update_controller(controller_map: WalletControllerMap) -> WalletControl
 
 #[update(guard = "caller_is_admin")]
 async fn update_settings() {
+    log!("Update settings");
+
     let mut settings = with_setting(|s| s.clone());
 
     settings.update_settings().await.unwrap_or_else(revert);
@@ -534,6 +637,8 @@ async fn update_settings() {
 
 #[update(guard = "caller_is_signer")]
 async fn refresh_settings() {
+    log!("Refresh settings");
+
     let mut settings = with_setting(|s| s.clone());
 
     settings.refresh_settings().await.unwrap_or_else(revert);
@@ -543,11 +648,15 @@ async fn refresh_settings() {
 
 #[update(guard = "caller_is_signer")]
 fn add_setting_metadata(key: String, value: String) {
+    log!("Add metadata: {} with value: {}", key, value);
+
     with_setting_mut(|s| s.add_metadata(key, value));
 }
 
 #[update(guard = "caller_is_signer")]
 fn remove_setting_metadata(key: String) {
+    log!("Remove metadata: {}", key);
+
     with_setting_mut(|s| s.remove_metadata(&key));
 }
 
@@ -571,6 +680,8 @@ fn request_maker(
     reason: String,
     deadline: Option<NanoTimeStamp>,
 ) -> OperationId {
+    log!("request_maker: {:?} with reason: {}", request, reason);
+
     let caller = ic_cdk::caller();
 
     let allowed_signers = with_users_who_can_operate(&request, |signer_ids| {
@@ -601,11 +712,15 @@ fn request_add_signer(
     reason: String,
     deadline: Option<NanoTimeStamp>,
 ) -> OperationId {
+    log!("request_add_signer: {:?} with reason: {}", request, reason);
+
     request_maker(request.into(), reason, deadline)
 }
 
 #[update]
 fn request_connect(name: String) -> OperationId {
+    log!("request_connect: {}", name);
+
     let signer_id = ic_cdk::caller();
 
     let request = AddUser {
@@ -644,6 +759,12 @@ fn request_update_settings(
     reason: String,
     deadline: Option<NanoTimeStamp>,
 ) -> OperationId {
+    log!(
+        "request_update_settings: {:?} with reason: {}",
+        request,
+        reason
+    );
+
     request_maker(request.into(), reason, deadline)
 }
 
@@ -653,6 +774,12 @@ fn request_account_rename(
     reason: String,
     deadline: Option<NanoTimeStamp>,
 ) -> OperationId {
+    log!(
+        "request_account_rename: {:?} with reason: {}",
+        request,
+        reason
+    );
+
     request_maker(request.into(), reason, deadline)
 }
 
@@ -662,6 +789,12 @@ fn request_create_account(
     reason: String,
     deadline: Option<NanoTimeStamp>,
 ) -> OperationId {
+    log!(
+        "request_create_account: {:?} with reason: {}",
+        request,
+        reason
+    );
+
     request_maker(request.into(), reason, deadline)
 }
 
@@ -671,6 +804,12 @@ fn request_delete_account(
     reason: String,
     deadline: Option<NanoTimeStamp>,
 ) -> OperationId {
+    log!(
+        "request_delete_account: {:?} with reason: {}",
+        request,
+        reason
+    );
+
     request_maker(request.into(), reason, deadline)
 }
 
@@ -680,6 +819,12 @@ fn request_transfer_icp(
     reason: String,
     deadline: Option<NanoTimeStamp>,
 ) -> OperationId {
+    log!(
+        "request_transfer_icp: {:?} with reason: {}",
+        request,
+        reason
+    );
+
     request_maker(request.into(), reason, deadline)
 }
 
@@ -689,6 +834,12 @@ fn request_transfer_btc(
     reason: String,
     deadline: Option<NanoTimeStamp>,
 ) -> OperationId {
+    log!(
+        "request_transfer_btc: {:?} with reason: {}",
+        request,
+        reason
+    );
+
     request_maker(request.into(), reason, deadline)
 }
 
@@ -698,11 +849,15 @@ fn request_send(
     reason: String,
     deadline: Option<NanoTimeStamp>,
 ) -> OperationId {
+    log!("request_send: {:?} with reason: {}", request, reason);
+
     request_maker(request.into(), reason, deadline)
 }
 
 #[update(guard = "caller_is_signer")]
 async fn request_upgrade_canister(wasm_version: String) -> OperationId {
+    log!("request_upgrade_canister: {}", wasm_version);
+
     let upgrade_request = with_wasm(|w| UpgradeCanister {
         wasm_hash_string: w.generate_hash_string(),
         wasm_version,
@@ -725,6 +880,8 @@ fn get_signers() -> UserMap {
 
 #[update(guard = "caller_is_admin")]
 fn signer_add(signer_id: UserId, role: Role) -> UserMap {
+    log!("Add signer: {} with role: {:?}", signer_id, role);
+
     let signer = User::from(role);
 
     with_users_mut(|users| {
@@ -736,6 +893,8 @@ fn signer_add(signer_id: UserId, role: Role) -> UserMap {
 
 #[update(guard = "caller_is_admin")]
 fn signer_remove(signer_id: UserId) -> UserMap {
+    log!("Remove signer: {}", signer_id);
+
     with_users_mut(|users| {
         users.remove(&signer_id);
 
@@ -745,6 +904,8 @@ fn signer_remove(signer_id: UserId) -> UserMap {
 
 #[update(guard = "caller_is_admin")]
 async fn init_wallet(args: WalletInititializeArgs) {
+    log!("Initialize wallet: {:?}", args);
+
     if with_wallet(|w| w.is_initialised()) {
         return revert(WalletError::WalletAlreadyInitialized);
     }
@@ -758,6 +919,8 @@ async fn init_wallet(args: WalletInititializeArgs) {
 
 #[update(guard = "caller_is_admin")]
 async fn upgrage_wallet() {
+    log!("Upgrade wallet");
+
     let canister_id = ic_cdk::id();
     let wasm_module = with_wasm(|w| {
         if w.is_empty() {
@@ -778,6 +941,8 @@ async fn upgrage_wallet() {
 
 #[update(guard = "caller_is_admin")]
 async fn uninstall_wallet() {
+    log!("Uninstall wallet");
+
     let canister_id = ic_cdk::id();
 
     let args = CanisterIdRecord { canister_id };
@@ -787,6 +952,8 @@ async fn uninstall_wallet() {
 
 #[update(guard = "caller_is_signer")]
 async fn status() -> WalletCanisterStatus {
+    log!("Get status");
+
     let canister_id = ic_cdk::api::id();
 
     let version = version();
@@ -849,12 +1016,21 @@ fn wasm_hash() -> WasmHash {
 
 #[update(guard = "caller_is_canister_or_admin")]
 fn load_wasm(blob: Vec<u8>) -> WasmSize {
+    log!("Load wasm");
+
     with_wasm_mut(|w| w.load(&blob))
 }
 
 #[update(guard = "caller_is_admin")]
 fn unload_wasm() -> WasmSize {
+    log!("Unload wasm");
+
     with_wasm_mut(|w| w.unload())
+}
+
+#[query]
+fn print_log_entries() -> Vec<LogEntry> {
+    export_log()
 }
 
 ic_cdk::export_candid!();

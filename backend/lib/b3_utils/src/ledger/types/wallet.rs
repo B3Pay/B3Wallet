@@ -36,7 +36,7 @@ impl WalletController {
 
 pub type WalletControllerMap = HashMap<ControllerId, WalletController>;
 
-#[derive(CandidType, Clone, Deserialize)]
+#[derive(CandidType, Debug, Clone, Deserialize)]
 pub struct WalletInititializeArgs {
     pub controllers: WalletControllerMap,
     pub metadata: Option<Metadata>,
