@@ -19,7 +19,7 @@
     "dfx:install": "scripts/install.sh",
     "dfx:stop": "dfx stop",
     "build:wallet": "./scripts/b3_wallet.sh",
-    "deploy": "cargo test && dfx deploy",
+    "deploy": "dfx deploy",
     "ic:deploy": "dfx generate b3_wallet && dfx deploy b3_wallet --network ic",
     "generate": "cargo test && dfx generate",
     "ledger:balance": "ts-node scripts/ledger.balance.ts",

@@ -32,7 +32,7 @@ impl UserState {
     pub fn new(opt_canister_id: Option<CanisterId>) -> Self {
         Self {
             canisters: opt_canister_id
-                .map_or(vec![], |canister_id| vec![WalletCanister(canister_id)]),
+                .map_or(vec![], |canister_id| vec![WalletCanister::new(canister_id)]),
             updated_at: NanoTimeStamp::now(),
             created_at: NanoTimeStamp::now(),
         }
@@ -98,7 +98,7 @@ impl UserState {
 
         match result {
             Ok(result) => {
-                let canister_id = WalletCanister(result.0.canister_id);
+                let canister_id = WalletCanister::new(result.0.canister_id);
 
                 self.add_canister(canister_id.clone());
 

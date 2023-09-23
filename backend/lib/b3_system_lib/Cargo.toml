@@ -7,4 +7,4 @@ edition = "2021"
 serde = { workspace = true }
 candid = { workspace = true }
 ic-cdk = { workspace = true }
-b3_utils = { workspace = true, features = ["wasm", "stable_memory"] }
+b3_utils = { workspace = true, features = ["wasm", "ledger", "stable_memory"] }

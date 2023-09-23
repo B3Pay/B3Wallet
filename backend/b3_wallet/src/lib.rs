@@ -14,18 +14,16 @@ use b3_operations::{
     user::User,
 };
 use b3_utils::{
-    types::{WalletCanisterInitArgs, WalletController},
+    ledger::types::{WalletCanisterInitArgs, WalletController},
     wasm::with_wasm_mut,
 };
 use b3_wallet_lib::{
     state::WalletState,
     store::{with_setting_mut, with_wallet, with_wallet_mut},
 };
-use candid::candid_method;
 use ic_cdk::{api::call::arg_data, init, post_upgrade, pre_upgrade};
 
 #[init]
-#[candid_method(init)]
 pub fn init() {
     // when the canister is created by another canister (e.g. the system canister)
     // this function is called with the arguments passed to the canister constructor.
@@ -90,35 +88,27 @@ mod tests {
     };
     use b3_operations::processed::ProcessedOperation;
     use b3_operations::response::Response;
+    use b3_operations::role::Role;
     use b3_operations::types::*;
-    use b3_utils::currency::ICPToken;
-    use b3_utils::currency::TokenAmount;
-    use b3_utils::types::*;
-    use b3_utils::Environment;
-    use b3_utils::NanoTimeStamp;
+    use b3_utils::{
+        ledger::{
+            currency::{ICPToken, TokenAmount},
+            types::{
+                Cycles, TransferBlockIndex, WalletAccountsNonce, WalletCanisterStatus,
+                WalletControllerMap, WalletInititializeArgs,
+            },
+        },
+        types::*,
+        wasm::*,
+        Environment, NanoTimeStamp,
+    };
 
-    use b3_utils::wasm::*;
     use b3_wallet_lib::account::WalletAccount;
     use b3_wallet_lib::ledger::btc::network::BtcNetwork;
     use b3_wallet_lib::ledger::ckbtc::types::*;
     use b3_wallet_lib::ledger::types::*;
     use b3_wallet_lib::types::*;
-
-    use candid::export_service;
     use ic_cdk::api::management_canister::bitcoin::Satoshi;
 
-    #[test]
-    fn generate_candid() {
-        use std::io::Write;
-
-        let mut file = std::fs::File::create("./b3_wallet.did").unwrap();
-
-        export_service!();
-
-        let candid = __export_service();
-
-        file.write_all(candid.as_bytes()).unwrap();
-
-        assert!(true);
-    }
+    ic_cdk::export_candid!();
 }

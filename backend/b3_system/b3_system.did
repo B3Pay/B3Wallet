@@ -29,7 +29,7 @@ type ReleaseArgs = record {
   size : nat64;
   version : text;
 };
-type ReleaseTypes = variant {
+type ReleaseNames = variant {
   b3_wallet;
   Custom : text;
   b3_multi_sig_wallet;
@@ -68,7 +68,7 @@ service : () -> {
   install_wallet_canister : (text, principal) -> (Result);
   latest_release : (text) -> (Release) query;
   load_release : (text, vec nat8, ReleaseArgs) -> (LoadRelease);
-  release_map : () -> (vec record { ReleaseTypes; vec Release }) query;
+  release_map : () -> (vec record { ReleaseNames; vec Release }) query;
   releases : (text) -> (vec Release) query;
   remove_controller : (principal) -> ();
   remove_latest_release : (text) -> ();

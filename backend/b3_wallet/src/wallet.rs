@@ -1,20 +1,18 @@
 use crate::permit::{caller_is_admin, caller_is_signer};
+use b3_utils::ic_canister_status;
+use b3_utils::ledger::types::{WalletCanisterStatus, WalletInititializeArgs};
 use b3_utils::revert;
-use b3_utils::types::WalletInititializeArgs;
 use b3_utils::wasm::with_wasm;
 use b3_utils::NanoTimeStamp;
-use b3_utils::{ic_canister_status, types::WalletCanisterStatus};
 use b3_wallet_lib::error::WalletError;
 use b3_wallet_lib::setting::WalletSettings;
 use b3_wallet_lib::store::{with_wallet, with_wallet_mut};
-use candid::candid_method;
 use ic_cdk::api::management_canister::main::{
     install_code, uninstall_code, CanisterInstallMode, InstallCodeArgument,
 };
 use ic_cdk::api::management_canister::provisional::CanisterIdRecord;
 use ic_cdk::{query, update};
 
-#[candid_method(update)]
 #[update(guard = "caller_is_admin")]
 pub async fn init_wallet(args: WalletInititializeArgs) {
     if with_wallet(|w| w.is_initialised()) {
@@ -28,7 +26,6 @@ pub async fn init_wallet(args: WalletInititializeArgs) {
     with_wallet_mut(|w| w.init_wallet(setting));
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_admin")]
 async fn upgrage_wallet() {
     let canister_id = ic_cdk::id();
@@ -49,7 +46,6 @@ async fn upgrage_wallet() {
     install_code(args).await.unwrap();
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_admin")]
 pub async fn uninstall_wallet() {
     let canister_id = ic_cdk::id();
@@ -59,7 +55,6 @@ pub async fn uninstall_wallet() {
     uninstall_code(args).await.unwrap();
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub async fn status() -> WalletCanisterStatus {
     let canister_id = ic_cdk::api::id();
@@ -83,25 +78,21 @@ pub async fn status() -> WalletCanisterStatus {
 }
 
 #[query]
-#[candid_method(query)]
 pub fn canister_cycle_balance() -> u128 {
     ic_cdk::api::canister_balance128()
 }
 
 #[query]
-#[candid_method(query)]
 pub fn canister_version() -> u64 {
     ic_cdk::api::canister_version()
 }
 
 #[query]
-#[candid_method(query)]
 pub fn version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }
 
 #[query]
-#[candid_method(query)]
 pub fn name() -> String {
     env!("CARGO_PKG_NAME").to_string()
 }

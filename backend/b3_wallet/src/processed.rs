@@ -6,12 +6,10 @@ use b3_operations::{
     types::ProcessedOperations,
 };
 use b3_utils::{revert, types::OperationId};
-use candid::candid_method;
 use ic_cdk::{query, update};
 
 // QUERY
 
-#[candid_method(query)]
 #[query(guard = "caller_is_signer")]
 pub fn get_processed_list() -> ProcessedOperations {
     with_processed_operation(|s| s.processed_list())
@@ -19,7 +17,6 @@ pub fn get_processed_list() -> ProcessedOperations {
 
 // UPDATE
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub async fn response(
     request_id: OperationId,

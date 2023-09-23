@@ -1,14 +1,13 @@
 use crate::permit::{caller_is_admin, caller_is_signer};
 use b3_operations::{store::with_users, types::WalletSettingsAndSigners};
 use b3_utils::{
+    ledger::types::{WalletController, WalletControllerMap},
     revert,
-    types::{ControllerId, Metadata, WalletController, WalletControllerMap},
+    types::{ControllerId, Metadata},
 };
 use b3_wallet_lib::store::{with_setting, with_setting_mut, with_wallet_mut};
-use candid::candid_method;
 use ic_cdk::{query, update};
 
-#[candid_method(query)]
 #[query(guard = "caller_is_signer")]
 fn setting_and_signer() -> WalletSettingsAndSigners {
     let settings = with_setting(|s| s.clone());
@@ -17,7 +16,6 @@ fn setting_and_signer() -> WalletSettingsAndSigners {
     WalletSettingsAndSigners { settings, signers }
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_admin")]
 async fn add_controller_and_update(
     controller_id: ControllerId,
@@ -36,7 +34,6 @@ async fn add_controller_and_update(
     with_wallet_mut(|w| w.set_setting(settings));
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_admin")]
 async fn update_controller(controller_map: WalletControllerMap) -> WalletControllerMap {
     let mut settings = with_setting(|s| s.clone());
@@ -51,7 +48,6 @@ async fn update_controller(controller_map: WalletControllerMap) -> WalletControl
     with_setting(|s| s.controllers().clone())
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_admin")]
 async fn update_settings() {
     let mut settings = with_setting(|s| s.clone());
@@ -61,7 +57,6 @@ async fn update_settings() {
     with_wallet_mut(|w| w.set_setting(settings));
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 async fn refresh_settings() {
     let mut settings = with_setting(|s| s.clone());
@@ -71,13 +66,11 @@ async fn refresh_settings() {
     with_wallet_mut(|w| w.set_setting(settings));
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 fn add_setting_metadata(key: String, value: String) {
     with_setting_mut(|s| s.add_metadata(key, value));
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 fn remove_setting_metadata(key: String) {
     with_setting_mut(|s| s.remove_metadata(&key));

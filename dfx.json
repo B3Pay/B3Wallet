@@ -2,12 +2,14 @@
   "canisters": {
     "b3_system": {
       "candid": "backend/b3_system/b3_system.did",
+      "build": "scripts/build.sh b3_system b3_system",
       "declarations": {
         "node_compatibility": true,
         "output": "frontend/declarations/b3_system"
       },
       "package": "b3_system",
-      "type": "rust"
+      "wasm": "target/wasm32-unknown-unknown/release/b3_system.wasm",
+      "type": "custom"
     },
     "b3_wallet": {
       "build": "scripts/b3_wallet.sh",
@@ -29,11 +31,15 @@
         "node_compatibility": true,
         "output": "frontend/declarations/wallet_assets"
       },
-      "source": ["frontend/out"],
+      "source": [
+        "frontend/out"
+      ],
       "type": "assets"
     },
     "ckbtc": {
-      "build": ["true"],
+      "build": [
+        "true"
+      ],
       "candid": "wasm/ckbtc/ledger.did",
       "declarations": {
         "node_compatibility": true,
@@ -48,7 +54,9 @@
       "wasm": "wasm/ckbtc/ledger.wasm"
     },
     "index": {
-      "build": ["true"],
+      "build": [
+        "true"
+      ],
       "candid": "wasm/index/index.did",
       "declarations": {
         "node_compatibility": true,
@@ -63,7 +71,9 @@
       "wasm": "wasm/index/index.wasm"
     },
     "kyt": {
-      "build": ["true"],
+      "build": [
+        "true"
+      ],
       "candid": "wasm/kyt/kyt.did",
       "declarations": {
         "node_compatibility": true,
@@ -78,7 +88,9 @@
       "wasm": "wasm/kyt/kyt.wasm"
     },
     "minter": {
-      "build": ["true"],
+      "build": [
+        "true"
+      ],
       "candid": "wasm/minter/minter.did",
       "declarations": {
         "node_compatibility": true,

@@ -20,18 +20,15 @@ use b3_operations::{
     types::PendingOperations,
 };
 use b3_utils::{revert, types::OperationId, wasm::with_wasm, NanoTimeStamp};
-use candid::candid_method;
 use ic_cdk::{query, update};
 
 // QUERY ---------------------------------------------------------------------
 
-#[candid_method(query)]
 #[query(guard = "caller_is_signer")]
 pub fn get_pending_list() -> PendingOperations {
     with_operation(|s| s.pending_list())
 }
 
-#[candid_method(query)]
 #[query(guard = "caller_is_signer")]
 pub fn is_connected() -> bool {
     let caller = ic_cdk::caller();
@@ -40,7 +37,6 @@ pub fn is_connected() -> bool {
 }
 
 // UPDATE ---------------------------------------------------------------------
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub fn request_maker(
     request: Operation,
@@ -67,7 +63,6 @@ pub fn request_maker(
     })
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_admin")]
 pub fn request_add_signer(
     request: AddUser,
@@ -95,7 +90,6 @@ pub fn request_add_signer(
 }
 
 #[update]
-#[candid_method(update)]
 pub fn request_connect() -> OperationId {
     let caller = ic_cdk::caller();
 
@@ -140,7 +134,6 @@ pub fn request_connect() -> OperationId {
     })
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_admin")]
 pub fn request_update_settings(
     request: UpdateCanisterSettings,
@@ -169,7 +162,6 @@ pub fn request_update_settings(
     })
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_admin")]
 pub fn request_account_rename(
     request: RenameAccount,
@@ -196,7 +188,6 @@ pub fn request_account_rename(
     })
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_admin")]
 pub fn request_create_account(
     request: CreateAccount,
@@ -223,7 +214,6 @@ pub fn request_create_account(
     })
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_admin")]
 pub fn request_delete_account(
     request: RemoveAccount,
@@ -250,7 +240,6 @@ pub fn request_delete_account(
     })
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_admin")]
 pub fn request_transfer_icp(
     request: IcpTransfer,
@@ -277,7 +266,6 @@ pub fn request_transfer_icp(
     })
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_admin")]
 pub fn request_transfer_btc(
     request: BtcTransfer,
@@ -304,7 +292,6 @@ pub fn request_transfer_btc(
     })
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub fn request_send(
     request: SendToken,
@@ -334,7 +321,6 @@ pub fn request_send(
     })
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub async fn request_upgrade_canister(wasm_version: String) -> OperationId {
     let caller = ic_cdk::caller();

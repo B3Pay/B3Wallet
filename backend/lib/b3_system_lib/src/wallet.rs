@@ -12,7 +12,7 @@ use ic_cdk::api::management_canister::{
 };
 
 #[derive(CandidType, Deserialize, PartialEq, Clone)]
-pub struct WalletCanister(pub CanisterId);
+pub struct WalletCanister(CanisterId);
 
 impl From<CanisterId> for WalletCanister {
     fn from(canister_id: CanisterId) -> Self {

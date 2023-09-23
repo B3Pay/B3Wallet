@@ -7,7 +7,8 @@ use crate::{
     types::{ConsentMessage, ResponseMap, UserIds},
 };
 use b3_utils::{
-    types::{OperationId, UserId, WalletVersion},
+    ledger::types::WalletVersion,
+    types::{OperationId, UserId},
     NanoTimeStamp,
 };
 use candid::{CandidType, Deserialize};

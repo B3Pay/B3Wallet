@@ -37,7 +37,7 @@ impl State {
             let mut user_state = states.update_rate()?;
 
             if let Some(canister_id) = opt_canister_id {
-                user_state.add_canister(WalletCanister(canister_id));
+                user_state.add_canister(WalletCanister::new(canister_id));
             }
 
             return Ok(user_state);
