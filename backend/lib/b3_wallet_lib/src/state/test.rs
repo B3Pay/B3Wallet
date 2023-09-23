@@ -160,6 +160,6 @@ mod test {
 
         let nonce = state.account_nonce(&Environment::Production);
 
-        assert_eq!(nonce, Nonce(1));
+        assert_eq!(nonce, Nonce(0));
     }
 }

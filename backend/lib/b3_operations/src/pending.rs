@@ -3,7 +3,6 @@ use crate::{
     operation::{Operation, OperationTrait},
     processed::{OperationStatus, ProcessedOperation},
     response::Response,
-    role::Role,
     types::{ConsentMessage, ResponseMap, UserIds},
 };
 use b3_utils::{
@@ -16,7 +15,6 @@ use candid::{CandidType, Deserialize};
 #[derive(CandidType, Clone, Deserialize, Debug)]
 pub struct PendingOperation {
     pub id: OperationId,
-    pub role: Role,
     pub request: Operation,
     pub status: OperationStatus,
     pub responses: ResponseMap,
@@ -30,7 +28,6 @@ pub struct PendingOperation {
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
 pub struct RequestArgs {
-    pub role: Role,
     pub request: Operation,
     pub reason: String,
     pub version: WalletVersion,
@@ -54,7 +51,6 @@ impl PendingOperation {
             responses: ResponseMap::new(),
             allowed_signers: args.allowed_signers,
             request: args.request,
-            role: args.role,
             status: OperationStatus::Pending,
             deadline,
             created_at: NanoTimeStamp::now(),

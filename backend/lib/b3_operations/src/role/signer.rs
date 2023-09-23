@@ -1,49 +1,48 @@
 use b3_utils::types::Metadata;
 use candid::{CandidType, Deserialize};
 
-pub mod state;
-
-use crate::{
-    operation::Operation,
-    role::{AccessLevel, Role},
-};
+use super::roles::SignerRoles;
 
 #[derive(CandidType, Deserialize, Clone)]
-pub struct User {
-    pub role: Role,
+pub struct Signer {
+    pub role: SignerRoles,
     pub name: String,
     pub metadata: Metadata,
+    pub threshold: Option<u8>,
     pub expires_at: Option<u64>,
 }
 
-impl Default for User {
+impl Default for Signer {
     fn default() -> Self {
-        User {
-            role: Role::default(),
+        Signer {
+            role: SignerRoles::Admin,
             name: "".to_string(),
+            threshold: None,
             expires_at: None,
             metadata: Metadata::default(),
         }
     }
 }
 
-impl From<Role> for User {
-    fn from(role: Role) -> Self {
-        User {
+impl From<SignerRoles> for Signer {
+    fn from(role: SignerRoles) -> Self {
+        Signer {
             role,
             name: "".to_string(),
+            threshold: None,
             expires_at: None,
             metadata: Metadata::default(),
         }
     }
 }
 
-impl User {
-    pub fn new(role: Role, name: String, expires_at: Option<u64>) -> Self {
-        User {
+impl Signer {
+    pub fn new(role: SignerRoles, name: String, expires_at: Option<u64>) -> Self {
+        Signer {
             role,
             name,
             expires_at,
+            threshold: None,
             metadata: Metadata::default(),
         }
     }
@@ -64,14 +63,6 @@ impl User {
         self.role.is_user()
     }
 
-    pub fn have_access_level(&self, access_level: &AccessLevel) -> bool {
-        self.role.access_level() == access_level
-    }
-
-    pub fn can_operate(&self, operation: &Operation) -> bool {
-        self.role.has_operation(operation)
-    }
-
     pub fn set_metadata(&mut self, metadata: Metadata) {
         self.metadata = metadata;
     }
@@ -80,7 +71,15 @@ impl User {
         self.name = name;
     }
 
-    pub fn set_role(&mut self, role: Role) {
+    pub fn set_role(&mut self, role: SignerRoles) {
         self.role = role;
+    }
+
+    pub fn has_role(&self, role: SignerRoles) -> bool {
+        if self.is_admin() {
+            return true;
+        }
+
+        role == self.role
     }
 }

@@ -32,7 +32,7 @@ fi
   printf "Before optimization: "
   du -h $NEW_WALLET_DIR | cut -f1
 
-  candid-extractor "./target/wasm32-unknown-unknown/release/$package.wasm" 2>/dev/null > $did_file
+  candid-extractor $NEW_WALLET_DIR 2>/dev/null > $DID_FILE
 
   #  optimize wasm
   ic-wasm $NEW_WALLET_DIR -o $OLD_WALLET_DIR shrink --optimize Oz

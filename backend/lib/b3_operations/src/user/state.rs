@@ -62,6 +62,10 @@ impl UserState {
         self.0.clone()
     }
 
+    pub fn set_users(&mut self, users: UserMap) {
+        self.0 = users;
+    }
+
     pub fn users(&self) -> &UserMap {
         &self.0
     }

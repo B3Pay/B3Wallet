@@ -125,8 +125,8 @@ where
     .map_err(|err| err.to_string())?
 }
 
-/// Get all user with a role, admins is always included.
-pub fn with_users_can_operate<T, F>(operation: Operation, callback: F) -> T
+/// Get all users who can operate.
+pub fn with_users_who_can_operate<T, F>(operation: &Operation, callback: F) -> T
 where
     F: FnOnce(&UserIds) -> T,
 {
@@ -134,7 +134,7 @@ where
         let mut user_ids = UserIds::new();
 
         for (user_id, user) in user_map.iter() {
-            if user.can_operate(operation.to_owned()) {
+            if user.can_operate(operation) {
                 user_ids.push(user_id.to_owned());
             }
         }

@@ -100,13 +100,13 @@ impl WalletState {
     }
 
     pub fn insert_account(&mut self, mut account: WalletAccount, opt_name: Option<String>) {
+        let env = account.environment();
+
+        let name = self.nonces.generate_next_name(env);
+
         if let Some(name) = opt_name {
             account.rename(name);
         } else {
-            let env = account.environment();
-
-            let name = self.nonces.generate_next_name(env);
-
             account.rename(name);
         }
 

@@ -1,4 +1,5 @@
 export const idlFactory = ({ IDL }) => {
+  const Operation = IDL.Rec();
   const Minter = IDL.Variant({
     'Mainnet' : IDL.Null,
     'Regtest' : IDL.Null,
@@ -153,34 +154,227 @@ export const idlFactory = ({ IDL }) => {
     'addresses' : IDL.Vec(IDL.Tuple(ChainEnum, IDL.Text)),
     'environment' : Environment,
   });
-  const RequestStatus = IDL.Variant({
+  const OperationStatus = IDL.Variant({
     'Fail' : IDL.Null,
     'Success' : IDL.Null,
     'Expired' : IDL.Null,
     'Pending' : IDL.Null,
   });
   const Response = IDL.Variant({ 'Reject' : IDL.Null, 'Confirm' : IDL.Null });
-  const HideAccount = IDL.Record({ 'account_id' : IDL.Text });
-  const EvmDeployContract = IDL.Record({
+  Operation.fill(
+    IDL.Variant({
+      'UnhideAccount' : IDL.Record({ 'account_id' : IDL.Text }),
+      'EvmDeployContract' : IDL.Record({
+        'account_id' : IDL.Text,
+        'hex_byte_code' : IDL.Vec(IDL.Nat8),
+        'max_priority_fee_per_gas' : IDL.Opt(IDL.Nat64),
+        'max_fee_per_gas' : IDL.Opt(IDL.Nat64),
+        'chain_id' : IDL.Nat64,
+        'nonce' : IDL.Nat64,
+        'gas_limit' : IDL.Opt(IDL.Nat64),
+      }),
+      'IcpTransfer' : IDL.Record({
+        'to' : IDL.Vec(IDL.Nat8),
+        'fee' : IDL.Opt(IDL.Record({ 'e8s' : IDL.Nat64 })),
+        'account_id' : IDL.Text,
+        'memo' : IDL.Opt(IDL.Nat64),
+        'amount' : IDL.Record({ 'e8s' : IDL.Nat64 }),
+      }),
+      'EvmSignRawTransaction' : IDL.Record({
+        'account_id' : IDL.Text,
+        'hex_raw_tx' : IDL.Vec(IDL.Nat8),
+        'chain_id' : IDL.Nat64,
+      }),
+      'EvmSignMessage' : IDL.Record({
+        'account_id' : IDL.Text,
+        'chain_id' : IDL.Nat64,
+        'message' : IDL.Vec(IDL.Nat8),
+      }),
+      'UpdateCanisterSettings' : IDL.Record({
+        'canister_id' : IDL.Principal,
+        'settings' : IDL.Record({
+          'freezing_threshold' : IDL.Opt(IDL.Nat),
+          'controllers' : IDL.Opt(IDL.Vec(IDL.Principal)),
+          'memory_allocation' : IDL.Opt(IDL.Nat),
+          'compute_allocation' : IDL.Opt(IDL.Nat),
+        }),
+      }),
+      'RenameAccount' : IDL.Record({
+        'account_id' : IDL.Text,
+        'new_name' : IDL.Text,
+      }),
+      'AddUser' : IDL.Record({
+        'threshold' : IDL.Opt(IDL.Nat8),
+        'name' : IDL.Text,
+        'role' : IDL.Record({
+          'access_level' : IDL.Variant({
+            'ReadOnly' : IDL.Null,
+            'Limited' : IDL.Vec(
+              IDL.Record({
+                'valid_until' : IDL.Opt(IDL.Nat64),
+                'operation' : Operation,
+              })
+            ),
+            'Canister' : IDL.Null,
+            'FullAccess' : IDL.Null,
+          }),
+          'name' : IDL.Text,
+        }),
+        'signer_id' : IDL.Principal,
+        'expires_at' : IDL.Opt(IDL.Nat64),
+      }),
+      'EvmSignTranscation' : IDL.Record({
+        'account_id' : IDL.Text,
+        'transaction' : IDL.Variant({
+          'EvmTransaction1559' : IDL.Record({
+            'r' : IDL.Text,
+            's' : IDL.Text,
+            'v' : IDL.Text,
+            'to' : IDL.Text,
+            'value' : IDL.Nat64,
+            'max_priority_fee_per_gas' : IDL.Nat64,
+            'data' : IDL.Text,
+            'max_fee_per_gas' : IDL.Nat64,
+            'chain_id' : IDL.Nat64,
+            'nonce' : IDL.Nat64,
+            'gas_limit' : IDL.Nat64,
+            'access_list' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Vec(IDL.Text))),
+          }),
+          'EvmTransaction2930' : IDL.Record({
+            'r' : IDL.Text,
+            's' : IDL.Text,
+            'v' : IDL.Text,
+            'to' : IDL.Text,
+            'value' : IDL.Nat64,
+            'data' : IDL.Text,
+            'chain_id' : IDL.Nat64,
+            'nonce' : IDL.Nat64,
+            'gas_limit' : IDL.Nat64,
+            'access_list' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Vec(IDL.Text))),
+            'gas_price' : IDL.Nat64,
+          }),
+          'EvmTransactionLegacy' : IDL.Record({
+            'r' : IDL.Text,
+            's' : IDL.Text,
+            'v' : IDL.Text,
+            'to' : IDL.Text,
+            'value' : IDL.Nat64,
+            'data' : IDL.Text,
+            'chain_id' : IDL.Nat64,
+            'nonce' : IDL.Nat64,
+            'gas_limit' : IDL.Nat64,
+            'gas_price' : IDL.Nat64,
+          }),
+        }),
+        'chain_id' : IDL.Nat64,
+      }),
+      'EvmTransferErc20' : IDL.Record({
+        'to' : IDL.Text,
+        'account_id' : IDL.Text,
+        'value' : IDL.Nat64,
+        'max_priority_fee_per_gas' : IDL.Opt(IDL.Nat64),
+        'max_fee_per_gas' : IDL.Opt(IDL.Nat64),
+        'chain_id' : IDL.Nat64,
+        'nonce' : IDL.Nat64,
+        'gas_limit' : IDL.Opt(IDL.Nat64),
+        'contract_address' : IDL.Text,
+      }),
+      'SendToken' : IDL.Record({
+        'to' : IDL.Text,
+        'account_id' : IDL.Text,
+        'chain' : IDL.Variant({
+          'BTC' : IDL.Variant({
+            'Mainnet' : IDL.Null,
+            'Regtest' : IDL.Null,
+            'Testnet' : IDL.Null,
+          }),
+          'EVM' : IDL.Nat64,
+          'ICP' : IDL.Null,
+          'ICRC' : IDL.Principal,
+          'CKBTC' : IDL.Variant({
+            'Mainnet' : IDL.Null,
+            'Regtest' : IDL.Null,
+            'Testnet' : IDL.Null,
+          }),
+        }),
+        'amount' : IDL.Record({ 'decimals' : IDL.Nat8, 'amount' : IDL.Nat }),
+      }),
+      'HideAccount' : IDL.Record({ 'account_id' : IDL.Text }),
+      'UpgradeCanister' : IDL.Record({
+        'wasm_hash_string' : IDL.Text,
+        'wasm_version' : IDL.Text,
+      }),
+      'TopUpTransfer' : IDL.Record({
+        'fee' : IDL.Opt(IDL.Record({ 'e8s' : IDL.Nat64 })),
+        'account_id' : IDL.Text,
+        'canister_id' : IDL.Principal,
+        'amount' : IDL.Record({ 'e8s' : IDL.Nat64 }),
+      }),
+      'BtcTransfer' : IDL.Record({
+        'to' : IDL.Text,
+        'account_id' : IDL.Text,
+        'network' : IDL.Variant({
+          'Mainnet' : IDL.Null,
+          'Regtest' : IDL.Null,
+          'Testnet' : IDL.Null,
+        }),
+        'amount' : IDL.Record({ 'decimals' : IDL.Nat8, 'amount' : IDL.Nat }),
+      }),
+      'RemoveUser' : IDL.Record({ 'signer_id' : IDL.Principal }),
+      'RemoveAccount' : IDL.Record({ 'account_id' : IDL.Text }),
+      'CreateAccount' : IDL.Record({
+        'env' : IDL.Opt(
+          IDL.Variant({
+            'Production' : IDL.Null,
+            'Development' : IDL.Null,
+            'Staging' : IDL.Null,
+          })
+        ),
+        'name' : IDL.Opt(IDL.Text),
+      }),
+      'EvmTransfer' : IDL.Record({
+        'to' : IDL.Text,
+        'account_id' : IDL.Text,
+        'value' : IDL.Nat64,
+        'max_priority_fee_per_gas' : IDL.Opt(IDL.Nat64),
+        'max_fee_per_gas' : IDL.Opt(IDL.Nat64),
+        'chain_id' : IDL.Nat64,
+        'nonce' : IDL.Nat64,
+        'gas_limit' : IDL.Opt(IDL.Nat64),
+      }),
+    })
+  );
+  const ConsentMessage = IDL.Record({
+    'title' : IDL.Text,
+    'message' : IDL.Text,
+    'reason' : IDL.Text,
+  });
+  const PendingOperation = IDL.Record({
+    'id' : IDL.Nat64,
+    'status' : OperationStatus,
+    'responses' : IDL.Vec(IDL.Tuple(IDL.Principal, Response)),
+    'allowed_signers' : IDL.Vec(IDL.Principal),
+    'request' : Operation,
+    'deadline' : IDL.Nat64,
+    'consent_message' : ConsentMessage,
+    'created_at' : IDL.Nat64,
+    'created_by' : IDL.Principal,
+    'version' : IDL.Text,
+  });
+  const CreateAccount = IDL.Record({
+    'env' : IDL.Opt(Environment),
+    'name' : IDL.Opt(IDL.Text),
+  });
+  const NotifyTopUp = IDL.Record({
     'account_id' : IDL.Text,
-    'hex_byte_code' : IDL.Vec(IDL.Nat8),
-    'max_priority_fee_per_gas' : IDL.Opt(IDL.Nat64),
-    'max_fee_per_gas' : IDL.Opt(IDL.Nat64),
-    'chain_id' : IDL.Nat64,
-    'nonce' : IDL.Nat64,
-    'gas_limit' : IDL.Opt(IDL.Nat64),
+    'block_index' : IDL.Nat64,
+    'canister_id' : IDL.Principal,
   });
-  const SignerRoles = IDL.Variant({
-    'User' : IDL.Null,
-    'Canister' : IDL.Null,
-    'Admin' : IDL.Null,
-  });
-  const AddSigner = IDL.Record({
-    'threshold' : IDL.Opt(IDL.Nat8),
-    'name' : IDL.Text,
-    'role' : SignerRoles,
-    'signer_id' : IDL.Principal,
-    'expires_at' : IDL.Opt(IDL.Nat64),
+  const BtcTransfer = IDL.Record({
+    'to' : IDL.Text,
+    'account_id' : IDL.Text,
+    'network' : Minter,
+    'amount' : TokenAmount,
   });
   const IcpTransfer = IDL.Record({
     'to' : IDL.Vec(IDL.Nat8),
@@ -189,25 +383,11 @@ export const idlFactory = ({ IDL }) => {
     'memo' : IDL.Opt(IDL.Nat64),
     'amount' : ICPToken,
   });
-  const EvmSignRawTransaction = IDL.Record({
+  const SendToken = IDL.Record({
+    'to' : IDL.Text,
     'account_id' : IDL.Text,
-    'hex_raw_tx' : IDL.Vec(IDL.Nat8),
-    'chain_id' : IDL.Nat64,
-  });
-  const EvmSignMessage = IDL.Record({
-    'account_id' : IDL.Text,
-    'chain_id' : IDL.Nat64,
-    'message' : IDL.Vec(IDL.Nat8),
-  });
-  const CanisterSettings = IDL.Record({
-    'freezing_threshold' : IDL.Opt(IDL.Nat),
-    'controllers' : IDL.Opt(IDL.Vec(IDL.Principal)),
-    'memory_allocation' : IDL.Opt(IDL.Nat),
-    'compute_allocation' : IDL.Opt(IDL.Nat),
-  });
-  const UpdateCanisterSettings = IDL.Record({
-    'canister_id' : IDL.Principal,
-    'settings' : CanisterSettings,
+    'chain' : ChainEnum,
+    'amount' : TokenAmount,
   });
   const RenameAccount = IDL.Record({
     'account_id' : IDL.Text,
@@ -226,6 +406,81 @@ export const idlFactory = ({ IDL }) => {
     'nonce' : IDL.Nat64,
     'gas_limit' : IDL.Nat64,
     'access_list' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Vec(IDL.Text))),
+  });
+  const EvmContractDeployed = IDL.Record({
+    'transaction' : EvmTransaction1559,
+    'contract_address' : IDL.Text,
+  });
+  const EvmTransferErc20 = IDL.Record({
+    'to' : IDL.Text,
+    'account_id' : IDL.Text,
+    'value' : IDL.Nat64,
+    'max_priority_fee_per_gas' : IDL.Opt(IDL.Nat64),
+    'max_fee_per_gas' : IDL.Opt(IDL.Nat64),
+    'chain_id' : IDL.Nat64,
+    'nonce' : IDL.Nat64,
+    'gas_limit' : IDL.Opt(IDL.Nat64),
+    'contract_address' : IDL.Text,
+  });
+  const RemoveUser = IDL.Record({ 'signer_id' : IDL.Principal });
+  const EvmTransfer = IDL.Record({
+    'to' : IDL.Text,
+    'account_id' : IDL.Text,
+    'value' : IDL.Nat64,
+    'max_priority_fee_per_gas' : IDL.Opt(IDL.Nat64),
+    'max_fee_per_gas' : IDL.Opt(IDL.Nat64),
+    'chain_id' : IDL.Nat64,
+    'nonce' : IDL.Nat64,
+    'gas_limit' : IDL.Opt(IDL.Nat64),
+  });
+  const EvmSignRawTransaction = IDL.Record({
+    'account_id' : IDL.Text,
+    'hex_raw_tx' : IDL.Vec(IDL.Nat8),
+    'chain_id' : IDL.Nat64,
+  });
+  const TopUpTransfer = IDL.Record({
+    'fee' : IDL.Opt(ICPToken),
+    'account_id' : IDL.Text,
+    'canister_id' : IDL.Principal,
+    'amount' : ICPToken,
+  });
+  const HideAccount = IDL.Record({ 'account_id' : IDL.Text });
+  const EvmSignMessage = IDL.Record({
+    'account_id' : IDL.Text,
+    'chain_id' : IDL.Nat64,
+    'message' : IDL.Vec(IDL.Nat8),
+  });
+  const CanisterSettings = IDL.Record({
+    'freezing_threshold' : IDL.Opt(IDL.Nat),
+    'controllers' : IDL.Opt(IDL.Vec(IDL.Principal)),
+    'memory_allocation' : IDL.Opt(IDL.Nat),
+    'compute_allocation' : IDL.Opt(IDL.Nat),
+  });
+  const UpdateCanisterSettings = IDL.Record({
+    'canister_id' : IDL.Principal,
+    'settings' : CanisterSettings,
+  });
+  const OperationAccess = IDL.Record({
+    'valid_until' : IDL.Opt(IDL.Nat64),
+    'operation' : Operation,
+  });
+  const AccessLevel = IDL.Variant({
+    'ReadOnly' : IDL.Null,
+    'Limited' : IDL.Vec(OperationAccess),
+    'Canister' : IDL.Null,
+    'FullAccess' : IDL.Null,
+  });
+  const Role = IDL.Record({ 'access_level' : AccessLevel, 'name' : IDL.Text });
+  const AddUser = IDL.Record({
+    'threshold' : IDL.Opt(IDL.Nat8),
+    'name' : IDL.Text,
+    'role' : Role,
+    'signer_id' : IDL.Principal,
+    'expires_at' : IDL.Opt(IDL.Nat64),
+  });
+  const UpgradeCanister = IDL.Record({
+    'wasm_hash_string' : IDL.Text,
+    'wasm_version' : IDL.Text,
   });
   const EvmTransaction2930 = IDL.Record({
     'r' : IDL.Text,
@@ -262,107 +517,6 @@ export const idlFactory = ({ IDL }) => {
     'transaction' : EvmTransaction,
     'chain_id' : IDL.Nat64,
   });
-  const EvmTransferErc20 = IDL.Record({
-    'to' : IDL.Text,
-    'account_id' : IDL.Text,
-    'value' : IDL.Nat64,
-    'max_priority_fee_per_gas' : IDL.Opt(IDL.Nat64),
-    'max_fee_per_gas' : IDL.Opt(IDL.Nat64),
-    'chain_id' : IDL.Nat64,
-    'nonce' : IDL.Nat64,
-    'gas_limit' : IDL.Opt(IDL.Nat64),
-    'contract_address' : IDL.Text,
-  });
-  const SendToken = IDL.Record({
-    'to' : IDL.Text,
-    'account_id' : IDL.Text,
-    'chain' : ChainEnum,
-    'amount' : TokenAmount,
-  });
-  const UpgradeCanister = IDL.Record({
-    'wasm_hash_string' : IDL.Text,
-    'wasm_version' : IDL.Text,
-  });
-  const TopUpTransfer = IDL.Record({
-    'fee' : IDL.Opt(ICPToken),
-    'account_id' : IDL.Text,
-    'canister_id' : IDL.Principal,
-    'amount' : ICPToken,
-  });
-  const BtcTransfer = IDL.Record({
-    'to' : IDL.Text,
-    'account_id' : IDL.Text,
-    'network' : Minter,
-    'amount' : TokenAmount,
-  });
-  const CreateAccount = IDL.Record({
-    'env' : IDL.Opt(Environment),
-    'name' : IDL.Opt(IDL.Text),
-  });
-  const EvmTransfer = IDL.Record({
-    'to' : IDL.Text,
-    'account_id' : IDL.Text,
-    'value' : IDL.Nat64,
-    'max_priority_fee_per_gas' : IDL.Opt(IDL.Nat64),
-    'max_fee_per_gas' : IDL.Opt(IDL.Nat64),
-    'chain_id' : IDL.Nat64,
-    'nonce' : IDL.Nat64,
-    'gas_limit' : IDL.Opt(IDL.Nat64),
-  });
-  const RemoveSigner = IDL.Record({ 'signer_id' : IDL.Principal });
-  const UpdateSignerThreshold = IDL.Record({
-    'threshold' : IDL.Nat8,
-    'signer_id' : IDL.Principal,
-  });
-  const Operations = IDL.Variant({
-    'UnhideAccount' : HideAccount,
-    'EvmDeployContract' : EvmDeployContract,
-    'AddSigner' : AddSigner,
-    'IcpTransfer' : IcpTransfer,
-    'EvmSignRawTransaction' : EvmSignRawTransaction,
-    'EvmSignMessage' : EvmSignMessage,
-    'UpdateCanisterSettings' : UpdateCanisterSettings,
-    'RenameAccount' : RenameAccount,
-    'EvmSignTranscation' : EvmSignTranscation,
-    'EvmTransferErc20' : EvmTransferErc20,
-    'SendToken' : SendToken,
-    'HideAccount' : HideAccount,
-    'UpgradeCanister' : UpgradeCanister,
-    'TopUpTransfer' : TopUpTransfer,
-    'BtcTransfer' : BtcTransfer,
-    'RemoveAccount' : HideAccount,
-    'CreateAccount' : CreateAccount,
-    'EvmTransfer' : EvmTransfer,
-    'RemoveSigner' : RemoveSigner,
-    'UpdateSignerThreshold' : UpdateSignerThreshold,
-  });
-  const ConsentMessage = IDL.Record({
-    'title' : IDL.Text,
-    'message' : IDL.Text,
-    'reason' : IDL.Text,
-  });
-  const PendingRequest = IDL.Record({
-    'id' : IDL.Nat64,
-    'status' : RequestStatus,
-    'responses' : IDL.Vec(IDL.Tuple(IDL.Principal, Response)),
-    'allowed_signers' : IDL.Vec(IDL.Principal),
-    'request' : Operations,
-    'role' : SignerRoles,
-    'deadline' : IDL.Nat64,
-    'consent_message' : ConsentMessage,
-    'created_at' : IDL.Nat64,
-    'created_by' : IDL.Principal,
-    'version' : IDL.Text,
-  });
-  const NotifyTopUp = IDL.Record({
-    'account_id' : IDL.Text,
-    'block_index' : IDL.Nat64,
-    'canister_id' : IDL.Principal,
-  });
-  const EvmContractDeployed = IDL.Record({
-    'transaction' : EvmTransaction1559,
-    'contract_address' : IDL.Text,
-  });
   const OperationResult = IDL.Variant({
     'AccountCreated' : CreateAccount,
     'CanisterTopUped' : IDL.Tuple(NotifyTopUp, IDL.Nat),
@@ -372,33 +526,31 @@ export const idlFactory = ({ IDL }) => {
     'AccountRenamed' : RenameAccount,
     'EvmContractDeployed' : EvmContractDeployed,
     'EvmErc20Transfered' : IDL.Tuple(EvmTransferErc20, IDL.Text),
-    'SignerRemoved' : RemoveSigner,
+    'SignerRemoved' : RemoveUser,
     'EvmTransfered' : IDL.Tuple(EvmTransfer, IDL.Text),
     'EvmRawTransactionSigned' : IDL.Tuple(EvmSignRawTransaction, IDL.Text),
     'TopUpTransfered' : IDL.Tuple(TopUpTransfer, IDL.Nat64),
-    'SignerThresholdUpdated' : UpdateSignerThreshold,
     'AccountHidden' : HideAccount,
     'EvmMessageSigned' : IDL.Tuple(EvmSignMessage, IDL.Vec(IDL.Nat8)),
     'CanisterSettingsUpdated' : UpdateCanisterSettings,
-    'SignerAdded' : AddSigner,
+    'SignerAdded' : AddUser,
     'CanisterUpgraded' : UpgradeCanister,
     'EvmTransactionSigned' : IDL.Tuple(EvmSignTranscation, IDL.Text),
     'AccountUnhidden' : HideAccount,
     'AccountRemoved' : HideAccount,
   });
-  const ProcessedRequest = IDL.Record({
-    'status' : RequestStatus,
+  const ProcessedOperation = IDL.Record({
+    'status' : OperationStatus,
     'result' : IDL.Opt(OperationResult),
     'method' : IDL.Text,
-    'request' : PendingRequest,
     'error' : IDL.Opt(IDL.Text),
+    'operation' : PendingOperation,
     'timestamp' : IDL.Nat64,
   });
-  const Signer = IDL.Record({
-    'threshold' : IDL.Opt(IDL.Nat8),
+  const User = IDL.Record({
     'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
     'name' : IDL.Text,
-    'role' : SignerRoles,
+    'role' : Role,
     'expires_at' : IDL.Opt(IDL.Nat64),
   });
   const WalletController = IDL.Record({
@@ -409,7 +561,7 @@ export const idlFactory = ({ IDL }) => {
     'controllers' : IDL.Vec(IDL.Tuple(IDL.Principal, WalletController)),
     'metadata' : IDL.Opt(IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text))),
   });
-  const Result_1 = IDL.Variant({ 'Ok' : ProcessedRequest, 'Err' : IDL.Text });
+  const Result_1 = IDL.Variant({ 'Ok' : ProcessedOperation, 'Err' : IDL.Text });
   const RetrieveBtcStatus = IDL.Variant({
     'Signing' : IDL.Null,
     'Confirmed' : IDL.Record({ 'txid' : IDL.Vec(IDL.Nat8) }),
@@ -428,7 +580,7 @@ export const idlFactory = ({ IDL }) => {
     'compute_allocation' : IDL.Opt(IDL.Nat),
   });
   const WalletSettingsAndSigners = IDL.Record({
-    'signers' : IDL.Vec(IDL.Tuple(IDL.Principal, Signer)),
+    'signers' : IDL.Vec(IDL.Tuple(IDL.Principal, User)),
     'settings' : WalletSettings,
   });
   const CanisterStatusType = IDL.Variant({
@@ -538,19 +690,21 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(IDL.Tuple(ChainEnum, IDL.Text))],
         ['query'],
       ),
-    'get_pending_list' : IDL.Func([], [IDL.Vec(PendingRequest)], ['query']),
-    'get_processed' : IDL.Func([IDL.Nat64], [ProcessedRequest], ['query']),
-    'get_processed_list' : IDL.Func([], [IDL.Vec(ProcessedRequest)], ['query']),
+    'get_pending_list' : IDL.Func([], [IDL.Vec(PendingOperation)], ['query']),
+    'get_processed_list' : IDL.Func(
+        [],
+        [IDL.Vec(ProcessedOperation)],
+        ['query'],
+      ),
     'get_signers' : IDL.Func(
         [],
-        [IDL.Vec(IDL.Tuple(IDL.Principal, Signer))],
+        [IDL.Vec(IDL.Tuple(IDL.Principal, User))],
         ['query'],
       ),
     'init_wallet' : IDL.Func([WalletInititializeArgs], [], []),
     'is_connected' : IDL.Func([], [IDL.Bool], ['query']),
     'load_wasm' : IDL.Func([IDL.Vec(IDL.Nat8)], [IDL.Nat64], []),
     'name' : IDL.Func([], [IDL.Text], ['query']),
-    'process_request' : IDL.Func([IDL.Nat64], [], []),
     'refresh_settings' : IDL.Func([], [], []),
     'remove_setting_metadata' : IDL.Func([IDL.Text], [], []),
     'request_account_rename' : IDL.Func(
@@ -559,11 +713,11 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'request_add_signer' : IDL.Func(
-        [AddSigner, IDL.Text, IDL.Opt(IDL.Nat64)],
+        [AddUser, IDL.Text, IDL.Opt(IDL.Nat64)],
         [IDL.Nat64],
         [],
       ),
-    'request_connect' : IDL.Func([], [IDL.Nat64], []),
+    'request_connect' : IDL.Func([IDL.Text], [IDL.Nat64], []),
     'request_create_account' : IDL.Func(
         [CreateAccount, IDL.Text, IDL.Opt(IDL.Nat64)],
         [IDL.Nat64],
@@ -575,7 +729,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'request_maker' : IDL.Func(
-        [Operations, IDL.Text, IDL.Opt(IDL.Nat64)],
+        [Operation, IDL.Text, IDL.Opt(IDL.Nat64)],
         [IDL.Nat64],
         [],
       ),
@@ -609,13 +763,13 @@ export const idlFactory = ({ IDL }) => {
       ),
     'setting_and_signer' : IDL.Func([], [WalletSettingsAndSigners], ['query']),
     'signer_add' : IDL.Func(
-        [IDL.Principal, SignerRoles],
-        [IDL.Vec(IDL.Tuple(IDL.Principal, Signer))],
+        [IDL.Principal, Role],
+        [IDL.Vec(IDL.Tuple(IDL.Principal, User))],
         [],
       ),
     'signer_remove' : IDL.Func(
         [IDL.Principal],
-        [IDL.Vec(IDL.Tuple(IDL.Principal, Signer))],
+        [IDL.Vec(IDL.Tuple(IDL.Principal, User))],
         [],
       ),
     'status' : IDL.Func([], [WalletCanisterStatus], []),
