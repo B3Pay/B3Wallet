@@ -40,7 +40,7 @@ impl WalletAccountsNonce {
 
     /// Increment the account counter and return the new name based on the environment
     pub fn generate_next_name(&mut self, environment: Environment) -> String {
-        let nonce = self.increment(environment);
+        let nonce = self.increment(environment.clone());
 
         environment.to_name(nonce.get())
     }

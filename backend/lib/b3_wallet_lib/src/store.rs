@@ -6,11 +6,10 @@ use crate::{
     state::WalletState,
     types::AccountId,
 };
-use b3_utils::memory::{init_stable_mem_cell, types::DefaultVMCell};
 use std::cell::RefCell;
 
 thread_local! {
-    static STATE: RefCell<DefaultVMCell<WalletState>> = init_stable_mem_cell("wallet", 10).unwrap();
+    static STATE: RefCell<WalletState> = RefCell::new(WalletState::new());
 }
 
 // STATE ----------------------------------------------------------------------
@@ -24,7 +23,7 @@ where
     STATE.with(|states| {
         let state = states.borrow();
 
-        callback(state.get())
+        callback(&state)
     })
 }
 
@@ -37,7 +36,7 @@ where
     STATE.with(|states| {
         let mut state = states.borrow_mut();
 
-        callback(state.get_mut())
+        callback(&mut state)
     })
 }
 

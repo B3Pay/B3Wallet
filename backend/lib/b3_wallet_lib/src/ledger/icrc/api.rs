@@ -21,13 +21,13 @@ impl ChainTrait for IcrcChain {
     fn address(&self) -> String {
         let owner = ic_cdk_id();
 
-        ICRCAccount::new(owner, Some(self.subaccount)).to_string()
+        ICRCAccount::new(owner, Some(self.subaccount.clone())).to_string()
     }
 
     async fn balance(&self) -> Result<Balance, LedgerError> {
         let canister_id = ic_cdk_id();
 
-        let account = ICRCAccount::new(canister_id, Some(self.subaccount));
+        let account = ICRCAccount::new(canister_id, Some(self.subaccount.clone()));
 
         let (res,): (Balance,) = ic_cdk::call(self.canister_id, "icrc1_balance_of", (account,))
             .await
