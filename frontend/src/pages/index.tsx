@@ -44,7 +44,8 @@ function HomePage() {
 
   const fetchUserActor = useCallback(
     async (canisterId: string) => {
-      if (!authClient || !canisterId) return
+      console.log(typeof canisterId)
+      if (!authClient || !canisterId || canisterId === "undefined") return
       setWalletCanisterId(canisterId)
 
       const userActor = createB3WalletActor(
@@ -58,6 +59,9 @@ function HomePage() {
       userActor
         .name()
         .then(async name => {
+          if (!name) {
+            throw new Error("No name found")
+          }
           console.log("user actor name", name)
           if (name === "b3_basic_wallet") {
             const basicWallet = createB3BasicWalletActor(

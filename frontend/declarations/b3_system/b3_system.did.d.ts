@@ -38,7 +38,7 @@ export interface ReleaseArgs {
   'size' : bigint,
   'version' : string,
 }
-export type ReleaseTypes = { 'b3_wallet' : null } |
+export type ReleaseNames = { 'b3_wallet' : null } |
   { 'Custom' : string } |
   { 'b3_multi_sig_wallet' : null } |
   { 'b3_basic_wallet' : null };
@@ -82,7 +82,7 @@ export interface _SERVICE {
     [string, Uint8Array | number[], ReleaseArgs],
     LoadRelease
   >,
-  'release_map' : ActorMethod<[], Array<[ReleaseTypes, Array<Release>]>>,
+  'release_map' : ActorMethod<[], Array<[ReleaseNames, Array<Release>]>>,
   'releases' : ActorMethod<[string], Array<Release>>,
   'remove_controller' : ActorMethod<[Principal], undefined>,
   'remove_latest_release' : ActorMethod<[string], undefined>,

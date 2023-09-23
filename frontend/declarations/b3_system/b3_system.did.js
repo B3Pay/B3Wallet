@@ -25,7 +25,7 @@ export const idlFactory = ({ IDL }) => {
     'version' : IDL.Text,
     'chunks' : IDL.Nat64,
   });
-  const ReleaseTypes = IDL.Variant({
+  const ReleaseNames = IDL.Variant({
     'b3_wallet' : IDL.Null,
     'Custom' : IDL.Text,
     'b3_multi_sig_wallet' : IDL.Null,
@@ -99,7 +99,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'release_map' : IDL.Func(
         [],
-        [IDL.Vec(IDL.Tuple(ReleaseTypes, IDL.Vec(Release)))],
+        [IDL.Vec(IDL.Tuple(ReleaseNames, IDL.Vec(Release)))],
         ['query'],
       ),
     'releases' : IDL.Func([IDL.Text], [IDL.Vec(Release)], ['query']),

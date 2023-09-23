@@ -3,8 +3,6 @@ const envList = require("dotenv").config({ path: "../.env" }).parsed
 // get version from package.json
 const { version } = require("../package.json")
 
-console.log({ envList })
-
 envList.NEXT_PUBLIC_IC_HOST =
   envList.DFX_NETWORK === "ic" ? "https://ic0.app" : "http://localhost:8080"
 
