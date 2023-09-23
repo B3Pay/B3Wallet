@@ -69,7 +69,7 @@ const loader = async (
   }
 }
 
-let wallets: string[] = ["b3_wallet", "b3_basic_wallet"]
+let wallets: string[] = ["b3_wallet"]
 let mainnet: boolean = false
 let reload: boolean = false
 let candid: boolean = false

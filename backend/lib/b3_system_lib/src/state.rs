@@ -118,7 +118,7 @@ impl State {
         mode: CanisterInstallMode,
         init_args: WalletCanisterInitArgs,
     ) -> Result<WalletCanisterInstallArg, SystemError> {
-        let wasm_module = self.get_release(name, version)?.wasm()?;
+        let wasm_module = self.get_release(name, version)?.wasm()?.get();
 
         let arg = init_args
             .encode()
@@ -145,7 +145,7 @@ impl State {
         mode: CanisterInstallMode,
         init_args: WalletCanisterInitArgs,
     ) -> Result<WalletCanisterInstallArg, SystemError> {
-        let wasm_module = self.latest_release(name)?.wasm()?;
+        let wasm_module = self.latest_release(name)?.wasm()?.get();
 
         let arg = init_args
             .encode()

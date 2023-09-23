@@ -1,5 +1,5 @@
 use b3_utils::{
-    wasm::{with_wasm, with_wasm_mut, Wasm, WasmHash, WasmModule, WasmSize},
+    wasm::{with_wasm_mut, Wasm, WasmHash, WasmSize},
     NanoTimeStamp,
 };
 
@@ -62,10 +62,8 @@ impl Release {
         self.hash == *hash
     }
 
-    pub fn wasm(&self) -> Result<WasmModule, SystemError> {
-        let wasm = with_release_wasm(&self.version, |wasm| wasm.0.clone())?;
-
-        Ok(wasm.to_vec())
+    pub fn wasm(&self) -> Result<Wasm, SystemError> {
+        with_release_wasm(&self.version, |wasm| Ok(wasm))?
     }
 
     pub fn load_wasm(&mut self, blob: &Vec<u8>) -> Result<WasmSize, SystemError> {
@@ -76,12 +74,14 @@ impl Release {
         let wasm_len = with_wasm_mut(|wasm| wasm.load(blob));
 
         if wasm_len >= self.size {
-            with_wasm_map_mut(|wasm_map| {
-                let wasm = with_wasm(|wasm| wasm.clone());
-
+            with_wasm_mut(|wasm| {
                 self.hash = wasm.generate_hash();
 
-                wasm_map.insert(self.version.clone(), wasm).unwrap();
+                with_wasm_map_mut(|wasm_map| {
+                    wasm_map.insert(self.version.clone(), wasm.clone()).unwrap();
+                });
+
+                wasm.unload();
             });
         }
 
