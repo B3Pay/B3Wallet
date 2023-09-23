@@ -13,6 +13,9 @@ pub use utils::*;
 mod types;
 pub use types::*;
 
+mod traits;
+pub use traits::*;
+
 #[derive(CandidType, Deserialize, Serialize, Clone)]
 pub struct Wasm(pub ByteBuf);
 

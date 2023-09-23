@@ -6,7 +6,10 @@ use crate::{
     user::UserState,
     wallet::WalletCanister,
 };
-use b3_utils::types::{CanisterId, ControllerId, UserId};
+use b3_utils::{
+    ledger::types::{WalletCanisterInitArgs, WalletCanisterInstallArg},
+    types::{CanisterId, ControllerId, UserId},
+};
 use ic_cdk::api::management_canister::main::CanisterInstallMode;
 
 impl State {

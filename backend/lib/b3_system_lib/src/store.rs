@@ -1,7 +1,13 @@
-use b3_utils::wasm::{Wasm, WasmHash};
+use b3_utils::{
+    memory::init_stable_mem_cell,
+    types::UserId,
+    wasm::{Wasm, WasmHash},
+};
+use std::str::FromStr;
 
 use crate::{
     error::SystemError,
+    release::names::ReleaseNames,
     types::{Release, ReleaseMap, Releases, State, UserMap, WasmMap},
     user::UserState,
     wallet::WalletCanister,
@@ -9,8 +15,9 @@ use crate::{
 use std::cell::RefCell;
 
 thread_local! {
+    static WASM_MAP: RefCell<WasmMap> = init_stable_mem_cell("wasm_map", 10).unwrap();
+
     static STATE: RefCell<State> = RefCell::new(State::default());
-    static WASM: RefCell<WasmMap> = RefCell::new(WasmMap::default());
 }
 
 // STATE
@@ -49,7 +56,7 @@ pub fn with_releases<F, T>(name: &str, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&Releases) -> T,
 {
-    let release_name = ReleaseNames::from_str(name).map_err(SystemError::HelperError)?;
+    let release_name = ReleaseNames::from_str(name)?;
 
     with_release_map(|releases| {
         releases
@@ -85,7 +92,7 @@ pub fn with_release_mut<F, T>(name: &str, index: usize, f: F) -> Result<T, Syste
 where
     F: FnOnce(&mut Release) -> T,
 {
-    let release_name = ReleaseNames::from_str(name).map_err(SystemError::HelperError)?;
+    let release_name = ReleaseNames::from_str(name)?;
 
     with_releases_mut(release_name, |releases| {
         releases
@@ -95,11 +102,7 @@ where
     })
 }
 
-pub fn with_version_release<F, T>(
-    name: &str,
-    version: WalletVersion,
-    f: F,
-) -> Result<T, SystemError>
+pub fn with_version_release<F, T>(name: &str, version: String, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(&Release) -> T,
 {
@@ -114,7 +117,7 @@ where
 
 pub fn with_version_release_mut<F, T>(
     release_name: ReleaseNames,
-    version: WalletVersion,
+    version: String,
     f: F,
 ) -> Result<T, SystemError>
 where
@@ -222,35 +225,23 @@ pub fn with_wasm_map<F, R>(f: F) -> R
 where
     F: FnOnce(&WasmMap) -> R,
 {
-    WASM.with(|wasm| f(&wasm.borrow()))
+    WASM_MAP.with(|wasm| f(&wasm.borrow()))
 }
 
 pub fn with_wasm_map_mut<F, R>(f: F) -> R
 where
     F: FnOnce(&mut WasmMap) -> R,
 {
-    WASM.with(|wasm| f(&mut wasm.borrow_mut()))
+    WASM_MAP.with(|wasm| f(&mut wasm.borrow_mut()))
 }
 
-pub fn with_wasm<F, T>(version: &WalletVersion, f: F) -> Result<T, SystemError>
+pub fn with_release_wasm<F, T>(version: &String, f: F) -> Result<T, SystemError>
 where
-    F: FnOnce(&Wasm) -> T,
+    F: FnOnce(Wasm) -> T,
 {
     with_wasm_map(|wasm_map| {
         wasm_map
             .get(version)
-            .ok_or(SystemError::WasmNotFound)
-            .map(f)
-    })
-}
-
-pub fn with_wasm_mut<F, T>(version: &WalletVersion, f: F) -> Result<T, SystemError>
-where
-    F: FnOnce(&mut Wasm) -> T,
-{
-    with_wasm_map_mut(|wasm_map| {
-        wasm_map
-            .get_mut(version)
             .ok_or(SystemError::WasmNotFound)
             .map(f)
     })

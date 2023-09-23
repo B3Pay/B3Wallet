@@ -1,6 +1,6 @@
 use crate::{error::SystemError, types::Canisters, wallet::WalletCanister};
 use b3_utils::{
-    constants::SYSTEM_RATE_LIMIT,
+    ledger::constants::SYSTEM_RATE_LIMIT,
     types::{CanisterId, ControllerId},
     NanoTimeStamp,
 };

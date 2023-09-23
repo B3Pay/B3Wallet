@@ -1,13 +1,14 @@
 use b3_utils::{
-    release::ReleaseNames,
-    types::{ControllerId, UserId, WalletVersion},
+    ledger::types::WalletVersion,
+    memory::types::DefaultVMMap,
+    types::{ControllerId, UserId},
     wasm::{Wasm, WasmHash, WasmSize},
     NanoTimeStamp,
 };
 use candid::{CandidType, Deserialize};
 use std::collections::HashMap;
 
-use crate::{user::UserState, wallet::WalletCanister};
+use crate::{release::names::ReleaseNames, user::UserState, wallet::WalletCanister};
 
 pub type UserStates = Vec<UserState>;
 pub type Controllers = Vec<ControllerId>;
@@ -21,7 +22,7 @@ pub type Users = Vec<UserId>;
 pub type Canisters = Vec<WalletCanister>;
 
 pub type UserMap = HashMap<UserId, UserState>;
-pub type WasmMap = HashMap<WalletVersion, Wasm>;
+pub type WasmMap = DefaultVMMap<WalletVersion, Wasm>;
 
 #[derive(CandidType, Deserialize, Clone, Default)]
 pub struct State {

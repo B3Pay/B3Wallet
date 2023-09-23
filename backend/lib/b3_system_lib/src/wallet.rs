@@ -1,6 +1,7 @@
 use crate::{error::SystemError, types::Controllers};
 use b3_utils::{
     ic_canister_status,
+    ledger::types::{WalletCanisterInstallArg, WalletCanisterStatus},
     types::{CanisterId, UserId},
     wasm::WasmHash,
 };
@@ -20,6 +21,14 @@ impl From<CanisterId> for WalletCanister {
 }
 
 impl WalletCanister {
+    pub fn new(canister_id: CanisterId) -> Self {
+        Self(canister_id)
+    }
+
+    pub fn canister_id(&self) -> CanisterId {
+        self.0.clone()
+    }
+
     /// Get the owner of the canister.
     pub async fn validate_signer(&self, signer_id: UserId) -> Result<bool, SystemError> {
         let (validate,): (bool,) = ic_cdk::call(self.0, "validate_signer", (signer_id,))
@@ -59,7 +68,7 @@ impl WalletCanister {
 
     /// Install the code for the canister.
     pub async fn install_code(&self, args: WalletCanisterInstallArg) -> Result<(), SystemError> {
-        let canister_id = self.0;
+        let canister_id = self.canister_id();
 
         let install_args = InstallCodeArgument {
             arg: args.arg,

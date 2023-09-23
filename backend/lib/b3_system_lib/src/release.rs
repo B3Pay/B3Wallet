@@ -1,5 +1,5 @@
 use b3_utils::{
-    wasm::{Wasm, WasmHash, WasmModule, WasmSize},
+    wasm::{with_wasm, with_wasm_mut, Wasm, WasmHash, WasmModule, WasmSize},
     NanoTimeStamp,
 };
 
@@ -7,7 +7,7 @@ pub mod names;
 
 use crate::{
     error::SystemError,
-    store::{with_wasm, with_wasm_map_mut, with_wasm_mut},
+    store::{with_release_wasm, with_wasm_map_mut},
     types::{Release, ReleaseArgs},
 };
 
@@ -51,11 +51,11 @@ impl Release {
     }
 
     pub fn is_loading(&self) -> bool {
-        with_wasm(&self.version, |wasm| wasm.is_loading(self.size)).unwrap_or(false)
+        with_release_wasm(&self.version, |wasm| wasm.is_loading(self.size)).unwrap_or(false)
     }
 
     pub fn is_loaded(&self) -> bool {
-        with_wasm(&self.version, |wasm| wasm.is_loaded(self.size)).unwrap_or(false)
+        with_release_wasm(&self.version, |wasm| wasm.is_loaded(self.size)).unwrap_or(false)
     }
 
     pub fn is_same_hash(&self, hash: &WasmHash) -> bool {
@@ -63,7 +63,7 @@ impl Release {
     }
 
     pub fn wasm(&self) -> Result<WasmModule, SystemError> {
-        let wasm = with_wasm(&self.version, |wasm| wasm.0.clone())?;
+        let wasm = with_release_wasm(&self.version, |wasm| wasm.0.clone())?;
 
         Ok(wasm.to_vec())
     }
@@ -73,19 +73,27 @@ impl Release {
             return Err(SystemError::WasmAlreadyLoaded);
         }
 
-        let wasm_len = with_wasm_mut(&self.version, |wasm| wasm.load(blob))?;
+        let wasm_len = with_wasm_mut(|wasm| wasm.load(blob));
 
         if wasm_len >= self.size {
-            let wasm_hash = with_wasm(&self.version, |wasm| wasm.generate_hash())?;
+            with_wasm_map_mut(|wasm_map| {
+                let wasm = with_wasm(|wasm| wasm.clone());
 
-            self.hash = wasm_hash;
+                self.hash = wasm.generate_hash();
+
+                wasm_map.insert(self.version.clone(), wasm).unwrap();
+            });
         }
 
         Ok(wasm_len)
     }
 
-    pub fn unload_wasm(&mut self) -> Result<WasmSize, SystemError> {
-        with_wasm_mut(&self.version, |wasm| wasm.unload())
+    pub fn unload_wasm(&mut self) -> WasmSize {
+        with_wasm_map_mut(|wasm_map| {
+            wasm_map.remove(&self.version);
+        });
+
+        with_wasm_mut(|wasm| wasm.unload())
     }
 
     pub fn update(&mut self, release: ReleaseArgs) {

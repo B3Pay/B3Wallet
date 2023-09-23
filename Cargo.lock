@@ -40,7 +40,7 @@ dependencies = [
  "b3_wallet_lib",
  "candid",
  "enum_dispatch",
- "ic-cdk 0.10.0",
+ "ic-cdk",
  "serde",
 ]
 
@@ -51,7 +51,7 @@ dependencies = [
  "b3_system_lib",
  "b3_utils",
  "candid",
- "ic-cdk 0.10.0",
+ "ic-cdk",
 ]
 
 [[package]]
@@ -60,7 +60,7 @@ version = "0.2.0"
 dependencies = [
  "b3_utils",
  "candid",
- "ic-cdk 0.10.0",
+ "ic-cdk",
  "serde",
 ]
 
@@ -71,7 +71,7 @@ dependencies = [
  "candid",
  "easy-hasher",
  "hex",
- "ic-cdk 0.11.0",
+ "ic-cdk",
  "ic-stable-structures",
  "ic_bls12_381",
  "serde",
@@ -88,7 +88,7 @@ dependencies = [
  "b3_utils",
  "b3_wallet_lib",
  "candid",
- "ic-cdk 0.10.0",
+ "ic-cdk",
 ]
 
 [[package]]
@@ -103,7 +103,7 @@ dependencies = [
  "enum_dispatch",
  "ethereum-rlp",
  "hex",
- "ic-cdk 0.10.0",
+ "ic-cdk",
  "serde",
  "serde_bytes",
 ]
@@ -544,43 +544,16 @@ checksum = "3011d1213f159867b13cfd6ac92d2cd5f1345762c63be3554e84092d85a50bbd"
 
 [[package]]
 name = "ic-cdk"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08d4c0b932bf454d5d60e61e13c3c944972fcfd74dc82b9ed5c8b0a75979cf50"
-dependencies = [
- "candid",
- "ic-cdk-macros 0.7.1",
- "ic0",
- "serde",
- "serde_bytes",
-]
-
-[[package]]
-name = "ic-cdk"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6e77fc251b01ac1beb78f288f84ab2e082d2355c93d06009f2fed0c076c920e9"
 dependencies = [
  "candid",
- "ic-cdk-macros 0.8.0",
+ "ic-cdk-macros",
  "ic0",
  "serde",
  "serde_bytes",
  "slotmap",
-]
-
-[[package]]
-name = "ic-cdk-macros"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "411c0dd4c149132b68e679274d397053332ee29996c6a541075895881916333b"
-dependencies = [
- "candid",
- "proc-macro2",
- "quote",
- "serde",
- "serde_tokenstream",
- "syn 1.0.109",
 ]
 
 [[package]]
