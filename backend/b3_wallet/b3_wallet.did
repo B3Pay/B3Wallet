@@ -564,6 +564,7 @@ service : () -> {
   get_addresses : (text) -> (vec record { ChainEnum; text }) query;
   get_pending_list : () -> (vec PendingOperation) query;
   get_processed_list : () -> (vec ProcessedOperation) query;
+  get_roles : () -> (vec record { nat64; Role }) query;
   get_signers : () -> (vec record { principal; User }) query;
   init_wallet : (WalletInititializeArgs) -> ();
   is_connected : () -> (bool) query;

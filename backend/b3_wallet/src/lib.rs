@@ -18,10 +18,10 @@ use b3_operations::{
     role::{AccessLevel, Role},
     store::{
         with_operation, with_operation_mut, with_pending_operation_mut, with_processed_operation,
-        with_processed_operation_mut, with_user, with_users, with_users_mut,
+        with_processed_operation_mut, with_roles, with_user, with_users, with_users_mut,
         with_users_who_can_operate, with_verified_user,
     },
-    types::{PendingOperations, ProcessedOperations, UserMap, WalletSettingsAndSigners},
+    types::{PendingOperations, ProcessedOperations, RoleMap, UserMap, WalletSettingsAndSigners},
     user::User,
 };
 use b3_utils::{
@@ -128,6 +128,11 @@ pub fn post_upgrade() {
     with_wallet_mut(|state| *state = state_prev);
 
     with_operation_mut(|permit| *permit = sign_prev);
+}
+
+#[query(guard = "caller_is_signer")]
+pub fn get_roles() -> RoleMap {
+    with_roles(|s| s.roles().clone())
 }
 
 #[query(guard = "caller_is_signer")]

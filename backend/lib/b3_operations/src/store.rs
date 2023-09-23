@@ -142,3 +142,17 @@ where
         callback(&user_ids)
     })
 }
+
+pub fn with_roles<T, F>(callback: F) -> T
+where
+    F: FnOnce(&RoleState) -> T,
+{
+    ROLES.with(|states| callback(&states.borrow()))
+}
+
+pub fn with_roles_mut<T, F>(callback: F) -> T
+where
+    F: FnOnce(&mut RoleState) -> T,
+{
+    ROLES.with(|states| callback(&mut states.borrow_mut()))
+}
