@@ -27,18 +27,8 @@ impl ProccessedState {
             .collect()
     }
 
-    pub fn add(
-        &mut self,
-        operation_id: OperationId,
-        processed: ProcessedOperation,
-    ) -> Result<(), OperationError> {
-        self.processeds
-            .remove(&operation_id)
-            .ok_or(OperationError::RequestNotFound(operation_id))?;
-
+    pub fn add(&mut self, operation_id: OperationId, processed: ProcessedOperation) {
         self.processeds.insert(operation_id, processed);
-
-        Ok(())
     }
 
     pub fn processed(
