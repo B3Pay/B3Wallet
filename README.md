@@ -100,6 +100,10 @@ I am considering the creation of a global wallet - a wallet that no one owns but
 
 Follow these instructions to set up and run the B3Wallet project on your local machine:
 
+All of these commands can also be run with npm by replacing `yarn` with `npm run` in each command.
+
+Please make sure to have the necessary software installed and configured properly on your local machine before following these steps, including Node.js, Yarn (or npm), and DFINITY's SDK, dfx.
+
 1. **Start the dfx service**: Open a terminal and run the following command:
 
 ```bash
@@ -158,7 +162,3 @@ yarn load-wasm:system
 ```bash
 yarn dev
 ```
-
-All of these commands can also be run with npm by replacing `yarn` with `npm run` in each command.
-
-Please make sure to have the necessary software installed and configured properly on your local machine before following these steps, including Node.js, Yarn (or npm), and DFINITY's SDK, dfx.
