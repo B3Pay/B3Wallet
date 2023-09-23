@@ -1,8 +1,7 @@
-use std::collections::HashMap;
-
 use crate::error::WalletError;
 use b3_utils::{
     ic_canister_status,
+    ledger::types::{WalletController, WalletControllerMap},
     types::{ControllerId, ControllerIds, Metadata},
 };
 use candid::{CandidType, Nat};
@@ -11,23 +10,6 @@ use ic_cdk::api::management_canister::{
     provisional::CanisterSettings,
 };
 use serde::{Deserialize, Serialize};
-
-#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
-pub struct WalletController {
-    pub name: String,
-    pub metadata: Metadata,
-}
-
-impl WalletController {
-    pub fn new(name: String, metadata: Option<Metadata>) -> Self {
-        Self {
-            name,
-            metadata: metadata.unwrap_or_default(),
-        }
-    }
-}
-
-pub type WalletControllerMap = HashMap<ControllerId, WalletController>;
 
 #[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct WalletSettings {

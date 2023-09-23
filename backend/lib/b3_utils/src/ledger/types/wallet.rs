@@ -1,5 +1,6 @@
 use crate::{
     error::HelperError,
+    nonce::Nonce,
     types::{CanisterId, ControllerId, Metadata, UserId},
     wasm::WasmModule,
     NanoTimeStamp,
@@ -18,7 +19,7 @@ pub struct WalletCanisterInstallArg {
     pub mode: CanisterInstallMode,
 }
 
-#[derive(CandidType, Deserialize, Clone, Debug)]
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct WalletController {
     pub name: String,
     pub metadata: Metadata,
@@ -64,7 +65,7 @@ pub struct WalletCanisterStatus {
 
 #[derive(CandidType, Default, Clone, Deserialize, Serialize)]
 pub struct WalletAccountsNonce {
-    pub development: u64,
-    pub production: u64,
-    pub staging: u64,
+    pub development: Nonce,
+    pub production: Nonce,
+    pub staging: Nonce,
 }

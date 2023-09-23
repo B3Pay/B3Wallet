@@ -2,7 +2,7 @@
 mod test {
     use b3_utils::{nonce::Nonce, Environment};
 
-    use crate::{account::WalletAccount, state::WalletState};
+    use crate::{account::WalletAccount, nonces::NonceTrait, state::WalletState};
 
     #[test]
     fn test_init_wallet() {

@@ -1,9 +1,10 @@
 use crate::error::WalletError;
 use crate::ledger::ledger::Ledger;
-use crate::nonces::WalletAccountsNonce;
+use crate::nonces::NonceTrait;
 use crate::setting::WalletSettings;
 use crate::types::{WalletAccountMap, WalletAccountView};
 use crate::{account::WalletAccount, types::AccountId};
+use b3_utils::ledger::types::WalletAccountsNonce;
 use b3_utils::memory::types::{Bound, Storable};
 use b3_utils::nonce::Nonce;
 use b3_utils::Environment;

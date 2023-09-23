@@ -5,7 +5,7 @@ use crate::{
     processed::ProcessedOperation,
     response::Response,
     role::Role,
-    user::User,
+    user::{state::UserState, User},
 };
 use b3_utils::types::{OperationId, RoleId, UserId};
 use b3_wallet_lib::setting::WalletSettings;
@@ -34,7 +34,7 @@ pub type ProcessedOperationMap = BTreeMap<OperationId, ProcessedOperation>;
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct WalletSettingsAndSigners {
-    pub signers: UserMap,
+    pub signers: UserState,
     pub settings: WalletSettings,
 }
 

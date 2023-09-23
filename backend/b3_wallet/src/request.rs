@@ -15,7 +15,7 @@ use b3_operations::{
         {Operation, OperationTrait},
     },
     pending::RequestArgs,
-    role::Role,
+    role::{AccessLevel, Role},
     store::{with_operation, with_operation_mut, with_users_can_operate, with_verified_user},
     types::PendingOperations,
 };
@@ -45,7 +45,11 @@ pub fn request_maker(
 ) -> OperationId {
     let caller = ic_cdk::caller();
 
-    let role = Role::Admin;
+    let role = Role {
+        name: "Admin".to_string(),
+        access_level: AccessLevel::FullAccess,
+    };
+
     let allowed_signers = with_users_can_operate(role, |signer_ids| signer_ids.to_vec());
 
     let request_args = RequestArgs {
@@ -59,7 +63,7 @@ pub fn request_maker(
 
     with_operation_mut(|s| {
         let new_request = s.new_request(caller, request_args);
-        s.insert_new_request(new_request)
+        s.add(new_request)
     })
 }
 

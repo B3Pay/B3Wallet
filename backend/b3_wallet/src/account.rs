@@ -1,15 +1,13 @@
 use crate::permit::caller_is_signer;
 use b3_utils::{
-    currency::ICPToken,
-    currency::TokenAmount,
+    ledger::{
+        currency::ICPToken,
+        currency::TokenAmount,
+        types::{Cycles, NotifyTopUpResult, TransferBlockIndex},
+    },
     revert,
-    types::{CanisterId, Cycles, NotifyTopUpResult, TransferBlockIndex, WalletAccountsNonce},
+    types::CanisterId,
     Environment, Subaccount,
-};
-use b3_wallet_lib::ledger::{
-    chain::ChainTrait,
-    ckbtc::types::UtxoStatus,
-    types::{BtcPending, PendingEnum, SendResult},
 };
 use b3_wallet_lib::{
     account::WalletAccount,
@@ -25,48 +23,48 @@ use b3_wallet_lib::{
     },
     types::{AccountId, WalletAccountView},
 };
-use candid::candid_method;
+use b3_wallet_lib::{
+    ledger::{
+        chain::ChainTrait,
+        ckbtc::types::UtxoStatus,
+        types::{BtcPending, PendingEnum, SendResult},
+    },
+    nonces::WalletAccountsNonce,
+};
 use ic_cdk::{api::management_canister::bitcoin::Satoshi, query, update};
 
 // QUERY ---------------------------------------------------------------------
 
-#[candid_method(query)]
 #[query(guard = "caller_is_signer")]
 pub fn get_account(account_id: AccountId) -> WalletAccount {
     with_account(&account_id, |account| account.clone()).unwrap_or_else(revert)
 }
 
-#[candid_method(query)]
 #[query(guard = "caller_is_signer")]
 pub fn get_account_count() -> usize {
     with_wallet(|s| s.accounts_len())
 }
 
-#[candid_method(query)]
 #[query(guard = "caller_is_signer")]
 pub fn get_account_counters() -> WalletAccountsNonce {
     with_wallet(|s| s.counters().clone())
 }
 
-#[candid_method(query)]
 #[query(guard = "caller_is_signer")]
 pub fn get_account_views() -> Vec<WalletAccountView> {
     with_wallet(|s| s.account_views())
 }
 
-#[candid_method(query)]
 #[query(guard = "caller_is_signer")]
 pub fn get_account_view(account_id: AccountId) -> WalletAccountView {
     with_account(&account_id, |account| account.view()).unwrap_or_else(revert)
 }
 
-#[candid_method(query)]
 #[query(guard = "caller_is_signer")]
 pub fn get_addresses(account_id: AccountId) -> AddressMap {
     with_ledger(&account_id, |ledger| ledger.address_map().clone()).unwrap_or_else(revert)
 }
 
-#[candid_method(query)]
 #[query(guard = "caller_is_signer")]
 pub async fn retrieve_btc_status(
     network: BtcNetwork,
@@ -81,7 +79,6 @@ pub async fn retrieve_btc_status(
 }
 
 // UPDATE ---------------------------------------------------------------------
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub async fn account_update_balance(account_id: AccountId, network: BtcNetwork) -> Vec<UtxoStatus> {
     let ckbtc = with_chain(&account_id, &ChainEnum::CKBTC(network), |chain| {
@@ -98,7 +95,6 @@ pub async fn account_update_balance(account_id: AccountId, network: BtcNetwork) 
     }
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub fn account_create(env: Option<Environment>, name: Option<String>) {
     let subaccount = with_wallet(|s| s.new_subaccount(env));
@@ -108,25 +104,21 @@ pub fn account_create(env: Option<Environment>, name: Option<String>) {
     with_wallet_mut(|s| s.insert_account(new_account, name));
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub fn account_rename(account_id: AccountId, name: String) {
     with_account_mut(&account_id, |a| a.rename(name)).unwrap_or_else(revert)
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub fn account_hide(account_id: AccountId) {
     with_account_mut(&account_id, |a| a.hide()).unwrap_or_else(revert)
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub fn account_remove(account_id: AccountId) {
     with_wallet_mut(|s| s.remove_account(&account_id)).unwrap_or_else(revert);
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub fn account_remove_address(account_id: AccountId, chain: ChainEnum) {
     with_ledger_mut(&account_id, |ledger| ledger.remove_address(chain))
@@ -134,7 +126,6 @@ pub fn account_remove_address(account_id: AccountId, chain: ChainEnum) {
         .unwrap_or_else(revert);
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub fn account_restore(env: Environment, nonce: u64) {
     let subaccount = Subaccount::new(env, nonce);
@@ -142,7 +133,6 @@ pub fn account_restore(env: Environment, nonce: u64) {
     with_wallet_mut(|s| s.restore_account(subaccount)).unwrap_or_else(revert);
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub async fn account_balance(account_id: AccountId, chain: ChainEnum) -> Balance {
     let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
@@ -155,7 +145,6 @@ pub async fn account_balance(account_id: AccountId, chain: ChainEnum) -> Balance
     }
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub async fn account_send(
     account_id: AccountId,
@@ -168,7 +157,6 @@ pub async fn account_send(
     ledger.send(&chain, to, amount).await.unwrap_or_else(revert)
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub async fn account_check_pending(
     account_id: AccountId,
@@ -190,13 +178,11 @@ pub async fn account_check_pending(
     }
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub async fn account_add_pending(account_id: AccountId, chain: ChainEnum, pending: PendingEnum) {
     with_chain_mut(&account_id, chain, |chain| chain.add_pending(pending)).unwrap_or_else(revert);
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub async fn account_remove_pending(account_id: AccountId, chain: ChainEnum, pending_index: usize) {
     with_chain_mut(&account_id, chain, |chain| {
@@ -205,7 +191,6 @@ pub async fn account_remove_pending(account_id: AccountId, chain: ChainEnum, pen
     .unwrap_or_else(revert);
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub async fn account_swap_btc_to_ckbtc(
     account_id: AccountId,
@@ -231,7 +216,6 @@ pub async fn account_swap_btc_to_ckbtc(
     }
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub async fn account_swap_ckbtc_to_btc(
     account_id: AccountId,
@@ -264,7 +248,6 @@ pub async fn account_swap_ckbtc_to_btc(
     }
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub async fn account_top_up_and_notify(
     account_id: AccountId,
@@ -296,7 +279,6 @@ pub async fn account_top_up_and_notify(
     }
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub async fn account_create_address(account_id: AccountId, chain_enum: ChainEnum) {
     let mut ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
@@ -343,7 +325,6 @@ pub async fn account_create_address(account_id: AccountId, chain_enum: ChainEnum
     .unwrap_or_else(revert);
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub async fn account_btc_fees(network: BtcNetwork, num_blocks: u8) -> u64 {
     let rate = network.fee_rate(num_blocks).await;
@@ -354,7 +335,6 @@ pub async fn account_btc_fees(network: BtcNetwork, num_blocks: u8) -> u64 {
     }
 }
 
-#[candid_method(update)]
 #[update(guard = "caller_is_signer")]
 pub fn reset_accounts() {
     with_wallet_mut(|s| s.reset_accounts());
