@@ -114,6 +114,9 @@ yarn dfx:start --enable-bitcoin
 
 2. **Install dfx**: While keeping the dfx service running, open another terminal and run:
 
+   `Note: make sure you have the latest version of dfx installed and nns extension is installed, you can install it by running the following command:`
+   dfx extension install nns
+
 ```bash
 yarn dfx:install
 ```
