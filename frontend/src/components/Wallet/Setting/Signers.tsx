@@ -28,21 +28,23 @@ import {
 import { Principal } from "@dfinity/principal"
 import Loading from "components/Loading"
 import {
-  AddSigner,
-  Signer,
-  SignerRoles
+  AccessLevel,
+  AddUser,
+  Role
 } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useMemo, useState } from "react"
 import { B3Wallet } from "service"
 import Address from "../Address"
 
-interface SignerWithRole extends Omit<Signer, "role"> {
+const AccessLevelEnum = ["ReadOnly", "Limited", "Canister", "FullAccess"]
+
+interface SignerWithRole extends Omit<Role, "role"> {
   role: Role
   id: Principal
 }
 
-export type SignerMap = Array<[Principal, Signer]>
+export type SignerMap = Array<[Principal, Role]>
 
 interface SignerProps extends StackProps {
   actor: B3Wallet
@@ -50,14 +52,6 @@ interface SignerProps extends StackProps {
   isInitialPage?: boolean
   refetch: () => void
 }
-
-enum RoleEnum {
-  User = "User",
-  Canister = "Canister",
-  Admin = "Admin"
-}
-
-type Role = keyof typeof RoleEnum
 
 const Signers: React.FC<SignerProps> = ({
   actor,
@@ -68,7 +62,9 @@ const Signers: React.FC<SignerProps> = ({
 }) => {
   const [loading, setLoading] = useState(false)
   const [principal, setPrincipal] = useState("")
-  const [role, setRole] = useState<Role | "select">("select")
+  const [accessLevel, setAccessLevel] = useState<AccessLevel | "select">(
+    "select"
+  )
   const [name, setName] = useState("")
 
   const errorToast = useToastMessage()
@@ -105,7 +101,8 @@ const Signers: React.FC<SignerProps> = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!role) {
+
+    if (!accessLevel || accessLevel === "select") {
       errorToast({
         title: "Role not selected.",
         description: `Please select a role`,
@@ -115,10 +112,6 @@ const Signers: React.FC<SignerProps> = ({
       })
       return
     }
-
-    const roles = {
-      [role]: null
-    } as SignerRoles
 
     let signerId: Principal
     setLoading(true)
@@ -137,9 +130,9 @@ const Signers: React.FC<SignerProps> = ({
       })
     }
 
-    const args: AddSigner = {
+    const args: AddUser = {
       signer_id: signerId,
-      role: roles,
+      role: { access_level: accessLevel, name }, // new Role type
       expires_at: [],
       name,
       threshold: []
@@ -159,7 +152,7 @@ const Signers: React.FC<SignerProps> = ({
 
         // Clear the form
         setPrincipal("")
-        setRole("select")
+        setAccessLevel("select")
         refetch()
       })
       .catch(e => {
@@ -178,14 +171,14 @@ const Signers: React.FC<SignerProps> = ({
 
   const signerSorted = useMemo(() => {
     if (!signers) return []
-
+    console.log(signers)
     return signers
       .map(([id, signer]) => ({
         id,
         ...signer,
-        role: Object.keys(signer.role)[0] as Role
+        accessLevel: Object.keys(signer.access_level)[0]
       }))
-      .sort((a, b) => a.role.localeCompare(b.role))
+      .sort((a, b) => a.accessLevel.localeCompare(b.accessLevel)) // Sorting based on the access level
   }, [signers])
 
   return (
@@ -241,21 +234,24 @@ const Signers: React.FC<SignerProps> = ({
                         </Tr>
                       </Thead>
                       <Tbody>
-                        {signerSorted.map(({ id, role, name }, index) => (
-                          <Tr key={index}>
-                            <Td>
-                              <Address address={id.toString()} noIcon />
-                            </Td>
-                            <Td>{role}</Td>
-                            <Td>{name}</Td>
-                            <Td>
-                              <CloseButton
-                                color="red"
-                                onClick={() => removeSigner(id)}
-                              />
-                            </Td>
-                          </Tr>
-                        ))}
+                        {signerSorted.map(
+                          ({ id, role: { access_level, name } }, index) => (
+                            <Tr key={index}>
+                              <Td>
+                                <Address address={id.toString()} noIcon />
+                              </Td>
+                              <Td>{Object.keys(access_level)[0]}</Td>{" "}
+                              {/* Displaying the access level */}
+                              <Td>{name}</Td>
+                              <Td>
+                                <CloseButton
+                                  color="red"
+                                  onClick={() => removeSigner(id)}
+                                />
+                              </Td>
+                            </Tr>
+                          )
+                        )}
                       </Tbody>
                     </Table>
                   </TableContainer>
@@ -290,22 +286,23 @@ const Signers: React.FC<SignerProps> = ({
                       </FormControl>
                       <FormControl isRequired>
                         <Select
-                          value={role}
+                          value={accessLevel}
                           onChange={e => {
-                            const role = e.target.value as Role
-                            setRole(role)
+                            const newRole = e.target
+                              .value as keyof typeof AccessLevelEnum
+                            setAccessLevel(newRole)
                           }}
                         >
                           <option value={"select"}>Select Role</option>
-                          {Object.keys(RoleEnum).map((role, i) => (
-                            <option key={i} value={role}>
-                              {role}
+                          {AccessLevelEnum.map((accessLevel, i) => (
+                            <option key={i} value={accessLevel}>
+                              {accessLevel}
                             </option>
                           ))}
                         </Select>
                       </FormControl>
                       <Button colorScheme="orange" type="submit">
-                        Add {role !== "select" ? role : "Signer"}
+                        Add {accessLevel !== "select" ? accessLevel : "Signer"}
                       </Button>
                     </Grid>
                   </Box>

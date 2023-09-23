@@ -73,7 +73,7 @@ use ic_cdk::{
 };
 
 #[init]
-pub fn init() {
+fn init() {
     // when the canister is created by another canister (e.g. the system canister)
     // this function is called with the arguments passed to the canister constructor.
     let (call_arg,) = arg_data::<(Option<WalletCanisterInitArgs>,)>();
@@ -111,7 +111,7 @@ pub fn init() {
 }
 
 #[pre_upgrade]
-pub fn pre_upgrade() {
+fn pre_upgrade() {
     with_wasm_mut(|wasm| wasm.unload());
 
     let permit = with_operation(|o| o.clone());
@@ -121,7 +121,7 @@ pub fn pre_upgrade() {
 }
 
 #[post_upgrade]
-pub fn post_upgrade() {
+fn post_upgrade() {
     let (state_prev, sign_prev): (WalletState, OperationState) =
         ic_cdk::storage::stable_restore().unwrap();
 
@@ -131,42 +131,42 @@ pub fn post_upgrade() {
 }
 
 #[query(guard = "caller_is_signer")]
-pub fn get_roles() -> RoleMap {
+fn get_roles() -> RoleMap {
     with_roles(|s| s.roles().clone())
 }
 
 #[query(guard = "caller_is_signer")]
-pub fn get_account(account_id: AccountId) -> WalletAccount {
+fn get_account(account_id: AccountId) -> WalletAccount {
     with_account(&account_id, |account| account.clone()).unwrap_or_else(revert)
 }
 
 #[query(guard = "caller_is_signer")]
-pub fn get_account_count() -> usize {
+fn get_account_count() -> usize {
     with_wallet(|s| s.accounts_len())
 }
 
 #[query(guard = "caller_is_signer")]
-pub fn get_account_counters() -> WalletAccountsNonce {
+fn get_account_counters() -> WalletAccountsNonce {
     with_wallet(|s| s.counters().clone())
 }
 
 #[query(guard = "caller_is_signer")]
-pub fn get_account_views() -> Vec<WalletAccountView> {
+fn get_account_views() -> Vec<WalletAccountView> {
     with_wallet(|s| s.account_views())
 }
 
 #[query(guard = "caller_is_signer")]
-pub fn get_account_view(account_id: AccountId) -> WalletAccountView {
+fn get_account_view(account_id: AccountId) -> WalletAccountView {
     with_account(&account_id, |account| account.view()).unwrap_or_else(revert)
 }
 
 #[query(guard = "caller_is_signer")]
-pub fn get_addresses(account_id: AccountId) -> AddressMap {
+fn get_addresses(account_id: AccountId) -> AddressMap {
     with_ledger(&account_id, |ledger| ledger.address_map().clone()).unwrap_or_else(revert)
 }
 
 #[query(guard = "caller_is_signer")]
-pub async fn retrieve_btc_status(
+async fn retrieve_btc_status(
     network: BtcNetwork,
     block_index: TransferBlockIndex,
 ) -> RetrieveBtcStatus {
@@ -180,7 +180,7 @@ pub async fn retrieve_btc_status(
 
 // UPDATE ---------------------------------------------------------------------
 #[update(guard = "caller_is_signer")]
-pub async fn account_update_balance(account_id: AccountId, network: BtcNetwork) -> Vec<UtxoStatus> {
+async fn account_update_balance(account_id: AccountId, network: BtcNetwork) -> Vec<UtxoStatus> {
     let ckbtc = with_chain(&account_id, &ChainEnum::CKBTC(network), |chain| {
         chain.ckbtc()
     })
@@ -196,7 +196,7 @@ pub async fn account_update_balance(account_id: AccountId, network: BtcNetwork) 
 }
 
 #[update(guard = "caller_is_signer")]
-pub fn account_create(env: Option<Environment>, name: Option<String>) {
+fn account_create(env: Option<Environment>, name: Option<String>) {
     let subaccount = with_wallet(|s| s.new_subaccount(env));
 
     let new_account = WalletAccount::from(subaccount);
@@ -205,36 +205,36 @@ pub fn account_create(env: Option<Environment>, name: Option<String>) {
 }
 
 #[update(guard = "caller_is_signer")]
-pub fn account_rename(account_id: AccountId, name: String) {
+fn account_rename(account_id: AccountId, name: String) {
     with_account_mut(&account_id, |a| a.rename(name)).unwrap_or_else(revert)
 }
 
 #[update(guard = "caller_is_signer")]
-pub fn account_hide(account_id: AccountId) {
+fn account_hide(account_id: AccountId) {
     with_account_mut(&account_id, |a| a.hide()).unwrap_or_else(revert)
 }
 
 #[update(guard = "caller_is_signer")]
-pub fn account_remove(account_id: AccountId) {
+fn account_remove(account_id: AccountId) {
     with_wallet_mut(|s| s.remove_account(&account_id)).unwrap_or_else(revert);
 }
 
 #[update(guard = "caller_is_signer")]
-pub fn account_remove_address(account_id: AccountId, chain: ChainEnum) {
+fn account_remove_address(account_id: AccountId, chain: ChainEnum) {
     with_ledger_mut(&account_id, |ledger| ledger.remove_address(chain))
         .unwrap_or_else(revert)
         .unwrap_or_else(revert);
 }
 
 #[update(guard = "caller_is_signer")]
-pub fn account_restore(env: Environment, nonce: u64) {
+fn account_restore(env: Environment, nonce: u64) {
     let subaccount = Subaccount::new(env, nonce);
 
     with_wallet_mut(|s| s.restore_account(subaccount)).unwrap_or_else(revert);
 }
 
 #[update(guard = "caller_is_signer")]
-pub async fn account_balance(account_id: AccountId, chain: ChainEnum) -> Balance {
+async fn account_balance(account_id: AccountId, chain: ChainEnum) -> Balance {
     let ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
     let balance = ledger.balance(chain).await;
@@ -246,7 +246,7 @@ pub async fn account_balance(account_id: AccountId, chain: ChainEnum) -> Balance
 }
 
 #[update(guard = "caller_is_signer")]
-pub async fn account_send(
+async fn account_send(
     account_id: AccountId,
     chain: ChainEnum,
     to: String,
@@ -258,11 +258,7 @@ pub async fn account_send(
 }
 
 #[update(guard = "caller_is_signer")]
-pub async fn account_check_pending(
-    account_id: AccountId,
-    chain_enum: ChainEnum,
-    pending_index: usize,
-) {
+async fn account_check_pending(account_id: AccountId, chain_enum: ChainEnum, pending_index: usize) {
     let chain = with_chain(&account_id, &chain_enum, |chain| chain.clone()).unwrap_or_else(revert);
 
     let result = chain.check_pending(pending_index).await;
@@ -279,12 +275,12 @@ pub async fn account_check_pending(
 }
 
 #[update(guard = "caller_is_signer")]
-pub async fn account_add_pending(account_id: AccountId, chain: ChainEnum, pending: PendingEnum) {
+async fn account_add_pending(account_id: AccountId, chain: ChainEnum, pending: PendingEnum) {
     with_chain_mut(&account_id, chain, |chain| chain.add_pending(pending)).unwrap_or_else(revert);
 }
 
 #[update(guard = "caller_is_signer")]
-pub async fn account_remove_pending(account_id: AccountId, chain: ChainEnum, pending_index: usize) {
+async fn account_remove_pending(account_id: AccountId, chain: ChainEnum, pending_index: usize) {
     with_chain_mut(&account_id, chain, |chain| {
         chain.remove_pending(pending_index)
     })
@@ -292,7 +288,7 @@ pub async fn account_remove_pending(account_id: AccountId, chain: ChainEnum, pen
 }
 
 #[update(guard = "caller_is_signer")]
-pub async fn account_swap_btc_to_ckbtc(
+async fn account_swap_btc_to_ckbtc(
     account_id: AccountId,
     network: BtcNetwork,
     amount: Satoshi,
@@ -317,7 +313,7 @@ pub async fn account_swap_btc_to_ckbtc(
 }
 
 #[update(guard = "caller_is_signer")]
-pub async fn account_swap_ckbtc_to_btc(
+async fn account_swap_ckbtc_to_btc(
     account_id: AccountId,
     network: BtcNetwork,
     retrieve_address: String,
@@ -349,7 +345,7 @@ pub async fn account_swap_ckbtc_to_btc(
 }
 
 #[update(guard = "caller_is_signer")]
-pub async fn account_top_up_and_notify(
+async fn account_top_up_and_notify(
     account_id: AccountId,
     amount: ICPToken,
     canister_id: Option<CanisterId>,
@@ -380,7 +376,7 @@ pub async fn account_top_up_and_notify(
 }
 
 #[update(guard = "caller_is_signer")]
-pub async fn account_create_address(account_id: AccountId, chain_enum: ChainEnum) {
+async fn account_create_address(account_id: AccountId, chain_enum: ChainEnum) {
     let mut ledger = with_ledger(&account_id, |ledger| ledger.clone()).unwrap_or_else(revert);
 
     let ecdsa = match chain_enum {
@@ -426,7 +422,7 @@ pub async fn account_create_address(account_id: AccountId, chain_enum: ChainEnum
 }
 
 #[update(guard = "caller_is_signer")]
-pub async fn account_btc_fees(network: BtcNetwork, num_blocks: u8) -> u64 {
+async fn account_btc_fees(network: BtcNetwork, num_blocks: u8) -> u64 {
     let rate = network.fee_rate(num_blocks).await;
 
     match rate {
@@ -438,17 +434,14 @@ pub async fn account_btc_fees(network: BtcNetwork, num_blocks: u8) -> u64 {
 // QUERY
 
 #[query(guard = "caller_is_signer")]
-pub fn get_processed_list() -> ProcessedOperations {
+fn get_processed_list() -> ProcessedOperations {
     with_processed_operation(|s| s.processed_list())
 }
 
 // UPDATE
 
 #[update(guard = "caller_is_signer")]
-pub async fn response(
-    request_id: OperationId,
-    answer: Response,
-) -> Result<ProcessedOperation, String> {
+async fn response(request_id: OperationId, answer: Response) -> Result<ProcessedOperation, String> {
     let caller = ic_cdk::caller();
 
     let request = with_pending_operation_mut(&request_id, |request| {
@@ -486,7 +479,7 @@ pub async fn response(
 }
 
 #[update(guard = "caller_is_signer")]
-pub fn reset_accounts() {
+fn reset_accounts() {
     with_wallet_mut(|s| s.reset_accounts());
 }
 
@@ -560,12 +553,12 @@ fn remove_setting_metadata(key: String) {
 
 // QUERY ---------------------------------------------------------------------
 #[query(guard = "caller_is_signer")]
-pub fn get_pending_list() -> PendingOperations {
+fn get_pending_list() -> PendingOperations {
     with_operation(|s| s.pending_list())
 }
 
 #[query(guard = "caller_is_signer")]
-pub fn is_connected() -> bool {
+fn is_connected() -> bool {
     let caller = ic_cdk::caller();
 
     with_verified_user(caller, |signer| signer.is_canister()).is_ok()
@@ -573,7 +566,7 @@ pub fn is_connected() -> bool {
 
 // UPDATE ---------------------------------------------------------------------
 #[update(guard = "caller_is_signer")]
-pub fn request_maker(
+fn request_maker(
     request: Operation,
     reason: String,
     deadline: Option<NanoTimeStamp>,
@@ -603,7 +596,7 @@ pub fn request_maker(
 }
 
 #[update(guard = "caller_is_admin")]
-pub fn request_add_signer(
+fn request_add_signer(
     request: AddUser,
     reason: String,
     deadline: Option<NanoTimeStamp>,
@@ -612,7 +605,7 @@ pub fn request_add_signer(
 }
 
 #[update]
-pub fn request_connect(name: String) -> OperationId {
+fn request_connect(name: String) -> OperationId {
     let signer_id = ic_cdk::caller();
 
     let request = AddUser {
@@ -646,7 +639,7 @@ pub fn request_connect(name: String) -> OperationId {
 }
 
 #[update(guard = "caller_is_admin")]
-pub fn request_update_settings(
+fn request_update_settings(
     request: UpdateCanisterSettings,
     reason: String,
     deadline: Option<NanoTimeStamp>,
@@ -655,7 +648,7 @@ pub fn request_update_settings(
 }
 
 #[update(guard = "caller_is_admin")]
-pub fn request_account_rename(
+fn request_account_rename(
     request: RenameAccount,
     reason: String,
     deadline: Option<NanoTimeStamp>,
@@ -664,7 +657,7 @@ pub fn request_account_rename(
 }
 
 #[update(guard = "caller_is_admin")]
-pub fn request_create_account(
+fn request_create_account(
     request: CreateAccount,
     reason: String,
     deadline: Option<NanoTimeStamp>,
@@ -673,7 +666,7 @@ pub fn request_create_account(
 }
 
 #[update(guard = "caller_is_admin")]
-pub fn request_delete_account(
+fn request_delete_account(
     request: RemoveAccount,
     reason: String,
     deadline: Option<NanoTimeStamp>,
@@ -682,7 +675,7 @@ pub fn request_delete_account(
 }
 
 #[update(guard = "caller_is_admin")]
-pub fn request_transfer_icp(
+fn request_transfer_icp(
     request: IcpTransfer,
     reason: String,
     deadline: Option<NanoTimeStamp>,
@@ -691,7 +684,7 @@ pub fn request_transfer_icp(
 }
 
 #[update(guard = "caller_is_admin")]
-pub fn request_transfer_btc(
+fn request_transfer_btc(
     request: BtcTransfer,
     reason: String,
     deadline: Option<NanoTimeStamp>,
@@ -700,7 +693,7 @@ pub fn request_transfer_btc(
 }
 
 #[update(guard = "caller_is_signer")]
-pub fn request_send(
+fn request_send(
     request: SendToken,
     reason: String,
     deadline: Option<NanoTimeStamp>,
@@ -709,7 +702,7 @@ pub fn request_send(
 }
 
 #[update(guard = "caller_is_signer")]
-pub async fn request_upgrade_canister(wasm_version: String) -> OperationId {
+async fn request_upgrade_canister(wasm_version: String) -> OperationId {
     let upgrade_request = with_wasm(|w| UpgradeCanister {
         wasm_hash_string: w.generate_hash_string(),
         wasm_version,
@@ -721,17 +714,17 @@ pub async fn request_upgrade_canister(wasm_version: String) -> OperationId {
 }
 
 #[query]
-pub fn validate_signer(signer_id: UserId) -> bool {
+fn validate_signer(signer_id: UserId) -> bool {
     with_user(&signer_id, |_| true).is_ok()
 }
 
 #[query(guard = "caller_is_admin")]
-pub fn get_signers() -> UserMap {
+fn get_signers() -> UserMap {
     with_users(|u| u.users().clone())
 }
 
 #[update(guard = "caller_is_admin")]
-pub fn signer_add(signer_id: UserId, role: Role) -> UserMap {
+fn signer_add(signer_id: UserId, role: Role) -> UserMap {
     let signer = User::from(role);
 
     with_users_mut(|users| {
@@ -742,7 +735,7 @@ pub fn signer_add(signer_id: UserId, role: Role) -> UserMap {
 }
 
 #[update(guard = "caller_is_admin")]
-pub fn signer_remove(signer_id: UserId) -> UserMap {
+fn signer_remove(signer_id: UserId) -> UserMap {
     with_users_mut(|users| {
         users.remove(&signer_id);
 
@@ -751,7 +744,7 @@ pub fn signer_remove(signer_id: UserId) -> UserMap {
 }
 
 #[update(guard = "caller_is_admin")]
-pub async fn init_wallet(args: WalletInititializeArgs) {
+async fn init_wallet(args: WalletInititializeArgs) {
     if with_wallet(|w| w.is_initialised()) {
         return revert(WalletError::WalletAlreadyInitialized);
     }
@@ -784,7 +777,7 @@ async fn upgrage_wallet() {
 }
 
 #[update(guard = "caller_is_admin")]
-pub async fn uninstall_wallet() {
+async fn uninstall_wallet() {
     let canister_id = ic_cdk::id();
 
     let args = CanisterIdRecord { canister_id };
@@ -793,7 +786,7 @@ pub async fn uninstall_wallet() {
 }
 
 #[update(guard = "caller_is_signer")]
-pub async fn status() -> WalletCanisterStatus {
+async fn status() -> WalletCanisterStatus {
     let canister_id = ic_cdk::api::id();
 
     let version = version();
@@ -815,22 +808,22 @@ pub async fn status() -> WalletCanisterStatus {
 }
 
 #[query]
-pub fn canister_cycle_balance() -> u128 {
+fn canister_cycle_balance() -> u128 {
     ic_cdk::api::canister_balance128()
 }
 
 #[query]
-pub fn canister_version() -> u64 {
+fn canister_version() -> u64 {
     ic_cdk::api::canister_version()
 }
 
 #[query]
-pub fn version() -> String {
+fn version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }
 
 #[query]
-pub fn name() -> String {
+fn name() -> String {
     env!("CARGO_PKG_NAME").to_string()
 }
 

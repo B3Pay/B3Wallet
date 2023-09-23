@@ -72,7 +72,7 @@ impl Role {
     pub fn have_access_level(&self, access_level: &AccessLevel) -> bool {
         match access_level {
             AccessLevel::FullAccess => self.is_admin(),
-            AccessLevel::ReadOnly => todo!("ReadOnly"),
+            AccessLevel::ReadOnly => self.is_user(),
             AccessLevel::Canister => self.is_canister(),
             AccessLevel::Limited(operations) => {
                 if self.is_admin() {
@@ -94,8 +94,8 @@ impl Role {
     pub fn has_operation(&self, operation: &Operation) -> bool {
         match &self.access_level {
             AccessLevel::FullAccess => true,
-            AccessLevel::ReadOnly => todo!("ReadOnly"),
-            AccessLevel::Canister => todo!("Canister"),
+            AccessLevel::ReadOnly => false,
+            AccessLevel::Canister => false,
             AccessLevel::Limited(operations) => operations.iter().any(|op_access| {
                 if &op_access.operation == operation {
                     if let Some(valid_until) = &op_access.valid_until {
