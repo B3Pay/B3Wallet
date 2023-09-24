@@ -245,7 +245,7 @@ const Signers: React.FC<SignerProps> = ({
                           <Th>Signer ID</Th>
                           <Th>Role</Th>
                           <Th>Name</Th>
-                          <Th>X</Th>
+                          <Th textAlign="center">X</Th>
                         </Tr>
                       </Thead>
                       <Tbody w="100%">
@@ -253,7 +253,11 @@ const Signers: React.FC<SignerProps> = ({
                           ({ id, role: { access_level, name } }, index) => (
                             <Tr key={index}>
                               <Td>
-                                <Address address={id.toString()} noIcon />
+                                <Address
+                                  address={id.toString()}
+                                  noIcon
+                                  smallest
+                                />
                               </Td>
                               <Td>{Object.keys(access_level)[0]}</Td>{" "}
                               {/* Displaying the access level */}

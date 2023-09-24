@@ -13,12 +13,14 @@ import { useMemo } from "react"
 interface AddressWithCopyProps extends FlexProps {
   address: string
   noIcon?: boolean
+  smallest?: boolean
   hiddenAddress?: boolean
 }
 
 const Address: React.FC<AddressWithCopyProps> = ({
   address,
   noIcon,
+  smallest,
   overflow,
   children,
   hiddenAddress,
@@ -36,8 +38,8 @@ const Address: React.FC<AddressWithCopyProps> = ({
       return address
     }
 
-    const Start = address.slice(0, isLargerThan500 ? 20 : 8)
-    const End = address.slice(isLargerThan500 ? -20 : -8)
+    const Start = address.slice(0, isLargerThan500 ? (smallest ? 13 : 20) : 8)
+    const End = address.slice(isLargerThan500 ? (smallest ? -13 : -20) : -8)
 
     return `${Start}...${End}`
   }, [address, overflow, isLargerThan500])

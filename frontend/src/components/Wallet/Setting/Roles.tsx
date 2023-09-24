@@ -256,7 +256,7 @@ const Roles: React.FC<RolesProps> = ({ actor, ...rest }) => {
                           <Th>Name</Th>
                           <Th>Role</Th>
                           <Th>Access Level</Th>
-                          <Th>X</Th>
+                          <Th textAlign="center">X</Th>
                         </Tr>
                       </Thead>
                       <Tbody w="100%">
@@ -322,7 +322,7 @@ const Roles: React.FC<RolesProps> = ({ actor, ...rest }) => {
                     </Select>
                   </HStack>
                   {accessLevel === "Limited" && (
-                    <VStack spacing={2} width="100%">
+                    <VStack spacing={2} width="100%" pt={2}>
                       <FormControl id="operations">
                         <FormLabel>Select Operations</FormLabel>
                         <Grid templateColumns="repeat(2, 1fr)">
