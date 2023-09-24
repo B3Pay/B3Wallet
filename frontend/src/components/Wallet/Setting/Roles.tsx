@@ -256,13 +256,12 @@ const Roles: React.FC<RolesProps> = ({ actor, ...rest }) => {
                           <Th>Name</Th>
                           <Th>Role</Th>
                           <Th>Access Level</Th>
-                          <Th></Th>
+                          <Th>X</Th>
                         </Tr>
                       </Thead>
-                      <Tbody>
+                      <Tbody w="100%">
                         {roles.map(([id, { access_level, name }], index) => {
                           const accessLevel = Object.keys(access_level)[0]
-
                           return (
                             <Tr key={index}>
                               <Td>{name}</Td>

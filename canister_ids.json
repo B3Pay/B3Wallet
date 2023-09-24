@@ -8,6 +8,12 @@
   "b3_wallet": {
     "ic": "7uoyg-piaaa-aaaap-abbzq-cai"
   },
+  "internet_identity": {
+    "ic": "rqvkr-dyaaa-aaaap-ablia-cai"
+  },
+  "nns-dapp": {
+    "ic": "rxumf-oaaaa-aaaap-abliq-cai"
+  },
   "payment_assets": {
     "ic": "b7pqa-qqaaa-aaaap-abdva-cai"
   },

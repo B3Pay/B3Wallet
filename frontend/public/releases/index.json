@@ -2,14 +2,14 @@
   {
     "url": "releases/b3_wallet/0.0.1-alpha.0/b3_wallet.wasm",
     "name": "b3_wallet",
-    "size": 3017862,
+    "size": 3032358,
     "wasmFile": "b3_wallet.wasm",
     "version": "0.0.1-alpha.0"
   },
   {
     "url": "releases/b3_wallet/0.0.1-alpha.0/b3_wallet_candid.wasm",
     "name": "b3_wallet",
-    "size": 3469013,
+    "size": 3469828,
     "wasmFile": "b3_wallet_candid.wasm",
     "version": "0.0.1-alpha.0"
   },

@@ -245,10 +245,10 @@ const Signers: React.FC<SignerProps> = ({
                           <Th>Signer ID</Th>
                           <Th>Role</Th>
                           <Th>Name</Th>
-                          <Th></Th>
+                          <Th>X</Th>
                         </Tr>
                       </Thead>
-                      <Tbody>
+                      <Tbody w="100%">
                         {signerSorted.map(
                           ({ id, role: { access_level, name } }, index) => (
                             <Tr key={index}>

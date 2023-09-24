@@ -1,6 +1,6 @@
 {
   "name": "b3wallet",
-  "version": "0.4.8",
+  "version": "0.5.0",
   "author": "b3hr4d",
   "license": "MIT",
   "description": "Wallet and System Canister for the B3wallet on the Internet Computer",
