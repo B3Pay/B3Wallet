@@ -9,10 +9,10 @@ import {
 import { Environment } from "declarations/b3_wallet/b3_wallet.did"
 import { IS_LOCAL } from "helpers/config"
 import { useState } from "react"
-import { B3BasicWallet, B3Wallet } from "service"
+import { B3Wallet } from "service"
 
 interface CreateAccountProps {
-  actor: B3Wallet | B3BasicWallet
+  actor: B3Wallet
   fetchAccounts: () => void
 }
 
@@ -20,7 +20,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({
   actor,
   fetchAccounts
 }) => {
-  const [name, setName] = useState<string>()
+  const [name, setName] = useState<string>("")
   const [environment, setEnvironment] = useState<Environment>(
     IS_LOCAL
       ? {

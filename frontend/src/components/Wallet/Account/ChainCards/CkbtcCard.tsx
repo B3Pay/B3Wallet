@@ -23,7 +23,7 @@ import { BtcNetwork, ChainEnum } from "declarations/b3_wallet/b3_wallet.did"
 import { PendingTranscation, extractConfirmations } from "helpers/utiles"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useEffect, useState } from "react"
-import { B3BasicWallet, B3Wallet } from "service"
+import { B3Wallet } from "service"
 import { AddressesWithChain } from "."
 import SwapForm from "../SwapForm"
 import TransferForm from "../TransferForm"
@@ -35,7 +35,7 @@ const pulse = keyframes`
 `
 
 interface CkbtcCardProps extends AddressesWithChain {
-  actor: B3Wallet | B3BasicWallet
+  actor: B3Wallet
   balance: bigint
   accountId: string
   balanceLoading: boolean

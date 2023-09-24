@@ -16,7 +16,6 @@ import System from "../components/System"
 import Wallet from "../components/Wallet"
 import useAuthClient from "../hooks/useAuthClient"
 import {
-  B3BasicWallet,
   B3Wallet,
   createB3BasicWalletActor,
   createB3WalletActor
@@ -37,7 +36,7 @@ function HomePage() {
   const [loading, setLoading] = useState(false)
 
   const [walletCanisterId, setWalletCanisterId] = useState<string>("")
-  const [walletActor, setWalletActor] = useState<B3Wallet | B3BasicWallet>()
+  const [walletActor, setWalletActor] = useState<B3Wallet>()
   const [walletName, setWalletName] = useState<string>("")
 
   const toast = useToast()

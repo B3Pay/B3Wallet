@@ -5,7 +5,6 @@ import { useEffect, useState } from "react"
 import { B3Wallet } from "service"
 
 interface LogTableProps {
-  logs: Array<LogEntry>
   actor?: B3Wallet
 }
 
@@ -20,7 +19,7 @@ const LogTable: React.FC<LogTableProps> = ({ actor }) => {
     actor
       .print_log_entries()
       .then(logs => {
-        setLogs(logs)
+        setLogs(logs.reverse())
       })
       .catch(err => {
         console.error(err)
@@ -28,13 +27,11 @@ const LogTable: React.FC<LogTableProps> = ({ actor }) => {
   }, [])
 
   return (
-    <Table variant="simple">
+    <Table size="sm">
       <TableCaption>Backend Logs</TableCaption>
       <Thead>
         <Tr>
           <Th>Counter</Th>
-          <Th>File</Th>
-          <Th>Line</Th>
           <Th>Cycle</Th>
           <Th>Version</Th>
           <Th>Message</Th>
@@ -45,8 +42,6 @@ const LogTable: React.FC<LogTableProps> = ({ actor }) => {
         {logs?.map((log, index) => (
           <Tr key={index}>
             <Td>{log.counter.toString()}</Td>
-            <Td>{log.file}</Td>
-            <Td>{log.line}</Td>
             <Td>{log.cycle[0].toString()}</Td>
             <Td>{log.version}</Td>
             <Td>{log.message}</Td>

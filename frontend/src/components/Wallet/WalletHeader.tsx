@@ -6,14 +6,14 @@ import {
 } from "@chakra-ui/icons"
 import { Box, IconButton, Stack, StackProps } from "@chakra-ui/react"
 import { Mode } from "."
-import { B3BasicWallet, B3Wallet } from "../../service"
+import { B3Wallet } from "../../service"
 import Address from "./Address"
 import ConfirmationModal from "./ConfirmModal"
 
 interface WalletHeaderProps extends StackProps {
   walletCanisterId: string
   walletName: string
-  actor: B3Wallet | B3BasicWallet
+  actor: B3Wallet
   mode: Mode
   principal: string
   toggleMode: (mode: Mode) => void

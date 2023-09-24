@@ -20,7 +20,7 @@ import {
 } from "@chakra-ui/react"
 import { Environment } from "declarations/b3_wallet/b3_wallet.did"
 import React, { useState } from "react"
-import { B3BasicWallet, B3Wallet } from "service"
+import { B3Wallet } from "service"
 
 interface AccountTitleProps {
   name: string
@@ -28,8 +28,9 @@ interface AccountTitleProps {
   isExpanded: boolean
   environment: Environment
   id: string
-  actor: B3Wallet | B3BasicWallet
+  actor: B3Wallet
   refetchAccount: () => void
+  refetchAccounts: () => void
 }
 
 const AccountTitle: React.FC<AccountTitleProps> = ({
@@ -39,7 +40,8 @@ const AccountTitle: React.FC<AccountTitleProps> = ({
   id,
   actor,
   isExpanded,
-  refetchAccount
+  refetchAccount,
+  refetchAccounts
 }) => {
   const [newName, setNewName] = useState<string>(name)
   const [editMode, setEditMode] = useState<boolean>(false)
@@ -54,7 +56,7 @@ const AccountTitle: React.FC<AccountTitleProps> = ({
 
     try {
       await actor.account_remove(id)
-      refetchAccount()
+      refetchAccounts()
     } catch (e) {
       Toast({
         title: "Error",

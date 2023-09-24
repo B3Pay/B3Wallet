@@ -12,7 +12,7 @@ import {
 import { ChainNetwork, ChainSymbol, extractConfirmations } from "helpers/utiles"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useState } from "react"
-import { B3BasicWallet, B3Wallet } from "service"
+import { B3Wallet } from "service"
 import CreateAddress from "../CreateAddress"
 import BtcCard from "./BtcCard"
 import CkbtcCard from "./CkbtcCard"
@@ -53,7 +53,7 @@ export interface Loadings {
 interface ChainCardsProps {
   addresses: Addresses
   pendings: Array<PendingEnum>
-  actor: B3Wallet | B3BasicWallet
+  actor: B3Wallet
   accountId: string
   isExpanded: boolean
   numberOfAddresses: number

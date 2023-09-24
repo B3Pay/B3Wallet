@@ -15,11 +15,11 @@ import {
 import Loading from "components/Loading"
 import { B3_SYSTEM_CANISTER_ID, IS_LOCAL } from "helpers/config"
 import { useState } from "react"
-import { B3BasicWallet, B3Wallet } from "service"
+import { B3Wallet } from "service"
 import Address from "../Address"
 
 interface DangerZoneProps {
-  actor: B3Wallet | B3BasicWallet
+  actor: B3Wallet
   fetchAccounts: () => void
   allowUninstall?: boolean
 }

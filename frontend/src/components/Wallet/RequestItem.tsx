@@ -12,11 +12,11 @@ import {
 } from "@chakra-ui/react"
 import { Principal } from "@dfinity/principal"
 import { useCallback } from "react"
-import { PendingRequest } from "../../../declarations/b3_wallet/b3_wallet.did"
+import { PendingOperation } from "../../../declarations/b3_wallet/b3_wallet.did"
 import Parent from "../Recursive"
 import Address from "./Address"
 
-interface RequestItemProps extends PendingRequest {
+interface RequestItemProps extends PendingOperation {
   loading: boolean
   principal: string
   rejectHandler: (request_id: bigint) => void
@@ -35,7 +35,6 @@ const RequestItem: React.FC<RequestItemProps> = ({
   consent_message,
   created_at,
   deadline,
-  role,
   loading,
   principal,
   responses,
@@ -92,10 +91,6 @@ const RequestItem: React.FC<RequestItemProps> = ({
             {date(deadline).toLocaleDateString()}{" "}
             {date(deadline).toLocaleTimeString()}
           </StatHelpText>
-        </Stat>
-        <Stat>
-          <StatLabel>Role: &nbsp;</StatLabel>
-          <StatHelpText>{Object.keys(role)[0]}</StatHelpText>
         </Stat>
         <Stat>
           <StatLabel>Responses: &nbsp;</StatLabel>

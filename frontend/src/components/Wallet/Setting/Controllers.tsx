@@ -28,13 +28,13 @@ import Loading from "components/Loading"
 import { WalletController } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useEffect, useState } from "react"
-import { B3BasicWallet, B3Wallet } from "service"
+import { B3Wallet } from "service"
 import Address from "../Address"
 
 export type ControllerMap = Array<[Principal, WalletController]>
 
 interface ControllersProps extends StackProps {
-  actor: B3Wallet | B3BasicWallet
+  actor: B3Wallet
   refetch: () => void
   isInitialPage?: boolean
   controllers?: ControllerMap

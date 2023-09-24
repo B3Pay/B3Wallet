@@ -5,14 +5,14 @@ import {
 } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useEffect, useState } from "react"
-import { B3BasicWallet, B3System, B3Wallet } from "service"
+import { B3System, B3Wallet } from "service"
 import Loading from "../Loading"
 import InitialSetup from "./InitialSetup"
 import WalletBody from "./WalletBody"
 import WalletHeader from "./WalletHeader"
 
 interface WalletProps {
-  actor: B3Wallet | B3BasicWallet
+  actor: B3Wallet
   principal: string
   walletName: string
   systemActor: B3System
@@ -72,7 +72,8 @@ const Wallet: React.FC<WalletProps> = ({
     try {
       let setting
       if (walletName === "b3_basic_wallet") {
-        setting = { settings: await (actor as B3BasicWallet).setting() }
+        throw new Error("B3 Basic Wallet not supported yet.")
+        // setting = { settings: await (actor as B3BasicWallet).setting() }
       } else {
         setting = await (actor as B3Wallet).setting_and_signer()
       }

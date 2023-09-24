@@ -5,16 +5,17 @@ import { Principal } from "@dfinity/principal"
 import { WalletAccountView } from "declarations/b3_wallet/b3_wallet.did"
 import { ChainNetwork, ChainSymbol } from "helpers/utiles"
 import { useMemo } from "react"
-import { B3BasicWallet, B3Wallet } from "service"
+import { B3Wallet } from "service"
 import Loading from "../../Loading"
 import AccountTitle from "./AccountTitle"
 import ChainCards, { Addresses } from "./ChainCards"
 
 interface AccountProps extends WalletAccountView {
-  actor: B3Wallet | B3BasicWallet
+  actor: B3Wallet
   loading: boolean
   isExpanded: boolean
   refetchAccount: () => void
+  refetchAccounts: () => void
 }
 
 export interface Balances {
@@ -42,7 +43,8 @@ const Account: React.FC<AccountProps> = ({
   addresses,
   isExpanded,
   environment,
-  refetchAccount
+  refetchAccount,
+  refetchAccounts
 }) => {
   const addressesWithChain: Addresses = useMemo(() => {
     const addressMap: Addresses = {}
@@ -98,6 +100,7 @@ const Account: React.FC<AccountProps> = ({
         isExpanded={isExpanded}
         environment={environment}
         refetchAccount={refetchAccount}
+        refetchAccounts={refetchAccounts}
       />
       <ChainCards
         actor={actor}

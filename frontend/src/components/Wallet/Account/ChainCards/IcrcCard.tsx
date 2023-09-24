@@ -12,12 +12,12 @@ import Address from "components/Wallet/Address"
 import Balance from "components/Wallet/Balance"
 import { ChainEnum } from "declarations/b3_wallet/b3_wallet.did"
 import { useEffect } from "react"
-import { B3BasicWallet, B3Wallet } from "service"
+import { B3Wallet } from "service"
 import { AddressesWithChain } from "."
 import TransferForm from "../TransferForm"
 
 interface IcrcCardProps extends AddressesWithChain {
-  actor: B3Wallet | B3BasicWallet
+  actor: B3Wallet
   balance: bigint
   accountId: string
   balanceLoading: boolean

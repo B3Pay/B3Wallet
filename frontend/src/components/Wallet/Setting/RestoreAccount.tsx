@@ -17,10 +17,10 @@ import { Environment } from "declarations/b3_wallet/b3_wallet.did"
 import { IS_LOCAL } from "helpers/config"
 import useToastMessage from "hooks/useToastMessage"
 import { useState } from "react"
-import { B3BasicWallet, B3Wallet } from "service"
+import { B3Wallet } from "service"
 
 interface RestoreAccountProps {
-  actor: B3Wallet | B3BasicWallet
+  actor: B3Wallet
   fetchAccounts: () => void
 }
 

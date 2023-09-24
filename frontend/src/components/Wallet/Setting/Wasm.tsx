@@ -22,7 +22,7 @@ import { Release } from "declarations/b3_system/b3_system.did"
 import useLoadRelease from "hooks/useLoadRelease"
 import useToastMessage from "hooks/useToastMessage"
 import { useCallback, useEffect, useState } from "react"
-import { B3BasicWallet, B3System, B3Wallet } from "service"
+import { B3System, B3Wallet } from "service"
 import WalletError from "../../WalletError"
 import Address from "../Address"
 
@@ -43,7 +43,7 @@ interface OnlineRelease {
 }
 
 interface WasmProps {
-  actor: B3Wallet | B3BasicWallet
+  actor: B3Wallet
   systemActor: B3System
   refreshWallet: () => void
   setLoading: (loading: boolean) => void

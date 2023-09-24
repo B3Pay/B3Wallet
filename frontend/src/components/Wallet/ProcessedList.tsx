@@ -1,5 +1,6 @@
 import { Accordion, AccordionItem, Stack, Text } from "@chakra-ui/react"
-import { ProcessedRequest } from "declarations/b3_wallet/b3_wallet.did"
+
+import { ProcessedOperation } from "declarations/b3_wallet/b3_wallet.did"
 import { useEffect, useState } from "react"
 import { B3Wallet } from "service"
 import ProcessedItem from "./ProcessedItem"
@@ -10,7 +11,7 @@ interface ProcessedProps {
 }
 
 const ProcessedList: React.FC<ProcessedProps> = ({ setLoading, actor }) => {
-  const [processedList, setProcessedList] = useState<ProcessedRequest[]>([])
+  const [processedList, setProcessedList] = useState<ProcessedOperation[]>([])
 
   useEffect(() => {
     console.log("fetching processed")

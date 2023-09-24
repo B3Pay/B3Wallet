@@ -13,11 +13,11 @@ import Balance from "components/Wallet/Balance"
 import { ChainEnum } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useEffect, useState } from "react"
-import { B3BasicWallet, B3Wallet } from "service"
+import { B3Wallet } from "service"
 import { AddressesWithChain } from "."
 
 interface EthCardProps extends AddressesWithChain {
-  actor: B3Wallet | B3BasicWallet
+  actor: B3Wallet
   balance: bigint
   accountId: string
   balanceLoading: boolean

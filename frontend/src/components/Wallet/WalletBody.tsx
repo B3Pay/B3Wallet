@@ -12,7 +12,7 @@ import {
   WalletSettingsAndSigners
 } from "../../../declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "../../hooks/useToastMessage"
-import { B3BasicWallet, B3System, B3Wallet } from "../../service"
+import { B3System, B3Wallet } from "../../service"
 import Account from "./Account"
 import CreateAccount from "./Account/CreateAccount"
 import ProcessedList from "./ProcessedList"
@@ -24,7 +24,7 @@ interface Loadings {
 
 interface WalletBodyProps extends StackProps {
   mode: Mode
-  actor: B3Wallet | B3BasicWallet
+  actor: B3Wallet
   principal: string
   walletCanisterId: string
   settingsAndSigners: WalletSettingsAndSigners
@@ -100,7 +100,7 @@ const WalletBody: React.FC<WalletBodyProps> = ({
             setLoading(prev => ({ ...prev, global }))
           }
         />
-      ) : mode === Mode.Processed && "get_processed" in actor ? (
+      ) : mode === Mode.Processed ? (
         <ProcessedList
           actor={actor}
           setLoading={(global: boolean) =>
@@ -123,6 +123,7 @@ const WalletBody: React.FC<WalletBodyProps> = ({
                     loading={loading[account.id]}
                     isExpanded={isExpanded}
                     refetchAccount={() => refetchAccount(account.id)}
+                    refetchAccounts={fetchAccounts}
                     {...account}
                   />
                 )}
