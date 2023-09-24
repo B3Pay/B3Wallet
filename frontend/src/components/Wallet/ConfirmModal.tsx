@@ -102,28 +102,6 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     setLoading(false)
   }
 
-  const proccessHandler = async (request_id: bigint) => {
-    setLoading(true)
-    try {
-      await actor.process_request(request_id)
-      onClose()
-      await fetchRequests()
-
-      fetchAccounts()
-    } catch (e) {
-      console.log(e)
-      errorToast({
-        title: "Error",
-        description: e.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true
-      })
-    }
-
-    setLoading(false)
-  }
-
   useInterval(async () => {
     fetchRequests()
   }, 5000)
@@ -184,7 +162,6 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               principal={principal}
               rejectHandler={rejectHandler}
               confirmHandler={confirmHandler}
-              proccessHandler={proccessHandler}
             />
           )}
         </ModalContent>

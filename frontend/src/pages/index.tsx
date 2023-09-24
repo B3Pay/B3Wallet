@@ -15,11 +15,7 @@ import Loading from "../components/Loading"
 import System from "../components/System"
 import Wallet from "../components/Wallet"
 import useAuthClient from "../hooks/useAuthClient"
-import {
-  B3Wallet,
-  createB3BasicWalletActor,
-  createB3WalletActor
-} from "../service/"
+import { B3Wallet, createB3WalletActor } from "../service/"
 
 function HomePage() {
   const {
@@ -62,15 +58,7 @@ function HomePage() {
             throw new Error("No name found")
           }
           console.log("user actor name", name)
-          if (name === "b3_basic_wallet") {
-            const basicWallet = createB3BasicWalletActor(
-              canisterId,
-              authClient.getIdentity()
-            )
-            setWalletActor(basicWallet)
-          } else {
-            setWalletActor(userActor)
-          }
+          setWalletActor(userActor)
           setWalletName(name)
           setLoading(false)
         })

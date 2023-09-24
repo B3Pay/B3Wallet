@@ -260,19 +260,45 @@ const Roles: React.FC<RolesProps> = ({ actor, ...rest }) => {
                         </Tr>
                       </Thead>
                       <Tbody>
-                        {roles.map(([id, { access_level, name }], index) => (
-                          <Tr key={index}>
-                            <Td>{name}</Td>
-                            <Td>{Object.keys(access_level)[0]}</Td>{" "}
-                            {/* Displaying the access level */}
-                            <Td>
-                              <CloseButton
-                                color="red"
-                                onClick={() => removeRole(id)}
-                              />
-                            </Td>
-                          </Tr>
-                        ))}
+                        {roles.map(([id, { access_level, name }], index) => {
+                          const accessLevel = Object.keys(access_level)[0]
+
+                          return (
+                            <Tr key={index}>
+                              <Td>{name}</Td>
+                              <Td>{accessLevel}</Td>
+                              <Td>
+                                {accessLevel === "Limited"
+                                  ? access_level[accessLevel].map(
+                                      ({ operation, valid_until }, i) => (
+                                        <Box key={i}>
+                                          {Object.keys(operation)[0]}{" "}
+                                          {valid_until.length > 0 && (
+                                            <Box
+                                              as="span"
+                                              color="gray.500"
+                                              fontSize="xs"
+                                            >
+                                              {new Date(
+                                                Number(valid_until[0])
+                                              ).toLocaleDateString()}
+                                            </Box>
+                                          )}
+                                        </Box>
+                                      )
+                                    )
+                                  : accessLevel}
+                              </Td>
+                              <Td textAlign="right">
+                                <CloseButton
+                                  textAlign="right"
+                                  color="red"
+                                  onClick={() => removeRole(id)}
+                                />
+                              </Td>
+                            </Tr>
+                          )
+                        })}
                       </Tbody>
                     </Table>
                   </TableContainer>

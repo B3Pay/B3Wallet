@@ -83,25 +83,37 @@ fn init() {
 
     let mut signers = UserMap::new();
 
+    let read_only_role = Role::new("Read Only".to_owned(), AccessLevel::ReadOnly);
+
+    let owner_role = Role::new("Owner".to_owned(), AccessLevel::FullAccess);
+
     let owner_id = match call_arg {
         Some(WalletCanisterInitArgs {
             owner_id,
             system_id,
         }) => {
-            let role = Role::new("system".to_owned(), AccessLevel::ReadOnly);
             // if the canister is created by the system canister, the system canister
             // is added as trusted Canister
-            signers.insert(system_id, User::new(role, "System".to_owned(), None));
+            signers.insert(
+                system_id,
+                User::new(read_only_role.clone(), "System".to_owned(), None),
+            );
             owner_id
         }
         None => ic_cdk::caller(),
     };
 
-    let role = Role::new("owner".to_owned(), AccessLevel::FullAccess);
-
-    signers.insert(owner_id, User::new(role.clone(), "Owner".to_owned(), None));
+    signers.insert(
+        owner_id,
+        User::new(owner_role.clone(), "Owner".to_owned(), None),
+    );
 
     with_users_mut(|users| users.set_users(signers));
+
+    with_roles_mut(|roles| {
+        roles.add(read_only_role);
+        roles.add(owner_role);
+    });
 
     // set initial controllers
     with_setting_mut(|s| {

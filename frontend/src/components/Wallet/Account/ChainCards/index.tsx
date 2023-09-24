@@ -153,15 +153,9 @@ const ChainCards: React.FC<ChainCardsProps> = ({
       }
 
       try {
-        let result
-        let message: string
-        if ("request_send" in actor) {
-          message = "Transfer Requested"
-          result = await actor.request_send(sendArgs, "Sending Test", [])
-        } else {
-          message = "Transfered"
-          result = await actor.account_send(accountId, chain, to, amount)
-        }
+        let message = "Transfer Requested"
+
+        let result = await actor.request_send(sendArgs, "Sending Test", [])
 
         console.log(result)
 

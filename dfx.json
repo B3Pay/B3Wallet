@@ -1,15 +1,15 @@
 {
   "canisters": {
     "b3_system": {
-      "candid": "backend/b3_system/b3_system.did",
       "build": "scripts/build.sh b3_system b3_system",
+      "candid": "backend/b3_system/b3_system.did",
       "declarations": {
         "node_compatibility": true,
         "output": "frontend/declarations/b3_system"
       },
       "package": "b3_system",
-      "wasm": "target/wasm32-unknown-unknown/release/b3_system.wasm",
-      "type": "custom"
+      "type": "custom",
+      "wasm": "target/wasm32-unknown-unknown/release/b3_system.wasm"
     },
     "b3_wallet": {
       "build": "scripts/b3_wallet.sh",
@@ -21,20 +21,6 @@
       "package": "b3_wallet",
       "type": "custom",
       "wasm": "wasm/b3_wallet/b3_wallet_candid.wasm"
-    },
-    "wallet_assets": {
-      "build": "yarn build",
-      "frontend": {
-        "entrypoint": "out/index.html"
-      },
-      "declarations": {
-        "node_compatibility": true,
-        "output": "frontend/declarations/wallet_assets"
-      },
-      "source": [
-        "frontend/out"
-      ],
-      "type": "assets"
     },
     "ckbtc": {
       "build": [
@@ -70,6 +56,17 @@
       "type": "custom",
       "wasm": "wasm/index/index.wasm"
     },
+    "internet_identity": {
+      "build": "",
+      "candid": "candid/internet_identity.did",
+      "remote": {
+        "id": {
+          "local": "qhbym-qaaaa-aaaaa-aaafq-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": ""
+    },
     "kyt": {
       "build": [
         "true"
@@ -103,17 +100,6 @@
       },
       "type": "custom",
       "wasm": "wasm/minter/minter.wasm"
-    },
-    "internet_identity": {
-      "build": "",
-      "candid": "candid/internet_identity.did",
-      "remote": {
-        "id": {
-          "local": "qhbym-qaaaa-aaaaa-aaafq-cai"
-        }
-      },
-      "type": "custom",
-      "wasm": ""
     },
     "nns-cycles-minting": {
       "build": "",
@@ -221,6 +207,20 @@
       },
       "type": "custom",
       "wasm": ""
+    },
+    "wallet_assets": {
+      "build": "yarn build",
+      "declarations": {
+        "node_compatibility": true,
+        "output": "frontend/declarations/wallet_assets"
+      },
+      "frontend": {
+        "entrypoint": "out/index.html"
+      },
+      "source": [
+        "frontend/out"
+      ],
+      "type": "assets"
     }
   },
   "defaults": {

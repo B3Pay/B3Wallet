@@ -1,7 +1,6 @@
 import { CheckIcon, CloseIcon } from "@chakra-ui/icons"
 import {
   Button,
-  IconButton,
   ModalBody,
   ModalFooter,
   Stack,
@@ -21,7 +20,6 @@ interface RequestItemProps extends PendingOperation {
   principal: string
   rejectHandler: (request_id: bigint) => void
   confirmHandler: (request_id: bigint) => void
-  proccessHandler: (request_id: bigint) => void
 }
 
 const date = (timestamp?: bigint) => {
@@ -42,8 +40,7 @@ const RequestItem: React.FC<RequestItemProps> = ({
   version,
   id,
   rejectHandler,
-  confirmHandler,
-  proccessHandler
+  confirmHandler
 }) => {
   const isVotedBySigner = useCallback(
     (signer: Principal) => {
@@ -120,15 +117,6 @@ const RequestItem: React.FC<RequestItemProps> = ({
         </Stat>
       </ModalBody>
       <ModalFooter borderTop="1px" borderColor="gray.200">
-        <IconButton
-          aria-label="proccess"
-          colorScheme="red"
-          size="xs"
-          variant="ghost"
-          onClick={() => proccessHandler(id)}
-        >
-          <CloseIcon />
-        </IconButton>
         <Text flex={3} fontSize="xs">
           {version}
         </Text>
