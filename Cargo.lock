@@ -46,7 +46,7 @@ dependencies = [
 
 [[package]]
 name = "b3_system"
-version = "0.0.16"
+version = "0.0.0-alpha.0"
 dependencies = [
  "b3_system_lib",
  "b3_utils",
