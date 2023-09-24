@@ -60,13 +60,13 @@ impl PendingOperation {
     }
 
     pub async fn execute(self) -> ProcessedOperation {
-        let mut confirmed = ProcessedOperation::new(&self);
+        let mut proccess = ProcessedOperation::new(&self);
 
         let match_result = self.request.execute().await;
 
         match match_result {
-            Ok(message) => confirmed.succeed(message),
-            Err(err) => confirmed.fail(OperationError::ExecutionError(err.to_string())),
+            Ok(message) => proccess.succeed(message),
+            Err(err) => proccess.fail(OperationError::ExecutionError(err.to_string())),
         }
     }
 

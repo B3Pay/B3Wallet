@@ -1,3 +1,4 @@
+pub mod bug;
 pub mod error;
 pub mod mocks;
 pub mod release;

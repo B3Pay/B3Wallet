@@ -1,6 +1,6 @@
 use crate::NanoTimeStamp;
 use candid::CandidType;
-
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
 pub mod counter;
@@ -14,7 +14,7 @@ pub use buffer::*;
 mod test;
 
 /// An entry in the canister log.
-#[derive(CandidType, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(CandidType, Deserialize, Serialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct LogEntry {
     pub timestamp: NanoTimeStamp,
     // The index of this entry starting from the last canister upgrade.

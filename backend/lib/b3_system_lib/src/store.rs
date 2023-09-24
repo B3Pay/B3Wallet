@@ -1,11 +1,12 @@
 use b3_utils::{
-    memory::init_stable_mem_cell,
-    types::UserId,
+    memory::{init_stable_mem_cell, types::DefaultVMVec},
+    types::{CanisterId, UserId},
     wasm::{Wasm, WasmHash},
 };
 use std::str::FromStr;
 
 use crate::{
+    bug::Bug,
     error::SystemError,
     release::names::ReleaseNames,
     types::{Release, ReleaseMap, Releases, State, UserMap, WasmMap},
@@ -16,6 +17,8 @@ use std::cell::RefCell;
 
 thread_local! {
     static WASM_MAP: RefCell<WasmMap> = init_stable_mem_cell("wasm_map", 10).unwrap();
+
+    static BUGS: RefCell<DefaultVMVec<Bug>> = init_stable_mem_cell("bugs", 10).unwrap();
 
     static STATE: RefCell<State> = RefCell::new(State::default());
 }
@@ -243,6 +246,32 @@ where
         wasm_map
             .get(version)
             .ok_or(SystemError::WasmNotFound)
+            .map(f)
+    })
+}
+
+pub fn with_bugs<F, R>(f: F) -> R
+where
+    F: FnOnce(&DefaultVMVec<Bug>) -> R,
+{
+    BUGS.with(|bugs| f(&bugs.borrow()))
+}
+
+pub fn with_bugs_mut<F, R>(f: F) -> R
+where
+    F: FnOnce(&mut DefaultVMVec<Bug>) -> R,
+{
+    BUGS.with(|bugs| f(&mut bugs.borrow_mut()))
+}
+
+pub fn with_bug<F, T>(canister_id: &CanisterId, f: F) -> Result<T, SystemError>
+where
+    F: FnOnce(Bug) -> T,
+{
+    with_bugs(|bugs| {
+        bugs.iter()
+            .find(|bug| bug.canister_id == *canister_id)
+            .ok_or(SystemError::BugNotFound)
             .map(f)
     })
 }

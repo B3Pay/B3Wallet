@@ -1,11 +1,12 @@
 use b3_system_lib::{
+    bug::Bug,
     error::SystemError,
     release::names::ReleaseNames,
     store::{
-        with_hash_release, with_latest_release, with_release, with_release_map, with_release_mut,
-        with_releases, with_releases_mut, with_state, with_state_mut, with_user_state,
-        with_user_state_mut, with_users_mut, with_version_release, with_version_release_mut,
-        with_wallet_canister,
+        with_bugs, with_bugs_mut, with_hash_release, with_latest_release, with_release,
+        with_release_map, with_release_mut, with_releases, with_releases_mut, with_state,
+        with_state_mut, with_user_state, with_user_state_mut, with_users_mut, with_version_release,
+        with_version_release_mut, with_wallet_canister,
     },
     types::{
         Canisters, LoadRelease, Release, ReleaseArgs, ReleaseMap, Releases, State, UserStates,
@@ -103,6 +104,24 @@ fn get_canisters() -> Canisters {
 }
 
 // UPDATE CALLS
+#[update]
+fn report_bug(bug: Bug) {
+    with_bugs_mut(|bugs| bugs.push(&bug)).unwrap_or_else(revert);
+}
+
+#[update]
+fn clear_bugs() {
+    with_bugs_mut(|bugs| {
+        bugs.iter().for_each(|_| {
+            bugs.pop();
+        })
+    });
+}
+
+#[query(guard = "caller_is_controller")]
+fn get_bugs() -> Vec<Bug> {
+    with_bugs(|bugs| bugs.iter().map(|b| b.clone()).collect())
+}
 
 #[update(guard = "caller_is_controller")]
 async fn get_canister_version(canister_id: CanisterId) -> WalletVersion {
