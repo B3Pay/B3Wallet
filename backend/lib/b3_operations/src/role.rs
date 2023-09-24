@@ -1,4 +1,4 @@
-use crate::operation::Operation;
+use crate::operation::{Operation, OperationEnum};
 
 use b3_utils::NanoTimeStamp;
 use candid::{CandidType, Deserialize};
@@ -8,7 +8,7 @@ pub use state::*;
 
 #[derive(CandidType, Deserialize, PartialEq, Debug, Clone)]
 pub struct OperationAccess {
-    operation: Operation,
+    operation: OperationEnum,
     valid_until: Option<NanoTimeStamp>,
 }
 
@@ -79,15 +79,41 @@ impl Role {
                     return true;
                 }
 
+                if self.is_canister() {
+                    return false;
+                }
+
+                if self.is_user() {
+                    return false;
+                }
+
                 operations.iter().any(|op_access| {
                     if let Some(valid_until) = &op_access.valid_until {
                         if valid_until.has_passed() {
                             return false;
                         }
                     }
-                    self.has_operation(&op_access.operation)
+
+                    self.has_operation_enum(&op_access.operation)
                 })
             }
+        }
+    }
+
+    pub fn has_operation_enum(&self, operation: &OperationEnum) -> bool {
+        match &self.access_level {
+            AccessLevel::FullAccess => true,
+            AccessLevel::ReadOnly => false,
+            AccessLevel::Canister => false,
+            AccessLevel::Limited(operations) => operations.iter().any(|op_access| {
+                if let Some(valid_until) = &op_access.valid_until {
+                    if valid_until.has_passed() {
+                        return false;
+                    }
+                }
+
+                operation == &op_access.operation
+            }),
         }
     }
 
@@ -97,15 +123,13 @@ impl Role {
             AccessLevel::ReadOnly => false,
             AccessLevel::Canister => false,
             AccessLevel::Limited(operations) => operations.iter().any(|op_access| {
-                if &op_access.operation == operation {
-                    if let Some(valid_until) = &op_access.valid_until {
-                        if valid_until.has_passed() {
-                            return false;
-                        }
+                if let Some(valid_until) = &op_access.valid_until {
+                    if valid_until.has_passed() {
+                        return false;
                     }
-                    return true;
                 }
-                false
+
+                operation.operation_enum() == op_access.operation
             }),
         }
     }

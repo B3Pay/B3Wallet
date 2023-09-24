@@ -24,6 +24,63 @@ pub use state::*;
 use global::SendToken;
 use result::OperationResult;
 
+#[derive(CandidType, Deserialize, PartialEq, Debug, Clone)]
+pub enum OperationEnum {
+    SendToken,
+    // EVM
+    EvmTransfer,
+    EvmSignMessage,
+    EvmTransferErc20,
+    EvmDeployContract,
+    EvmSignTranscation,
+    EvmSignRawTransaction,
+    // BTC
+    BtcTransfer,
+    // ICP
+    IcpTransfer,
+    TopUpTransfer,
+    // INNER
+    AddUser,
+    RemoveUser,
+    CreateAccount,
+    RemoveAccount,
+    RenameAccount,
+    HideAccount,
+    UnhideAccount,
+    UpgradeCanister,
+    UpdateCanisterSettings,
+}
+
+impl Operation {
+    pub fn operation_enum(&self) -> OperationEnum {
+        match self {
+            Operation::SendToken(_) => OperationEnum::SendToken,
+            // EVM
+            Operation::EvmTransfer(_) => OperationEnum::EvmTransfer,
+            Operation::EvmSignMessage(_) => OperationEnum::EvmSignMessage,
+            Operation::EvmTransferErc20(_) => OperationEnum::EvmTransferErc20,
+            Operation::EvmDeployContract(_) => OperationEnum::EvmDeployContract,
+            Operation::EvmSignTranscation(_) => OperationEnum::EvmSignTranscation,
+            Operation::EvmSignRawTransaction(_) => OperationEnum::EvmSignRawTransaction,
+            // BTC
+            Operation::BtcTransfer(_) => OperationEnum::BtcTransfer,
+            // ICP
+            Operation::IcpTransfer(_) => OperationEnum::IcpTransfer,
+            Operation::TopUpTransfer(_) => OperationEnum::TopUpTransfer,
+            // INNER
+            Operation::AddUser(_) => OperationEnum::AddUser,
+            Operation::RemoveUser(_) => OperationEnum::RemoveUser,
+            Operation::CreateAccount(_) => OperationEnum::CreateAccount,
+            Operation::RemoveAccount(_) => OperationEnum::RemoveAccount,
+            Operation::RenameAccount(_) => OperationEnum::RenameAccount,
+            Operation::HideAccount(_) => OperationEnum::HideAccount,
+            Operation::UnhideAccount(_) => OperationEnum::UnhideAccount,
+            Operation::UpgradeCanister(_) => OperationEnum::UpgradeCanister,
+            Operation::UpdateCanisterSettings(_) => OperationEnum::UpdateCanisterSettings,
+        }
+    }
+}
+
 #[async_trait]
 #[enum_dispatch]
 pub trait OperationTrait {

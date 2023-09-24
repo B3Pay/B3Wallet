@@ -33,7 +33,7 @@ const ProcessedList: React.FC<ProcessedProps> = ({ setLoading, actor }) => {
 
   return (
     <Stack spacing={4}>
-      <Text fontSize="xl" fontWeight="bold">
+      <Text fontSize="xl" fontWeight="bold" textAlign="center">
         Processed
       </Text>
       <Accordion allowToggle>

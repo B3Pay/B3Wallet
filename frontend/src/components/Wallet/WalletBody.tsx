@@ -111,13 +111,14 @@ const WalletBody: React.FC<WalletBodyProps> = ({
       ) : mode === Mode.Logs ? (
         <Logs
           actor={actor}
+          loading={loading.global}
           setLoading={(global: boolean) =>
             setLoading(prev => ({ ...prev, global }))
           }
         />
       ) : (
         <Stack spacing={4}>
-          <Text fontSize="xl" fontWeight="bold">
+          <Text fontSize="xl" fontWeight="bold" textAlign="center">
             Accounts
           </Text>
           <CreateAccount actor={actor} fetchAccounts={fetchAccounts} />

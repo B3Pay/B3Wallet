@@ -8,6 +8,7 @@ import Controllers from "./Controllers"
 import Cycles from "./Cycles"
 import DangerZone from "./DangerZone"
 import RestoreAccount from "./RestoreAccount"
+import RoleForm from "./Roles"
 import Signers, { UserMap } from "./Signers"
 import Status from "./Status"
 import Wasm from "./Wasm"
@@ -35,7 +36,7 @@ const Settings: React.FC<SettingsProps> = ({
 }) => {
   return (
     <Stack spacing={4}>
-      <Text fontSize="xl" fontWeight="bold">
+      <Text fontSize="xl" fontWeight="bold" textAlign="center">
         Settings
       </Text>
       <PrincipalCard address={principal} />
@@ -59,6 +60,7 @@ const Settings: React.FC<SettingsProps> = ({
         </Text>
       </Alert>
       <Cycles actor={actor} />
+      <RoleForm actor={actor} />
       {signers && (
         <Signers
           actor={actor as B3Wallet}

@@ -1,4 +1,6 @@
 import {
+  Alert,
+  AlertIcon,
   Button,
   Input,
   Stack,
@@ -17,16 +19,17 @@ import { nanoToHumanReadable } from "helpers/utiles"
 import { useEffect, useState } from "react"
 import { B3Wallet } from "service"
 
-interface LogTableProps {
+interface LogProps {
   actor?: B3Wallet
+  loading?: boolean
   setLoading?: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const Logs: React.FC<LogTableProps> = ({ actor, setLoading }) => {
+const Logs: React.FC<LogProps> = ({ actor, loading, setLoading }) => {
   const [logs, setLogs] = useState<Array<LogEntry>>()
   const [description, setDescription] = useState("")
 
-  useEffect(() => {
+  const fetchLogs = async () => {
     if (!actor) {
       return
     }
@@ -43,17 +46,31 @@ const Logs: React.FC<LogTableProps> = ({ actor, setLoading }) => {
         console.error(err)
         setLoading(false)
       })
+  }
+
+  useEffect(() => {
+    fetchLogs()
   }, [])
 
   return (
     <Stack spacing={4}>
-      <Text fontSize="xl" fontWeight="bold">
+      <Text fontSize="xl" fontWeight="bold" textAlign="center">
         Logs
       </Text>
       <Stack borderWidth="1px" borderRadius="lg" overflow="hidden" padding={4}>
         <Text fontSize="xl" fontWeight="bold">
           Report Bug
         </Text>
+        <Alert status="warning" borderRadius="base">
+          <AlertIcon />
+          <Text fontSize="sm" as="div">
+            If you have trouble with your wallet canister, please report it to
+            us. We will try to fix it as soon as possible.
+            <br />
+            <strong>Note: </strong>
+            This will send your 10 latest logs to us.
+          </Text>
+        </Alert>
         <Stack direction="row" align="center">
           <Input
             flex={8}
@@ -64,12 +81,16 @@ const Logs: React.FC<LogTableProps> = ({ actor, setLoading }) => {
           />
           <Button
             flex={4}
+            isLoading={loading}
+            loadingText="Reporting"
+            isDisabled={description.length < 5}
             colorScheme="blue"
             onClick={async () => {
               if (!actor) {
                 return
               }
               try {
+                setLoading(true)
                 const principal = Principal.fromText(B3_SYSTEM_CANISTER_ID)
 
                 if (!principal) {
@@ -77,7 +98,9 @@ const Logs: React.FC<LogTableProps> = ({ actor, setLoading }) => {
                 }
 
                 await actor.report_bug(principal, description)
+                fetchLogs()
               } catch (e) {
+                setLoading(false)
                 console.error(e)
               }
             }}
@@ -86,13 +109,7 @@ const Logs: React.FC<LogTableProps> = ({ actor, setLoading }) => {
           </Button>
         </Stack>
       </Stack>
-      <Table
-        size="sm"
-        overflow="scroll"
-        maxHeight="400px"
-        borderWidth="1px"
-        borderRadius="lg"
-      >
+      <Table size="sm" overflow="scroll" borderWidth="1px" borderRadius="lg">
         <Thead>
           <Tr>
             <Th>ID</Th>

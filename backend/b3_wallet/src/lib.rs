@@ -15,11 +15,11 @@ use b3_operations::{
     pending::RequestArgs,
     processed::ProcessedOperation,
     response::Response,
-    role::{AccessLevel, Role},
+    role::{AccessLevel, Role, RoleState},
     store::{
         with_operation, with_operation_mut, with_pending_operation_mut, with_processed_operation,
-        with_processed_operation_mut, with_roles, with_user, with_users, with_users_mut,
-        with_users_who_can_operate, with_verified_user,
+        with_processed_operation_mut, with_roles, with_roles_mut, with_user, with_users,
+        with_users_mut, with_users_who_can_operate, with_verified_user,
     },
     types::{PendingOperations, ProcessedOperations, RoleMap, UserMap, WalletSettingsAndSigners},
     user::{state::UserState, User},
@@ -37,7 +37,7 @@ use b3_utils::{
     log_cycle,
     logs::{export_log, export_log_messages_page, LogEntry},
     panic_log, report_log, throw_log,
-    types::{CanisterId, ControllerId, Metadata, OperationId, UserId},
+    types::{CanisterId, ControllerId, Metadata, OperationId, RoleId, UserId},
     wasm::{with_wasm, with_wasm_mut, WasmDetails, WasmHash, WasmSize},
     Environment, NanoTimeStamp, Subaccount,
 };
@@ -121,21 +121,28 @@ fn pre_upgrade() {
     let permit = with_operation(|o| o.clone());
     let state = with_wallet(|s| s.clone());
     let users = with_users(|s| s.clone());
+    let roles = with_roles(|s| s.clone());
 
-    ic_cdk::storage::stable_save((state, permit, users)).unwrap();
+    ic_cdk::storage::stable_save((state, permit, users, roles)).unwrap();
 }
 
 #[post_upgrade]
 fn post_upgrade() {
     log_cycle!("post_upgrade");
-    let (state_prev, sign_prev, user_prev): (WalletState, OperationState, UserState) =
-        ic_cdk::storage::stable_restore().unwrap();
+    let (state_prev, sign_prev, user_prev, role_prev): (
+        WalletState,
+        OperationState,
+        UserState,
+        RoleState,
+    ) = ic_cdk::storage::stable_restore().unwrap();
 
     with_wallet_mut(|state| *state = state_prev);
 
     with_operation_mut(|permit| *permit = sign_prev);
 
     with_users_mut(|users| *users = user_prev);
+
+    with_roles_mut(|roles| *roles = role_prev);
 }
 
 #[query(guard = "caller_is_signer")]
@@ -918,6 +925,28 @@ fn signer_add(signer_id: UserId, role: Role) -> UserMap {
         users.add(signer_id.clone(), signer);
 
         users.get_users()
+    })
+}
+
+#[update(guard = "caller_is_admin")]
+fn role_add(role: Role) -> RoleMap {
+    log_cycle!("Add role: {:?}", role);
+
+    with_roles_mut(|roles| {
+        roles.add(role);
+
+        roles.roles().clone()
+    })
+}
+
+#[update(guard = "caller_is_admin")]
+fn role_remove(role_id: RoleId) -> RoleMap {
+    log_cycle!("Remove role: {}", role_id);
+
+    with_roles_mut(|roles| {
+        roles.remove(&role_id);
+
+        roles.roles().clone()
     })
 }
 

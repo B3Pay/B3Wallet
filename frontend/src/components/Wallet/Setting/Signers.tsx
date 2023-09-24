@@ -29,16 +29,9 @@ import { Principal } from "@dfinity/principal"
 import Loading from "components/Loading"
 import { AddUser, Role, User } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { B3Wallet } from "service"
 import Address from "../Address"
-
-const AccessLevelEnum = ["ReadOnly", "Limited", "Canister", "FullAccess"]
-
-interface SignerWithRole extends Omit<Role, "role"> {
-  role: Role
-  id: Principal
-}
 
 export type UserMap = Array<[Principal, User]>
 
@@ -58,8 +51,23 @@ const Signers: React.FC<SignerProps> = ({
 }) => {
   const [loading, setLoading] = useState(false)
   const [principal, setPrincipal] = useState("")
-  const [role, setRole] = useState<Role | "select">("select")
   const [name, setName] = useState("")
+
+  const [roles, setRoles] = useState<[bigint, Role][]>([])
+  const [selectedRole, setSelectedRole] = useState<bigint>()
+
+  useEffect(() => {
+    if (!actor) return
+
+    actor
+      .get_roles()
+      .then(roles => {
+        setRoles(roles)
+      })
+      .catch(e => {
+        console.log(e)
+      })
+  }, [actor])
 
   const errorToast = useToastMessage()
 
@@ -96,7 +104,7 @@ const Signers: React.FC<SignerProps> = ({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    if (!role || role === "select") {
+    if (!selectedRole) {
       errorToast({
         title: "Role not selected.",
         description: `Please select a role`,
@@ -107,11 +115,11 @@ const Signers: React.FC<SignerProps> = ({
       return
     }
 
-    let signerId: Principal
+    let signer_id: Principal
     setLoading(true)
 
     try {
-      signerId = Principal.fromText(principal)
+      signer_id = Principal.fromText(principal)
     } catch (e) {
       console.log(e)
 
@@ -124,9 +132,11 @@ const Signers: React.FC<SignerProps> = ({
       })
     }
 
+    const role = roles.find(([id]) => id === selectedRole)?.[1]
+
     const args: AddUser = {
-      signer_id: signerId,
-      role: role,
+      signer_id,
+      role,
       expires_at: [],
       name,
       threshold: []
@@ -138,7 +148,7 @@ const Signers: React.FC<SignerProps> = ({
       .then(() => {
         errorToast({
           title: "Request sent.",
-          description: `Request to add signer ${signerId.toString()} has been sent.`,
+          description: `Request to add signer ${principal.toString()} has been sent.`,
           status: "success",
           duration: 9000,
           isClosable: true
@@ -146,7 +156,7 @@ const Signers: React.FC<SignerProps> = ({
 
         // Clear the form
         setPrincipal("")
-        setRole("select")
+        setSelectedRole(undefined)
         refetch()
       })
       .catch(e => {
@@ -165,7 +175,7 @@ const Signers: React.FC<SignerProps> = ({
 
   const signerSorted = useMemo(() => {
     if (!signers) return []
-    console.log(signers)
+
     return signers
       .map(([id, signer]) => ({
         id,
@@ -280,17 +290,16 @@ const Signers: React.FC<SignerProps> = ({
                       </FormControl>
                       <FormControl isRequired>
                         <Select
-                          value={JSON.stringify(role)}
+                          placeholder="Select Role"
                           onChange={e => {
-                            const newRole = e.target.value
+                            const newRole = BigInt(e.target.value)
 
-                            setRole(AccessLevelEnum[newRole])
+                            setSelectedRole(newRole)
                           }}
                         >
-                          <option value={"select"}>Select Role</option>
-                          {AccessLevelEnum.map((accessLevel, i) => (
-                            <option key={i} value={i}>
-                              {accessLevel}
+                          {roles.map(([id, { access_level, name }], i) => (
+                            <option key={i} value={id.toString()}>
+                              {name}({Object.keys(access_level)[0]})
                             </option>
                           ))}
                         </Select>

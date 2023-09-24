@@ -244,206 +244,48 @@ export interface NotifyTopUp {
   'block_index' : bigint,
   'canister_id' : Principal,
 }
-export type Operation = { 'UnhideAccount' : { 'account_id' : string } } |
-  {
-    'EvmDeployContract' : {
-      'account_id' : string,
-      'hex_byte_code' : Uint8Array | number[],
-      'max_priority_fee_per_gas' : [] | [bigint],
-      'max_fee_per_gas' : [] | [bigint],
-      'chain_id' : bigint,
-      'nonce' : bigint,
-      'gas_limit' : [] | [bigint],
-    }
-  } |
-  {
-    'IcpTransfer' : {
-      'to' : Uint8Array | number[],
-      'fee' : [] | [{ 'e8s' : bigint }],
-      'account_id' : string,
-      'memo' : [] | [bigint],
-      'amount' : { 'e8s' : bigint },
-    }
-  } |
-  {
-    'EvmSignRawTransaction' : {
-      'account_id' : string,
-      'hex_raw_tx' : Uint8Array | number[],
-      'chain_id' : bigint,
-    }
-  } |
-  {
-    'EvmSignMessage' : {
-      'account_id' : string,
-      'chain_id' : bigint,
-      'message' : Uint8Array | number[],
-    }
-  } |
-  {
-    'UpdateCanisterSettings' : {
-      'canister_id' : Principal,
-      'settings' : {
-        'freezing_threshold' : [] | [bigint],
-        'controllers' : [] | [Array<Principal>],
-        'memory_allocation' : [] | [bigint],
-        'compute_allocation' : [] | [bigint],
-      },
-    }
-  } |
-  { 'RenameAccount' : { 'account_id' : string, 'new_name' : string } } |
-  {
-    'AddUser' : {
-      'threshold' : [] | [number],
-      'name' : string,
-      'role' : {
-        'access_level' : { 'ReadOnly' : null } |
-          {
-            'Limited' : Array<
-              { 'valid_until' : [] | [bigint], 'operation' : Operation }
-            >
-          } |
-          { 'Canister' : null } |
-          { 'FullAccess' : null },
-        'name' : string,
-      },
-      'signer_id' : Principal,
-      'expires_at' : [] | [bigint],
-    }
-  } |
-  {
-    'EvmSignTranscation' : {
-      'account_id' : string,
-      'transaction' : {
-          'EvmTransaction1559' : {
-            'r' : string,
-            's' : string,
-            'v' : string,
-            'to' : string,
-            'value' : bigint,
-            'max_priority_fee_per_gas' : bigint,
-            'data' : string,
-            'max_fee_per_gas' : bigint,
-            'chain_id' : bigint,
-            'nonce' : bigint,
-            'gas_limit' : bigint,
-            'access_list' : Array<[string, Array<string>]>,
-          }
-        } |
-        {
-          'EvmTransaction2930' : {
-            'r' : string,
-            's' : string,
-            'v' : string,
-            'to' : string,
-            'value' : bigint,
-            'data' : string,
-            'chain_id' : bigint,
-            'nonce' : bigint,
-            'gas_limit' : bigint,
-            'access_list' : Array<[string, Array<string>]>,
-            'gas_price' : bigint,
-          }
-        } |
-        {
-          'EvmTransactionLegacy' : {
-            'r' : string,
-            's' : string,
-            'v' : string,
-            'to' : string,
-            'value' : bigint,
-            'data' : string,
-            'chain_id' : bigint,
-            'nonce' : bigint,
-            'gas_limit' : bigint,
-            'gas_price' : bigint,
-          }
-        },
-      'chain_id' : bigint,
-    }
-  } |
-  {
-    'EvmTransferErc20' : {
-      'to' : string,
-      'account_id' : string,
-      'value' : bigint,
-      'max_priority_fee_per_gas' : [] | [bigint],
-      'max_fee_per_gas' : [] | [bigint],
-      'chain_id' : bigint,
-      'nonce' : bigint,
-      'gas_limit' : [] | [bigint],
-      'contract_address' : string,
-    }
-  } |
-  {
-    'SendToken' : {
-      'to' : string,
-      'account_id' : string,
-      'chain' : {
-          'BTC' : { 'Mainnet' : null } |
-            { 'Regtest' : null } |
-            { 'Testnet' : null }
-        } |
-        { 'EVM' : bigint } |
-        { 'ICP' : null } |
-        { 'ICRC' : Principal } |
-        {
-          'CKBTC' : { 'Mainnet' : null } |
-            { 'Regtest' : null } |
-            { 'Testnet' : null }
-        },
-      'amount' : { 'decimals' : number, 'amount' : bigint },
-    }
-  } |
-  { 'HideAccount' : { 'account_id' : string } } |
-  {
-    'UpgradeCanister' : { 'wasm_hash_string' : string, 'wasm_version' : string }
-  } |
-  {
-    'TopUpTransfer' : {
-      'fee' : [] | [{ 'e8s' : bigint }],
-      'account_id' : string,
-      'canister_id' : Principal,
-      'amount' : { 'e8s' : bigint },
-    }
-  } |
-  {
-    'BtcTransfer' : {
-      'to' : string,
-      'account_id' : string,
-      'network' : { 'Mainnet' : null } |
-        { 'Regtest' : null } |
-        { 'Testnet' : null },
-      'amount' : { 'decimals' : number, 'amount' : bigint },
-    }
-  } |
-  { 'RemoveUser' : { 'signer_id' : Principal } } |
-  { 'RemoveAccount' : { 'account_id' : string } } |
-  {
-    'CreateAccount' : {
-      'env' : [] | [
-        { 'Production' : null } |
-          { 'Development' : null } |
-          { 'Staging' : null }
-      ],
-      'name' : [] | [string],
-    }
-  } |
-  {
-    'EvmTransfer' : {
-      'to' : string,
-      'account_id' : string,
-      'value' : bigint,
-      'max_priority_fee_per_gas' : [] | [bigint],
-      'max_fee_per_gas' : [] | [bigint],
-      'chain_id' : bigint,
-      'nonce' : bigint,
-      'gas_limit' : [] | [bigint],
-    }
-  };
+export type Operation = { 'UnhideAccount' : HideAccount } |
+  { 'EvmDeployContract' : EvmDeployContract } |
+  { 'IcpTransfer' : IcpTransfer } |
+  { 'EvmSignRawTransaction' : EvmSignRawTransaction } |
+  { 'EvmSignMessage' : EvmSignMessage } |
+  { 'UpdateCanisterSettings' : UpdateCanisterSettings } |
+  { 'RenameAccount' : RenameAccount } |
+  { 'AddUser' : AddUser } |
+  { 'EvmSignTranscation' : EvmSignTranscation } |
+  { 'EvmTransferErc20' : EvmTransferErc20 } |
+  { 'SendToken' : SendToken } |
+  { 'HideAccount' : HideAccount } |
+  { 'UpgradeCanister' : UpgradeCanister } |
+  { 'TopUpTransfer' : TopUpTransfer } |
+  { 'BtcTransfer' : BtcTransfer } |
+  { 'RemoveUser' : RemoveUser } |
+  { 'RemoveAccount' : HideAccount } |
+  { 'CreateAccount' : CreateAccount } |
+  { 'EvmTransfer' : EvmTransfer };
 export interface OperationAccess {
   'valid_until' : [] | [bigint],
-  'operation' : Operation,
+  'operation' : OperationEnum,
 }
+export type OperationEnum = { 'UnhideAccount' : null } |
+  { 'EvmDeployContract' : null } |
+  { 'IcpTransfer' : null } |
+  { 'EvmSignRawTransaction' : null } |
+  { 'EvmSignMessage' : null } |
+  { 'UpdateCanisterSettings' : null } |
+  { 'RenameAccount' : null } |
+  { 'AddUser' : null } |
+  { 'EvmSignTranscation' : null } |
+  { 'EvmTransferErc20' : null } |
+  { 'SendToken' : null } |
+  { 'HideAccount' : null } |
+  { 'UpgradeCanister' : null } |
+  { 'TopUpTransfer' : null } |
+  { 'BtcTransfer' : null } |
+  { 'RemoveUser' : null } |
+  { 'RemoveAccount' : null } |
+  { 'CreateAccount' : null } |
+  { 'EvmTransfer' : null };
 export type OperationResult = { 'Empty' : null } |
   { 'AccountCreated' : CreateAccount } |
   { 'CanisterTopUped' : [NotifyTopUp, bigint] } |
@@ -707,6 +549,8 @@ export interface _SERVICE {
   'reset_accounts' : ActorMethod<[], undefined>,
   'response' : ActorMethod<[bigint, Response], Result_1>,
   'retrieve_btc_status' : ActorMethod<[Minter, bigint], RetrieveBtcStatus>,
+  'role_add' : ActorMethod<[Role], Array<[bigint, Role]>>,
+  'role_remove' : ActorMethod<[bigint], Array<[bigint, Role]>>,
   'setting_and_signer' : ActorMethod<[], WalletSettingsAndSigners>,
   'signer_add' : ActorMethod<[Principal, Role], Array<[Principal, User]>>,
   'signer_remove' : ActorMethod<[Principal], Array<[Principal, User]>>,
