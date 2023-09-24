@@ -25,12 +25,10 @@ pub enum LogVariant {
     #[serde(rename = "error")]
     Error,
 }
-
 /// An entry in the canister log.
 #[derive(CandidType, Deserialize, Serialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct LogEntry {
     pub timestamp: NanoTimeStamp,
-    // The index of this entry starting from the last canister upgrade.
     pub cycle: Option<u128>,
     pub counter: u64,
     pub message: String,

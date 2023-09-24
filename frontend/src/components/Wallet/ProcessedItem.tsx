@@ -13,22 +13,25 @@ import {
   Thead,
   Tr
 } from "@chakra-ui/react"
-import { ProcessedRequest } from "declarations/b3_wallet/b3_wallet.did"
+
+import { ProcessedOperation } from "declarations/b3_wallet/b3_wallet.did"
 import { useMemo } from "react"
 import Parent from "../Recursive"
 
-interface ProcessedItemRequestProps extends ProcessedRequest {
+interface ProcessedItemRequestProps extends ProcessedOperation {
   isExpanded: boolean
 }
 
 const ProcessedItem: React.FC<ProcessedItemRequestProps> = ({
-  request,
+  operation,
+  method,
   result,
   timestamp,
   isExpanded,
   status,
   error
 }) => {
+  console.log(status)
   const date = useMemo(() => {
     const time = timestamp / BigInt(1e6)
     return new Date(Number(time))
@@ -59,7 +62,7 @@ const ProcessedItem: React.FC<ProcessedItemRequestProps> = ({
             </Box>
           )}
           <Box flex="8" textAlign="left">
-            {request.consent_message.title}
+            {method}
           </Box>
           <Box flex="4" textAlign="left" fontSize="sm">
             {date.toLocaleDateString()} {date.toLocaleTimeString()}
@@ -77,7 +80,7 @@ const ProcessedItem: React.FC<ProcessedItemRequestProps> = ({
               </Tr>
             </Thead>
             <Tbody>
-              {request.responses.map(([signer, response], i) => {
+              {operation.responses.map(([signer, response], i) => {
                 const stt = Object.keys(response)[0]
 
                 return (
@@ -96,29 +99,32 @@ const ProcessedItem: React.FC<ProcessedItemRequestProps> = ({
           </Table>
         </TableContainer>
         <Text>
-          <strong>Reason:</strong> {request.consent_message.reason}
+          <strong>Reason:</strong> {operation.consent_message.reason}
         </Text>
         <Text>
-          <strong>Role:</strong> {Object.keys(request.role)[0]}
+          <strong>Request:</strong> {operation.consent_message.title}
         </Text>
-        {result[0] &&
-          Object.entries(result[0]).map(([key, value]) => (
-            <Stack key={key}>
-              <Parent
-                parent={key}
-                child={!Array.isArray(value) ? value : null}
-              />
-              {Array.isArray(value)
-                ? value.map(value =>
-                    Object.entries(value).map(([key, value]) => (
-                      <Parent key={key} parent={key} child={value} />
-                    ))
-                  )
-                : null}
-            </Stack>
-          ))}
+        <Text>
+          <strong>Details:</strong>{" "}
+          {result &&
+            Object.entries(result).map(([key, value]) => (
+              <Stack key={key}>
+                <Parent
+                  parent={key}
+                  child={!Array.isArray(value) ? value : null}
+                />
+                {Array.isArray(value)
+                  ? value.map(value =>
+                      Object.entries(value).map(([key, value]) => (
+                        <Parent key={key} parent={key} child={value} />
+                      ))
+                    )
+                  : null}
+              </Stack>
+            ))}
+        </Text>
         {stt !== "Success" &&
-          Object.entries(request.request).map(([key, value]) => (
+          Object.entries(operation).map(([key, value]) => (
             <Parent key={key} parent={key} child={value} />
           ))}
         {error.length > 0 && (

@@ -19,7 +19,7 @@ import {
 import Loading from "components/Loading"
 import useToastMessage from "hooks/useToastMessage"
 import { useState } from "react"
-import { PendingRequest } from "../../../declarations/b3_wallet/b3_wallet.did"
+import { PendingOperation } from "../../../declarations/b3_wallet/b3_wallet.did"
 import { B3Wallet } from "../../service"
 import RequestItem from "./RequestItem"
 
@@ -37,7 +37,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   refreshWallet
 }) => {
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const [requests, setRequests] = useState<PendingRequest[]>([])
+  const [requests, setRequests] = useState<PendingOperation[]>([])
   const [index, setIndex] = useState(0)
 
   const [loading, setLoading] = useState(false)

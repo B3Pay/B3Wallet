@@ -1,5 +1,4 @@
 use b3_system_lib::{
-    bug::Bug,
     error::SystemError,
     release::names::ReleaseNames,
     store::{
@@ -17,7 +16,7 @@ use b3_system_lib::{
 use b3_utils::{
     constants::CREATE_WALLET_CANISTER_CYCLES,
     ic_canister_status,
-    ledger::types::{SystemCanisterStatus, WalletCanisterInitArgs, WalletVersion},
+    ledger::types::{Bug, SystemCanisterStatus, WalletCanisterInitArgs, WalletVersion},
     memory::with_backup_mem_mut,
     revert,
     types::{CanisterId, ControllerId, UserId},

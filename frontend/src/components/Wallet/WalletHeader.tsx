@@ -1,5 +1,6 @@
 import {
   AtSignIcon,
+  HamburgerIcon,
   RepeatClockIcon,
   RepeatIcon,
   SettingsIcon
@@ -53,7 +54,9 @@ const WalletHeader: React.FC<WalletHeaderProps> = ({
         width="30px"
         bottom={-0.5}
         borderColor={
-          mode === Mode.Processed
+          mode === Mode.Logs
+            ? "green.500"
+            : mode === Mode.Processed
             ? "blue.500"
             : mode === Mode.Settings
             ? "purple.500"
@@ -62,7 +65,9 @@ const WalletHeader: React.FC<WalletHeaderProps> = ({
             : "gray.500"
         }
         right={
-          mode === Mode.Processed
+          mode === Mode.Logs
+            ? "calc(90px + 30px)"
+            : mode === Mode.Processed
             ? "calc(60px + 20px)"
             : mode === Mode.Settings
             ? "calc(30px + 10px)"
@@ -79,23 +84,26 @@ const WalletHeader: React.FC<WalletHeaderProps> = ({
         icon={<RepeatIcon />}
         onClick={refreshWallet}
       />
-      {walletName === "b3_wallet" && (
-        <>
-          <ConfirmationModal
-            principal={principal}
-            actor={actor as B3Wallet}
-            fetchAccounts={fetchAccounts}
-            refreshWallet={refreshWallet}
-          />
-          <IconButton
-            variant={mode === Mode.Processed ? "solid" : "outline"}
-            colorScheme="blue"
-            onClick={() => toggleMode(Mode.Processed)}
-            aria-label="Recent transactions"
-            icon={<RepeatClockIcon />}
-          />
-        </>
-      )}
+      <ConfirmationModal
+        principal={principal}
+        actor={actor}
+        fetchAccounts={fetchAccounts}
+        refreshWallet={refreshWallet}
+      />
+      <IconButton
+        variant={mode === Mode.Logs ? "solid" : "outline"}
+        colorScheme="green"
+        onClick={() => toggleMode(Mode.Logs)}
+        aria-label="Logs"
+        icon={<HamburgerIcon />}
+      />
+      <IconButton
+        variant={mode === Mode.Processed ? "solid" : "outline"}
+        colorScheme="blue"
+        onClick={() => toggleMode(Mode.Processed)}
+        aria-label="Recent transactions"
+        icon={<RepeatClockIcon />}
+      />
       <IconButton
         variant={mode === Mode.Settings ? "solid" : "outline"}
         aria-label="Settings"

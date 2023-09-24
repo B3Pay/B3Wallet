@@ -4,7 +4,7 @@ use b3_utils::memory::types::{
     Bound, DefaultVMHeap, DefaultVMLog, DefaultVMMap, DefaultVMVec, PartitionDetail, Storable,
 };
 use b3_utils::memory::{
-    init_stable_mem_cell, with_backup_mem, with_backup_mem_mut, with_stable_mem,
+    init_stable_mem_refcell, with_backup_mem, with_backup_mem_mut, with_stable_mem,
 };
 use b3_utils::{log, require, require_log, NanoTimeStamp, Subaccount};
 use candid::CandidType;
@@ -19,14 +19,14 @@ use std::io::Cursor;
 const MAX_OPERATION_SIZE: u32 = 200;
 
 thread_local! {
-    static TASK_TIMER: RefCell<DefaultTaskTimer<Task>> = init_stable_mem_cell("timer", 1).unwrap();
+    static TASK_TIMER: RefCell<DefaultTaskTimer<Task>> = init_stable_mem_refcell("timer", 1).unwrap();
 
-    static MAP: RefCell<DefaultVMMap<u64, User>> = init_stable_mem_cell("map", 10).unwrap();
-    static HEAP: RefCell<DefaultVMHeap<u64>> = init_stable_mem_cell("heap", 11).unwrap();
-    static USERS: RefCell<DefaultVMMap<u64, User>> = init_stable_mem_cell("users", 12).unwrap();
-    static SUBACCOUNTS: RefCell<DefaultVMMap<Subaccount, User>> = init_stable_mem_cell("subaccounts", 13).unwrap();
-    static STABLE_LOG: RefCell<DefaultVMLog<Subaccount>> = init_stable_mem_cell("logs", 14).unwrap();
-    static VEC: RefCell<DefaultVMVec<ProcessedOperation>> = init_stable_mem_cell("ledger", 15).unwrap();
+    static MAP: RefCell<DefaultVMMap<u64, User>> = init_stable_mem_refcell("map", 10).unwrap();
+    static HEAP: RefCell<DefaultVMHeap<u64>> = init_stable_mem_refcell("heap", 11).unwrap();
+    static USERS: RefCell<DefaultVMMap<u64, User>> = init_stable_mem_refcell("users", 12).unwrap();
+    static SUBACCOUNTS: RefCell<DefaultVMMap<Subaccount, User>> = init_stable_mem_refcell("subaccounts", 13).unwrap();
+    static STABLE_LOG: RefCell<DefaultVMLog<Subaccount>> = init_stable_mem_refcell("logs", 14).unwrap();
+    static VEC: RefCell<DefaultVMVec<ProcessedOperation>> = init_stable_mem_refcell("ledger", 15).unwrap();
 
     static STATE: RefCell<State> = RefCell::new(State::default());
 }

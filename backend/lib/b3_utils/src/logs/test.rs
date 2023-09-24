@@ -25,9 +25,9 @@ mod test {
         let entries = export_log();
 
         assert_eq!(entries.len(), 3);
-        assert_eq!(entries[0].counter, 1);
+        assert_eq!(entries[0].counter, 3);
         assert_eq!(entries[1].counter, 2);
-        assert_eq!(entries[2].counter, 3);
+        assert_eq!(entries[2].counter, 1);
         assert_eq!(entries[0].message, "Hello, world!");
         assert_eq!(entries[1].message, "Hello, world!");
         assert_eq!(entries[2].message, "Hello, world!");
@@ -76,12 +76,12 @@ mod test {
         let entries = buffer.export();
 
         assert_eq!(entries.len(), 2);
-        assert_eq!(entries[0].counter, 1);
-        assert_eq!(entries[1].counter, 2);
+        assert_eq!(entries[0].counter, 2);
+        assert_eq!(entries[1].counter, 1);
         assert_eq!(entries[0].message, "Hello, world!");
         assert_eq!(entries[1].message, "Hello, world!");
-        assert_eq!(entries[0].version, "0");
-        assert_eq!(entries[1].version, "1");
+        assert_eq!(entries[0].version, "1");
+        assert_eq!(entries[1].version, "0");
     }
 
     #[test]
@@ -93,10 +93,10 @@ mod test {
         let entries = export_log();
 
         assert_eq!(entries.len(), 100);
-        assert_eq!(entries[0].counter, 10);
-        assert_eq!(entries[99].counter, 109);
-        assert_eq!(entries[0].message, "Hello, 9!");
-        assert_eq!(entries[99].message, "Hello, 108!");
+        assert_eq!(entries[99].counter, 10);
+        assert_eq!(entries[0].counter, 109);
+        assert_eq!(entries[99].message, "Hello, 9!");
+        assert_eq!(entries[0].message, "Hello, 108!");
     }
 
     #[test]
@@ -108,10 +108,10 @@ mod test {
         let entries = export_log();
 
         assert_eq!(entries.len(), 100);
-        assert_eq!(entries[0].counter, 10);
-        assert_eq!(entries[99].counter, 109);
-        assert_eq!(entries[0].message, "Hello, 9!");
-        assert_eq!(entries[99].message, "Hello, 108!");
+        assert_eq!(entries[99].counter, 10);
+        assert_eq!(entries[0].counter, 109);
+        assert_eq!(entries[99].message, "Hello, 9!");
+        assert_eq!(entries[10].message, "Hello, 98!");
 
         with_log_mut(|log| {
             assert_eq!(log.len(), 100);
@@ -123,7 +123,7 @@ mod test {
         });
         let entries = export_log();
 
-        assert_eq!(entries[99].message, "Hello, 108!");
+        assert_eq!(entries[99].message, "Hello, 9!");
     }
 
     #[test]
@@ -135,10 +135,10 @@ mod test {
         let entries = export_log();
 
         assert_eq!(entries.len(), 100);
-        assert_eq!(entries[0].counter, 10);
-        assert_eq!(entries[99].counter, 109);
-        assert_eq!(entries[0].message, "Hello, 9!");
-        assert_eq!(entries[99].message, "Hello, 108!");
+        assert_eq!(entries[99].counter, 10);
+        assert_eq!(entries[0].counter, 109);
+        assert_eq!(entries[99].message, "Hello, 9!");
+        assert_eq!(entries[0].message, "Hello, 108!");
 
         with_log_mut(|log| {
             assert_eq!(log.len(), 100);
@@ -149,6 +149,6 @@ mod test {
         });
         let entries = export_log();
 
-        assert_eq!(entries[9].message, "Hello, 108!");
+        assert_eq!(entries[9].message, "Hello, 99!");
     }
 }

@@ -28,7 +28,7 @@ impl LogBuffer {
     /// not resized.
     pub fn set_capacity(&mut self, new_capacity: usize) {
         while self.entries.len() > new_capacity {
-            self.entries.pop_front();
+            self.entries.pop_back();
         }
         self.max_capacity = new_capacity;
     }
@@ -36,9 +36,9 @@ impl LogBuffer {
     /// Adds a new entry to the buffer, potentially evicting older entries.
     pub fn append(&mut self, entry: LogEntry) {
         if self.entries.len() >= self.max_capacity {
-            self.entries.pop_front();
+            self.entries.pop_back();
         }
-        self.entries.push_back(entry);
+        self.entries.push_front(entry);
     }
 
     /// Returns an iterator over entries in the order of their insertion.

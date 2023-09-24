@@ -674,6 +674,7 @@ export interface _SERVICE {
   'print_log_entries' : ActorMethod<[], Array<LogEntry>>,
   'refresh_settings' : ActorMethod<[], undefined>,
   'remove_setting_metadata' : ActorMethod<[string], undefined>,
+  'report_bug' : ActorMethod<[Principal, string], undefined>,
   'request_account_rename' : ActorMethod<
     [RenameAccount, string, [] | [bigint]],
     bigint

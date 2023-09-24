@@ -1,12 +1,12 @@
 use b3_utils::{
-    memory::{init_stable_mem_cell, types::DefaultVMVec},
+    ledger::types::Bug,
+    memory::{init_stable_mem_refcell, types::DefaultVMVec},
     types::{CanisterId, UserId},
     wasm::{Wasm, WasmHash},
 };
 use std::str::FromStr;
 
 use crate::{
-    bug::Bug,
     error::SystemError,
     release::names::ReleaseNames,
     types::{Release, ReleaseMap, Releases, State, UserMap, WasmMap},
@@ -16,9 +16,9 @@ use crate::{
 use std::cell::RefCell;
 
 thread_local! {
-    static WASM_MAP: RefCell<WasmMap> = init_stable_mem_cell("wasm_map", 10).unwrap();
+    static WASM_MAP: RefCell<WasmMap> = init_stable_mem_refcell("wasm_map", 10).unwrap();
 
-    static BUGS: RefCell<DefaultVMVec<Bug>> = init_stable_mem_cell("bugs", 10).unwrap();
+    static BUGS: RefCell<DefaultVMVec<Bug>> = init_stable_mem_refcell("bugs", 11).unwrap();
 
     static STATE: RefCell<State> = RefCell::new(State::default());
 }

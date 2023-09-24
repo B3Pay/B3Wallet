@@ -729,6 +729,7 @@ export const idlFactory = ({ IDL }) => {
     'print_log_entries' : IDL.Func([], [IDL.Vec(LogEntry)], ['query']),
     'refresh_settings' : IDL.Func([], [], []),
     'remove_setting_metadata' : IDL.Func([IDL.Text], [], []),
+    'report_bug' : IDL.Func([IDL.Principal, IDL.Text], [], []),
     'request_account_rename' : IDL.Func(
         [RenameAccount, IDL.Text, IDL.Opt(IDL.Nat64)],
         [IDL.Nat64],

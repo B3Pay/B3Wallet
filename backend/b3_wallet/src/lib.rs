@@ -29,13 +29,13 @@ use b3_utils::{
     ledger::{
         currency::{ICPToken, TokenAmount},
         types::{
-            Cycles, NotifyTopUpResult, TransferBlockIndex, WalletAccountsNonce,
+            Bug, Cycles, NotifyTopUpResult, TransferBlockIndex, WalletAccountsNonce,
             WalletCanisterInitArgs, WalletCanisterStatus, WalletController, WalletControllerMap,
             WalletInititializeArgs,
         },
     },
     log_cycle,
-    logs::{export_log, LogEntry},
+    logs::{export_log, export_log_messages_page, LogEntry},
     panic_log, report_log, throw_log,
     types::{CanisterId, ControllerId, Metadata, OperationId, UserId},
     wasm::{with_wasm, with_wasm_mut, WasmDetails, WasmHash, WasmSize},
@@ -888,6 +888,24 @@ fn validate_signer(signer_id: UserId) -> bool {
 #[query(guard = "caller_is_admin")]
 fn get_signers() -> UserMap {
     with_users(|u| u.users().clone())
+}
+
+#[update(guard = "caller_is_admin")]
+async fn report_bug(system_canister_id: CanisterId, message: String) {
+    log_cycle!("Report bug: {}", message);
+
+    let request_args = Bug {
+        canister_id: ic_cdk::id(),
+        description: message,
+        version: version(),
+        logs: export_log_messages_page(0, Some(10)),
+        name: name(),
+    };
+
+    let _: () = ic_cdk::call(system_canister_id, "report_bug", (request_args,))
+        .await
+        .map_err(|err| format!("Error calling system canister: {:?}", err))
+        .unwrap_or_else(panic_log);
 }
 
 #[update(guard = "caller_is_admin")]

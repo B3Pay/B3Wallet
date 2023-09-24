@@ -22,7 +22,8 @@ interface WalletProps {
 export enum Mode {
   Processed,
   Settings,
-  Accounts
+  Accounts,
+  Logs
 }
 
 const Wallet: React.FC<WalletProps> = ({

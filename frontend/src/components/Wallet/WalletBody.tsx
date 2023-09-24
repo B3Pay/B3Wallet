@@ -15,6 +15,7 @@ import useToastMessage from "../../hooks/useToastMessage"
 import { B3System, B3Wallet } from "../../service"
 import Account from "./Account"
 import CreateAccount from "./Account/CreateAccount"
+import Logs from "./Logs"
 import ProcessedList from "./ProcessedList"
 import Settings from "./Setting"
 
@@ -102,6 +103,13 @@ const WalletBody: React.FC<WalletBodyProps> = ({
         />
       ) : mode === Mode.Processed ? (
         <ProcessedList
+          actor={actor}
+          setLoading={(global: boolean) =>
+            setLoading(prev => ({ ...prev, global }))
+          }
+        />
+      ) : mode === Mode.Logs ? (
+        <Logs
           actor={actor}
           setLoading={(global: boolean) =>
             setLoading(prev => ({ ...prev, global }))

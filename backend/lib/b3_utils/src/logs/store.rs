@@ -46,8 +46,8 @@ where
 ///     counter: 1,
 /// }]);
 /// assert_eq!(entries.len(), 2);
-/// assert_eq!(entries[0].message, "Hello, world!");
-/// assert_eq!(entries[1].message, "Hello, log!");
+/// assert_eq!(entries[0].message, "Hello, log!");
+/// assert_eq!(entries[1].message, "Hello, world!");
 /// ```
 pub fn import_log(entries: Vec<LogEntry>) -> Vec<LogEntry> {
     with_log_mut(|log| {

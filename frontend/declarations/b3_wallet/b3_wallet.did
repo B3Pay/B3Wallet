@@ -585,6 +585,7 @@ service : () -> {
   print_log_entries : () -> (vec LogEntry) query;
   refresh_settings : () -> ();
   remove_setting_metadata : (text) -> ();
+  report_bug : (principal, text) -> ();
   request_account_rename : (RenameAccount, text, opt nat64) -> (nat64);
   request_add_signer : (AddUser, text, opt nat64) -> (nat64);
   request_connect : (text) -> (nat64);

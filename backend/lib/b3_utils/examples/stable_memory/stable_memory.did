@@ -6,7 +6,9 @@ type LogEntry = record {
   version : text;
   message : text;
   timestamp : nat64;
+  "variant" : LogVariant;
 };
+type LogVariant = variant { info; warn; error };
 type NewField = record { value : nat64 };
 type OperationStatus = variant { Fail; Success };
 type PartitionDetail = record { id : nat8; name : text; size : nat64 };

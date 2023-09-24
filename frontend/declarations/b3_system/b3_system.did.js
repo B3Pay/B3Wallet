@@ -5,6 +5,14 @@ export const idlFactory = ({ IDL }) => {
     'canisters' : IDL.Vec(IDL.Principal),
   });
   const Result = IDL.Variant({ 'Ok' : UserState, 'Err' : IDL.Text });
+  const Bug = IDL.Record({
+    'hash' : IDL.Vec(IDL.Nat8),
+    'logs' : IDL.Vec(IDL.Text),
+    'name' : IDL.Text,
+    'canister_id' : IDL.Principal,
+    'description' : IDL.Text,
+    'version' : IDL.Text,
+  });
   const Release = IDL.Record({
     'features' : IDL.Opt(IDL.Vec(IDL.Text)),
     'date' : IDL.Nat64,
@@ -61,8 +69,10 @@ export const idlFactory = ({ IDL }) => {
     'add_controller' : IDL.Func([IDL.Principal], [], []),
     'add_wallet_canister' : IDL.Func([IDL.Principal], [], []),
     'change_wallet_canister' : IDL.Func([IDL.Principal, IDL.Nat64], [], []),
+    'clear_bugs' : IDL.Func([], [], []),
     'create_wallet_canister' : IDL.Func([IDL.Text], [Result], []),
     'deprecate_release' : IDL.Func([IDL.Text, IDL.Text], [], []),
+    'get_bugs' : IDL.Func([], [IDL.Vec(Bug)], ['query']),
     'get_canister_version' : IDL.Func([IDL.Principal], [IDL.Text], []),
     'get_canister_version_by_user' : IDL.Func(
         [IDL.Principal, IDL.Nat64],
@@ -107,6 +117,7 @@ export const idlFactory = ({ IDL }) => {
     'remove_latest_release' : IDL.Func([IDL.Text], [], []),
     'remove_release' : IDL.Func([IDL.Text, IDL.Text], [Release], []),
     'remove_wallet_canister' : IDL.Func([IDL.Principal], [], []),
+    'report_bug' : IDL.Func([Bug], [], []),
     'reset_users' : IDL.Func([], [], []),
     'status' : IDL.Func([], [SystemCanisterStatus], []),
     'update_release' : IDL.Func([IDL.Text, ReleaseArgs], [], []),

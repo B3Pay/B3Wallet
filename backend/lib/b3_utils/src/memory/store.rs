@@ -64,7 +64,7 @@ pub fn init_stable_mem<F: InitMemory<F>>(name: &str, id: u8) -> Result<F, Stable
     with_stable_mem_mut(|pm| pm.init_memory(name, id))
 }
 
-pub fn init_stable_mem_cell<F: InitMemory<F>>(
+pub fn init_stable_mem_refcell<F: InitMemory<F>>(
     name: &str,
     id: u8,
 ) -> Result<RefCell<F>, StableMemoryError> {

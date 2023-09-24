@@ -1,6 +1,14 @@
 import type { Principal } from '@dfinity/principal';
 import type { ActorMethod } from '@dfinity/agent';
 
+export interface Bug {
+  'hash' : Uint8Array | number[],
+  'logs' : Array<string>,
+  'name' : string,
+  'canister_id' : Principal,
+  'description' : string,
+  'version' : string,
+}
 export interface CanisterStatusResponse {
   'status' : CanisterStatusType,
   'memory_size' : bigint,
@@ -60,8 +68,10 @@ export interface _SERVICE {
   'add_controller' : ActorMethod<[Principal], undefined>,
   'add_wallet_canister' : ActorMethod<[Principal], undefined>,
   'change_wallet_canister' : ActorMethod<[Principal, bigint], undefined>,
+  'clear_bugs' : ActorMethod<[], undefined>,
   'create_wallet_canister' : ActorMethod<[string], Result>,
   'deprecate_release' : ActorMethod<[string, string], undefined>,
+  'get_bugs' : ActorMethod<[], Array<Bug>>,
   'get_canister_version' : ActorMethod<[Principal], string>,
   'get_canister_version_by_user' : ActorMethod<[Principal, bigint], string>,
   'get_canisters' : ActorMethod<[], Array<Principal>>,
@@ -88,6 +98,7 @@ export interface _SERVICE {
   'remove_latest_release' : ActorMethod<[string], undefined>,
   'remove_release' : ActorMethod<[string, string], Release>,
   'remove_wallet_canister' : ActorMethod<[Principal], undefined>,
+  'report_bug' : ActorMethod<[Bug], undefined>,
   'reset_users' : ActorMethod<[], undefined>,
   'status' : ActorMethod<[], SystemCanisterStatus>,
   'update_release' : ActorMethod<[string, ReleaseArgs], undefined>,

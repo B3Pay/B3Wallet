@@ -3,7 +3,6 @@ import { WalletSettings } from "declarations/b3_wallet/b3_wallet.did"
 import { B3_SYSTEM_CANISTER_ID } from "helpers/config"
 import { B3System, B3Wallet } from "service"
 import Address from "../Address"
-import LogTable from "../LogTable"
 import PrincipalCard from "../PrincipalCard"
 import Controllers from "./Controllers"
 import Cycles from "./Cycles"
@@ -81,7 +80,6 @@ const Settings: React.FC<SettingsProps> = ({
         setLoading={setLoading}
       />
       <Status actor={actor} />
-      <LogTable actor={actor} />
       <RestoreAccount actor={actor} fetchAccounts={fetchAccounts} />
       <DangerZone
         actor={actor}
