@@ -23,3 +23,5 @@ target/
 
 .env
 /wasm/
+
+/backend/lib/b3_utils
