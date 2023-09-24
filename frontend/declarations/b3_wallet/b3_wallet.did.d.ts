@@ -223,6 +223,19 @@ export interface Ledger {
   'subaccount' : Uint8Array | number[],
   'chains' : Array<[ChainEnum, Chain]>,
 }
+export interface LogEntry {
+  'counter' : bigint,
+  'file' : string,
+  'line' : number,
+  'cycle' : [] | [bigint],
+  'version' : string,
+  'message' : string,
+  'timestamp' : bigint,
+  'variant' : LogVariant,
+}
+export type LogVariant = { 'info' : null } |
+  { 'warn' : null } |
+  { 'error' : null };
 export type Minter = { 'Mainnet' : null } |
   { 'Regtest' : null } |
   { 'Testnet' : null };
@@ -431,7 +444,8 @@ export interface OperationAccess {
   'valid_until' : [] | [bigint],
   'operation' : Operation,
 }
-export type OperationResult = { 'AccountCreated' : CreateAccount } |
+export type OperationResult = { 'Empty' : null } |
+  { 'AccountCreated' : CreateAccount } |
   { 'CanisterTopUped' : [NotifyTopUp, bigint] } |
   { 'BtcTransfered' : [BtcTransfer, string] } |
   { 'IcpTransfered' : [IcpTransfer, bigint] } |
@@ -475,7 +489,7 @@ export interface PendingOperation {
 }
 export interface ProcessedOperation {
   'status' : OperationStatus,
-  'result' : [] | [OperationResult],
+  'result' : OperationResult,
   'method' : string,
   'error' : [] | [string],
   'operation' : PendingOperation,
@@ -651,11 +665,13 @@ export interface _SERVICE {
   'get_addresses' : ActorMethod<[string], Array<[ChainEnum, string]>>,
   'get_pending_list' : ActorMethod<[], Array<PendingOperation>>,
   'get_processed_list' : ActorMethod<[], Array<ProcessedOperation>>,
+  'get_roles' : ActorMethod<[], Array<[bigint, Role]>>,
   'get_signers' : ActorMethod<[], Array<[Principal, User]>>,
   'init_wallet' : ActorMethod<[WalletInititializeArgs], undefined>,
   'is_connected' : ActorMethod<[], boolean>,
   'load_wasm' : ActorMethod<[Uint8Array | number[]], bigint>,
   'name' : ActorMethod<[], string>,
+  'print_log_entries' : ActorMethod<[], Array<LogEntry>>,
   'refresh_settings' : ActorMethod<[], undefined>,
   'remove_setting_metadata' : ActorMethod<[string], undefined>,
   'request_account_rename' : ActorMethod<

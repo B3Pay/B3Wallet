@@ -13,6 +13,19 @@ pub use buffer::*;
 
 mod test;
 
+#[derive(
+    CandidType, Default, Deserialize, Serialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord,
+)]
+pub enum LogVariant {
+    #[default]
+    #[serde(rename = "info")]
+    Info,
+    #[serde(rename = "warn")]
+    Warning,
+    #[serde(rename = "error")]
+    Error,
+}
+
 /// An entry in the canister log.
 #[derive(CandidType, Deserialize, Serialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct LogEntry {
@@ -22,6 +35,7 @@ pub struct LogEntry {
     pub counter: u64,
     pub message: String,
     pub file: &'static str,
+    pub variant: LogVariant,
     pub line: u32,
     pub version: &'static str,
 }
@@ -74,6 +88,7 @@ macro_rules! log {
             timestamp: $crate::NanoTimeStamp::now(),
             cycle: None,
             message,
+            variant: $crate::logs::LogVariant::Info,
             file: std::file!(),
             line: std::line!(),
             version: env!("CARGO_PKG_VERSION"),
@@ -81,6 +96,47 @@ macro_rules! log {
         });
     }}
 }
+
+#[macro_export]
+macro_rules! log_error {
+    ($message:expr $(,$args:expr)* $(,)*) => {{
+        use $crate::logs::Sink;
+        let message = std::format!($message $(,$args)*);
+        // Print the message for convenience for local development (e.g. integration tests)
+        println!("{}", &message);
+        (&$crate::logs::MAIN_LOG).append($crate::logs::LogEntry {
+            timestamp: $crate::NanoTimeStamp::now(),
+            cycle: None,
+            message,
+            variant: $crate::logs::LogVariant::Error,
+            file: std::file!(),
+            line: std::line!(),
+            version: env!("CARGO_PKG_VERSION"),
+            counter: $crate::logs::counter::log_increment()
+        });
+    }}
+}
+
+#[macro_export]
+macro_rules! log_warning {
+    ($message:expr $(,$args:expr)* $(,)*) => {{
+        use $crate::logs::Sink;
+        let message = std::format!($message $(,$args)*);
+        // Print the message for convenience for local development (e.g. integration tests)
+        println!("{}", &message);
+        (&$crate::logs::MAIN_LOG).append($crate::logs::LogEntry {
+            timestamp: $crate::NanoTimeStamp::now(),
+            cycle: None,
+            message,
+            variant: $crate::logs::LogVariant::Warning,
+            file: std::file!(),
+            line: std::line!(),
+            version: env!("CARGO_PKG_VERSION"),
+            counter: $crate::logs::counter::log_increment()
+        });
+    }}
+}
+
 /// Adds a new record to a canister log buffer and panics.
 /// The maximum number of records is 1000.
 /// Older records are evicted.
@@ -113,6 +169,7 @@ macro_rules! log_panic {
         (&$crate::logs::MAIN_LOG).append($crate::logs::LogEntry {
             timestamp: $crate::NanoTimeStamp::now(),
             cycle: None,
+            variant: $crate::logs::LogVariant::Error,
             message: message.clone(),
             file: std::file!(),
             line: std::line!(),
@@ -162,6 +219,7 @@ macro_rules! log_cycle {
             timestamp: $crate::NanoTimeStamp::now(),
             cycle: Some(canister_balance()),
             message,
+            variant: $crate::logs::LogVariant::Info,
             file: std::file!(),
             line: std::line!(),
             version: env!("CARGO_PKG_VERSION"),
@@ -169,6 +227,34 @@ macro_rules! log_cycle {
         });
     }}
 }
+
+/// Adds a new record to a canister log buffer and returns an error.
+/// This macro is useful for early returns from a function.
+///
+/// # Example
+/// ```
+/// use b3_utils::{logs::export_log, throw_log};
+///
+/// fn sum_and_log(x: u64, y: u64) -> Result<u64, String> {
+///     let result = x.saturating_add(y);
+///     throw_log!("Result is too big: {}", result);
+///
+///     Ok(result)
+/// }
+///
+/// assert!(sum_and_log(100, 2).is_err());
+/// assert_eq!(export_log()[0].message, "Result is too big: 102");
+/// assert_eq!(export_log()[0].counter, 1);
+/// ```
+#[macro_export]
+macro_rules! throw_log {
+    ($message:expr $(,$args:expr)* $(,)*) => {{
+        $crate::log!($message $(,$args)*);
+
+        return $crate::report(format!($message $(,$args)*));
+    }};
+}
+
 /// Adds a new record to a canister log buffer and returns an error.
 /// This macro is useful for early returns from a function.
 ///

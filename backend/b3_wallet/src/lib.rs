@@ -36,7 +36,7 @@ use b3_utils::{
     },
     log_cycle,
     logs::{export_log, LogEntry},
-    panic_log,
+    panic_log, report_log, throw_log,
     types::{CanisterId, ControllerId, Metadata, OperationId, UserId},
     wasm::{with_wasm, with_wasm_mut, WasmDetails, WasmHash, WasmSize},
     Environment, NanoTimeStamp, Subaccount,
@@ -62,7 +62,6 @@ use b3_wallet_lib::{
     },
     types::{AccountId, WalletAccountView},
 };
-use candid::Principal;
 use ic_cdk::{
     api::{
         call::arg_data,
@@ -101,12 +100,6 @@ fn init() {
     let role = Role::new("owner".to_owned(), AccessLevel::FullAccess);
 
     signers.insert(owner_id, User::new(role.clone(), "Owner".to_owned(), None));
-
-    // TODO! Remove this before production
-    signers.insert(
-        Principal::anonymous(),
-        User::new(role, "Owner".to_owned(), None),
-    );
 
     with_users_mut(|users| users.set_users(signers));
 
@@ -557,17 +550,18 @@ async fn response(request_id: OperationId, answer: Response) -> Result<Processed
 
     let request = with_pending_operation_mut(&request_id, |request| {
         if request.is_expired() {
-            return request.clone();
+            return Ok(request.clone());
         }
 
-        request.response(caller, answer).unwrap_or_else(panic_log);
-
-        request.clone()
+        match request.response(caller, answer) {
+            Ok(_) => Ok(request.clone()),
+            Err(err) => throw_log!("{}", err),
+        }
     })
-    .unwrap_or_else(panic_log);
+    .unwrap_or_else(report_log)?;
 
     if request.is_failed() {
-        log_cycle!("Request is failed: {}", request_id);
+        log_cycle!("Request is failed: {}", request.get_error().unwrap());
 
         let processed = ProcessedOperation::from(request);
 
@@ -580,7 +574,7 @@ async fn response(request_id: OperationId, answer: Response) -> Result<Processed
     if request.is_confirmed() {
         log_cycle!("Execute request: {}", request_id);
         let processed = request.execute().await;
-        log_cycle!("Request executed: {}", request_id);
+        log_cycle!("Request executed: {}", processed.get_result());
 
         with_processed_operation_mut(|s| s.add(request_id, processed.clone()));
         with_operation_mut(|s| s.remove_request(&request_id));

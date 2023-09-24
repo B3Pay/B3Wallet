@@ -32,9 +32,9 @@ impl NonceTrait for WalletAccountsNonce {
 
     fn increment(&mut self, environment: Environment) -> Nonce {
         match environment {
-            Environment::Development => self.development.add_64(1),
-            Environment::Production => self.production.add_64(1),
-            Environment::Staging => self.staging.add_64(1),
+            Environment::Development => self.development.next(),
+            Environment::Production => self.production.next(),
+            Environment::Staging => self.staging.next(),
         }
     }
 

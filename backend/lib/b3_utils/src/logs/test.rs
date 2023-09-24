@@ -42,6 +42,7 @@ mod test {
 
         buffer.append(LogEntry {
             timestamp: NanoTimeStamp(0),
+            variant: crate::logs::LogVariant::Info,
             counter: 0,
             message: "Hello, world!".to_string(),
             file: "foo.rs",
@@ -52,6 +53,7 @@ mod test {
 
         buffer.append(LogEntry {
             timestamp: NanoTimeStamp(1),
+            variant: crate::logs::LogVariant::Info,
             counter: 1,
             message: "Hello, world!".to_string(),
             file: "foo.rs",
@@ -62,6 +64,7 @@ mod test {
 
         buffer.append(LogEntry {
             timestamp: NanoTimeStamp(2),
+            variant: crate::logs::LogVariant::Info,
             counter: 2,
             cycle: None,
             message: "Hello, world!".to_string(),

@@ -27,11 +27,7 @@ import {
 } from "@chakra-ui/react"
 import { Principal } from "@dfinity/principal"
 import Loading from "components/Loading"
-import {
-  AccessLevel,
-  AddUser,
-  Role
-} from "declarations/b3_wallet/b3_wallet.did"
+import { AddUser, Role, User } from "declarations/b3_wallet/b3_wallet.did"
 import useToastMessage from "hooks/useToastMessage"
 import { useMemo, useState } from "react"
 import { B3Wallet } from "service"
@@ -44,11 +40,11 @@ interface SignerWithRole extends Omit<Role, "role"> {
   id: Principal
 }
 
-export type SignerMap = Array<[Principal, Role]>
+export type UserMap = Array<[Principal, User]>
 
 interface SignerProps extends StackProps {
   actor: B3Wallet
-  signers: SignerMap
+  signers: UserMap
   isInitialPage?: boolean
   refetch: () => void
 }
@@ -62,9 +58,7 @@ const Signers: React.FC<SignerProps> = ({
 }) => {
   const [loading, setLoading] = useState(false)
   const [principal, setPrincipal] = useState("")
-  const [accessLevel, setAccessLevel] = useState<AccessLevel | "select">(
-    "select"
-  )
+  const [role, setRole] = useState<Role | "select">("select")
   const [name, setName] = useState("")
 
   const errorToast = useToastMessage()
@@ -102,7 +96,7 @@ const Signers: React.FC<SignerProps> = ({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    if (!accessLevel || accessLevel === "select") {
+    if (!role || role === "select") {
       errorToast({
         title: "Role not selected.",
         description: `Please select a role`,
@@ -132,7 +126,7 @@ const Signers: React.FC<SignerProps> = ({
 
     const args: AddUser = {
       signer_id: signerId,
-      role: { access_level: accessLevel, name }, // new Role type
+      role: role,
       expires_at: [],
       name,
       threshold: []
@@ -152,7 +146,7 @@ const Signers: React.FC<SignerProps> = ({
 
         // Clear the form
         setPrincipal("")
-        setAccessLevel("select")
+        setRole("select")
         refetch()
       })
       .catch(e => {
@@ -176,7 +170,7 @@ const Signers: React.FC<SignerProps> = ({
       .map(([id, signer]) => ({
         id,
         ...signer,
-        accessLevel: Object.keys(signer.access_level)[0]
+        accessLevel: Object.keys(signer.role.access_level)[0]
       }))
       .sort((a, b) => a.accessLevel.localeCompare(b.accessLevel)) // Sorting based on the access level
   }, [signers])
@@ -286,23 +280,23 @@ const Signers: React.FC<SignerProps> = ({
                       </FormControl>
                       <FormControl isRequired>
                         <Select
-                          value={accessLevel}
+                          value={JSON.stringify(role)}
                           onChange={e => {
-                            const newRole = e.target
-                              .value as keyof typeof AccessLevelEnum
-                            setAccessLevel(newRole)
+                            const newRole = e.target.value
+
+                            setRole(AccessLevelEnum[newRole])
                           }}
                         >
                           <option value={"select"}>Select Role</option>
                           {AccessLevelEnum.map((accessLevel, i) => (
-                            <option key={i} value={accessLevel}>
+                            <option key={i} value={i}>
                               {accessLevel}
                             </option>
                           ))}
                         </Select>
                       </FormControl>
                       <Button colorScheme="orange" type="submit">
-                        Add {accessLevel !== "select" ? accessLevel : "Signer"}
+                        Add Signer
                       </Button>
                     </Grid>
                   </Box>

@@ -8,7 +8,7 @@ import Controllers from "./Controllers"
 import Cycles from "./Cycles"
 import DangerZone from "./DangerZone"
 import RestoreAccount from "./RestoreAccount"
-import Signers, { SignerMap } from "./Signers"
+import Signers, { UserMap } from "./Signers"
 import Status from "./Status"
 import Wasm from "./Wasm"
 
@@ -16,7 +16,7 @@ interface SettingsProps {
   refreshWallet: () => void
   fetchAccounts: () => void
   setLoading: (loading: boolean) => void
-  signers: SignerMap
+  signers: UserMap
   principal: string
   settings: WalletSettings
   actor: B3Wallet | B3BasicWallet

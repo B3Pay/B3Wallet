@@ -39,6 +39,7 @@ where
 ///     timestamp: b3_utils::NanoTimeStamp::now(),
 ///     message: "Hello, log!".to_string(),
 ///     file: "src/logs.rs",
+///     variant: b3_utils::logs::LogVariant::Info,
 ///     line: 123,
 ///     cycle: None,
 ///     version: env!("CARGO_PKG_VERSION"),

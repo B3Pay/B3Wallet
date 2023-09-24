@@ -518,6 +518,7 @@ export const idlFactory = ({ IDL }) => {
     'chain_id' : IDL.Nat64,
   });
   const OperationResult = IDL.Variant({
+    'Empty' : IDL.Null,
     'AccountCreated' : CreateAccount,
     'CanisterTopUped' : IDL.Tuple(NotifyTopUp, IDL.Nat),
     'BtcTransfered' : IDL.Tuple(BtcTransfer, IDL.Text),
@@ -541,7 +542,7 @@ export const idlFactory = ({ IDL }) => {
   });
   const ProcessedOperation = IDL.Record({
     'status' : OperationStatus,
-    'result' : IDL.Opt(OperationResult),
+    'result' : OperationResult,
     'method' : IDL.Text,
     'error' : IDL.Opt(IDL.Text),
     'operation' : PendingOperation,
@@ -560,6 +561,21 @@ export const idlFactory = ({ IDL }) => {
   const WalletInititializeArgs = IDL.Record({
     'controllers' : IDL.Vec(IDL.Tuple(IDL.Principal, WalletController)),
     'metadata' : IDL.Opt(IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text))),
+  });
+  const LogVariant = IDL.Variant({
+    'info' : IDL.Null,
+    'warn' : IDL.Null,
+    'error' : IDL.Null,
+  });
+  const LogEntry = IDL.Record({
+    'counter' : IDL.Nat64,
+    'file' : IDL.Text,
+    'line' : IDL.Nat32,
+    'cycle' : IDL.Opt(IDL.Nat),
+    'version' : IDL.Text,
+    'message' : IDL.Text,
+    'timestamp' : IDL.Nat64,
+    'variant' : LogVariant,
   });
   const Result_1 = IDL.Variant({ 'Ok' : ProcessedOperation, 'Err' : IDL.Text });
   const RetrieveBtcStatus = IDL.Variant({
@@ -696,6 +712,11 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(ProcessedOperation)],
         ['query'],
       ),
+    'get_roles' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Tuple(IDL.Nat64, Role))],
+        ['query'],
+      ),
     'get_signers' : IDL.Func(
         [],
         [IDL.Vec(IDL.Tuple(IDL.Principal, User))],
@@ -705,6 +726,7 @@ export const idlFactory = ({ IDL }) => {
     'is_connected' : IDL.Func([], [IDL.Bool], ['query']),
     'load_wasm' : IDL.Func([IDL.Vec(IDL.Nat8)], [IDL.Nat64], []),
     'name' : IDL.Func([], [IDL.Text], ['query']),
+    'print_log_entries' : IDL.Func([], [IDL.Vec(LogEntry)], ['query']),
     'refresh_settings' : IDL.Func([], [], []),
     'remove_setting_metadata' : IDL.Func([IDL.Text], [], []),
     'request_account_rename' : IDL.Func(

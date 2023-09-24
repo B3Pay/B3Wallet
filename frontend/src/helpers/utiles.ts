@@ -116,3 +116,19 @@ export const compileError = (description: string[], title: React.ReactNode) => {
     }
   }
 }
+
+export function nanoToHumanReadable(nanoTimestamp: bigint | null) {
+  if (nanoTimestamp === null) return null
+
+  // Convert to milliseconds
+  const milliTimestamp = nanoTimestamp / BigInt(1_000_000)
+
+  // Convert BigInt to Number
+  const milliTimestampNumber = Number(milliTimestamp)
+
+  // Create a new Date object
+  const date = new Date(milliTimestampNumber)
+
+  // Format the date and time
+  return date.toLocaleString()
+}

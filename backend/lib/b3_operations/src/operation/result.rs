@@ -24,6 +24,7 @@ pub trait ExecutionTrait {}
 #[derive(CandidType, Clone, Deserialize, Debug)]
 #[enum_dispatch(ExecutionTrait)]
 pub enum OperationResult {
+    Empty(Empty),
     TokenSent(TokenSent),
     IcpTransfered(IcpTransfered),
     EvmTransfered(EvmTransfered),
@@ -50,6 +51,7 @@ pub enum OperationResult {
 impl fmt::Display for OperationResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            OperationResult::Empty(_) => write!(f, "Empty"),
             OperationResult::TokenSent(TokenSent(ref args, ref tx_id)) => write!(f, "TokenSent: from {} in {} to {} at tx {}", args.account_id, args.chain, args.to, tx_id),
             OperationResult::IcpTransfered(IcpTransfered(args, block_index)) => write!(f, "IcpTransfered: from {} to {} at block {}", args.account_id, args.to, block_index),
             OperationResult::EvmTransfered(EvmTransfered(args, tx_hash)) => write!(f, "EvmTransfered: from {} to {} at tx {}", args.account_id, args.to, tx_hash),
@@ -109,3 +111,8 @@ pub struct EvmTransactionSigned(pub EvmSignTranscation, pub String);
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
 pub struct EvmRawTransactionSigned(pub EvmSignRawTransaction, pub String);
+
+#[derive(CandidType, Clone, Deserialize, Debug)]
+pub struct Empty;
+
+impl ExecutionTrait for Empty {}

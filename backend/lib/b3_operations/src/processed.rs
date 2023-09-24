@@ -3,7 +3,11 @@ use b3_utils::mocks::time_mock as ic_timestamp;
 #[cfg(not(test))]
 use ic_cdk::api::time as ic_timestamp;
 
-use crate::{error::OperationError, operation::result::OperationResult, pending::PendingOperation};
+use crate::{
+    error::OperationError,
+    operation::result::{Empty, OperationResult},
+    pending::PendingOperation,
+};
 use candid::{CandidType, Deserialize};
 
 mod state;
@@ -23,7 +27,7 @@ pub struct ProcessedOperation {
     method: String,
     error: Option<String>,
     status: OperationStatus,
-    result: Option<OperationResult>,
+    result: OperationResult,
     operation: PendingOperation,
 }
 
@@ -47,7 +51,7 @@ impl From<PendingOperation> for ProcessedOperation {
             error,
             timestamp: ic_timestamp(),
             method: request.method(),
-            result: None,
+            result: OperationResult::Empty(Empty),
             status,
             operation: request,
         }
@@ -58,7 +62,7 @@ impl ProcessedOperation {
     pub fn new(request: &PendingOperation) -> Self {
         ProcessedOperation {
             error: None,
-            result: None,
+            result: OperationResult::Empty(Empty),
             timestamp: ic_timestamp(),
             method: request.method(),
             operation: request.clone(),
@@ -70,7 +74,7 @@ impl ProcessedOperation {
         self.status = OperationStatus::Success;
         self.operation.status = OperationStatus::Success;
         self.timestamp = ic_timestamp();
-        self.result = Some(message);
+        self.result = message;
 
         self.clone()
     }
@@ -102,5 +106,9 @@ impl ProcessedOperation {
 
     pub fn get_timestamp(&self) -> u64 {
         self.timestamp
+    }
+
+    pub fn get_result(&self) -> &OperationResult {
+        &self.result
     }
 }

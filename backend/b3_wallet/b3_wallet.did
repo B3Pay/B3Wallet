@@ -222,7 +222,9 @@ type LogEntry = record {
   version : text;
   message : text;
   timestamp : nat64;
+  "variant" : LogVariant;
 };
+type LogVariant = variant { info; warn; error };
 type Minter = variant { Mainnet; Regtest; Testnet };
 type NotifyTopUp = record {
   account_id : text;
@@ -386,6 +388,7 @@ type OperationAccess = record {
   operation : Operation;
 };
 type OperationResult = variant {
+  Empty;
   AccountCreated : CreateAccount;
   CanisterTopUped : record { NotifyTopUp; nat };
   BtcTransfered : record { BtcTransfer; text };
@@ -430,7 +433,7 @@ type PendingOperation = record {
 };
 type ProcessedOperation = record {
   status : OperationStatus;
-  result : opt OperationResult;
+  result : OperationResult;
   method : text;
   error : opt text;
   operation : PendingOperation;
