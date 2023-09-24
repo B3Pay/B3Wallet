@@ -1,7 +1,7 @@
 use crate::{error::SystemError, types::Controllers};
 use b3_utils::{
     ic_canister_status,
-    types::{CanisterId, UserId, WalletCanisterInstallArg, WalletCanisterStatus, WalletVersion},
+    types::{CanisterId, SignerId, WalletCanisterInstallArg, WalletCanisterStatus, WalletVersion},
     wasm::WasmHash,
 };
 use candid::{CandidType, Deserialize};
@@ -21,7 +21,7 @@ impl From<CanisterId> for WalletCanister {
 
 impl WalletCanister {
     /// Get the owner of the canister.
-    pub async fn validate_signer(&self, signer_id: UserId) -> Result<bool, SystemError> {
+    pub async fn validate_signer(&self, signer_id: SignerId) -> Result<bool, SystemError> {
         let (validate,): (bool,) = ic_cdk::call(self.0, "validate_signer", (signer_id,))
             .await
             .map_err(|err| SystemError::ValidateSignerError(err.1))?;
@@ -75,7 +75,7 @@ impl WalletCanister {
 
     /// Update the controllers of the canister.
     /// The caller must be a controller of the canister.
-    /// Default controllers are the owner and the user itself.
+    /// Default controllers are the owner and the signer itself.
     pub async fn add_controllers(&self, mut controllers: Controllers) -> Result<(), SystemError> {
         let canister_id = self.0;
 

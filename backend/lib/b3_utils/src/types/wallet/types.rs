@@ -1,7 +1,7 @@
 use crate::{
     error::HelperError,
     timestamp::NanoTimeStamp,
-    types::{CanisterId, ControllerId, Metadata, UserId},
+    types::{CanisterId, ControllerId, Metadata, SignerId},
     wasm::WasmModule,
 };
 use candid::{CandidType, Encode};
@@ -43,7 +43,7 @@ pub struct WalletInititializeArgs {
 
 #[derive(CandidType, Deserialize, Serialize)]
 pub struct WalletCanisterInitArgs {
-    pub owner_id: UserId,
+    pub owner_id: SignerId,
     pub system_id: CanisterId,
 }
 

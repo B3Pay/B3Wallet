@@ -1,14 +1,14 @@
 use std::cell::RefCell;
 
-use crate::types::UserId;
+use crate::types::SignerId;
 
 thread_local! {
-    static STATE: RefCell<UserId> = RefCell::new(UserId::anonymous());
+    static STATE: RefCell<SignerId> = RefCell::new(SignerId::anonymous());
 }
 
 pub fn with_owner<F, R>(f: F) -> R
 where
-    F: FnOnce(&UserId) -> R,
+    F: FnOnce(&SignerId) -> R,
 {
     STATE.with(|states| {
         let state = states.borrow();
@@ -18,7 +18,7 @@ where
 
 pub fn with_owner_mut<F, R>(f: F) -> R
 where
-    F: FnOnce(&mut UserId) -> R,
+    F: FnOnce(&mut SignerId) -> R,
 {
     STATE.with(|states| {
         let mut state = states.borrow_mut();

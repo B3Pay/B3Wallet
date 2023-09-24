@@ -1,7 +1,7 @@
 use b3_utils::{
     release::ReleaseTypes,
     timestamp::NanoTimeStamp,
-    types::{ControllerId, UserId, WalletVersion},
+    types::{ControllerId, SignerId, WalletVersion},
     wasm::{Wasm, WasmHash, WasmSize},
 };
 use candid::{CandidType, Deserialize};
@@ -16,11 +16,11 @@ pub type Releases = Vec<Release>;
 pub type ReleaseMap = HashMap<ReleaseTypes, Vec<Release>>;
 
 pub type Features = Vec<String>;
-pub type Users = Vec<UserId>;
+pub type Users = Vec<SignerId>;
 
 pub type Canisters = Vec<WalletCanister>;
 
-pub type UserMap = HashMap<UserId, UserState>;
+pub type UserMap = HashMap<SignerId, UserState>;
 pub type WasmMap = HashMap<WalletVersion, Wasm>;
 
 #[derive(CandidType, Deserialize, Clone, Default)]
