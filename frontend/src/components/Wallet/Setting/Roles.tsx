@@ -279,7 +279,9 @@ const Roles: React.FC<RolesProps> = ({ actor, ...rest }) => {
                                               fontSize="xs"
                                             >
                                               {new Date(
-                                                Number(valid_until[0])
+                                                Number(
+                                                  valid_until[0] / BigInt(1000)
+                                                )
                                               ).toLocaleDateString()}
                                             </Box>
                                           )}
