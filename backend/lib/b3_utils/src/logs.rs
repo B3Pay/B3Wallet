@@ -100,9 +100,9 @@ macro_rules! log {
 ///     result
 /// }
 ///
-/// assert_eq!(sum_and_log(1, 2), 3);
-/// assert_eq!(export_log()[0].message, "1 + 2 = 3");
+/// assert!(std::panic::catch_unwind(|| sum_and_log(100, 2)).is_err());
 /// assert_eq!(export_log()[0].counter, 1);
+/// assert_eq!(export_log()[0].message, "100 + 2 = 102");
 /// ```
 #[macro_export]
 macro_rules! log_panic {

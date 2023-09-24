@@ -1,3 +1,11 @@
+type Bug = record {
+  hash : vec nat8;
+  logs : vec text;
+  name : text;
+  canister_id : principal;
+  description : text;
+  version : text;
+};
 type CanisterStatusResponse = record {
   status : CanisterStatusType;
   memory_size : nat;
@@ -52,8 +60,10 @@ service : () -> {
   add_controller : (principal) -> ();
   add_wallet_canister : (principal) -> ();
   change_wallet_canister : (principal, nat64) -> ();
+  clear_bugs : () -> ();
   create_wallet_canister : (text) -> (Result);
   deprecate_release : (text, text) -> ();
+  get_bugs : () -> (vec Bug) query;
   get_canister_version : (principal) -> (text);
   get_canister_version_by_user : (principal, nat64) -> (text);
   get_canisters : () -> (vec principal) query;
@@ -74,6 +84,7 @@ service : () -> {
   remove_latest_release : (text) -> ();
   remove_release : (text, text) -> (Release);
   remove_wallet_canister : (principal) -> ();
+  report_bug : (Bug) -> ();
   reset_users : () -> ();
   status : () -> (SystemCanisterStatus);
   update_release : (text, ReleaseArgs) -> ();
