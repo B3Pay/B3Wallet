@@ -1,0 +1,16 @@
+[workspace]
+members = [
+    "backend/b3_system",
+    "backend/b3_wallet",
+    "backend/lib/b3_system_lib",
+    "backend/lib/b3_wallet_lib",
+    "backend/lib/b3_operations",
+]
+
+[workspace.dependencies]
+candid = "0.9.7"
+ic-cdk = "0.11.0"
+async-trait = "0.1"
+enum_dispatch = "0.3"
+serde = { version = "1", features = ["derive"] }
+b3_utils = { path = "backend/lib/b3_utils" }

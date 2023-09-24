@@ -1,0 +1,17 @@
+{
+  "b3_payment": {
+    "ic": "bwm34-gyaaa-aaaap-abduq-cai"
+  },
+  "b3_system": {
+    "ic": "jdm7b-3iaaa-aaaap-abcbq-cai"
+  },
+  "b3_wallet": {
+    "ic": "7uoyg-piaaa-aaaap-abbzq-cai"
+  },
+  "payment_assets": {
+    "ic": "b7pqa-qqaaa-aaaap-abdva-cai"
+  },
+  "wallet_assets": {
+    "ic": "mnrs5-4qaaa-aaaap-abc5a-cai"
+  }
+}

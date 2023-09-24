@@ -1,0 +1,25 @@
+# Various IDEs and Editors
+.vscode/
+.idea/
+**/*~
+
+# Mac OSX temporary files
+.DS_Store
+**/.DS_Store
+
+# dfx temporary files
+.dfx/
+candid
+
+# frontend code
+node_modules/
+out/
+
+# Next.js
+.next/
+
+# Rust build artifacts
+target/
+
+.env
+/wasm/

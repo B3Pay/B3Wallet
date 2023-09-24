@@ -1,0 +1,232 @@
+{
+  "canisters": {
+    "b3_system": {
+      "candid": "backend/b3_system/b3_system.did",
+      "build": "scripts/build.sh b3_system b3_system",
+      "declarations": {
+        "node_compatibility": true,
+        "output": "frontend/declarations/b3_system"
+      },
+      "package": "b3_system",
+      "wasm": "target/wasm32-unknown-unknown/release/b3_system.wasm",
+      "type": "custom"
+    },
+    "b3_wallet": {
+      "build": "scripts/b3_wallet.sh",
+      "candid": "backend/b3_wallet/b3_wallet.did",
+      "declarations": {
+        "node_compatibility": true,
+        "output": "frontend/declarations/b3_wallet"
+      },
+      "package": "b3_wallet",
+      "type": "custom",
+      "wasm": "wasm/b3_wallet/b3_wallet_candid.wasm"
+    },
+    "wallet_assets": {
+      "build": "yarn build",
+      "frontend": {
+        "entrypoint": "out/index.html"
+      },
+      "declarations": {
+        "node_compatibility": true,
+        "output": "frontend/declarations/wallet_assets"
+      },
+      "source": [
+        "frontend/out"
+      ],
+      "type": "assets"
+    },
+    "ckbtc": {
+      "build": [
+        "true"
+      ],
+      "candid": "wasm/ckbtc/ledger.did",
+      "declarations": {
+        "node_compatibility": true,
+        "output": "frontend/declarations/ckbtc"
+      },
+      "remote": {
+        "id": {
+          "ic": "mxzaz-hqaaa-aaaar-qaada-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": "wasm/ckbtc/ledger.wasm"
+    },
+    "index": {
+      "build": [
+        "true"
+      ],
+      "candid": "wasm/index/index.did",
+      "declarations": {
+        "node_compatibility": true,
+        "output": "frontend/declarations/index"
+      },
+      "remote": {
+        "id": {
+          "ic": "n5wcd-faaaa-aaaar-qaaea-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": "wasm/index/index.wasm"
+    },
+    "kyt": {
+      "build": [
+        "true"
+      ],
+      "candid": "wasm/kyt/kyt.did",
+      "declarations": {
+        "node_compatibility": true,
+        "output": "frontend/declarations/kyt"
+      },
+      "remote": {
+        "id": {
+          "ic": "bkyz2-fmaaa-aaaaa-qaaaq-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": "wasm/kyt/kyt.wasm"
+    },
+    "minter": {
+      "build": [
+        "true"
+      ],
+      "candid": "wasm/minter/minter.did",
+      "declarations": {
+        "node_compatibility": true,
+        "output": "frontend/declarations/minter"
+      },
+      "remote": {
+        "id": {
+          "ic": "mqygn-kiaaa-aaaar-qaadq-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": "wasm/minter/minter.wasm"
+    },
+    "internet_identity": {
+      "build": "",
+      "candid": "candid/internet_identity.did",
+      "remote": {
+        "id": {
+          "local": "qhbym-qaaaa-aaaaa-aaafq-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": ""
+    },
+    "nns-cycles-minting": {
+      "build": "",
+      "candid": "candid/nns-cycles-minting.did",
+      "remote": {
+        "id": {
+          "ic": "rkp4c-7iaaa-aaaaa-aaaca-cai",
+          "local": "rkp4c-7iaaa-aaaaa-aaaca-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": ""
+    },
+    "nns-dapp": {
+      "build": "",
+      "candid": "candid/nns-dapp.did",
+      "remote": {
+        "id": {
+          "local": "qsgjb-riaaa-aaaaa-aaaga-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": ""
+    },
+    "nns-genesis-token": {
+      "build": "",
+      "candid": "candid/nns-genesis-token.did",
+      "remote": {
+        "id": {
+          "ic": "renrk-eyaaa-aaaaa-aaada-cai",
+          "local": "renrk-eyaaa-aaaaa-aaada-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": ""
+    },
+    "nns-governance": {
+      "build": "",
+      "candid": "candid/nns-governance.did",
+      "remote": {
+        "id": {
+          "ic": "rrkah-fqaaa-aaaaa-aaaaq-cai",
+          "local": "rrkah-fqaaa-aaaaa-aaaaq-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": ""
+    },
+    "nns-ledger": {
+      "build": "",
+      "candid": "candid/nns-ledger.did",
+      "remote": {
+        "id": {
+          "ic": "ryjl3-tyaaa-aaaaa-aaaba-cai",
+          "local": "ryjl3-tyaaa-aaaaa-aaaba-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": ""
+    },
+    "nns-lifeline": {
+      "build": "",
+      "candid": "candid/nns-lifeline.did",
+      "remote": {
+        "id": {
+          "ic": "rno2w-sqaaa-aaaaa-aaacq-cai",
+          "local": "rno2w-sqaaa-aaaaa-aaacq-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": ""
+    },
+    "nns-registry": {
+      "build": "",
+      "candid": "candid/nns-registry.did",
+      "remote": {
+        "id": {
+          "ic": "rwlgt-iiaaa-aaaaa-aaaaa-cai",
+          "local": "rwlgt-iiaaa-aaaaa-aaaaa-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": ""
+    },
+    "nns-root": {
+      "build": "",
+      "candid": "candid/nns-root.did",
+      "remote": {
+        "id": {
+          "ic": "r7inp-6aaaa-aaaaa-aaabq-cai",
+          "local": "r7inp-6aaaa-aaaaa-aaabq-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": ""
+    },
+    "nns-sns-wasm": {
+      "build": "",
+      "candid": "candid/nns-sns-wasm.did",
+      "remote": {
+        "id": {
+          "ic": "qaa6y-5yaaa-aaaaa-aaafa-cai",
+          "local": "qaa6y-5yaaa-aaaaa-aaafa-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": ""
+    }
+  },
+  "defaults": {
+    "replica": {
+      "subnet_type": "system"
+    }
+  },
+  "output_env_file": ".env"
+}
