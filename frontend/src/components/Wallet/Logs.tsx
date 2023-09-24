@@ -15,7 +15,7 @@ import {
 import { Principal } from "@dfinity/principal"
 import { LogEntry } from "declarations/b3_wallet/b3_wallet.did"
 import { B3_SYSTEM_CANISTER_ID } from "helpers/config"
-import { nanoToHumanReadable } from "helpers/utiles"
+import { formatCyclesToMCycles, nanoToHumanReadable } from "helpers/utiles"
 import { useEffect, useState } from "react"
 import { B3Wallet } from "service"
 
@@ -113,7 +113,7 @@ const Logs: React.FC<LogProps> = ({ actor, loading, setLoading }) => {
         <Thead>
           <Tr>
             <Th>ID</Th>
-            <Th>Cycle</Th>
+            <Th>M-Cycle</Th>
             <Th>Message</Th>
             <Th>Timestamp</Th>
           </Tr>
@@ -122,7 +122,7 @@ const Logs: React.FC<LogProps> = ({ actor, loading, setLoading }) => {
           {logs?.map((log, index) => (
             <Tr key={index}>
               <Td>{log.counter.toString()}</Td>
-              <Td>{log.cycle[0].toString()}</Td>
+              <Td>{formatCyclesToMCycles(log.cycle[0])}</Td>
               <Td>{log.message}</Td>
               <Td>{nanoToHumanReadable(log.timestamp)}</Td>
             </Tr>

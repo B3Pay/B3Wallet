@@ -229,7 +229,7 @@ const Roles: React.FC<RolesProps> = ({ actor, ...rest }) => {
                 py={2}
               >
                 <Text fontSize="md" fontWeight="bold">
-                  Signers
+                  Roles
                 </Text>
                 <Stack fontSize="sm" fontWeight="semibold">
                   <Stack direction="row" align="center">

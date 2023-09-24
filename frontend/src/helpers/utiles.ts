@@ -132,3 +132,8 @@ export function nanoToHumanReadable(nanoTimestamp: bigint | null) {
   // Format the date and time
   return date.toLocaleString()
 }
+
+export function formatCyclesToMCycles(cycles: bigint) {
+  const mcycles = cycles / BigInt(1_000_000)
+  return mcycles.toString()
+}

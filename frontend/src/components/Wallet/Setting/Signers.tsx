@@ -56,17 +56,24 @@ const Signers: React.FC<SignerProps> = ({
   const [roles, setRoles] = useState<[bigint, Role][]>([])
   const [selectedRole, setSelectedRole] = useState<bigint>()
 
-  useEffect(() => {
+  const fetchRoles = async () => {
     if (!actor) return
 
+    setLoading(true)
     actor
       .get_roles()
       .then(roles => {
+        setLoading(false)
         setRoles(roles)
       })
       .catch(e => {
+        setLoading(false)
         console.log(e)
       })
+  }
+
+  useEffect(() => {
+    fetchRoles()
   }, [actor])
 
   const errorToast = useToastMessage()
@@ -157,6 +164,7 @@ const Signers: React.FC<SignerProps> = ({
         // Clear the form
         setPrincipal("")
         setSelectedRole(undefined)
+        fetchRoles()
         refetch()
       })
       .catch(e => {
@@ -215,7 +223,10 @@ const Signers: React.FC<SignerProps> = ({
                       <IconButton
                         aria-label="Refresh"
                         icon={<RepeatIcon />}
-                        onClick={refetch}
+                        onClick={() => {
+                          fetchRoles()
+                          refetch()
+                        }}
                         size="xs"
                       />
                     )}
