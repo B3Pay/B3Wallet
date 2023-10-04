@@ -23,3 +23,8 @@ target/
 
 .env
 /wasm/
+
+frontend/declarations/
+Cargo.lock
+package-lock.json
+yarn.lock
