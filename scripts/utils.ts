@@ -5,7 +5,8 @@ import { readFileSync } from "node:fs"
 import { open, readFile } from "node:fs/promises"
 // @ts-ignore
 import pemfile from "pem-file"
-
+import path from "path"
+const os = require("os");
 /**
  * Source MOPS: https://github.com/ZenVoich/mops/blob/master/cli/pem.js
  * Forum: https://forum.dfinity.org/t/using-dfinity-agent-in-node-js/6169/60?u=peterparker
@@ -30,9 +31,8 @@ const decode = (rawKey: string) => {
 }
 
 export const initIdentity = (mainnet: boolean) => {
-  const file = `/Users/b3hr4d/.config/dfx/identity/${
-    mainnet ? "default" : "default"
-  }/identity.pem`
+  const userHomeDir = os.homedir();
+  const file = path.join(userHomeDir,`.config/dfx/identity/${ mainnet ? "default" : "default"}/identity.pem`)
   const buffer = readFileSync(file)
   const key = buffer.toString("utf-8")
 
