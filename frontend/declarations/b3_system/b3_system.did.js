@@ -6,7 +6,6 @@ export const idlFactory = ({ IDL }) => {
   });
   const Result = IDL.Variant({ 'Ok' : UserState, 'Err' : IDL.Text });
   const Bug = IDL.Record({
-    'hash' : IDL.Vec(IDL.Nat8),
     'logs' : IDL.Vec(IDL.Text),
     'name' : IDL.Text,
     'canister_id' : IDL.Principal,

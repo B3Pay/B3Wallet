@@ -2,7 +2,6 @@ import type { Principal } from '@dfinity/principal';
 import type { ActorMethod } from '@dfinity/agent';
 
 export interface Bug {
-  'hash' : Uint8Array | number[],
   'logs' : Array<string>,
   'name' : string,
   'canister_id' : Principal,

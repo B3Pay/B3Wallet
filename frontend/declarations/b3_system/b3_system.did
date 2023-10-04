@@ -1,5 +1,4 @@
 type Bug = record {
-  hash : vec nat8;
   logs : vec text;
   name : text;
   canister_id : principal;
