@@ -19,5 +19,6 @@ module.exports = {
 
     return config
   },
-  output: "export"
+  output: "export",
+  staticPageGenerationTimeout: 10000,
 }
