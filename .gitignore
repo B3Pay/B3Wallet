@@ -28,3 +28,4 @@ frontend/declarations/
 Cargo.lock
 package-lock.json
 yarn.lock
+yarn-error.log
