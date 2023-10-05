@@ -1,0 +1,3 @@
+[submodule "backend/lib/b3_utils"]
+	path = backend/lib/b3_utils
+	url = git@github.com:B3Pay/b3_utils.git
