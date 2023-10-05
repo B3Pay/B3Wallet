@@ -1,7 +1,0 @@
-.dfx
-.env
-target
-build
-node_modules
-declarations
-/Cargo.lock

@@ -1,3 +1,0 @@
-pub const DEVELOPMENT_PREFIX_NUMBER: u8 = 255;
-
-pub const STAGING_PREFIX_NUMBER: u8 = 170;
