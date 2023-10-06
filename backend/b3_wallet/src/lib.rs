@@ -8,8 +8,11 @@ use b3_operations::{
         global::SendToken,
         icp::transfer::IcpTransfer,
         inner::account::{CreateAccount, RemoveAccount, RenameAccount},
-        inner::setting::{UpdateCanisterSettings, UpgradeCanister},
         inner::user::AddUser,
+        inner::{
+            setting::{UpdateCanisterSettings, UpgradeCanister},
+            RemoveUser,
+        },
         Operation, OperationState, OperationTrait,
     },
     pending::RequestArgs,
@@ -744,6 +747,21 @@ fn request_add_signer(
     deadline: Option<NanoTimeStamp>,
 ) -> OperationId {
     log_cycle!("request_add_signer: {:?} with reason: {}", request, reason);
+
+    request_maker(request.into(), reason, deadline)
+}
+
+#[update(guard = "caller_is_admin")]
+fn request_remove_signer(
+    request: RemoveUser,
+    reason: String,
+    deadline: Option<NanoTimeStamp>,
+) -> OperationId {
+    log_cycle!(
+        "request_remove_signer: {:?} with reason: {}",
+        request,
+        reason
+    );
 
     request_maker(request.into(), reason, deadline)
 }

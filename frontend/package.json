@@ -1,6 +1,6 @@
 {
   "name": "b3wallet-frontend",
-  "version": "0.4.9",
+  "version": "0.5.1",
   "author": "b3hr4d",
   "license": "MIT",
   "description": "Wallet and System Canister for the B3Wallet on the Internet Computer",

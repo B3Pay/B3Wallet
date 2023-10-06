@@ -6,10 +6,10 @@ import {
   Text,
   useToast
 } from "@chakra-ui/react"
+import Footer from "components/Footer"
 import Head from "next/head"
 import { useCallback, useState } from "react"
 import Disclaimer from "../components/Disclaimer"
-import { Footer } from "../components/Footer"
 import Header from "../components/Header"
 import Loading from "../components/Loading"
 import System from "../components/System"
