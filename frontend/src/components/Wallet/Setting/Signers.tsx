@@ -250,7 +250,14 @@ const Signers: React.FC<SignerProps> = ({
                       </Thead>
                       <Tbody w="100%">
                         {signerSorted.map(
-                          ({ id, role: { access_level, name } }, index) => (
+                          (
+                            {
+                              id,
+                              name,
+                              role: { access_level, name: roleName }
+                            },
+                            index
+                          ) => (
                             <Tr key={index}>
                               <Td>
                                 <Address
@@ -259,8 +266,9 @@ const Signers: React.FC<SignerProps> = ({
                                   smallest
                                 />
                               </Td>
-                              <Td>{Object.keys(access_level)[0]}</Td>{" "}
-                              {/* Displaying the access level */}
+                              <Td>
+                                {roleName}({Object.keys(access_level)[0]})
+                              </Td>
                               <Td>{name}</Td>
                               <Td>
                                 <CloseButton
