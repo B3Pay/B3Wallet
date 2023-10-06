@@ -69,19 +69,17 @@ const Footer: React.FC<FooterProps> = ({}) => {
       </Card>
       <Card px={2} py={1} height="100%" justify="center" width="64px">
         <Link
-          href="https://internetcomputer.org/"
+          href="https://github.com/B3Pay/b3-wallet"
           target="_blank"
           rel="noopener"
         >
-          <VStack spacing={0.5}>
-            <Box
-              as="img"
-              width={8}
-              height={8}
-              src="/gh-logo.png"
-              alt="github-logo"
-            />
-          </VStack>
+          <Box
+            as="img"
+            width={8}
+            height={8}
+            src="/gh-logo.png"
+            alt="github-logo"
+          />
         </Link>
       </Card>
     </HStack>
