@@ -77,6 +77,7 @@ const Footer: React.FC<FooterProps> = ({}) => {
             as="img"
             width={8}
             height={8}
+            margin="auto"
             src="/gh-logo.png"
             alt="github-logo"
           />
