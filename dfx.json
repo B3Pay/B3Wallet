@@ -208,11 +208,11 @@
       "type": "custom",
       "wasm": ""
     },
-    "wallet_assets": {
+    "frontend": {
       "build": "yarn build",
       "declarations": {
         "node_compatibility": true,
-        "output": "frontend/declarations/wallet_assets"
+        "output": "frontend/declarations/frontend"
       },
       "frontend": {
         "entrypoint": "out/index.html"

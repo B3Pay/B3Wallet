@@ -17,7 +17,7 @@
   "payment_assets": {
     "ic": "b7pqa-qqaaa-aaaap-abdva-cai"
   },
-  "wallet_assets": {
+  "frontend": {
     "ic": "mnrs5-4qaaa-aaaap-abc5a-cai"
   }
 }

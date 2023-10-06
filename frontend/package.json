@@ -20,7 +20,7 @@
     "lint": "next lint",
     "export": "next build",
     "lint:fix": "next lint --fix",
-    "ic:deploy": "dfx deploy wallet_assets --network ic"
+    "ic:deploy": "dfx deploy frontend --network ic"
   },
   "devDependencies": {
     "@types/node": "^20.4.4",
