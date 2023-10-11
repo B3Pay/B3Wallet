@@ -87,7 +87,7 @@ mod tests {
 
     #[test]
     fn test_initial_subaccount() {
-        let subaccount = Subaccount::default();
+        let subaccount = Subaccount::new(Environment::Production, 0);
         assert_eq!(subaccount.environment(), Environment::Production);
         assert_eq!(subaccount.nonce(), 0);
         assert_eq!(subaccount.name(), "Default");

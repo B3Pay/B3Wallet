@@ -40,7 +40,9 @@ impl Storable for WalletState {
 
 impl WalletState {
     pub fn new() -> Self {
-        let default_account = WalletAccount::new(Subaccount::default(), "Main Account".to_owned());
+        let subaccount = Subaccount::new(Environment::Production, 0);
+
+        let default_account = WalletAccount::new(subaccount, "Main Account".to_owned());
 
         let mut accounts = WalletAccountMap::default();
 
@@ -72,7 +74,8 @@ impl WalletState {
             return;
         }
 
-        let mut account = WalletAccount::from(Subaccount::default());
+        let subaccount = Subaccount::new(Environment::Production, 0);
+        let mut account = WalletAccount::from(subaccount);
 
         account.rename("Main Account".to_owned());
 

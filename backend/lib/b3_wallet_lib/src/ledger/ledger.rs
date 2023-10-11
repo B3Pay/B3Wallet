@@ -7,7 +7,7 @@ use super::{
 use crate::ledger::chain::ChainTrait;
 use b3_utils::{
     ledger::{currency::TokenAmount, raw_keccak256},
-    Subaccount,
+    Environment, Subaccount,
 };
 use bitcoin::secp256k1;
 use candid::CandidType;
@@ -25,7 +25,7 @@ impl Default for Ledger {
         Ledger {
             public_key: None,
             chains: ChainMap::default(),
-            subaccount: Subaccount::default(),
+            subaccount: Subaccount::new(Environment::Production, 0),
         }
     }
 }

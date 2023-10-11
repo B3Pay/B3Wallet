@@ -9,7 +9,7 @@ use super::{
     types::{Balance, ChainId, PendingEnum, SendResult},
 };
 use async_trait::async_trait;
-use b3_utils::{ledger::currency::TokenAmount, types::CanisterId, Subaccount};
+use b3_utils::{ledger::currency::TokenAmount, types::CanisterId, Environment, Subaccount};
 use candid::CandidType;
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
@@ -39,7 +39,7 @@ pub enum Chain {
 
 impl Default for Chain {
     fn default() -> Self {
-        Chain::IcpChain(IcpChain::new(Subaccount::default()))
+        Chain::IcpChain(IcpChain::new(Subaccount::new(Environment::Production, 0)))
     }
 }
 
