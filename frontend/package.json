@@ -52,7 +52,7 @@
     "ethers": "^6.6",
     "events": "^3.3",
     "framer-motion": "^10.13",
-    "next": "^13.4",
+    "next": "^13.5",
     "react": "^18.2",
     "react-dom": "^18.2",
     "react-dropzone": "^14.2",
