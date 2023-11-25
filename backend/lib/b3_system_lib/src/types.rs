@@ -1,35 +1,27 @@
 use b3_utils::{
-    ledger::types::WalletVersion,
-    memory::types::DefaultVMMap,
+    ledger::types::{Bug, WalletVersion},
+    memory::types::{Bound, DefaultStableVec, Storable},
     types::{ControllerId, UserId},
-    wasm::{Wasm, WasmHash, WasmSize},
+    wasm::{WasmHash, WasmSize},
     NanoTimeStamp,
 };
-use candid::{CandidType, Deserialize};
-use std::collections::HashMap;
+use candid::CandidType;
+use ciborium::de::from_reader;
+use ciborium::ser::into_writer;
+use serde::{Deserialize, Serialize};
+use std::io::Cursor;
 
-use crate::{release::names::ReleaseNames, user::UserState, wallet::WalletCanister};
+use crate::{user::UserState, wallet::WalletCanister};
 
 pub type UserStates = Vec<UserState>;
 pub type Controllers = Vec<ControllerId>;
 
-pub type Releases = Vec<Release>;
-pub type ReleaseMap = HashMap<ReleaseNames, Vec<Release>>;
+pub type Releases = DefaultStableVec<Release>;
 
 pub type Features = Vec<String>;
 pub type Users = Vec<UserId>;
 
 pub type Canisters = Vec<WalletCanister>;
-
-pub type UserMap = HashMap<UserId, UserState>;
-pub type WasmMap = DefaultVMMap<WalletVersion, Wasm>;
-
-#[derive(CandidType, Deserialize, Clone, Default)]
-pub struct State {
-    pub users: UserMap,
-    pub releases: ReleaseMap,
-    pub controllers: Controllers,
-}
 
 #[derive(CandidType)]
 pub struct LoadRelease {
@@ -38,7 +30,7 @@ pub struct LoadRelease {
     pub version: WalletVersion,
 }
 
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Deserialize, Serialize, Clone)]
 pub struct Release {
     pub name: String,
     pub date: NanoTimeStamp,
@@ -46,7 +38,21 @@ pub struct Release {
     pub hash: WasmHash,
     pub version: WalletVersion,
     pub deprecated: bool,
-    pub features: Option<Features>,
+    pub features: Features,
+}
+
+impl Storable for Release {
+    const BOUND: Bound = Bound::Unbounded;
+
+    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
+        let mut bytes = vec![];
+        into_writer(&self, &mut bytes).unwrap();
+        std::borrow::Cow::Owned(bytes)
+    }
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
+        from_reader(&mut Cursor::new(&bytes)).unwrap()
+    }
 }
 
 #[derive(CandidType, Deserialize, Clone)]
@@ -54,5 +60,36 @@ pub struct ReleaseArgs {
     pub size: usize,
     pub name: String,
     pub version: WalletVersion,
-    pub features: Option<Features>,
+    pub features: Features,
+}
+
+#[derive(CandidType, Deserialize, Serialize, Clone)]
+pub struct WalletBugs(Vec<Bug>);
+
+impl Storable for WalletBugs {
+    const BOUND: Bound = Bound::Unbounded;
+
+    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
+        let mut bytes = vec![];
+        into_writer(&self, &mut bytes).unwrap();
+        std::borrow::Cow::Owned(bytes)
+    }
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
+        from_reader(&mut Cursor::new(&bytes)).unwrap()
+    }
+}
+
+impl WalletBugs {
+    pub fn new() -> Self {
+        Self(Vec::new())
+    }
+
+    pub fn push(&mut self, bug: Bug) {
+        self.0.push(bug);
+    }
+
+    pub fn drain(&mut self) -> Vec<Bug> {
+        self.0.drain(..).collect()
+    }
 }

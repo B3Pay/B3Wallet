@@ -1,14 +1,14 @@
 use crate::{
     error::SystemError,
-    release::names::ReleaseNames,
-    types::{Canisters, Controllers, State, UserStates},
+    store::State,
+    types::{Canisters, UserStates},
     types::{Release, Users},
     user::UserState,
     wallet::WalletCanister,
 };
 use b3_utils::{
     ledger::types::{WalletCanisterInitArgs, WalletCanisterInstallArg},
-    types::{CanisterId, ControllerId, UserId},
+    types::{CanisterId, UserId},
 };
 use ic_cdk::api::management_canister::main::CanisterInstallMode;
 
@@ -33,7 +33,7 @@ impl State {
         user: UserId,
         opt_canister_id: Option<CanisterId>,
     ) -> Result<UserState, SystemError> {
-        if let Some(states) = self.users.get_mut(&user) {
+        if let Some(mut states) = self.users.get(&user) {
             let mut user_state = states.update_rate()?;
 
             if let Some(canister_id) = opt_canister_id {
@@ -59,13 +59,13 @@ impl State {
     }
 
     pub fn user_ids(&self) -> Users {
-        self.users.keys().cloned().collect()
+        self.users.iter().map(|(k, _)| k).collect()
     }
 
     pub fn wallet_canisters(&self) -> Canisters {
         self.users
-            .values()
-            .filter_map(|u| u.canisters().ok())
+            .iter()
+            .map(|(_, v)| v.canisters.clone())
             .flatten()
             .collect()
     }
@@ -73,39 +73,21 @@ impl State {
     pub fn user_state(&self, user_id: UserId) -> Result<UserState, SystemError> {
         self.users
             .get(&user_id)
-            .cloned()
             .ok_or(SystemError::UserNotFound)
+            .map(|state| state.clone())
     }
 
     pub fn user_states(&self) -> UserStates {
-        self.users.values().cloned().collect()
+        self.users.iter().map(|(_, v)| v.clone()).collect()
     }
 
-    pub fn number_of_users(&self) -> usize {
+    pub fn number_of_users(&self) -> u64 {
         self.users.len()
     }
 
-    // controller
-    pub fn get_controllers(&self) -> Controllers {
-        self.controllers.clone()
-    }
-
-    pub fn add_controller(&mut self, controller_id: ControllerId) {
-        self.controllers.push(controller_id);
-    }
-
-    pub fn remove_controller(&mut self, controller_id: ControllerId) {
-        self.controllers.retain(|c| c != &controller_id);
-    }
-
     // release
-    pub fn get_release(&self, name: ReleaseNames, version: &str) -> Result<&Release, SystemError> {
-        let releases = self
-            .releases
-            .get(&name)
-            .ok_or(SystemError::ReleaseNameNotFound)?;
-
-        releases
+    pub fn get_release(&self, version: &str) -> Result<Release, SystemError> {
+        self.releases
             .iter()
             .find(|r| r.version == version)
             .ok_or(SystemError::ReleaseNotFound)
@@ -113,12 +95,11 @@ impl State {
 
     pub fn get_release_install_args(
         &self,
-        name: ReleaseNames,
         version: &str,
         mode: CanisterInstallMode,
         init_args: WalletCanisterInitArgs,
     ) -> Result<WalletCanisterInstallArg, SystemError> {
-        let wasm_module = self.get_release(name, version)?.wasm()?.get();
+        let wasm_module = self.get_release(version)?.wasm()?.get();
 
         let arg = init_args
             .encode()
@@ -131,21 +112,19 @@ impl State {
         })
     }
 
-    pub fn latest_release(&self, name: ReleaseNames) -> Result<&Release, SystemError> {
+    pub fn latest_release(&self) -> Result<Release, SystemError> {
         self.releases
-            .get(&name)
-            .ok_or(SystemError::ReleaseNameNotFound)?
+            .iter()
             .last()
             .ok_or(SystemError::ReleaseNotFound)
     }
 
     pub fn get_latest_install_args(
         &self,
-        name: ReleaseNames,
         mode: CanisterInstallMode,
         init_args: WalletCanisterInitArgs,
     ) -> Result<WalletCanisterInstallArg, SystemError> {
-        let wasm_module = self.latest_release(name)?.wasm()?.get();
+        let wasm_module = self.latest_release()?.wasm()?.get();
 
         let arg = init_args
             .encode()

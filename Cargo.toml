@@ -9,8 +9,9 @@ members = [
 
 [workspace.dependencies]
 serde = "1"
-candid = "0.9"
-ic-cdk = "0.11"
+candid = "0.10"
+ic-cdk = "0.12"
 async-trait = "0.1"
 enum_dispatch = "0.3"
+ciborium = "0.2"
 b3_utils = { path = "backend/lib/b3_utils" }

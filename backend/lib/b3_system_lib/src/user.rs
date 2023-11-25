@@ -1,16 +1,21 @@
 use crate::{error::SystemError, types::Canisters, wallet::WalletCanister};
 use b3_utils::{
     ledger::constants::SYSTEM_RATE_LIMIT,
+    memory::types::{Bound, Storable},
     types::{CanisterId, ControllerId},
     NanoTimeStamp,
 };
-use candid::{CandidType, Deserialize};
+use candid::CandidType;
+use ciborium::de::from_reader;
+use ciborium::ser::into_writer;
 use ic_cdk::api::management_canister::{
     main::{create_canister, CreateCanisterArgument},
     provisional::CanisterSettings,
 };
+use serde::{Deserialize, Serialize};
+use std::io::Cursor;
 
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Deserialize, Serialize, Clone)]
 pub struct UserState {
     pub canisters: Vec<WalletCanister>,
     pub created_at: NanoTimeStamp,
@@ -24,6 +29,20 @@ impl From<WalletCanister> for UserState {
             updated_at: NanoTimeStamp::now(),
             created_at: NanoTimeStamp::now(),
         }
+    }
+}
+
+impl Storable for UserState {
+    const BOUND: Bound = Bound::Unbounded;
+
+    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
+        let mut bytes = vec![];
+        into_writer(&self, &mut bytes).unwrap();
+        std::borrow::Cow::Owned(bytes)
+    }
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
+        from_reader(&mut Cursor::new(&bytes)).unwrap()
     }
 }
 

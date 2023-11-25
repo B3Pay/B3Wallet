@@ -98,12 +98,12 @@ fn init() {
             // if the canister is created by the system canister, the system canister
             // is added as trusted Canister
             signers.insert(
-                system_id,
+                system_id.into(),
                 User::new(read_only_role.clone(), "System".to_owned(), None),
             );
             owner_id
         }
-        None => ic_cdk::caller(),
+        None => ic_cdk::caller().into(),
     };
 
     signers.insert(
@@ -575,7 +575,7 @@ async fn response(request_id: OperationId, answer: Response) -> Result<Processed
             return Ok(request.clone());
         }
 
-        match request.response(caller, answer) {
+        match request.response(caller.into(), answer) {
             Ok(_) => Ok(request.clone()),
             Err(err) => throw_log!("{}", err),
         }
@@ -704,7 +704,7 @@ fn get_pending_list() -> PendingOperations {
 fn is_connected() -> bool {
     let caller = ic_cdk::caller();
 
-    with_verified_user(caller, |signer| signer.is_canister()).is_ok()
+    with_verified_user(caller.into(), |signer| signer.is_canister()).is_ok()
 }
 
 // UPDATE ---------------------------------------------------------------------
@@ -719,7 +719,7 @@ fn request_maker(
     let caller = ic_cdk::caller();
 
     let allowed_signers = with_users_who_can_operate(&request, |signer_ids| {
-        if !signer_ids.contains(&caller) {
+        if !signer_ids.contains(&caller.into()) {
             return panic_log(OperationError::AccessDenied);
         }
 
@@ -735,7 +735,7 @@ fn request_maker(
     };
 
     with_operation_mut(|s| {
-        let new_request = s.new_request(caller, request_args);
+        let new_request = s.new_request(caller.into(), request_args);
         s.add(new_request)
     })
 }
@@ -770,7 +770,7 @@ fn request_remove_signer(
 fn request_connect(name: String) -> OperationId {
     log_cycle!("request_connect: {}", name);
 
-    let signer_id = ic_cdk::caller();
+    let signer_id: UserId = ic_cdk::caller().into();
 
     let request = AddUser {
         role: Role::new(name.clone(), AccessLevel::Canister),

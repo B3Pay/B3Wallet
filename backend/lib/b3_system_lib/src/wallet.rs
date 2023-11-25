@@ -5,13 +5,14 @@ use b3_utils::{
     types::{CanisterId, UserId},
     wasm::WasmHash,
 };
-use candid::{CandidType, Deserialize};
+use candid::CandidType;
 use ic_cdk::api::management_canister::{
     main::{install_code, update_settings, InstallCodeArgument, UpdateSettingsArgument},
     provisional::CanisterSettings,
 };
+use serde::{Deserialize, Serialize};
 
-#[derive(CandidType, Deserialize, PartialEq, Clone)]
+#[derive(CandidType, Deserialize, Serialize, PartialEq, Clone)]
 pub struct WalletCanister(CanisterId);
 
 impl From<CanisterId> for WalletCanister {

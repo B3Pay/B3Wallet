@@ -3,8 +3,6 @@ use b3_utils::{
     NanoTimeStamp,
 };
 
-pub mod names;
-
 use crate::{
     error::SystemError,
     store::{with_release_wasm, with_wasm_map_mut},
@@ -20,7 +18,7 @@ impl Default for Release {
             size: 0,
             hash: WasmHash::default(),
             deprecated: false,
-            features: None,
+            features: vec!["".to_string()],
         }
     }
 }
@@ -111,22 +109,10 @@ impl Release {
     }
 
     pub fn add_feature(&mut self, feature: String) {
-        match &mut self.features {
-            Some(features) => features.push(feature),
-            None => self.features = Some(vec![feature]),
-        }
+        self.features.push(feature);
     }
 
-    pub fn remove_feature(&mut self, feature: &str) {
-        match &mut self.features {
-            Some(features) => {
-                let index = features.iter().position(|f| f == feature);
-
-                if let Some(index) = index {
-                    features.remove(index);
-                }
-            }
-            None => {}
-        }
+    pub fn remove_feature(&mut self, feature: String) {
+        self.features.retain(|f| f != &feature);
     }
 }

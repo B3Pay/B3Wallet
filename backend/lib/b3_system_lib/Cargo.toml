@@ -4,6 +4,7 @@ version = "0.2.0"
 edition = "2021"
 
 [dependencies]
+ciborium = { workspace = true }
 serde = { workspace = true }
 candid = { workspace = true }
 ic-cdk = { workspace = true }
