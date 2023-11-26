@@ -1,12 +1,12 @@
 use b3_system_lib::{
     error::SystemError,
     store::{
-        with_bugs, with_bugs_mut, with_canister_bugs_mut, with_hash_release, with_latest_release,
-        with_release, with_release_mut, with_releases, with_releases_mut, with_state,
-        with_state_mut, with_user_state, with_user_state_mut, with_users_mut, with_version_release,
-        with_version_release_mut, with_wallet_canister,
+        with_bugs_mut, with_canister_bugs, with_canister_bugs_mut, with_hash_release,
+        with_latest_version_release, with_release, with_release_mut, with_releases,
+        with_releases_mut, with_state, with_state_mut, with_user_state, with_user_state_mut,
+        with_wallet_canister,
     },
-    types::{Canisters, LoadRelease, Release, ReleaseArgs, Releases, UserStates},
+    types::{Canisters, LoadRelease, Release, ReleaseArgs, UserStates, WalletBugs},
     user::UserState,
     wallet::WalletCanister,
 };
@@ -17,7 +17,7 @@ use b3_utils::{
     ledger::types::{Bug, SystemCanisterStatus, WalletCanisterInitArgs, WalletVersion},
     principal::StoredPrincipal,
     revert,
-    types::{CanisterId, ControllerId, UserId},
+    types::{CanisterId, UserId},
     wasm::{Blob, WasmHash},
     NanoTimeStamp,
 };
@@ -65,18 +65,16 @@ fn report_bug(bug: Bug) {
     with_canister_bugs_mut(&caller_id, |bugs| bugs.push(bug)).unwrap_or_else(revert);
 }
 
-#[update]
+#[update(guard = "caller_is_controller")]
 fn clear_bugs() {
-    with_bugs_mut(|bugs| {
-        bugs.iter().for_each(|_| {
-            bugs.clear();
-        })
-    });
+    with_bugs_mut(|bugs| bugs.clear());
 }
 
 #[query(guard = "caller_is_controller")]
-fn get_bugs() -> Vec<Bug> {
-    with_bugs(|bugs| bugs.iter().map(|b| b.clone()).collect())
+fn get_bugs(canister_id: CanisterId) -> WalletBugs {
+    let canister_id: StoredPrincipal = canister_id.into();
+
+    with_canister_bugs(&canister_id, |bugs| bugs.clone()).unwrap_or_else(revert)
 }
 
 #[update(guard = "caller_is_controller")]
@@ -96,17 +94,17 @@ async fn get_canister_version_by_user(user_id: UserId, index: usize) -> WalletVe
 #[update]
 async fn create_wallet_canister() -> Result<UserState, String> {
     let system_id = ic_cdk::id();
-    let caller_id = ic_cdk::caller();
-    let owner_id: UserId = caller_id.into();
+    let owner_id = ic_cdk::caller();
+    let user_id: UserId = owner_id.into();
 
-    let mut user_state = with_state_mut(|s| s.init_user(owner_id.clone())).unwrap_or_else(revert);
+    let mut user_state = with_state_mut(|s| s.init_user(user_id.clone())).unwrap_or_else(revert);
 
     let wallet_canister = user_state
-        .create_with_cycles(vec![caller_id, system_id], CREATE_WALLET_CANISTER_CYCLES)
+        .create_with_cycles(vec![owner_id, system_id], CREATE_WALLET_CANISTER_CYCLES)
         .await
         .unwrap_or_else(revert);
 
-    with_state_mut(|s| s.add_user(owner_id.clone(), user_state.clone()));
+    with_state_mut(|s| s.add_user(user_id, user_state.clone()));
 
     let init_args = WalletCanisterInitArgs {
         owner_id,
@@ -124,7 +122,7 @@ async fn create_wallet_canister() -> Result<UserState, String> {
             // Update the controllers, and add canister id as controller of itself.
             // this enables the canister to update itself.
             let update_result = wallet_canister
-                .add_controllers(vec![caller_id, system_id])
+                .add_controllers(vec![owner_id, system_id])
                 .await;
 
             match (install_result, update_result) {
@@ -140,12 +138,12 @@ async fn create_wallet_canister() -> Result<UserState, String> {
 #[update]
 async fn install_wallet_canister(canister_id: CanisterId) -> Result<UserState, String> {
     let system_id = ic_cdk::id();
-    let caller_id = ic_cdk::caller();
+    let owner_id = ic_cdk::caller();
 
-    let owner_id: UserId = caller_id.into();
+    let user_id: UserId = owner_id.into();
 
-    let user_state = with_state_mut(|s| s.get_or_init_user(owner_id.clone(), Some(canister_id)))
-        .unwrap_or_else(revert);
+    let user_state =
+        with_state_mut(|s| s.get_or_init_user(user_id, Some(canister_id))).unwrap_or_else(revert);
 
     let init_args = WalletCanisterInitArgs {
         owner_id,
@@ -171,7 +169,7 @@ async fn install_wallet_canister(canister_id: CanisterId) -> Result<UserState, S
             // Update the controllers, and add the user and canister id as controller of itself.
             // this enables the canister to update itself.
             let update_result = wallet_canister
-                .add_controllers(vec![caller_id, system_id])
+                .add_controllers(vec![owner_id, system_id])
                 .await;
 
             match (install_result, update_result) {
@@ -206,7 +204,8 @@ async fn add_wallet_canister(canister_id: CanisterId) {
 fn change_wallet_canister(canister_id: CanisterId, index: usize) {
     let user_id: UserId = ic_cdk::caller().into();
 
-    with_user_state_mut(&user_id, |s| s.change_canister(index, canister_id)).unwrap_or_else(revert);
+    with_user_state_mut(&user_id, |rs| rs.change_canister(index, canister_id))
+        .unwrap_or_else(revert);
 }
 
 #[update(guard = "caller_is_controller")]
@@ -214,30 +213,19 @@ fn remove_wallet_canister(user_id: UserId) {
     with_state_mut(|s| s.remove_user(&user_id));
 }
 
-// TODO: remove this method
-#[update(guard = "caller_is_controller")]
-fn reset_users() {
-    with_users_mut(|s| s.clear());
-}
-
 #[query]
 fn releases() -> Vec<Release> {
-    with_releases(|r| r.iter().collect())
+    with_releases(|r| r.iter().map(|(_, release)| release.clone()).collect())
 }
 
 #[query]
 fn latest_release() -> Release {
-    with_latest_release(|r| r.clone()).unwrap_or_else(revert)
+    with_latest_version_release(|(_, v)| v.clone()).unwrap_or_else(revert)
 }
 
 #[query]
 pub fn get_release(version: WalletVersion) -> Release {
-    with_version_release(version, |r| r.clone()).unwrap_or_else(revert)
-}
-
-#[query]
-pub fn get_release_by_index(index: u64) -> Release {
-    with_release(index, |r| r.clone()).unwrap_or_else(revert)
+    with_release(&version, |r| r.clone()).unwrap_or_else(revert)
 }
 
 #[query]
@@ -248,10 +236,10 @@ pub fn get_release_by_hash_string(hash: WasmHash) -> Release {
 // UPDATE CALLS
 
 #[update(guard = "caller_is_controller")]
-fn update_release(name: String, release_args: ReleaseArgs) {
+fn update_release(release_args: ReleaseArgs) {
     let version = release_args.version.clone();
 
-    with_version_release_mut(version, |vrs| {
+    with_release_mut(&version, |vrs| {
         vrs.update(release_args);
     })
     .unwrap_or_else(revert)
@@ -261,18 +249,14 @@ fn update_release(name: String, release_args: ReleaseArgs) {
 fn load_release(blob: Blob, release_args: ReleaseArgs) -> LoadRelease {
     let version = release_args.version.clone();
 
-    let release_index =
-        with_releases_mut(|rs| match rs.iter().position(|r| r.version == version) {
-            Some(index) => index,
-            None => {
-                let release = Release::new(release_args);
-                rs.push(release);
+    with_releases_mut(|vrs| match vrs.get(&version) {
+        Some(_) => {}
+        None => {
+            vrs.insert(version.clone(), Release::new(release_args));
+        }
+    });
 
-                rs.len() - 1
-            }
-        });
-
-    let total = with_release_mut(release_index, |r| r.load_wasm(&blob).unwrap_or_else(revert))
+    let total = with_release_mut(&version, |rs| rs.load_wasm(&blob).unwrap_or_else(revert))
         .unwrap_or_else(revert);
 
     let chunks = blob.len();
@@ -286,45 +270,23 @@ fn load_release(blob: Blob, release_args: ReleaseArgs) -> LoadRelease {
 
 #[update(guard = "caller_is_controller")]
 pub fn remove_release(version: WalletVersion) -> Release {
-    with_releases_mut(|rs| match rs.iter().position(|r| r.version == version) {
-        Some(index) => Ok(rs.remove(index)),
-        None => Err(SystemError::ReleaseNotFound),
-    })
-    .unwrap_or_else(revert)
+    with_releases_mut(|vrs| vrs.remove(&version))
+        .unwrap_or_else(|| revert(SystemError::ReleaseNotFound))
 }
 
 #[update(guard = "caller_is_controller")]
 fn remove_latest_release() {
-    with_releases_mut(|rs| {
-        rs.pop();
-    })
+    let latest_version = with_latest_version_release(|(version, _)| version).unwrap_or_else(revert);
+
+    remove_release(latest_version);
 }
 
 #[update(guard = "caller_is_controller")]
 fn deprecate_release(version: WalletVersion) {
-    with_version_release_mut(version, |vrs| {
+    with_release_mut(&version, |vrs| {
         vrs.deprecate();
     })
     .unwrap_or_else(revert)
-}
-
-#[query(guard = "caller_is_controller")]
-fn get_controllers() -> Vec<ControllerId> {
-    with_state(|s| s.get_controllers())
-}
-
-#[update(guard = "caller_is_controller")]
-fn add_controller(controller_id: ControllerId) {
-    with_state_mut(|s| {
-        s.add_controller(controller_id);
-    });
-}
-
-#[update(guard = "caller_is_controller")]
-fn remove_controller(controller_id: ControllerId) {
-    with_state_mut(|s| {
-        s.remove_controller(controller_id);
-    });
 }
 
 #[update(guard = "caller_is_controller")]
@@ -339,7 +301,6 @@ pub async fn status() -> SystemCanisterStatus {
     let status_at = NanoTimeStamp::now();
 
     SystemCanisterStatus {
-        canister_id,
         version,
         status_at,
         user_status,

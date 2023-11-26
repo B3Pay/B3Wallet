@@ -2,7 +2,7 @@ use crate::{
     error::SystemError,
     store::State,
     types::{Canisters, UserStates},
-    types::{Release, Users},
+    types::{Release, ReleaseVersion, Users},
     user::UserState,
     wallet::WalletCanister,
 };
@@ -86,16 +86,15 @@ impl State {
     }
 
     // release
-    pub fn get_release(&self, version: &str) -> Result<Release, SystemError> {
+    pub fn get_release(&self, version: &ReleaseVersion) -> Result<Release, SystemError> {
         self.releases
-            .iter()
-            .find(|r| r.version == version)
+            .get(version)
             .ok_or(SystemError::ReleaseNotFound)
     }
 
     pub fn get_release_install_args(
         &self,
-        version: &str,
+        version: &ReleaseVersion,
         mode: CanisterInstallMode,
         init_args: WalletCanisterInitArgs,
     ) -> Result<WalletCanisterInstallArg, SystemError> {
@@ -114,9 +113,9 @@ impl State {
 
     pub fn latest_release(&self) -> Result<Release, SystemError> {
         self.releases
-            .iter()
-            .last()
+            .last_key_value()
             .ok_or(SystemError::ReleaseNotFound)
+            .map(|(_, release)| release)
     }
 
     pub fn get_latest_install_args(

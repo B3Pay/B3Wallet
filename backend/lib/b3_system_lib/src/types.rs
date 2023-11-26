@@ -1,6 +1,6 @@
 use b3_utils::{
     ledger::types::{Bug, WalletVersion},
-    memory::types::{Bound, DefaultStableVec, Storable},
+    memory::types::{Bound, Storable},
     types::{ControllerId, UserId},
     wasm::{WasmHash, WasmSize},
     NanoTimeStamp,
@@ -13,10 +13,10 @@ use std::io::Cursor;
 
 use crate::{user::UserState, wallet::WalletCanister};
 
+pub type ReleaseVersion = String;
+
 pub type UserStates = Vec<UserState>;
 pub type Controllers = Vec<ControllerId>;
-
-pub type Releases = DefaultStableVec<Release>;
 
 pub type Features = Vec<String>;
 pub type Users = Vec<UserId>;
@@ -59,7 +59,7 @@ impl Storable for Release {
 pub struct ReleaseArgs {
     pub size: usize,
     pub name: String,
-    pub version: WalletVersion,
+    pub version: ReleaseVersion,
     pub features: Features,
 }
 

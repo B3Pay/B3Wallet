@@ -103,11 +103,11 @@ fn init() {
             );
             owner_id
         }
-        None => ic_cdk::caller().into(),
+        None => ic_cdk::caller(),
     };
 
     signers.insert(
-        owner_id,
+        owner_id.into(),
         User::new(owner_role.clone(), "Owner".to_owned(), None),
     );
 
@@ -776,7 +776,7 @@ fn request_connect(name: String) -> OperationId {
         role: Role::new(name.clone(), AccessLevel::Canister),
         expires_at: None,
         threshold: None,
-        signer_id,
+        signer_id: signer_id.clone(),
         name,
     };
 

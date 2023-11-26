@@ -1,6 +1,6 @@
 use crate::{
     error::SystemError,
-    types::{Release, Releases, WalletBugs},
+    types::{Release, ReleaseVersion, WalletBugs},
     user::UserState,
     wallet::WalletCanister,
 };
@@ -15,14 +15,16 @@ use b3_utils::{
 
 use std::cell::RefCell;
 
+pub type UserMap = DefaultStableBTreeMap<UserId, UserState>;
+pub type Releases = DefaultStableBTreeMap<ReleaseVersion, Release>;
+
+pub type WasmMap = DefaultStableBTreeMap<WalletVersion, Wasm>;
+pub type BugMap = DefaultStableBTreeMap<StoredPrincipal, WalletBugs>;
+
 pub struct State {
     pub users: UserMap,
     pub releases: Releases,
 }
-
-pub type UserMap = DefaultStableBTreeMap<UserId, UserState>;
-pub type WasmMap = DefaultStableBTreeMap<WalletVersion, Wasm>;
-pub type BugMap = DefaultStableBTreeMap<StoredPrincipal, WalletBugs>;
 
 thread_local! {
     static STATE: RefCell<State> = RefCell::new(
@@ -32,17 +34,17 @@ thread_local! {
         }
     );
     static WASM_MAP: RefCell<WasmMap> = init_stable_mem_refcell("wasm_map", 10).unwrap();
-    static BUGS: RefCell<BugMap> = init_stable_mem_refcell("bug_map", 11).unwrap();
+    static BUG_MAP: RefCell<BugMap> = init_stable_mem_refcell("bug_map", 11).unwrap();
 }
 
 // STATE
 
 pub fn with_state<R>(f: impl FnOnce(&State) -> R) -> R {
-    STATE.with(|state| f(&state.borrow()))
+    STATE.with(|state| f(&*state.borrow()))
 }
 
 pub fn with_state_mut<R>(f: impl FnOnce(&mut State) -> R) -> R {
-    STATE.with(|state| f(&mut state.borrow_mut()))
+    STATE.with(|state| f(&mut *state.borrow_mut()))
 }
 
 // RELEASE
@@ -55,53 +57,27 @@ pub fn with_releases_mut<R>(f: impl FnOnce(&mut Releases) -> R) -> R {
     with_state_mut(|state| f(&mut state.releases))
 }
 
-pub fn with_release<F, T>(index: u64, f: F) -> Result<T, SystemError>
+pub fn with_release<F, T>(version: &ReleaseVersion, f: F) -> Result<T, SystemError>
 where
     F: FnOnce(Release) -> T,
 {
     with_releases(|releases| {
         releases
-            .get(index)
+            .get(version)
             .ok_or(SystemError::ReleaseNotFound)
             .map(f)
     })
 }
 
-pub fn with_release_mut<F, T>(index: u64, f: F) -> Result<T, SystemError>
+pub fn with_release_mut<F, T>(version: &ReleaseVersion, f: F) -> Result<T, SystemError>
 where
-    F: FnOnce(Release) -> T,
+    F: FnOnce(&mut Release) -> T,
 {
     with_releases_mut(|releases| {
         releases
-            .get(index)
+            .get(version)
             .ok_or(SystemError::ReleaseNotFound)
-            .map(f)
-    })
-}
-
-pub fn with_version_release<F, T>(version: String, f: F) -> Result<T, SystemError>
-where
-    F: FnOnce(Release) -> T,
-{
-    with_releases(|releases| {
-        releases
-            .iter()
-            .find(|release| release.version == version)
-            .ok_or(SystemError::ReleaseNotFound)
-            .map(f)
-    })
-}
-
-pub fn with_version_release_mut<F, T>(version: String, f: F) -> Result<T, SystemError>
-where
-    F: FnOnce(Release) -> T,
-{
-    with_releases_mut(|releases| {
-        releases
-            .iter()
-            .find(|release| release.version == version)
-            .ok_or(SystemError::ReleaseNotFound)
-            .map(f)
+            .map(|mut release| f(&mut release))
     })
 }
 
@@ -112,23 +88,19 @@ where
     with_releases(|releases| {
         releases
             .iter()
-            .find(|release| release.hash == hash)
+            .find(|(_, release)| release.hash == hash)
             .ok_or(SystemError::ReleaseNotFound)
-            .map(f)
+            .map(|(_, release)| f(release.clone()))
     })
 }
 
-pub fn with_latest_release<F, T>(f: F) -> Result<T, SystemError>
+pub fn with_latest_version_release<F, T>(f: F) -> Result<T, SystemError>
 where
-    F: FnOnce(Release) -> T,
+    F: FnOnce((ReleaseVersion, Release)) -> T,
 {
-    with_releases(|releases| {
-        releases
-            .iter()
-            .last()
-            .ok_or(SystemError::ReleaseNotFound)
-            .map(f)
-    })
+    with_releases(|releases| releases.last_key_value())
+        .ok_or(SystemError::ReleaseNotFound)
+        .map(f)
 }
 
 // SIGNER
@@ -155,9 +127,14 @@ where
 
 pub fn with_user_state_mut<F, T>(user_id: &UserId, f: F) -> Result<T, SystemError>
 where
-    F: FnOnce(UserState) -> T,
+    F: FnOnce(&mut UserState) -> T,
 {
-    with_users_mut(|signers| signers.get(user_id).ok_or(SystemError::UserNotFound).map(f))
+    with_users_mut(|signers| {
+        signers
+            .get(user_id)
+            .ok_or(SystemError::UserNotFound)
+            .map(|mut user| f(&mut user))
+    })
 }
 
 pub fn with_wallet_canister<F, T>(user_id: UserId, index: usize, f: F) -> Result<T, SystemError>
@@ -202,11 +179,11 @@ where
 }
 
 pub fn with_bugs<R>(f: impl FnOnce(&BugMap) -> R) -> R {
-    BUGS.with(|bugs| f(&*bugs.borrow()))
+    BUG_MAP.with(|bugs| f(&bugs.borrow()))
 }
 
 pub fn with_bugs_mut<R>(f: impl FnOnce(&mut BugMap) -> R) -> R {
-    BUGS.with(|bugs| f(&mut *bugs.borrow_mut()))
+    BUG_MAP.with(|bugs| f(&mut *bugs.borrow_mut()))
 }
 
 pub fn with_canister_bugs<F, T>(canister_id: &StoredPrincipal, f: F) -> Result<T, SystemError>
@@ -222,12 +199,12 @@ where
 
 pub fn with_canister_bugs_mut<F, T>(canister_id: &StoredPrincipal, f: F) -> Result<T, SystemError>
 where
-    F: FnOnce(WalletBugs) -> T,
+    F: FnOnce(&mut WalletBugs) -> T,
 {
     with_bugs_mut(|bugs| {
         bugs.get(canister_id)
             .ok_or(SystemError::BugsNotFound)
-            .map(f)
+            .map(|mut bugs| f(&mut bugs))
     })
 }
 
@@ -244,11 +221,11 @@ where
 
 pub fn with_release_bugs_mut<F, T>(canister_id: &StoredPrincipal, f: F) -> Result<T, SystemError>
 where
-    F: FnOnce(WalletBugs) -> T,
+    F: FnOnce(&mut WalletBugs) -> T,
 {
     with_bugs_mut(|bugs| {
         bugs.get(canister_id)
             .ok_or(SystemError::BugsNotFound)
-            .map(f)
+            .map(|mut bugs| f(&mut bugs))
     })
 }
