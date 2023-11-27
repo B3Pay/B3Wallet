@@ -33,7 +33,6 @@ const walletPrincipalIC = () => {
 export const icAgent = () => {
   const identity = initIdentity(true)
 
-  // @ts-ignore
   return new HttpAgent({ identity, host: "https://icp0.io" })
 }
 
@@ -41,9 +40,8 @@ export const localAgent = async () => {
   const identity = initIdentity(false)
 
   const agent = new HttpAgent({
-    // @ts-ignore
     identity,
-    host: "http://127.0.0.1:8080/"
+    host: "http://127.0.0.1:4943/"
   })
 
   await agent.fetchRootKey()

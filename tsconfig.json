@@ -1,4 +1,10 @@
 {
+  "ts-node": {
+    "compilerOptions": {
+      "module": "commonjs"
+    },
+    "files": true
+  },
   "compilerOptions": {
     "target": "ESNext",
     "lib": ["dom", "dom.iterable", "esnext"],
@@ -23,6 +29,14 @@
       "*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "src/**/*"],
+  "include": [
+    "src/**/*",
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.wasm",
+    ".next/types/**/*.ts",
+    "scripts/*.ts"
+  ],
   "exclude": ["node_modules", "out"]
 }

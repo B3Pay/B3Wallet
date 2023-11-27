@@ -2,8 +2,8 @@ import Head from "next/head"
 
 import styles from "styles/Home.module.css"
 
-import Greeting from "components/Greeting"
 import Login from "components/Login"
+import System from "components/System"
 import Image from "next/image"
 
 function HomePage() {
@@ -17,7 +17,7 @@ function HomePage() {
           Welcome to the Internet Computer starter template
         </h3>
         <Login />
-        <Greeting />
+        <System />
       </main>
       <footer className={styles.footer}>
         <a

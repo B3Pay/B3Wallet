@@ -1,6 +1,6 @@
 import { IcrcLedgerCanister } from "@dfinity/ledger"
-import { ICPToken, TokenAmount } from "@dfinity/nns"
 import { Principal } from "@dfinity/principal"
+import { ICPToken, TokenAmount } from "@dfinity/utils"
 import { icAgent, localAgent } from "./actor"
 import { NNS_LEDGER } from "./env"
 import { accountIdentifier } from "./ledger.utils"

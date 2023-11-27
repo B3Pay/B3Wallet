@@ -16,7 +16,7 @@ const useAuth = () => {
       setIsAuthenticated(true)
     } else {
       const identityProvider = IS_LOCAL
-        ? `http://${IDENTITY_CANISTER_ID}.localhost:8080`
+        ? `http://${IDENTITY_CANISTER_ID}.localhost:4943`
         : "https://identity.ic0.app/#authorize"
 
       const maxTimeToLive = 24n * 60n * 60n * 1000n * 1000n * 1000n

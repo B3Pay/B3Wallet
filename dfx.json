@@ -5,7 +5,7 @@
       "candid": "backend/b3_system/b3_system.did",
       "declarations": {
         "node_compatibility": true,
-        "output": "frontend/declarations/b3_system"
+        "output": "src/declarations/b3_system"
       },
       "package": "b3_system",
       "type": "custom",
@@ -16,7 +16,7 @@
       "candid": "backend/b3_wallet/b3_wallet.did",
       "declarations": {
         "node_compatibility": true,
-        "output": "frontend/declarations/b3_wallet"
+        "output": "src/declarations/b3_wallet"
       },
       "package": "b3_wallet",
       "type": "custom",
@@ -29,7 +29,7 @@
       "candid": "wasm/ckbtc/ledger.did",
       "declarations": {
         "node_compatibility": true,
-        "output": "frontend/declarations/ckbtc"
+        "output": "src/declarations/ckbtc"
       },
       "remote": {
         "id": {
@@ -43,7 +43,7 @@
       "build": "yarn build",
       "declarations": {
         "node_compatibility": true,
-        "output": "frontend/declarations/frontend"
+        "output": "src/declarations/frontend"
       },
       "frontend": {
         "entrypoint": "out/index.html"
@@ -60,7 +60,7 @@
       "candid": "wasm/index/index.did",
       "declarations": {
         "node_compatibility": true,
-        "output": "frontend/declarations/index"
+        "output": "src/declarations/index"
       },
       "remote": {
         "id": {
@@ -81,7 +81,7 @@
       "candid": "wasm/kyt/kyt.did",
       "declarations": {
         "node_compatibility": true,
-        "output": "frontend/declarations/kyt"
+        "output": "src/declarations/kyt"
       },
       "remote": {
         "id": {
@@ -98,7 +98,7 @@
       "candid": "wasm/minter/minter.did",
       "declarations": {
         "node_compatibility": true,
-        "output": "frontend/declarations/minter"
+        "output": "src/declarations/minter"
       },
       "remote": {
         "id": {

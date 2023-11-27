@@ -4,7 +4,7 @@ const envList = require("dotenv").config({ path: "../.env" }).parsed
 const { version } = require("../package.json")
 
 envList.NEXT_PUBLIC_IC_HOST =
-  envList.DFX_NETWORK === "ic" ? "https://ic0.app" : "http://localhost:8080"
+  envList.DFX_NETWORK === "ic" ? "https://ic0.app" : "http://localhost:4943"
 
 console.log("network", envList.DFX_NETWORK)
 
@@ -20,5 +20,5 @@ module.exports = {
     return config
   },
   output: "export",
-  staticPageGenerationTimeout: 10000,
+  staticPageGenerationTimeout: 10000
 }

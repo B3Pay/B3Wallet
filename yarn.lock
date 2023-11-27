@@ -82,15 +82,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dfinity/ledger@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "@dfinity/ledger@npm:1.0.0"
+"@dfinity/ledger-icp@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@dfinity/ledger-icp@npm:2.0.0"
   peerDependencies:
     "@dfinity/agent": ^0.19.2
     "@dfinity/candid": ^0.19.2
+    "@dfinity/nns-proto": ^1.0.0
     "@dfinity/principal": ^0.19.2
     "@dfinity/utils": ^1.0.0
-  checksum: a932ab5e9b2d2d9d85bf148fd3133cae319113976574d3e062cd432aa6f18d4a10352d41e43242586dd899bf4844f6ba9c963d11f8238df9deb6678861f0b412
+  checksum: 94807a71a4244ccc95a0e2e5f5eb0b6a41939dbd17a5fcf965238ec78b70150852b70e743e6f4c9ac11c0c1533b61906e460c07c4dc4ac287e46acb331e1d2e3
   languageName: node
   linkType: hard
 
@@ -120,7 +121,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dfinity/utils@npm:^1.1":
+"@dfinity/utils@npm:^1.1.0":
   version: 1.1.0
   resolution: "@dfinity/utils@npm:1.1.0"
   peerDependencies:
@@ -542,10 +543,10 @@ __metadata:
     "@dfinity/candid": "npm:^0.20"
     "@dfinity/identity": "npm:^0.20"
     "@dfinity/identity-secp256k1": "npm:^0.20"
-    "@dfinity/ledger": "npm:^1.0.0"
+    "@dfinity/ledger-icp": "npm:^2.0.0"
     "@dfinity/nns": "npm:^3.0.0"
     "@dfinity/principal": "npm:^0.20"
-    "@dfinity/utils": "npm:^1.1"
+    "@dfinity/utils": "npm:^1.1.0"
     "@re-actor/core": "npm:^0.2.1"
     "@types/node": "npm:^18.15.13"
     "@types/node-fetch": "npm:^2.6.3"

@@ -19,7 +19,7 @@ const loadRelease = async (
   }
 
   for await (const chunks of chunkGenerator(wasmModule)) {
-    const result = await actor.load_release(wallet, chunks, release)
+    const result = await actor.load_release(chunks, release)
 
     console.log(`Chunks :`, result)
   }
@@ -47,7 +47,7 @@ export const load = async (
 
   if (reload) {
     try {
-      await actor.remove_release(wallet, versionName)
+      await actor.remove_release(versionName)
     } catch (e) {
       console.error(`Error removing release:`, wallet, versionName)
     }

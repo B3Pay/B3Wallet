@@ -3,10 +3,11 @@ import { Secp256k1KeyIdentity } from "@dfinity/identity-secp256k1"
 
 import { readFileSync } from "node:fs"
 import { open, readFile } from "node:fs/promises"
-// @ts-ignore
-import pemfile from "pem-file"
 import path from "path"
-const os = require("os");
+
+const pemfile = require("pem-file")
+const os = require("os")
+
 /**
  * Source MOPS: https://github.com/ZenVoich/mops/blob/master/cli/pem.js
  * Forum: https://forum.dfinity.org/t/using-dfinity-agent-in-node-js/6169/60?u=peterparker
@@ -26,13 +27,16 @@ const decode = (rawKey: string) => {
     throw Error("expecting byte length 85 but got " + buf.length)
   }
 
-  const secretKey = Buffer.concat([buf.slice(16, 48), buf.slice(53, 85)])
+  const secretKey = Buffer.concat([buf.slice(16, 48)])
   return Ed25519KeyIdentity.fromSecretKey(secretKey)
 }
 
 export const initIdentity = (mainnet: boolean) => {
-  const userHomeDir = os.homedir();
-  const file = path.join(userHomeDir,`.config/dfx/identity/${ mainnet ? "default" : "default"}/identity.pem`)
+  const userHomeDir = os.homedir()
+  const file = path.join(
+    userHomeDir,
+    `.config/dfx/identity/${mainnet ? "default" : "default"}/identity.pem`
+  )
   const buffer = readFileSync(file)
   const key = buffer.toString("utf-8")
 

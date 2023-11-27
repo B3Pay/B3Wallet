@@ -1,4 +1,4 @@
-import { AccountIdentifier } from "@dfinity/nns"
+import { AccountIdentifier } from "@dfinity/ledger-icp"
 import { Principal } from "@dfinity/principal"
 import { initIdentity } from "./utils"
 

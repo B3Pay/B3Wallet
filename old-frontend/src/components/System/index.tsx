@@ -376,7 +376,7 @@ const System: React.FC<SystemProps> = ({
                             rel="noopener noreferrer"
                             href={
                               IS_LOCAL
-                                ? "http://qsgjb-riaaa-aaaaa-aaaga-cai.localhost:8080/"
+                                ? "http://qsgjb-riaaa-aaaaa-aaaga-cai.localhost:4943/"
                                 : "https://nns.ic0.app/"
                             }
                           >
