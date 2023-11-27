@@ -286,28 +286,28 @@ __metadata:
   linkType: hard
 
 "@re-actor/core@npm:^0.2.1":
-  version: 0.2.1
-  resolution: "@re-actor/core@npm:0.2.1"
+  version: 0.2.2
+  resolution: "@re-actor/core@npm:0.2.2"
   dependencies:
-    "@re-actor/store": "npm:^0.2.0"
+    "@re-actor/store": "npm:^0.2.1"
     "@re-actor/types": "npm:^0.2.0"
     zustand: "npm:4.4"
   peerDependencies:
     react: ">=16.8"
-  checksum: 9f5626078a42302ce7d1f2fb4b1218371f4001e538574a15139cf27715bfbf92ea2dfd5d2c20a36809b71581533f5b4feb3d75d3619a6db7cc6ec16a365ccd32
+  checksum: c91c9bdd34ad15b7b041c5992b7394d36fa24a8afa2bd7b9821fc1cc35f0286e31bf7c6911c629dffd5c624179534a44213b23ce2dac95b1dbecc046235cbaf0
   languageName: node
   linkType: hard
 
-"@re-actor/store@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@re-actor/store@npm:0.2.0"
+"@re-actor/store@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "@re-actor/store@npm:0.2.1"
   peerDependencies:
     "@dfinity/agent": ^0.20.1
     "@dfinity/auth-client": 0.20.1
     "@dfinity/candid": ^0.20.1
     "@re-actor/types": ^0.0.3
     zustand: ^4.4
-  checksum: fe54ec8d1ecee79b9cd7ea277851ac22d3ba653344b533f4c47501b0f394b23fffaea31230cd89a3d1367be639255135bd6f1f22acd1d0efce605faf1bb72a1d
+  checksum: d636a9082d58b42c59b8c00745fad91ddd436094b85d364e9cd0294ca06883cf0c7a41bf35c176f3934abdbd62cae1f5faeaa34b67d86b4d19a0c98f1c0b345e
   languageName: node
   linkType: hard
 
@@ -548,6 +548,7 @@ __metadata:
     "@dfinity/principal": "npm:^0.20"
     "@dfinity/utils": "npm:^1.1.0"
     "@re-actor/core": "npm:^0.2.1"
+    "@re-actor/types": "npm:^0.2.0"
     "@types/node": "npm:^18.15.13"
     "@types/node-fetch": "npm:^2.6.3"
     "@types/react": "npm:18.2"

@@ -3,7 +3,7 @@ import { canisterId, createActor } from "declarations/b3_system"
 
 export const {
   ReActorProvider: SystemProvider,
-  callActor,
+  callActor: callSystem,
   useActorMethod,
   useAuthClient
 } = createReActor(agent =>

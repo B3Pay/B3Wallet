@@ -1,16 +1,15 @@
-import { Principal } from "@dfinity/principal"
 import React, { useEffect, useState } from "react"
-import { callActor, useActorMethod } from "service/system"
+import { callSystem, useActorMethod } from "service/system"
 
 interface SystemProps {}
 
 const System: React.FC<SystemProps> = ({}) => {
   const { call, data, error, loading } = useActorMethod(
-    "install_wallet_canister"
+    "create_wallet_canister"
   )
 
   useEffect(() => {
-    callActor("get_user_states").then(res => {
+    callSystem("get_user_states").then(res => {
       console.log(res)
     })
   }, [])
@@ -23,9 +22,7 @@ const System: React.FC<SystemProps> = ({}) => {
   }
 
   const walletHandler = async () => {
-    const walletCanisterId = Principal.fromText(canisterId)
-
-    const res = await call(walletCanisterId)
+    const res = await call()
     console.log(res)
   }
   return (

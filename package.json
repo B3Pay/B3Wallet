@@ -31,6 +31,7 @@
     "build": "npx next build"
   },
   "devDependencies": {
+    "@re-actor/types": "^0.2.0",
     "@types/node": "^18.15.13",
     "@types/node-fetch": "^2.6.3",
     "@types/react": "18.2",
