@@ -35,7 +35,7 @@ fi
   candid-extractor $NEW_WALLET_DIR 2>/dev/null > $DID_FILE
 
   #  optimize wasm
-  ic-wasm $NEW_WALLET_DIR -o $OLD_WALLET_DIR shrink --optimize Oz
+  ic-wasm $NEW_WALLET_DIR -o $OLD_WALLET_DIR shrink
 
   printf "After optimization: "
   du -h $OLD_WALLET_DIR | cut -f1

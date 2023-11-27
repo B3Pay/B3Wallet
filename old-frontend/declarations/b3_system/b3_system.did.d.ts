@@ -13,6 +13,7 @@ export interface CanisterStatusResponse {
   'memory_size' : bigint,
   'cycles' : bigint,
   'settings' : DefiniteCanisterSettings,
+  'query_stats' : QueryStats,
   'idle_cycles_burned_per_day' : bigint,
   'module_hash' : [] | [Uint8Array | number[]],
 }
@@ -30,8 +31,14 @@ export interface LoadRelease {
   'version' : string,
   'chunks' : bigint,
 }
+export interface QueryStats {
+  'response_payload_bytes_total' : bigint,
+  'num_instructions_total' : bigint,
+  'num_calls_total' : bigint,
+  'request_payload_bytes_total' : bigint,
+}
 export interface Release {
-  'features' : [] | [Array<string>],
+  'features' : Array<string>,
   'date' : bigint,
   'hash' : Uint8Array | number[],
   'name' : string,
@@ -40,19 +47,14 @@ export interface Release {
   'deprecated' : boolean,
 }
 export interface ReleaseArgs {
-  'features' : [] | [Array<string>],
+  'features' : Array<string>,
   'name' : string,
   'size' : bigint,
   'version' : string,
 }
-export type ReleaseNames = { 'b3_wallet' : null } |
-  { 'Custom' : string } |
-  { 'b3_multi_sig_wallet' : null } |
-  { 'b3_basic_wallet' : null };
 export type Result = { 'Ok' : UserState } |
   { 'Err' : string };
 export interface SystemCanisterStatus {
-  'canister_id' : Principal,
   'user_status' : bigint,
   'status_at' : bigint,
   'version' : string,
@@ -64,42 +66,36 @@ export interface UserState {
   'canisters' : Array<Principal>,
 }
 export interface _SERVICE {
-  'add_controller' : ActorMethod<[Principal], undefined>,
   'add_wallet_canister' : ActorMethod<[Principal], undefined>,
   'change_wallet_canister' : ActorMethod<[Principal, bigint], undefined>,
-  'clear_bugs' : ActorMethod<[], undefined>,
-  'create_wallet_canister' : ActorMethod<[string], Result>,
-  'deprecate_release' : ActorMethod<[string, string], undefined>,
-  'get_bugs' : ActorMethod<[], Array<Bug>>,
+  'clear_bugs' : ActorMethod<[Principal], undefined>,
+  'create_wallet_canister' : ActorMethod<[], Result>,
+  'deprecate_release' : ActorMethod<[string], undefined>,
+  'get_bugs' : ActorMethod<[Principal], Array<Bug>>,
   'get_canister_version' : ActorMethod<[Principal], string>,
-  'get_canister_version_by_user' : ActorMethod<[Principal, bigint], string>,
-  'get_canisters' : ActorMethod<[], Array<Principal>>,
-  'get_controllers' : ActorMethod<[], Array<Principal>>,
-  'get_create_canister_wallet_cycle' : ActorMethod<[], bigint>,
-  'get_release' : ActorMethod<[string, string], Release>,
-  'get_release_by_hash_string' : ActorMethod<
-    [string, Uint8Array | number[]],
-    Release
+  'get_canister_version_by_user' : ActorMethod<
+    [Uint8Array | number[], bigint],
+    string
   >,
-  'get_release_by_index' : ActorMethod<[string, bigint], Release>,
+  'get_canisters' : ActorMethod<[], Array<Principal>>,
+  'get_create_canister_wallet_cycle' : ActorMethod<[], bigint>,
+  'get_release' : ActorMethod<[string], Release>,
+  'get_release_by_hash_string' : ActorMethod<[Uint8Array | number[]], Release>,
   'get_states' : ActorMethod<[], UserState>,
-  'get_user_ids' : ActorMethod<[], Array<Principal>>,
+  'get_user_ids' : ActorMethod<[], Array<Uint8Array | number[]>>,
   'get_user_states' : ActorMethod<[], Array<UserState>>,
-  'install_wallet_canister' : ActorMethod<[string, Principal], Result>,
-  'latest_release' : ActorMethod<[string], Release>,
+  'install_wallet_canister' : ActorMethod<[Principal], Result>,
+  'latest_release' : ActorMethod<[], Release>,
   'load_release' : ActorMethod<
-    [string, Uint8Array | number[], ReleaseArgs],
+    [Uint8Array | number[], ReleaseArgs],
     LoadRelease
   >,
-  'release_map' : ActorMethod<[], Array<[ReleaseNames, Array<Release>]>>,
-  'releases' : ActorMethod<[string], Array<Release>>,
-  'remove_controller' : ActorMethod<[Principal], undefined>,
-  'remove_latest_release' : ActorMethod<[string], undefined>,
-  'remove_release' : ActorMethod<[string, string], Release>,
-  'remove_wallet_canister' : ActorMethod<[Principal], undefined>,
+  'releases' : ActorMethod<[], Array<Release>>,
+  'remove_latest_release' : ActorMethod<[], undefined>,
+  'remove_release' : ActorMethod<[string], Release>,
+  'remove_wallet_canister' : ActorMethod<[Uint8Array | number[]], undefined>,
   'report_bug' : ActorMethod<[Bug], undefined>,
-  'reset_users' : ActorMethod<[], undefined>,
   'status' : ActorMethod<[], SystemCanisterStatus>,
-  'update_release' : ActorMethod<[string, ReleaseArgs], undefined>,
+  'update_release' : ActorMethod<[ReleaseArgs], undefined>,
   'version' : ActorMethod<[], string>,
 }

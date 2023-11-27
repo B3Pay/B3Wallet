@@ -1,10 +1,4 @@
 {
-  "ts-node": {
-    "compilerOptions": {
-      "module": "commonjs"
-    },
-    "files": true
-  },
   "compilerOptions": {
     "target": "ESNext",
     "lib": ["dom", "dom.iterable", "esnext"],
@@ -26,19 +20,9 @@
       }
     ],
     "paths": {
-      "declarations": ["./frontend/declarations/*"]
+      "*": ["./src/*"]
     }
   },
-  "include": [
-    "frontend/declarations/*",
-    "frontend/src/*",
-    "frontend/next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    "**/*.wasm",
-    ".next/types/**/*.ts",
-    "scripts/*.ts",
-    "scripts/icrc1.js"
-  ],
-  "exclude": ["node_modules", "frontend/out"]
+  "include": ["next-env.d.ts", "src/**/*"],
+  "exclude": ["node_modules", "out"]
 }

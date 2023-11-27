@@ -66,8 +66,10 @@ fn report_bug(bug: Bug) {
 }
 
 #[update(guard = "caller_is_controller")]
-fn clear_bugs() {
-    with_bugs_mut(|bugs| bugs.clear());
+fn clear_bugs(canister_id: CanisterId) {
+    let canister_id: StoredPrincipal = canister_id.into();
+
+    with_bugs_mut(|bugs| bugs.remove(&canister_id));
 }
 
 #[query(guard = "caller_is_controller")]

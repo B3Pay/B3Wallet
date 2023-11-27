@@ -15,7 +15,7 @@ import Loading from "../components/Loading"
 import System from "../components/System"
 import Wallet from "../components/Wallet"
 import useAuthClient from "../hooks/useAuthClient"
-import { B3Wallet, createB3WalletActor } from "../service/"
+import { B3Wallet, createB3WalletActor } from "../service"
 
 function HomePage() {
   const {

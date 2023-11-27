@@ -1,4 +1,4 @@
-import { B3Wallet } from "../frontend/src/service"
+import { B3Wallet } from "../old-frontend/src/service"
 import { walletActorIC, walletLocalActor } from "./actor"
 import { chunkGenerator, loadWasm, readVersion } from "./utils"
 
