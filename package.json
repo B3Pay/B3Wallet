@@ -14,11 +14,11 @@
     "dfinity"
   ],
   "scripts": {
-    "dfx:start": "scripts/start.sh",
-    "dfx:install": "scripts/install.sh",
+    "dfx:start": "sh ./scripts/start.sh",
+    "dfx:install": "sh ./scripts/install.sh",
     "dfx:stop": "dfx stop",
     "build:wallet": "./scripts/b3_wallet.sh",
-    "predeploy": "sh ./predeploy.sh",
+    "predeploy": "sh ./scripts/predeploy.sh",
     "deploy": "dfx deploy",
     "generate": "dfx generate",
     "ledger:balance": "npx ts-node scripts/ledger.balance.ts",

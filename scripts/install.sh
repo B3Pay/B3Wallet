@@ -1,8 +1,9 @@
-if [ ! -d "./candid" ]; then
-    dfx nns import
-fi
+# if [ ! -d "./candid" ]; then
+#     dfx nns import
+# fi
 
-dfx nns install
+# dfx nns install
+dfx deps deploy internet-identity
 
 sh scripts/ckbtc.sh
 sh scripts/kyt.sh

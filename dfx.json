@@ -39,6 +39,20 @@
       "type": "custom",
       "wasm": "wasm/ckbtc/ledger.wasm"
     },
+    "frontend": {
+      "build": "yarn build",
+      "declarations": {
+        "node_compatibility": true,
+        "output": "frontend/declarations/frontend"
+      },
+      "frontend": {
+        "entrypoint": "out/index.html"
+      },
+      "source": [
+        "out"
+      ],
+      "type": "assets"
+    },
     "index": {
       "build": [
         "true"
@@ -56,16 +70,9 @@
       "type": "custom",
       "wasm": "wasm/index/index.wasm"
     },
-    "internet_identity": {
-      "build": "",
-      "candid": "candid/internet_identity.did",
-      "remote": {
-        "id": {
-          "local": "qhbym-qaaaa-aaaaa-aaafq-cai"
-        }
-      },
-      "type": "custom",
-      "wasm": ""
+    "internet-identity": {
+      "type": "pull",
+      "id": "rdmx6-jaaaa-aaaaa-aaadq-cai"
     },
     "kyt": {
       "build": [
@@ -100,132 +107,6 @@
       },
       "type": "custom",
       "wasm": "wasm/minter/minter.wasm"
-    },
-    "nns-cycles-minting": {
-      "build": "",
-      "candid": "candid/nns-cycles-minting.did",
-      "remote": {
-        "id": {
-          "ic": "rkp4c-7iaaa-aaaaa-aaaca-cai",
-          "local": "rkp4c-7iaaa-aaaaa-aaaca-cai"
-        }
-      },
-      "type": "custom",
-      "wasm": ""
-    },
-    "nns-dapp": {
-      "build": "",
-      "candid": "candid/nns-dapp.did",
-      "remote": {
-        "id": {
-          "local": "qsgjb-riaaa-aaaaa-aaaga-cai"
-        }
-      },
-      "type": "custom",
-      "wasm": ""
-    },
-    "nns-genesis-token": {
-      "build": "",
-      "candid": "candid/nns-genesis-token.did",
-      "remote": {
-        "id": {
-          "ic": "renrk-eyaaa-aaaaa-aaada-cai",
-          "local": "renrk-eyaaa-aaaaa-aaada-cai"
-        }
-      },
-      "type": "custom",
-      "wasm": ""
-    },
-    "nns-governance": {
-      "build": "",
-      "candid": "candid/nns-governance.did",
-      "remote": {
-        "id": {
-          "ic": "rrkah-fqaaa-aaaaa-aaaaq-cai",
-          "local": "rrkah-fqaaa-aaaaa-aaaaq-cai"
-        }
-      },
-      "type": "custom",
-      "wasm": ""
-    },
-    "nns-ledger": {
-      "build": "",
-      "candid": "candid/nns-ledger.did",
-      "remote": {
-        "id": {
-          "ic": "ryjl3-tyaaa-aaaaa-aaaba-cai",
-          "local": "ryjl3-tyaaa-aaaaa-aaaba-cai"
-        }
-      },
-      "type": "custom",
-      "wasm": ""
-    },
-    "nns-lifeline": {
-      "build": "",
-      "candid": "candid/nns-lifeline.did",
-      "remote": {
-        "id": {
-          "ic": "rno2w-sqaaa-aaaaa-aaacq-cai",
-          "local": "rno2w-sqaaa-aaaaa-aaacq-cai"
-        }
-      },
-      "type": "custom",
-      "wasm": ""
-    },
-    "nns-registry": {
-      "build": "",
-      "candid": "candid/nns-registry.did",
-      "remote": {
-        "id": {
-          "ic": "rwlgt-iiaaa-aaaaa-aaaaa-cai",
-          "local": "rwlgt-iiaaa-aaaaa-aaaaa-cai"
-        }
-      },
-      "type": "custom",
-      "wasm": ""
-    },
-    "nns-root": {
-      "build": "",
-      "candid": "candid/nns-root.did",
-      "remote": {
-        "id": {
-          "ic": "r7inp-6aaaa-aaaaa-aaabq-cai",
-          "local": "r7inp-6aaaa-aaaaa-aaabq-cai"
-        }
-      },
-      "type": "custom",
-      "wasm": ""
-    },
-    "nns-sns-wasm": {
-      "build": "",
-      "candid": "candid/nns-sns-wasm.did",
-      "remote": {
-        "id": {
-          "ic": "qaa6y-5yaaa-aaaaa-aaafa-cai",
-          "local": "qaa6y-5yaaa-aaaaa-aaafa-cai"
-        }
-      },
-      "type": "custom",
-      "wasm": ""
-    },
-    "frontend": {
-      "build": "yarn build",
-      "declarations": {
-        "node_compatibility": true,
-        "output": "frontend/declarations/frontend"
-      },
-      "frontend": {
-        "entrypoint": "out/index.html"
-      },
-      "source": [
-        "frontend/out"
-      ],
-      "type": "assets"
-    }
-  },
-  "defaults": {
-    "replica": {
-      "subnet_type": "system"
     }
   },
   "output_env_file": ".env"
