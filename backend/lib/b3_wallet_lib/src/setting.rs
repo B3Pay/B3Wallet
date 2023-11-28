@@ -1,13 +1,12 @@
 use crate::error::WalletError;
 use b3_utils::{
-    ic_canister_status,
+    api::Management,
     ledger::types::{WalletController, WalletControllerMap},
     types::{ControllerId, ControllerIds, Metadata},
 };
 use candid::{CandidType, Nat};
 use ic_cdk::api::management_canister::{
-    main::{update_settings, UpdateSettingsArgument},
-    provisional::CanisterSettings,
+    main::UpdateSettingsArgument, provisional::CanisterSettings,
 };
 use serde::{Deserialize, Serialize};
 
@@ -70,9 +69,9 @@ impl WalletSettings {
     pub async fn refresh_settings(&mut self) -> Result<(), WalletError> {
         let canister_id = ic_cdk::id();
 
-        let canister_status = ic_canister_status(canister_id)
+        let canister_status = Management::canister_status(canister_id.clone())
             .await
-            .map_err(WalletError::HelperError)?;
+            .map_err(WalletError::ManagmentError)?;
 
         let settings = canister_status.settings;
 
@@ -113,9 +112,9 @@ impl WalletSettings {
 
         let mut controller_ids = vec![controller_id, canister_id];
 
-        let canister_status = ic_canister_status(canister_id)
+        let canister_status = Management::canister_status(canister_id)
             .await
-            .map_err(WalletError::HelperError)?;
+            .map_err(WalletError::ManagmentError)?;
 
         let settings = canister_status.settings;
 
@@ -139,9 +138,9 @@ impl WalletSettings {
             },
         };
 
-        update_settings(arg)
+        Management::update_settings(arg)
             .await
-            .map_err(|err| WalletError::UpdateCanisterControllersError(err.1))?;
+            .map_err(|err| WalletError::UpdateCanisterControllersError(err.to_string()))?;
 
         self.controllers.insert(controller_id, controller);
 
@@ -177,9 +176,9 @@ impl WalletSettings {
             },
         };
 
-        update_settings(arg)
+        Management::update_settings(arg)
             .await
-            .map_err(|err| WalletError::UpdateCanisterControllersError(err.1))?;
+            .map_err(|err| WalletError::UpdateCanisterControllersError(err.to_string()))?;
 
         self.update_controllers(controller_ids);
 

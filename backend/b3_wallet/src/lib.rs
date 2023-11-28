@@ -28,11 +28,11 @@ use b3_operations::{
     user::{state::UserState, User},
 };
 use b3_utils::{
-    ic_canister_status,
+    api::Management,
     ledger::{
         currency::{ICPToken, TokenAmount},
         types::{
-            Bug, Cycles, NotifyTopUpResult, TransferBlockIndex, WalletAccountsNonce,
+            Bug, NotifyTopUpResult, TransferBlockIndex, WalletAccountsNonce,
             WalletCanisterInitArgs, WalletCanisterStatus, WalletController, WalletControllerMap,
             WalletInititializeArgs,
         },
@@ -451,7 +451,7 @@ async fn account_top_up_and_notify(
     account_id: AccountId,
     amount: ICPToken,
     canister_id: Option<CanisterId>,
-) -> Result<Cycles, String> {
+) -> Result<u128, String> {
     log_cycle!(
         "Top up {} ICP for account: {} to canister: {:?}",
         amount,
@@ -1048,7 +1048,7 @@ async fn status() -> WalletCanisterStatus {
     let version = version();
     let name = name();
 
-    let canister_status = ic_canister_status(canister_id)
+    let canister_status = Management::canister_status(canister_id)
         .await
         .unwrap_or_else(panic_log);
 

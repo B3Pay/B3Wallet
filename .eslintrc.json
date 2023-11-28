@@ -1,5 +1,5 @@
 {
-  "extends": "next",
+  "extends": ["next/core-web-vitals"],
   "plugins": ["react"],
   "globals": {
     "console": "readonly",
@@ -32,6 +32,7 @@
     "react/jsx-curly-newline": 0,
     "react/prefer-stateless-function": 0,
     "react/state-in-constructor": 0,
+    "react-hooks/exhaustive-deps": 0,
     "react/sort-comp": 0,
     "default-case": 0,
     "no-param-reassign": 0,
@@ -40,9 +41,5 @@
     "arrow-body-style": 0,
     "prefer-const": 1
   },
-  "ignorePatterns": [
-    "ui/declarations/**/*.js",
-    "ui/declarations/**/*.ts",
-    "src/declarations/**"
-  ]
+  "ignorePatterns": ["src/declarations/**"]
 }

@@ -11,7 +11,7 @@ use super::inner::account::{
 use super::inner::setting::{UpdateCanisterSettings, UpgradeCanister};
 use super::inner::user::{AddUser, RemoveUser};
 
-use b3_utils::ledger::types::{Cycles, TransferBlockIndex};
+use b3_utils::ledger::types::TransferBlockIndex;
 use b3_wallet_lib::ledger::ckbtc::types::BtcTxId;
 use b3_wallet_lib::ledger::evm::london::EvmTransaction1559;
 use b3_wallet_lib::ledger::types::SendResult;
@@ -92,7 +92,7 @@ pub struct EvmErc20Transfered(pub EvmTransferErc20, pub String);
 pub struct TopUpTransfered(pub TopUpTransfer, pub TransferBlockIndex);
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
-pub struct CanisterTopUped(pub NotifyTopUp, pub Cycles);
+pub struct CanisterTopUped(pub NotifyTopUp, pub u128);
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
 pub struct BtcTransfered(pub BtcTransfer, pub BtcTxId);

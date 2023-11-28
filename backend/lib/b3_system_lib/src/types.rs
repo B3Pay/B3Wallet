@@ -1,7 +1,7 @@
 use b3_utils::{
     ledger::types::{Bug, WalletVersion},
     memory::types::{Bound, Storable},
-    types::{ControllerId, UserId},
+    types::UserId,
     wasm::{WasmHash, WasmSize},
     NanoTimeStamp,
 };
@@ -11,17 +11,14 @@ use ciborium::ser::into_writer;
 use serde::{Deserialize, Serialize};
 use std::io::Cursor;
 
-use crate::{user::UserState, wallet::WalletCanister};
+use crate::user::UserState;
 
 pub type ReleaseVersion = String;
 
 pub type UserStates = Vec<UserState>;
-pub type Controllers = Vec<ControllerId>;
 
 pub type Features = Vec<String>;
 pub type Users = Vec<UserId>;
-
-pub type Canisters = Vec<WalletCanister>;
 
 #[derive(CandidType)]
 pub struct LoadRelease {

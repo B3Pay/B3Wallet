@@ -1,31 +1,35 @@
-use crate::{error::SystemError, types::Canisters, wallet::WalletCanister};
+use crate::error::SystemError;
 use b3_utils::{
+    api::Management,
     ledger::constants::SYSTEM_RATE_LIMIT,
     memory::types::{Bound, Storable},
-    types::{CanisterId, ControllerId},
+    types::{CanisterId, CanisterIds, ControllerId},
     NanoTimeStamp,
 };
 use candid::CandidType;
 use ciborium::de::from_reader;
 use ciborium::ser::into_writer;
 use ic_cdk::api::management_canister::{
-    main::{create_canister, CreateCanisterArgument},
-    provisional::CanisterSettings,
+    main::CreateCanisterArgument, provisional::CanisterSettings,
 };
 use serde::{Deserialize, Serialize};
 use std::io::Cursor;
 
 #[derive(CandidType, Deserialize, Serialize, Clone)]
 pub struct UserState {
-    pub canisters: Vec<WalletCanister>,
+    pub canisters: Vec<CanisterId>,
     pub created_at: NanoTimeStamp,
     pub updated_at: NanoTimeStamp,
 }
 
-impl From<WalletCanister> for UserState {
-    fn from(canister_id: WalletCanister) -> Self {
+impl From<CanisterId> for UserState {
+    fn from(canister_id: CanisterId) -> Self {
+        let mut canisters = Vec::new();
+
+        canisters.push(canister_id);
+
         Self {
-            canisters: vec![canister_id],
+            canisters,
             updated_at: NanoTimeStamp::now(),
             created_at: NanoTimeStamp::now(),
         }
@@ -49,9 +53,14 @@ impl Storable for UserState {
 impl UserState {
     /// Create a new canister.
     pub fn new(opt_canister_id: Option<CanisterId>) -> Self {
+        let mut canisters = Vec::new();
+
+        if let Some(canister_id) = opt_canister_id {
+            canisters.push(canister_id);
+        }
+
         Self {
-            canisters: opt_canister_id
-                .map_or(vec![], |canister_id| vec![WalletCanister::new(canister_id)]),
+            canisters,
             updated_at: NanoTimeStamp::now(),
             created_at: NanoTimeStamp::now(),
         }
@@ -65,28 +74,29 @@ impl UserState {
         Ok(self.clone())
     }
 
-    /// Set the canister id.
-    pub fn add_canister(&mut self, canister_id: WalletCanister) {
-        if self.canisters.contains(&canister_id) {
-            return;
-        }
+    /// add the canister id.
+    pub fn add_canister(&mut self, canister_id: CanisterId) {
         self.canisters.push(canister_id);
         self.updated_at = NanoTimeStamp::now();
     }
 
-    /// Change the canister id.
-    pub fn change_canister(&mut self, index: usize, canister_id: CanisterId) {
-        self.canisters[index] = canister_id.into();
+    /// remove the canister id.
+    pub fn remove_canister(&mut self, canister_id: CanisterId) -> Result<(), SystemError> {
+        let index = self
+            .canisters
+            .iter()
+            .position(|id| id == &canister_id)
+            .ok_or(SystemError::WalletCanisterNotFound)?;
+
+        self.canisters.remove(index);
         self.updated_at = NanoTimeStamp::now();
+
+        Ok(())
     }
 
     /// Returns the canister ids, throws an error if it is not available.
-    pub fn canisters(&self) -> Result<Canisters, SystemError> {
-        if self.canisters.is_empty() {
-            return Err(SystemError::CanisterIdNotFound);
-        }
-
-        Ok(self.canisters.clone())
+    pub fn canisters(&self) -> CanisterIds {
+        self.canisters.clone()
     }
 
     /// Make an function that use updated_at and check the rate of the user.
@@ -103,7 +113,7 @@ impl UserState {
         &mut self,
         controllers: Vec<ControllerId>,
         cycles: u128,
-    ) -> Result<WalletCanister, SystemError> {
+    ) -> Result<CanisterId, SystemError> {
         let args = CreateCanisterArgument {
             settings: Some(CanisterSettings {
                 controllers: Some(controllers.clone()),
@@ -113,17 +123,17 @@ impl UserState {
             }),
         };
 
-        let result = create_canister(args, cycles).await;
+        let result = Management::create_canister(args, cycles).await;
 
         match result {
             Ok(result) => {
-                let canister_id = WalletCanister::new(result.0.canister_id);
+                let canister_id = result.canister_id;
 
-                self.add_canister(canister_id.clone());
+                self.add_canister(canister_id);
 
                 Ok(canister_id)
             }
-            Err(err) => Err(SystemError::CreateCanisterError(err.1)),
+            Err(err) => Err(SystemError::CreateCanisterError(err.to_string())),
         }
     }
 }

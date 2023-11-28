@@ -16,5 +16,5 @@ module.exports = {
   images: {
     unoptimized: true
   },
-  staticPageGenerationTimeout: 10000
+  staticPageGenerationTimeout: 100
 }

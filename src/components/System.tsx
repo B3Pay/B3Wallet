@@ -1,49 +1,34 @@
-import React, { useEffect, useState } from "react"
-import { callSystem, useActorMethod } from "service/system"
+"use client"
+import React, { useEffect } from "react"
+import { useSystemMethod } from "service/system"
+import CreateWallet from "./CreateWallet"
+import WalletStatus from "./WalletStatus"
 
 interface SystemProps {}
 
 const System: React.FC<SystemProps> = ({}) => {
-  const { call, data, error, loading } = useActorMethod(
-    "create_wallet_canister"
-  )
+  const { call, data, error, loading } = useSystemMethod("get_canisters")
 
   useEffect(() => {
-    callSystem("get_user_states").then(res => {
-      console.log(res)
-    })
+    call()
   }, [])
 
-  const [canisterId, setCanisterId] = useState("")
-
-  function onChangeName(e: React.ChangeEvent<HTMLInputElement>) {
-    const newName = e.target.value
-    setCanisterId(newName)
-  }
-
-  const walletHandler = async () => {
-    const res = await call()
-    console.log(res)
-  }
   return (
     <div>
       <section>
-        <h2>B3Wallet</h2>
-        <label htmlFor="name">Enter your name: &nbsp;</label>
-        <input
-          id="name"
-          alt="Name"
-          type="text"
-          value={canisterId}
-          onChange={onChangeName}
-        />
-        <button onClick={walletHandler}>Create Wallet</button>
+        <h2>B3System</h2>
       </section>
       <section>
         <label>Response: &nbsp;</label>
         {loading ? <span>Loading...</span> : null}
         {error ? <span>Error: {JSON.stringify(error)}</span> : null}
-        {data && <span>{JSON.stringify(data)}</span>}
+        {data ? (
+          data.map(canisterId => (
+            <WalletStatus key={canisterId.toText()} canisterId={canisterId} />
+          ))
+        ) : (
+          <CreateWallet />
+        )}
       </section>
     </div>
   )

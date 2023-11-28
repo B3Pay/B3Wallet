@@ -3,25 +3,31 @@ use b3_system_lib::{
     store::{
         with_bugs_mut, with_canister_bugs, with_canister_bugs_mut, with_hash_release,
         with_latest_version_release, with_release, with_release_mut, with_releases,
-        with_releases_mut, with_state, with_state_mut, with_user_state, with_user_state_mut,
-        with_wallet_canister,
+        with_releases_mut, with_state, with_state_mut, with_user_canister, with_user_state,
+        with_user_state_mut,
     },
-    types::{Canisters, LoadRelease, Release, ReleaseArgs, UserStates, WalletBugs},
+    types::{LoadRelease, Release, ReleaseArgs, UserStates, WalletBugs},
     user::UserState,
-    wallet::WalletCanister,
 };
 use b3_utils::{
+    api::Management,
     caller_is_controller,
     constants::CREATE_WALLET_CANISTER_CYCLES,
-    ic_canister_status,
-    ledger::types::{Bug, SystemCanisterStatus, WalletCanisterInitArgs, WalletVersion},
+    ledger::types::{
+        Bug, SystemCanisterStatus, UserCanisterStatus, UserStatus, WalletCanister,
+        WalletCanisterInitArgs, WalletVersion,
+    },
     principal::StoredPrincipal,
     revert,
-    types::{CanisterId, UserId},
+    types::{CanisterId, CanisterIds, UserId},
     wasm::{Blob, WasmHash},
     NanoTimeStamp,
 };
-use ic_cdk::{api::management_canister::main::CanisterInstallMode, init, query, update};
+use candid::Principal;
+use ic_cdk::{
+    api::management_canister::main::{CanisterInfoResponse, CanisterInstallMode},
+    init, query, update,
+};
 
 #[init]
 pub fn init() {}
@@ -49,12 +55,10 @@ fn get_user_states() -> UserStates {
 }
 
 #[query]
-fn get_canisters() -> Canisters {
+fn get_canisters() -> CanisterIds {
     let user_id = ic_cdk::caller();
 
-    with_user_state(user_id.into(), |s| s.canisters())
-        .unwrap_or_else(revert)
-        .unwrap_or_else(revert)
+    with_user_state(user_id.into(), |s| s.canisters()).unwrap_or_else(revert)
 }
 
 // UPDATE CALLS
@@ -79,18 +83,60 @@ fn get_bugs(canister_id: CanisterId) -> WalletBugs {
     with_canister_bugs(&canister_id, |bugs| bugs.clone()).unwrap_or_else(revert)
 }
 
-#[update(guard = "caller_is_controller")]
-async fn get_canister_version(canister_id: CanisterId) -> WalletVersion {
-    let wallet = WalletCanister::new(canister_id);
+#[query]
+async fn get_user_status() -> UserStatus {
+    let user_id: UserId = ic_cdk::caller().into();
 
-    wallet.version().await.unwrap_or_else(revert)
+    let canisters = with_user_state(user_id, |rs| rs.canisters());
+
+    match canisters {
+        Ok(canisters) => match canisters.len() {
+            0 => UserStatus::Registered,
+            1 => UserStatus::SingleCanister(canisters[0].clone()),
+            _ => UserStatus::MultipleCanister(canisters),
+        },
+        Err(_) => UserStatus::Unregistered,
+    }
 }
 
-#[update(guard = "caller_is_controller")]
-async fn get_canister_version_by_user(user_id: UserId, index: usize) -> WalletVersion {
-    let wallet = with_wallet_canister(user_id, index, |w| w.clone()).unwrap_or_else(revert);
+#[update]
+async fn get_user_canister_status(canister_id: CanisterId) -> UserCanisterStatus {
+    let user_id: UserId = ic_cdk::caller().into();
 
-    wallet.version().await.unwrap_or_else(revert)
+    let canister = with_user_canister(user_id, &canister_id, |w| w.clone()).unwrap_or_else(revert);
+
+    let version = WalletCanister(canister)
+        .version()
+        .await
+        .unwrap_or("not installed".to_string());
+
+    let canister_status = Management::canister_status(canister_id)
+        .await
+        .unwrap_or_else(revert);
+
+    UserCanisterStatus {
+        version,
+        canister_status,
+    }
+}
+
+#[update]
+async fn get_canister_version(canister_id: CanisterId) -> WalletVersion {
+    let user_id: UserId = ic_cdk::caller().into();
+
+    let wallet = with_user_canister(user_id, &canister_id, |w| w.clone()).unwrap_or_else(revert);
+
+    WalletCanister(wallet)
+        .version()
+        .await
+        .unwrap_or_else(revert)
+}
+
+#[update]
+async fn get_canister_info(canister_id: CanisterId) -> CanisterInfoResponse {
+    Management::canister_info(canister_id, Some(10))
+        .await
+        .unwrap_or_else(revert)
 }
 
 #[update]
@@ -101,7 +147,7 @@ async fn create_wallet_canister() -> Result<UserState, String> {
 
     let mut user_state = with_state_mut(|s| s.init_user(user_id.clone())).unwrap_or_else(revert);
 
-    let wallet_canister = user_state
+    let canister_id = user_state
         .create_with_cycles(vec![owner_id, system_id], CREATE_WALLET_CANISTER_CYCLES)
         .await
         .unwrap_or_else(revert);
@@ -119,11 +165,11 @@ async fn create_wallet_canister() -> Result<UserState, String> {
     match install_arg_result {
         Ok(install_arg) => {
             // Install the code.
-            let install_result = wallet_canister.install_code(install_arg).await;
+            let install_result = WalletCanister(canister_id).install_code(install_arg).await;
 
             // Update the controllers, and add canister id as controller of itself.
             // this enables the canister to update itself.
-            let update_result = wallet_canister
+            let update_result = WalletCanister(canister_id)
                 .add_controllers(vec![owner_id, system_id])
                 .await;
 
@@ -157,7 +203,7 @@ async fn install_wallet_canister(canister_id: CanisterId) -> Result<UserState, S
 
     match install_arg_result {
         Ok(install_arg) => {
-            let wallet_canister = WalletCanister::new(canister_id);
+            let wallet_canister = WalletCanister(canister_id);
 
             let status = wallet_canister.status().await;
 
@@ -188,7 +234,7 @@ async fn install_wallet_canister(canister_id: CanisterId) -> Result<UserState, S
 async fn add_wallet_canister(canister_id: CanisterId) {
     let user_id: UserId = ic_cdk::caller().into();
 
-    let wallet_canister = WalletCanister::new(canister_id);
+    let wallet_canister = WalletCanister(canister_id);
 
     let is_valid = wallet_canister
         .validate_signer(user_id.clone())
@@ -203,15 +249,19 @@ async fn add_wallet_canister(canister_id: CanisterId) {
 }
 
 #[update]
-fn change_wallet_canister(canister_id: CanisterId, index: usize) {
+fn remove_wallet_canister(canister_id: CanisterId) {
     let user_id: UserId = ic_cdk::caller().into();
 
-    with_user_state_mut(&user_id, |rs| rs.change_canister(index, canister_id))
-        .unwrap_or_else(revert);
+    with_user_state_mut(&user_id, |rs| {
+        rs.remove_canister(canister_id).unwrap_or_else(revert)
+    })
+    .unwrap_or_else(revert)
 }
 
 #[update(guard = "caller_is_controller")]
-fn remove_wallet_canister(user_id: UserId) {
+fn remove_user(user_principal: Principal) {
+    let user_id: UserId = user_principal.into();
+
     with_state_mut(|s| s.remove_user(&user_id));
 }
 
@@ -297,7 +347,9 @@ pub async fn status() -> SystemCanisterStatus {
 
     let version = version();
 
-    let canister_status = ic_canister_status(canister_id).await.unwrap_or_else(revert);
+    let canister_status = Management::canister_status(canister_id)
+        .await
+        .unwrap_or_else(revert);
 
     let user_status = with_state(|s| s.number_of_users());
     let status_at = NanoTimeStamp::now();

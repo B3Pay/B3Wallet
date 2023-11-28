@@ -1,4 +1,4 @@
-use b3_utils::error::HelperError;
+use b3_utils::{api::error::ManagementError, error::HelperError};
 use candid::{CandidType, Deserialize};
 use std::fmt;
 
@@ -17,6 +17,7 @@ pub enum WalletError {
     IcpError(IcpError),
     LedgerError(LedgerError),
     HelperError(HelperError),
+    ManagmentError(ManagementError),
     UnknownError,
     WasmNotLoaded,
     ExecutionError(String),
@@ -46,6 +47,7 @@ impl fmt::Display for WalletError {
             WalletError::IcpError(ref err) => write!(f, "ICP Error::{}", err),
             WalletError::LedgerError(ref err) => write!(f, "Ledger Error::{}", err),
             WalletError::HelperError(ref err) => write!(f, "Helper Error::{}", err),
+            WalletError::ManagmentError(ref err) => write!(f, "Managment Error::{}", err),
             WalletError::ExecutionError(ref msg) => write!(f, "Execution Error::{}", msg),
             WalletError::NotifyTopUpError(ref msg) => write!(f, "Notify top up Error::{}", msg),
             WalletError::UpdateSettingsError(ref msg) => write!(f, "Update settings Error::{}", msg),

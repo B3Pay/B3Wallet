@@ -2,14 +2,13 @@ use crate::{
     error::SystemError,
     types::{Release, ReleaseVersion, WalletBugs},
     user::UserState,
-    wallet::WalletCanister,
 };
 use b3_utils::{
     ledger::types::WalletVersion,
     memory::types::DefaultStableBTreeMap,
     memory::{init_stable_mem, init_stable_mem_refcell},
     principal::StoredPrincipal,
-    types::UserId,
+    types::{CanisterId, UserId},
     wasm::{Wasm, WasmHash},
 };
 
@@ -137,14 +136,19 @@ where
     })
 }
 
-pub fn with_wallet_canister<F, T>(user_id: UserId, index: usize, f: F) -> Result<T, SystemError>
+pub fn with_user_canister<F, T>(
+    user_id: UserId,
+    canister_id: &CanisterId,
+    f: F,
+) -> Result<T, SystemError>
 where
-    F: FnOnce(&WalletCanister) -> T,
+    F: FnOnce(&CanisterId) -> T,
 {
     with_user_state(user_id, |state| {
         state
             .canisters
-            .get(index)
+            .iter()
+            .find(|canister| canister == &canister_id)
             .ok_or(SystemError::WalletCanisterNotFound)
             .map(f)
     })?

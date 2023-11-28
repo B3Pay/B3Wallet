@@ -64,6 +64,10 @@ export const idlFactory = ({ IDL }) => {
     'version' : IDL.Text,
     'canister_status' : CanisterStatusResponse,
   });
+  const UserCanisterStatus = IDL.Record({
+    'version' : IDL.Text,
+    'canister_status' : CanisterStatusResponse,
+  });
   return IDL.Service({
     'add_wallet_canister' : IDL.Func([IDL.Principal], [], []),
     'change_wallet_canister' : IDL.Func([IDL.Principal, IDL.Nat64], [], []),
@@ -102,6 +106,11 @@ export const idlFactory = ({ IDL }) => {
     'report_bug' : IDL.Func([Bug], [], []),
     'status' : IDL.Func([], [SystemCanisterStatus], []),
     'update_release' : IDL.Func([ReleaseArgs], [], []),
+    'user_canister_status' : IDL.Func(
+        [IDL.Principal],
+        [UserCanisterStatus],
+        [],
+      ),
     'version' : IDL.Func([], [IDL.Text], ['query']),
   });
 };

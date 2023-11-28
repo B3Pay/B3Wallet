@@ -1,4 +1,5 @@
-import { useAuthClient } from "service/system"
+import { useSystemAuthClient } from "service/system"
+import { Button } from "./ui/button"
 
 const Login = () => {
   const {
@@ -9,7 +10,7 @@ const Login = () => {
     identity,
     authenticating,
     authenticated
-  } = useAuthClient()
+  } = useSystemAuthClient()
 
   return (
     <>
@@ -20,11 +21,11 @@ const Login = () => {
       </div>
       {authenticated ? (
         <div className="flex flex-col align-center">
-          <button onClick={() => logout()}>Logout</button>
+          <Button onClick={() => logout()}>Logout</Button>
         </div>
       ) : (
         <div>
-          <button
+          <Button
             onClick={() =>
               login({
                 identityProvider:
@@ -36,7 +37,7 @@ const Login = () => {
             disabled={authenticating}
           >
             Login
-          </button>
+          </Button>
         </div>
       )}
     </>

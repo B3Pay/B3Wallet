@@ -1,24 +1,23 @@
 use crate::{
     error::SystemError,
     store::State,
-    types::{Canisters, UserStates},
+    types::UserStates,
     types::{Release, ReleaseVersion, Users},
     user::UserState,
-    wallet::WalletCanister,
 };
 use b3_utils::{
     ledger::types::{WalletCanisterInitArgs, WalletCanisterInstallArg},
-    types::{CanisterId, UserId},
+    types::{CanisterId, CanisterIds, UserId},
 };
 use ic_cdk::api::management_canister::main::CanisterInstallMode;
 
 impl State {
     // user
     pub fn init_user(&mut self, user: UserId) -> Result<UserState, SystemError> {
-        let canister = self.users.get(&user);
-
-        if canister.is_some() {
-            return Err(SystemError::UserAlreadyExists);
+        if let Some(user_state) = self.users.get(&user) {
+            if !user_state.canisters().is_empty() {
+                return Err(SystemError::UserAlreadyExists);
+            }
         }
 
         let user_state = UserState::new(None);
@@ -37,7 +36,7 @@ impl State {
             let mut user_state = states.update_rate()?;
 
             if let Some(canister_id) = opt_canister_id {
-                user_state.add_canister(WalletCanister::new(canister_id));
+                user_state.add_canister(canister_id);
             }
 
             return Ok(user_state);
@@ -62,10 +61,10 @@ impl State {
         self.users.iter().map(|(k, _)| k).collect()
     }
 
-    pub fn wallet_canisters(&self) -> Canisters {
+    pub fn wallet_canisters(&self) -> CanisterIds {
         self.users
             .iter()
-            .map(|(_, v)| v.canisters.clone())
+            .map(|(_, v)| v.canisters())
             .flatten()
             .collect()
     }

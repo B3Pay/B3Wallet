@@ -50,6 +50,10 @@ type SystemCanisterStatus = record {
   version : text;
   canister_status : CanisterStatusResponse;
 };
+type UserCanisterStatus = record {
+  version : text;
+  canister_status : CanisterStatusResponse;
+};
 type UserState = record {
   updated_at : nat64;
   created_at : nat64;
@@ -81,5 +85,6 @@ service : () -> {
   report_bug : (Bug) -> ();
   status : () -> (SystemCanisterStatus);
   update_release : (ReleaseArgs) -> ();
+  user_canister_status : (principal) -> (UserCanisterStatus);
   version : () -> (text) query;
 }

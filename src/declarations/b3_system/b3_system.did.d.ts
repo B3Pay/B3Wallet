@@ -60,6 +60,10 @@ export interface SystemCanisterStatus {
   'version' : string,
   'canister_status' : CanisterStatusResponse,
 }
+export interface UserCanisterStatus {
+  'version' : string,
+  'canister_status' : CanisterStatusResponse,
+}
 export interface UserState {
   'updated_at' : bigint,
   'created_at' : bigint,
@@ -97,5 +101,6 @@ export interface _SERVICE {
   'report_bug' : ActorMethod<[Bug], undefined>,
   'status' : ActorMethod<[], SystemCanisterStatus>,
   'update_release' : ActorMethod<[ReleaseArgs], undefined>,
+  'user_canister_status' : ActorMethod<[Principal], UserCanisterStatus>,
   'version' : ActorMethod<[], string>,
 }
