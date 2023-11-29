@@ -1,4 +1,3 @@
-"use client"
 import Footer from "components/Footer"
 import Login from "components/Login"
 import WalletStatus from "components/WalletStatus"

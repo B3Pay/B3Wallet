@@ -46,6 +46,10 @@ module.exports = {
       }
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-inter)"],
+        mono: ["var(--font-roboto-mono)"]
+      },
       borderWidth: {
         DEFAULT: "var(--border-width)",
         0: "0",
