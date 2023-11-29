@@ -1,6 +1,7 @@
 use crate::{
     error::SystemError,
-    types::{Release, ReleaseVersion, WalletBugs},
+    release::Release,
+    types::{ReleaseVersion, WalletBugs},
     user::UserState,
 };
 use b3_utils::{

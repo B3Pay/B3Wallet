@@ -1,7 +1,12 @@
 import { ReleaseArgs } from "../old-frontend/declarations/b3_system/b3_system.did"
 import { B3System } from "../old-frontend/src/service"
 import { systemActorIC, systemLocalActor } from "./actor"
-import { chunkGenerator, loadWasm, readVersion } from "./utils"
+import {
+  calculateWasmHash,
+  chunkGenerator,
+  loadWasm,
+  readVersion
+} from "./utils"
 
 const loadRelease = async (
   actor: B3System,
@@ -76,7 +81,7 @@ let candid: boolean = false
 
 for (let i = 2; i < process.argv.length; i++) {
   if (process.argv[i].startsWith("--network=")) {
-    let network = process.argv[i].split("=")[1]
+    const network = process.argv[i].split("=")[1]
     if (network === "ic" || network === "mainnet") {
       mainnet = true
     }
@@ -92,4 +97,11 @@ for (let i = 2; i < process.argv.length; i++) {
 console.log(`Network: ${mainnet ? "mainnet" : "local"}`) // Outputs: 'ic' if you ran: ts-node main.ts renrk-eyaaa-aaaaa-aaada-cai --network=ic --reload
 console.log(`Reload: ${reload}`) // Outputs: 'true' if you ran: ts-node main.ts renrk-eyaaa-aaaaa-aaada-cai --network=ic --reload
 
-loader(wallets, mainnet, candid, reload)
+// loader(wallets, mainnet, candid, reload)
+
+const call = async () => {
+  const hash = await calculateWasmHash("b3_wallet")
+
+  console.log(hash)
+}
+call()

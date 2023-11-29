@@ -1,39 +1,43 @@
 use b3_utils::{
-    wasm::{with_wasm_mut, Wasm, WasmHash, WasmSize},
+    ledger::types::WalletVersion,
+    memory::types::{Bound, Storable},
+    wasm::{with_wasm_mut_cache, Wasm, WasmHash, WasmSize},
     NanoTimeStamp,
 };
+use candid::CandidType;
+use ciborium::de::from_reader;
+use ciborium::ser::into_writer;
+use serde::{Deserialize, Serialize};
+use std::io::Cursor;
 
 use crate::{
     error::SystemError,
     store::{with_release_wasm, with_wasm_map_mut},
-    types::{Release, ReleaseArgs},
+    types::{Features, ReleaseArgs},
 };
 
-impl Default for Release {
-    fn default() -> Self {
-        Self {
-            name: "".to_string(),
-            version: "0.0.0".to_string(),
-            date: NanoTimeStamp(0),
-            size: 0,
-            hash: WasmHash::default(),
-            deprecated: false,
-            features: vec!["".to_string()],
-        }
-    }
+#[derive(CandidType, Deserialize, Serialize, Clone)]
+pub struct Release {
+    pub name: String,
+    pub date: NanoTimeStamp,
+    pub size: WasmSize,
+    pub hash: WasmHash,
+    pub version: WalletVersion,
+    pub deprecated: bool,
+    pub features: Features,
 }
 
-impl From<ReleaseArgs> for Release {
-    fn from(args: ReleaseArgs) -> Self {
-        Self {
-            name: args.name,
-            date: NanoTimeStamp::now(),
-            size: args.size,
-            deprecated: false,
-            hash: WasmHash::default(),
-            version: args.version,
-            features: args.features,
-        }
+impl Storable for Release {
+    const BOUND: Bound = Bound::Unbounded;
+
+    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
+        let mut bytes = vec![];
+        into_writer(&self, &mut bytes).unwrap();
+        std::borrow::Cow::Owned(bytes)
+    }
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
+        from_reader(&mut Cursor::new(&bytes)).unwrap()
     }
 }
 
@@ -69,11 +73,13 @@ impl Release {
             return Err(SystemError::WasmAlreadyLoaded);
         }
 
-        let wasm_len = with_wasm_mut(|wasm| wasm.load(blob));
+        let wasm_len = with_wasm_mut_cache(|wasm| wasm.load(blob));
 
         if wasm_len >= self.size {
-            with_wasm_mut(|wasm| {
+            with_wasm_mut_cache(|wasm| {
                 self.hash = wasm.generate_hash();
+
+                ic_cdk::println!("wasm hash: {:?}", self.hash);
 
                 with_wasm_map_mut(|wasm_map| {
                     wasm_map.insert(self.version.clone(), wasm.clone()).unwrap();
@@ -91,7 +97,7 @@ impl Release {
             wasm_map.remove(&self.version);
         });
 
-        with_wasm_mut(|wasm| wasm.unload())
+        with_wasm_mut_cache(|wasm| wasm.unload())
     }
 
     pub fn update(&mut self, release: ReleaseArgs) {
@@ -114,5 +120,33 @@ impl Release {
 
     pub fn remove_feature(&mut self, feature: String) {
         self.features.retain(|f| f != &feature);
+    }
+}
+
+impl Default for Release {
+    fn default() -> Self {
+        Self {
+            name: "".to_string(),
+            version: "0.0.0".to_string(),
+            date: NanoTimeStamp(0),
+            size: 0,
+            hash: WasmHash::default(),
+            deprecated: false,
+            features: vec!["".to_string()],
+        }
+    }
+}
+
+impl From<ReleaseArgs> for Release {
+    fn from(args: ReleaseArgs) -> Self {
+        Self {
+            name: args.name,
+            date: NanoTimeStamp::now(),
+            size: args.size,
+            deprecated: false,
+            hash: WasmHash::default(),
+            version: args.version,
+            features: args.features,
+        }
     }
 }

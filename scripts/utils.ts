@@ -47,6 +47,13 @@ export const loadWasm = async (name: string, withCandid?: boolean) => {
   const buffer = await readFile(
     `${process.cwd()}/wasm/${name}/${name}${withCandid ? "_candid" : ""}.wasm`
   )
+  console.log(
+    "Wasm size:",
+    buffer.length,
+    "hash:",
+    await calculateSha256(buffer.buffer, false)
+  )
+
   return [...new Uint8Array(buffer)]
 }
 
@@ -75,4 +82,30 @@ export const chunkGenerator = async function* (
   for (let start = 0; start < wasmModule.length; start += chunkSize) {
     yield wasmModule.slice(start, start + chunkSize)
   }
+}
+
+export async function calculateSha256(arrayBuffer: ArrayBuffer, asHex = true) {
+  // Use the SubtleCrypto interface to perform the SHA-256 hash
+  const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer)
+
+  // Convert the hash to a hexadecimal string for easy comparison and display
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+
+  if (!asHex) {
+    return hashArray
+  }
+
+  const hashHex = hashArray
+    .map(byte => byte.toString(16).padStart(2, "0"))
+    .join("")
+
+  return hashHex
+}
+
+export async function calculateWasmHash(name: string) {
+  const buffer = await readFile(`${process.cwd()}/wasm/${name}/${name}.wasm`)
+
+  const hashBuffer = await crypto.subtle.digest("SHA-256", buffer.buffer)
+
+  return Array.from(new Uint8Array(hashBuffer))
 }

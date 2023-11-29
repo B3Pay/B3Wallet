@@ -99,6 +99,7 @@ export interface InputProps
   icon?: React.ReactNode
   noShadow?: boolean
   asChild?: boolean
+  iconSize: "xs" | "sm" | "md" | "lg" | "xl" | null
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
@@ -108,6 +109,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       color,
       variant,
       icon,
+      iconSize,
       height,
       className,
       noShadow,
@@ -138,7 +140,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {isIcon && (
           <Icon
             className="absolute left-0"
-            size={size}
+            size={iconSize || size}
             onClick={() => {
               inputRef.current && inputRef.current.focus()
             }}

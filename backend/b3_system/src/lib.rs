@@ -1,12 +1,13 @@
 use b3_system_lib::{
     error::SystemError,
+    release::Release,
     store::{
         with_bugs_mut, with_canister_bugs, with_canister_bugs_mut, with_hash_release,
         with_latest_version_release, with_release, with_release_mut, with_releases,
         with_releases_mut, with_state, with_state_mut, with_user_canister, with_user_state,
-        with_user_state_mut,
+        with_user_state_mut, with_wasm_map,
     },
-    types::{LoadRelease, Release, ReleaseArgs, UserStates, WalletBugs},
+    types::{LoadRelease, ReleaseArgs, UserStates, WalletBugs},
     user::UserState,
 };
 use b3_utils::{
@@ -236,16 +237,16 @@ async fn add_wallet_canister(canister_id: CanisterId) {
 
     let wallet_canister = WalletCanister(canister_id);
 
-    let is_valid = wallet_canister
-        .validate_signer(user_id.clone())
-        .await
-        .unwrap_or_else(revert);
+    // let is_valid = wallet_canister
+    //     .validate_signer(user_id.clone())
+    //     .await
+    //     .unwrap_or_else(revert);
 
-    if is_valid {
-        with_state_mut(|s| s.get_or_init_user(user_id, Some(canister_id))).unwrap_or_else(revert);
-    } else {
-        revert(SystemError::InvalidSigner)
-    }
+    // if is_valid {
+    with_state_mut(|s| s.get_or_init_user(user_id, Some(canister_id))).unwrap_or_else(revert);
+    // } else {
+    //     revert(SystemError::InvalidSigner)
+    // }
 }
 
 #[update]
@@ -268,6 +269,16 @@ fn remove_user(user_principal: Principal) {
 #[query]
 fn releases() -> Vec<Release> {
     with_releases(|r| r.iter().map(|(_, release)| release.clone()).collect())
+}
+
+#[query]
+fn wasm_map() -> Vec<WasmHash> {
+    with_wasm_map(|wasm_map| {
+        wasm_map
+            .iter()
+            .map(|(_, wasm)| ic_crypto_sha2::Sha256::hash(&wasm.bytes()))
+            .collect()
+    })
 }
 
 #[query]

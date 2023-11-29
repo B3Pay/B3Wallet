@@ -41,7 +41,7 @@ use b3_utils::{
     logs::{export_log, export_log_messages_page, LogEntry},
     panic_log, report_log, throw_log,
     types::{CanisterId, ControllerId, Metadata, OperationId, RoleId, UserId},
-    wasm::{with_wasm, with_wasm_mut, WasmDetails, WasmHash, WasmSize},
+    wasm::{with_wasm_cache, with_wasm_mut_cache, WasmDetails, WasmHash, WasmSize},
     Environment, NanoTimeStamp, Subaccount,
 };
 use b3_wallet_lib::{
@@ -131,7 +131,7 @@ fn init() {
 #[pre_upgrade]
 fn pre_upgrade() {
     log_cycle!("pre_upgrade");
-    with_wasm_mut(|wasm| wasm.unload());
+    with_wasm_mut_cache(|wasm| wasm.unload());
 
     let permit = with_operation(|o| o.clone());
     let state = with_wallet(|s| s.clone());
@@ -907,7 +907,7 @@ fn request_send(
 async fn request_upgrade_canister(wasm_version: String) -> OperationId {
     log_cycle!("request_upgrade_canister: {}", wasm_version);
 
-    let upgrade_request = with_wasm(|w| UpgradeCanister {
+    let upgrade_request = with_wasm_cache(|w| UpgradeCanister {
         wasm_hash_string: w.generate_hash_string(),
         wasm_version,
     });
@@ -1011,11 +1011,11 @@ async fn upgrage_wallet() {
     log_cycle!("Upgrade wallet");
 
     let canister_id = ic_cdk::id();
-    let wasm_module = with_wasm(|w| {
+    let wasm_module = with_wasm_cache(|w| {
         if w.is_empty() {
             return panic_log(WalletError::WasmNotLoaded);
         }
-        w.get()
+        w.bytes()
     });
 
     let args = InstallCodeArgument {
@@ -1087,7 +1087,7 @@ fn name() -> String {
 
 #[query(guard = "caller_is_canister_or_admin")]
 fn wasm_details() -> WasmDetails {
-    with_wasm(|w| {
+    with_wasm_cache(|w| {
         let hash = w.generate_hash();
         let size = w.len();
 
@@ -1097,26 +1097,26 @@ fn wasm_details() -> WasmDetails {
 
 #[query(guard = "caller_is_signer")]
 fn wasm_hash_string() -> String {
-    with_wasm(|w| w.generate_hash_string())
+    with_wasm_cache(|w| w.generate_hash_string())
 }
 
 #[query(guard = "caller_is_signer")]
 fn wasm_hash() -> WasmHash {
-    with_wasm(|w| w.generate_hash())
+    with_wasm_cache(|w| w.generate_hash())
 }
 
 #[update(guard = "caller_is_canister_or_admin")]
 fn load_wasm(blob: Vec<u8>) -> WasmSize {
     log_cycle!("Load wasm");
 
-    with_wasm_mut(|w| w.load(&blob))
+    with_wasm_mut_cache(|w| w.load(&blob))
 }
 
 #[update(guard = "caller_is_admin")]
 fn unload_wasm() -> WasmSize {
     log_cycle!("Unload wasm");
 
-    with_wasm_mut(|w| w.unload())
+    with_wasm_mut_cache(|w| w.unload())
 }
 
 #[query]

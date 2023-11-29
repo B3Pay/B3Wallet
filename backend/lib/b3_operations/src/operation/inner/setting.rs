@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use b3_utils::{
     types::CanisterId,
-    wasm::with_wasm,
+    wasm::with_wasm_cache,
     wasm::{WasmHashString, WasmVersion},
 };
 use b3_wallet_lib::error::WalletError;
@@ -101,7 +101,7 @@ impl OperationTrait for UpgradeCanister {
             .map_err(|_| WalletError::WasmNotLoaded)?;
 
         let canister_id = ic_cdk_id();
-        let wasm_module = with_wasm(|w| w.get());
+        let wasm_module = with_wasm_cache(|w| w.bytes());
 
         let args = InstallCodeArgument {
             canister_id,
@@ -116,7 +116,7 @@ impl OperationTrait for UpgradeCanister {
     }
 
     fn validate_request(&self) -> Result<(), OperationError> {
-        with_wasm(|w| {
+        with_wasm_cache(|w| {
             if w.is_empty() {
                 return Err(OperationError::WasmNotSet);
             }

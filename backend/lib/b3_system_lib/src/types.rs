@@ -2,8 +2,6 @@ use b3_utils::{
     ledger::types::{Bug, WalletVersion},
     memory::types::{Bound, Storable},
     types::UserId,
-    wasm::{WasmHash, WasmSize},
-    NanoTimeStamp,
 };
 use candid::CandidType;
 use ciborium::de::from_reader;
@@ -25,31 +23,6 @@ pub struct LoadRelease {
     pub total: usize,
     pub chunks: usize,
     pub version: WalletVersion,
-}
-
-#[derive(CandidType, Deserialize, Serialize, Clone)]
-pub struct Release {
-    pub name: String,
-    pub date: NanoTimeStamp,
-    pub size: WasmSize,
-    pub hash: WasmHash,
-    pub version: WalletVersion,
-    pub deprecated: bool,
-    pub features: Features,
-}
-
-impl Storable for Release {
-    const BOUND: Bound = Bound::Unbounded;
-
-    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
-        let mut bytes = vec![];
-        into_writer(&self, &mut bytes).unwrap();
-        std::borrow::Cow::Owned(bytes)
-    }
-
-    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
-        from_reader(&mut Cursor::new(&bytes)).unwrap()
-    }
 }
 
 #[derive(CandidType, Deserialize, Clone)]

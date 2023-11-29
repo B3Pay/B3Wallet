@@ -127,4 +127,5 @@ service : () -> {
   status : () -> (SystemCanisterStatus);
   update_release : (ReleaseArgs) -> ();
   version : () -> (text) query;
+  wasm_map : () -> (vec vec nat8) query;
 }

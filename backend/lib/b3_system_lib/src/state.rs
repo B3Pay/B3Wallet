@@ -1,8 +1,9 @@
 use crate::{
     error::SystemError,
+    release::Release,
     store::State,
     types::UserStates,
-    types::{Release, ReleaseVersion, Users},
+    types::{ReleaseVersion, Users},
     user::UserState,
 };
 use b3_utils::{
@@ -97,7 +98,7 @@ impl State {
         mode: CanisterInstallMode,
         init_args: WalletCanisterInitArgs,
     ) -> Result<WalletCanisterInstallArg, SystemError> {
-        let wasm_module = self.get_release(version)?.wasm()?.get();
+        let wasm_module = self.get_release(version)?.wasm()?.bytes();
 
         let arg = init_args
             .encode()
@@ -122,7 +123,7 @@ impl State {
         mode: CanisterInstallMode,
         init_args: WalletCanisterInitArgs,
     ) -> Result<WalletCanisterInstallArg, SystemError> {
-        let wasm_module = self.latest_release()?.wasm()?.get();
+        let wasm_module = self.latest_release()?.wasm()?.bytes();
 
         let arg = init_args
             .encode()
