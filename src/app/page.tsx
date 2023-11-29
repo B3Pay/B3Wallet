@@ -1,7 +1,7 @@
 "use client"
 import Footer from "components/Footer"
 import Login from "components/Login"
-import System from "components/System"
+import WalletStatus from "components/WalletStatus"
 import Head from "next/head"
 
 function HomePage() {
@@ -15,7 +15,7 @@ function HomePage() {
           Welcome to the Internet Computer starter template
         </h1>
         <Login />
-        <System />
+        <WalletStatus />
         <Footer />
       </div>
     </div>

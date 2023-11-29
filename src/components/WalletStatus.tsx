@@ -1,52 +1,53 @@
-import { Principal } from "@dfinity/principal"
-import { getModuleHash, objectToString } from "lib/utils"
-import { useEffect, useMemo } from "react"
+"use client"
+import { ReloadIcon } from "@radix-ui/react-icons"
+import { objectToString } from "lib/utils"
+import { useEffect } from "react"
 import { useSystemMethod } from "service/system"
-import InstallWallet from "./InstallWallet"
+import { Button } from "./ui/button"
 
-interface WalletStatusProps {
-  canisterId: Principal
-}
+interface WalletStatusProps {}
 
-const WalletStatus: React.FC<WalletStatusProps> = ({ canisterId }) => {
-  const { call, data, error, loading } = useSystemMethod("user_canister_status")
-
-  useEffect(() => {
-    call(canisterId)
-  }, [canisterId, call])
+const WalletStatus: React.FC<WalletStatusProps> = ({}) => {
+  const { call, data, error, loading } = useSystemMethod("get_user_status")
 
   const refreshHandler = async () => {
-    const res = await call(canisterId)
+    const res = await call()
     console.log(res)
   }
 
-  const { hash, version } = useMemo(() => {
-    if (data) {
-      let hash = getModuleHash(data.canister_status)
+  useEffect(() => {
+    refreshHandler()
+  }, [])
 
-      const version = data.version
+  // const { hash, version } = useMemo(() => {
+  //   if (data) {
+  //     const hash = getModuleHash(data.canister_status)
 
-      return { hash, version }
-    }
-    return { hash: undefined, version: undefined }
-  }, [data])
+  //     const version = data.version
+
+  //     return { hash, version }
+  //   }
+  //   return { hash: undefined, version: undefined }
+  // }, [data])
 
   return (
     <div>
       <section>
-        <h2>B3Wallet</h2>
-        <button onClick={refreshHandler}>Refresh</button>
+        <h2>Wallet Status</h2>
+        <Button onClick={refreshHandler} asIconButton>
+          <ReloadIcon />
+        </Button>
       </section>
       <section>
         <label>Response: &nbsp;</label>
         {loading ? <span>Loading...</span> : null}
         {error ? <span>Error: {JSON.stringify(error)}</span> : null}
         {data && <span>{objectToString(data)}</span>}
-        {hash ? (
+        {/* {hash ? (
           <span>Hash: {hash}</span>
         ) : (
-          <InstallWallet canisterId={canisterId} />
-        )}
+          <InstallWallet canisterId={"ajuq4-ruaaa-aaaaa-qaaga-cai"} />
+        )} */}
       </section>
     </div>
   )

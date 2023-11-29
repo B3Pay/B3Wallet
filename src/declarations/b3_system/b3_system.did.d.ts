@@ -8,6 +8,27 @@ export interface Bug {
   'description' : string,
   'version' : string,
 }
+export interface CanisterChange {
+  'timestamp_nanos' : bigint,
+  'canister_version' : bigint,
+  'origin' : CanisterChangeOrigin,
+  'details' : CanisterChangeDetails,
+}
+export type CanisterChangeDetails = { 'creation' : CreationRecord } |
+  { 'code_deployment' : CodeDeploymentRecord } |
+  { 'controllers_change' : CreationRecord } |
+  { 'code_uninstall' : null };
+export type CanisterChangeOrigin = { 'from_user' : FromUserRecord } |
+  { 'from_canister' : FromCanisterRecord };
+export interface CanisterInfoResponse {
+  'controllers' : Array<Principal>,
+  'module_hash' : [] | [Uint8Array | number[]],
+  'recent_changes' : Array<CanisterChange>,
+  'total_num_changes' : bigint,
+}
+export type CanisterInstallMode = { 'reinstall' : null } |
+  { 'upgrade' : null } |
+  { 'install' : null };
 export interface CanisterStatusResponse {
   'status' : CanisterStatusType,
   'memory_size' : bigint,
@@ -20,12 +41,22 @@ export interface CanisterStatusResponse {
 export type CanisterStatusType = { 'stopped' : null } |
   { 'stopping' : null } |
   { 'running' : null };
+export interface CodeDeploymentRecord {
+  'mode' : CanisterInstallMode,
+  'module_hash' : Uint8Array | number[],
+}
+export interface CreationRecord { 'controllers' : Array<Principal> }
 export interface DefiniteCanisterSettings {
   'freezing_threshold' : bigint,
   'controllers' : Array<Principal>,
   'memory_allocation' : bigint,
   'compute_allocation' : bigint,
 }
+export interface FromCanisterRecord {
+  'canister_version' : [] | [bigint],
+  'canister_id' : Principal,
+}
+export interface FromUserRecord { 'user_id' : Principal }
 export interface LoadRelease {
   'total' : bigint,
   'version' : string,
@@ -69,25 +100,27 @@ export interface UserState {
   'created_at' : bigint,
   'canisters' : Array<Principal>,
 }
+export type UserStatus = { 'Unregistered' : null } |
+  { 'SingleCanister' : Principal } |
+  { 'MultipleCanister' : Array<Principal> } |
+  { 'Registered' : null };
 export interface _SERVICE {
   'add_wallet_canister' : ActorMethod<[Principal], undefined>,
-  'change_wallet_canister' : ActorMethod<[Principal, bigint], undefined>,
   'clear_bugs' : ActorMethod<[Principal], undefined>,
   'create_wallet_canister' : ActorMethod<[], Result>,
   'deprecate_release' : ActorMethod<[string], undefined>,
   'get_bugs' : ActorMethod<[Principal], Array<Bug>>,
+  'get_canister_info' : ActorMethod<[Principal], CanisterInfoResponse>,
   'get_canister_version' : ActorMethod<[Principal], string>,
-  'get_canister_version_by_user' : ActorMethod<
-    [Uint8Array | number[], bigint],
-    string
-  >,
   'get_canisters' : ActorMethod<[], Array<Principal>>,
   'get_create_canister_wallet_cycle' : ActorMethod<[], bigint>,
   'get_release' : ActorMethod<[string], Release>,
   'get_release_by_hash_string' : ActorMethod<[Uint8Array | number[]], Release>,
   'get_states' : ActorMethod<[], UserState>,
+  'get_user_canister_status' : ActorMethod<[Principal], UserCanisterStatus>,
   'get_user_ids' : ActorMethod<[], Array<Uint8Array | number[]>>,
   'get_user_states' : ActorMethod<[], Array<UserState>>,
+  'get_user_status' : ActorMethod<[], UserStatus>,
   'install_wallet_canister' : ActorMethod<[Principal], Result>,
   'latest_release' : ActorMethod<[], Release>,
   'load_release' : ActorMethod<
@@ -97,10 +130,10 @@ export interface _SERVICE {
   'releases' : ActorMethod<[], Array<Release>>,
   'remove_latest_release' : ActorMethod<[], undefined>,
   'remove_release' : ActorMethod<[string], Release>,
-  'remove_wallet_canister' : ActorMethod<[Uint8Array | number[]], undefined>,
+  'remove_user' : ActorMethod<[Principal], undefined>,
+  'remove_wallet_canister' : ActorMethod<[Principal], undefined>,
   'report_bug' : ActorMethod<[Bug], undefined>,
   'status' : ActorMethod<[], SystemCanisterStatus>,
   'update_release' : ActorMethod<[ReleaseArgs], undefined>,
-  'user_canister_status' : ActorMethod<[Principal], UserCanisterStatus>,
   'version' : ActorMethod<[], string>,
 }
