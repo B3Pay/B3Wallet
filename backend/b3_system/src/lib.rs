@@ -235,7 +235,7 @@ async fn install_wallet_canister(canister_id: CanisterId) -> Result<UserState, S
 async fn add_wallet_canister(canister_id: CanisterId) {
     let user_id: UserId = ic_cdk::caller().into();
 
-    let wallet_canister = WalletCanister(canister_id);
+    let _wallet_canister = WalletCanister(canister_id);
 
     // let is_valid = wallet_canister
     //     .validate_signer(user_id.clone())

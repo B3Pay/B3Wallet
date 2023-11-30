@@ -28,6 +28,7 @@
     "load-wasm:wallet": "npx ts-node ./scripts/load-wasm.wallet.ts",
     "load-wasm:system": "npx ts-node ./scripts/load-wasm.system.ts",
     "copy-wasm": "yarn build:wallet && ts-node ./scripts/copy-wasm.ts",
+    "wasm-hash": "npx ts-node ./scripts/wasm-hash.ts",
     "dev": "npx next dev",
     "build": "npx next build"
   },

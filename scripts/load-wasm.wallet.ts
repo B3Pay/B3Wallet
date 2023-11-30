@@ -11,8 +11,6 @@ const loadRelease = async (
 ) => {
   console.log(`Loading wasm code ${version} in User Canister.`)
 
-  console.log(`Wasm size:`, wasmModule.length)
-
   for await (const chunks of chunkGenerator(wasmModule)) {
     const result = await actor.load_wasm(chunks)
     console.log(`Chunks :`, result)
@@ -42,11 +40,11 @@ const loader = async (name: string, mainnet: boolean) => {
 
 let name: string = "b3_wallet"
 let mainnet: boolean = false
-let reload: boolean = false
+const reload: boolean = false
 
 for (let i = 2; i < process.argv.length; i++) {
   if (process.argv[i].startsWith("--network=")) {
-    let network = process.argv[i].split("=")[1]
+    const network = process.argv[i].split("=")[1]
     if (network === "ic" || network === "mainnet") {
       mainnet = true
     }

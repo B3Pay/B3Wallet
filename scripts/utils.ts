@@ -51,7 +51,7 @@ export const loadWasm = async (name: string, withCandid?: boolean) => {
     "Wasm size:",
     buffer.length,
     "hash:",
-    await calculateSha256(buffer.buffer, false)
+    await calculateSha256(buffer.buffer)
   )
 
   return [...new Uint8Array(buffer)]
@@ -102,10 +102,20 @@ export async function calculateSha256(arrayBuffer: ArrayBuffer, asHex = true) {
   return hashHex
 }
 
-export async function calculateWasmHash(name: string) {
+export async function calculateWasmHash(name: string, asHex: boolean) {
   const buffer = await readFile(`${process.cwd()}/wasm/${name}/${name}.wasm`)
 
   const hashBuffer = await crypto.subtle.digest("SHA-256", buffer.buffer)
 
-  return Array.from(new Uint8Array(hashBuffer))
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+
+  if (!asHex) {
+    return hashArray
+  }
+
+  const hashHex = hashArray
+    .map(byte => byte.toString(16).padStart(2, "0"))
+    .join("")
+
+  return hashHex
 }
