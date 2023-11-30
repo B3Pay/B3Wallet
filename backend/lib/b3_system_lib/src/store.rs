@@ -1,6 +1,7 @@
 use crate::{
     error::SystemError,
     release::Release,
+    state::State,
     types::{ReleaseVersion, WalletBugs},
     user::UserState,
 };
@@ -10,27 +11,22 @@ use b3_utils::{
     memory::{init_stable_mem, init_stable_mem_refcell},
     principal::StoredPrincipal,
     types::{CanisterId, UserId},
-    wasm::{Wasm, WasmHash},
+    wasm::Wasm,
 };
 
 use std::cell::RefCell;
 
 pub type UserMap = DefaultStableBTreeMap<UserId, UserState>;
-pub type Releases = DefaultStableBTreeMap<ReleaseVersion, Release>;
+pub type ReleaseMap = DefaultStableBTreeMap<ReleaseVersion, Release>;
 
 pub type WasmMap = DefaultStableBTreeMap<WalletVersion, Wasm>;
 pub type BugMap = DefaultStableBTreeMap<StoredPrincipal, WalletBugs>;
 
-pub struct State {
-    pub users: UserMap,
-    pub releases: Releases,
-}
-
 thread_local! {
     static STATE: RefCell<State> = RefCell::new(
         State {
-            users: init_stable_mem("users", 1).unwrap(),
-            releases: init_stable_mem("releases", 2).unwrap(),
+            users: init_stable_mem("user_map", 1).unwrap(),
+            releases: init_stable_mem("release_map", 2).unwrap(),
         }
     );
     static WASM_MAP: RefCell<WasmMap> = init_stable_mem_refcell("wasm_map", 10).unwrap();
@@ -49,11 +45,11 @@ pub fn with_state_mut<R>(f: impl FnOnce(&mut State) -> R) -> R {
 
 // RELEASE
 
-pub fn with_releases<R>(f: impl FnOnce(&Releases) -> R) -> R {
+pub fn with_releases<R>(f: impl FnOnce(&ReleaseMap) -> R) -> R {
     with_state(|state| f(&state.releases))
 }
 
-pub fn with_releases_mut<R>(f: impl FnOnce(&mut Releases) -> R) -> R {
+pub fn with_releases_mut<R>(f: impl FnOnce(&mut ReleaseMap) -> R) -> R {
     with_state_mut(|state| f(&mut state.releases))
 }
 
@@ -78,19 +74,6 @@ where
             .get(version)
             .ok_or(SystemError::ReleaseNotFound)
             .map(|mut release| f(&mut release))
-    })
-}
-
-pub fn with_hash_release<F, T>(hash: WasmHash, f: F) -> Result<T, SystemError>
-where
-    F: FnOnce(Release) -> T,
-{
-    with_releases(|releases| {
-        releases
-            .iter()
-            .find(|(_, release)| release.hash == hash)
-            .ok_or(SystemError::ReleaseNotFound)
-            .map(|(_, release)| f(release.clone()))
     })
 }
 

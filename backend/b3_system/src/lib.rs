@@ -2,10 +2,9 @@ use b3_system_lib::{
     error::SystemError,
     release::Release,
     store::{
-        with_bugs_mut, with_canister_bugs, with_canister_bugs_mut, with_hash_release,
-        with_latest_version_release, with_release, with_release_mut, with_releases,
-        with_releases_mut, with_state, with_state_mut, with_user_canister, with_user_state,
-        with_user_state_mut, with_wasm_map,
+        with_bugs_mut, with_canister_bugs, with_canister_bugs_mut, with_latest_version_release,
+        with_release, with_release_mut, with_releases, with_releases_mut, with_state,
+        with_state_mut, with_user_canister, with_user_state, with_user_state_mut, with_wasm_map,
     },
     types::{LoadRelease, ReleaseArgs, UserStates, WalletBugs},
     user::UserState,
@@ -21,7 +20,7 @@ use b3_utils::{
     principal::StoredPrincipal,
     revert,
     types::{CanisterId, CanisterIds, UserId},
-    wasm::{Blob, WasmHash},
+    wasm::{Blob, WasmHash, WasmVersion},
     NanoTimeStamp,
 };
 use candid::Principal;
@@ -272,17 +271,17 @@ fn releases() -> Vec<Release> {
 }
 
 #[query]
-fn wasm_map() -> Vec<WasmHash> {
+fn release_wasm_hash() -> Vec<(WasmVersion, WasmHash)> {
     with_wasm_map(|wasm_map| {
         wasm_map
             .iter()
-            .map(|(_, wasm)| ic_crypto_sha2::Sha256::hash(&wasm.bytes()))
+            .map(|(version, wasm)| (version.clone(), wasm.hash()))
             .collect()
     })
 }
 
 #[query]
-fn latest_release() -> Release {
+fn get_latest_release() -> Release {
     with_latest_version_release(|(_, v)| v.clone()).unwrap_or_else(revert)
 }
 
@@ -293,19 +292,25 @@ pub fn get_release(version: WalletVersion) -> Release {
 
 #[query]
 pub fn get_release_by_hash_string(hash: WasmHash) -> Release {
-    with_hash_release(hash, |r| r.clone()).unwrap_or_else(revert)
+    let version = with_wasm_map(|wasm_map| {
+        wasm_map
+            .iter()
+            .find(|(_, wasm)| wasm.verify_hash(&hash))
+            .map(|(version, _)| version.clone())
+            .ok_or(SystemError::ReleaseNotFound)
+    })
+    .unwrap_or_else(revert);
+
+    get_release(version)
 }
 
 // UPDATE CALLS
 
 #[update(guard = "caller_is_controller")]
 fn update_release(release_args: ReleaseArgs) {
-    let version = release_args.version.clone();
-
-    with_release_mut(&version, |vrs| {
-        vrs.update(release_args);
-    })
-    .unwrap_or_else(revert)
+    with_state_mut(|s| {
+        s.update_release(release_args);
+    });
 }
 
 #[update(guard = "caller_is_controller")]
@@ -345,11 +350,8 @@ fn remove_latest_release() {
 }
 
 #[update(guard = "caller_is_controller")]
-fn deprecate_release(version: WalletVersion) {
-    with_release_mut(&version, |vrs| {
-        vrs.deprecate();
-    })
-    .unwrap_or_else(revert)
+fn deprecate_release(version: WalletVersion) -> Release {
+    with_state_mut(|state| state.deprecate_release(version)).unwrap_or_else(revert)
 }
 
 #[update(guard = "caller_is_controller")]

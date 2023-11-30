@@ -117,5 +117,5 @@ export async function calculateWasmHash(name: string, asHex: boolean) {
     .map(byte => byte.toString(16).padStart(2, "0"))
     .join("")
 
-  return hashHex
+  return `0x${hashHex}`
 }

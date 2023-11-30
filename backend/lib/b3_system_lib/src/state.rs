@@ -1,16 +1,22 @@
 use crate::{
     error::SystemError,
     release::Release,
-    store::State,
-    types::UserStates,
+    store::{ReleaseMap, UserMap},
+    types::{ReleaseArgs, UserStates},
     types::{ReleaseVersion, Users},
     user::UserState,
 };
 use b3_utils::{
     ledger::types::{WalletCanisterInitArgs, WalletCanisterInstallArg},
     types::{CanisterId, CanisterIds, UserId},
+    wasm::WasmVersion,
 };
 use ic_cdk::api::management_canister::main::CanisterInstallMode;
+
+pub struct State {
+    pub users: UserMap,
+    pub releases: ReleaseMap,
+}
 
 impl State {
     // user
@@ -134,5 +140,58 @@ impl State {
             arg,
             mode,
         })
+    }
+
+    pub fn update_release(&mut self, release: ReleaseArgs) {
+        let version = release.version.clone();
+
+        self.releases.insert(version, release.into());
+    }
+
+    pub fn deprecate_release(&mut self, version: ReleaseVersion) -> Result<Release, SystemError> {
+        let mut release = self
+            .releases
+            .get(&version)
+            .ok_or(SystemError::ReleaseNotFound)?;
+
+        release.deprecate();
+
+        self.releases.insert(version, release.clone());
+
+        Ok(release)
+    }
+
+    pub fn add_feature_release(
+        &mut self,
+        version: WasmVersion,
+        feature: String,
+    ) -> Result<Release, SystemError> {
+        let mut release = self
+            .releases
+            .get(&version)
+            .ok_or(SystemError::ReleaseNotFound)?;
+
+        release.add_feature(feature);
+
+        self.releases.insert(version, release.clone());
+
+        Ok(release)
+    }
+
+    pub fn remove_feature_release(
+        &mut self,
+        version: WasmVersion,
+        feature: String,
+    ) -> Result<Release, SystemError> {
+        let mut release = self
+            .releases
+            .get(&version)
+            .ok_or(SystemError::ReleaseNotFound)?;
+
+        release.remove_feature(feature);
+
+        self.releases.insert(version, release.clone());
+
+        Ok(release)
     }
 }

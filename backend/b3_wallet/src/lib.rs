@@ -908,7 +908,7 @@ async fn request_upgrade_canister(wasm_version: String) -> OperationId {
     log_cycle!("request_upgrade_canister: {}", wasm_version);
 
     let upgrade_request = with_wasm_cache(|w| UpgradeCanister {
-        wasm_hash_string: w.generate_hash_string(),
+        wasm_hash_string: w.hash_string(),
         wasm_version,
     });
 
@@ -1088,7 +1088,7 @@ fn name() -> String {
 #[query(guard = "caller_is_canister_or_admin")]
 fn wasm_details() -> WasmDetails {
     with_wasm_cache(|w| {
-        let hash = w.generate_hash();
+        let hash = w.hash();
         let size = w.len();
 
         WasmDetails { hash, size }
@@ -1097,12 +1097,12 @@ fn wasm_details() -> WasmDetails {
 
 #[query(guard = "caller_is_signer")]
 fn wasm_hash_string() -> String {
-    with_wasm_cache(|w| w.generate_hash_string())
+    with_wasm_cache(|w| w.hash_string())
 }
 
 #[query(guard = "caller_is_signer")]
 fn wasm_hash() -> WasmHash {
-    with_wasm_cache(|w| w.generate_hash())
+    with_wasm_cache(|w| w.hash())
 }
 
 #[update(guard = "caller_is_canister_or_admin")]

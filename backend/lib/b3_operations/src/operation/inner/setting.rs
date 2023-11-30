@@ -121,7 +121,7 @@ impl OperationTrait for UpgradeCanister {
                 return Err(OperationError::WasmNotSet);
             }
 
-            if w.generate_hash_string() != self.wasm_hash_string {
+            if w.hash_string() != self.wasm_hash_string {
                 return Err(OperationError::InvalidWasmHash);
             }
 

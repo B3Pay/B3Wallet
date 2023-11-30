@@ -21,7 +21,6 @@ pub struct Release {
     pub name: String,
     pub date: NanoTimeStamp,
     pub size: WasmSize,
-    pub hash: WasmHash,
     pub version: WalletVersion,
     pub deprecated: bool,
     pub features: Features,
@@ -61,11 +60,15 @@ impl Release {
     }
 
     pub fn is_same_hash(&self, hash: &WasmHash) -> bool {
-        self.hash == *hash
+        with_release_wasm(&self.version, |wasm| wasm.verify_hash(hash)).unwrap_or(false)
     }
 
     pub fn wasm(&self) -> Result<Wasm, SystemError> {
         with_release_wasm(&self.version, |wasm| Ok(wasm))?
+    }
+
+    pub fn verify_hash(&self, hash: &WasmHash) -> bool {
+        with_release_wasm(&self.version, |wasm| wasm.verify_hash(hash)).unwrap_or(false)
     }
 
     pub fn load_wasm(&mut self, blob: &Vec<u8>) -> Result<WasmSize, SystemError> {
@@ -77,10 +80,6 @@ impl Release {
 
         if wasm_len >= self.size {
             with_wasm_mut_cache(|wasm| {
-                self.hash = wasm.generate_hash();
-
-                ic_cdk::println!("wasm hash: {:?}", self.hash);
-
                 with_wasm_map_mut(|wasm_map| {
                     wasm_map.insert(self.version.clone(), wasm.clone()).unwrap();
                 });
@@ -98,12 +97,6 @@ impl Release {
         });
 
         with_wasm_mut_cache(|wasm| wasm.unload())
-    }
-
-    pub fn update(&mut self, release: ReleaseArgs) {
-        self.size = release.size;
-        self.features = release.features;
-        self.date = NanoTimeStamp::now();
     }
 
     pub fn deprecate(&mut self) {
@@ -130,7 +123,6 @@ impl Default for Release {
             version: "0.0.0".to_string(),
             date: NanoTimeStamp(0),
             size: 0,
-            hash: WasmHash::default(),
             deprecated: false,
             features: vec!["".to_string()],
         }
@@ -144,7 +136,6 @@ impl From<ReleaseArgs> for Release {
             date: NanoTimeStamp::now(),
             size: args.size,
             deprecated: false,
-            hash: WasmHash::default(),
             version: args.version,
             features: args.features,
         }

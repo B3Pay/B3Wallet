@@ -11,7 +11,7 @@ let asHex: boolean = false
 
 for (let i = 2; i < process.argv.length; i++) {
   if (process.argv[i] === "--help") {
-    console.log("Usage: node wasm-hash.ts [name] [--hex]")
+    console.log("Usage: npx ts-node wasm-hash.ts [name] [--hex]")
     console.log("  name: name of the wasm file without the extension")
     console.log("  --hex: output the hash as a hex string")
     process.exit(0)
