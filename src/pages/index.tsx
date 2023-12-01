@@ -1,6 +1,8 @@
+import CreateWallet from "components/CreateWallet"
 import Footer from "components/Footer"
 import Login from "components/Login"
-import WalletStatus from "components/WalletStatus"
+import UserStatus from "components/UserStatus"
+import WalletCanisterStatus from "components/WalletCanisterStatus"
 import Head from "next/head"
 
 function HomePage() {
@@ -14,7 +16,9 @@ function HomePage() {
           Welcome to the Internet Computer starter template
         </h1>
         <Login />
-        <WalletStatus />
+        <CreateWallet />
+        <UserStatus />
+        <WalletCanisterStatus />
         <Footer />
       </div>
     </div>

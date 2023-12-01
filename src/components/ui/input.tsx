@@ -99,7 +99,7 @@ export interface InputProps
   icon?: React.ReactNode
   noShadow?: boolean
   asChild?: boolean
-  iconSize: "xs" | "sm" | "md" | "lg" | "xl" | null
+  iconSize?: "xs" | "sm" | "md" | "lg" | "xl" | null
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(

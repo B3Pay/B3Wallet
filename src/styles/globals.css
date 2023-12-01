@@ -42,6 +42,7 @@
         --success-foreground: 210 20% 98%;
         --info: 199 74% 52%;
         --info-foreground: 210 20% 98%;
+        --border-pulse: 240, 5%, 90%;
         --border: 220 13% 91%;
         --border-width: 2px;
         --input: 220 13% 91%;
@@ -68,6 +69,7 @@
         --accent-foreground: 210 20% 98%;
         --destructive: 0 62.8% 30.6%;
         --destructive-foreground: 210 20% 98%;
+        --border-pulse: 240, 5%, 80%;
         --border: 215 27.9% 16.9%;
         --border-width: 2px;
         --input: 215 27.9% 16.9%;

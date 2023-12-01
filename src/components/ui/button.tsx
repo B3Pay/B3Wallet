@@ -1,11 +1,10 @@
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+import { cn, focusRing } from "lib/utils"
 import * as React from "react"
 
-import { cn, focusRing } from "lib/utils"
-
 const buttonVariants = cva(
-  "ml-1px inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+  "ml-1px inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors whitespace-nowrap transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
   {
     compoundVariants: [
       {
@@ -87,15 +86,16 @@ const buttonVariants = cva(
     variants: {
       color: {
         primary:
-          "bg-primary/75 border-primary text-primary hover:bg-primary/50",
+          "bg-primary/75 border-primary text-primary hover:bg-primary/50 focus:ring-primary",
         secondary:
-          "bg-secondary/75 border-secondary text-secondary hover:bg-secondary/50",
-        error: "bg-error/75 border-error text-error hover:bg-error/50",
+          "bg-secondary/75 border-secondary text-secondary hover:bg-secondary/50 focus:ring-secondary",
+        error:
+          "bg-error/75 border-error text-error hover:bg-error/50 focus:ring-error",
         success:
-          "bg-success/75 border-success text-success hover:bg-success/50",
+          "bg-success/75 border-success text-success hover:bg-success/50 focus:ring-success",
         warning:
-          "bg-warning/75 border-warning text-warning hover:bg-warning/50",
-        info: "bg-info/75 border-info text-info hover:bg-info/50",
+          "bg-warning/75 border-warning text-warning hover:bg-warning/50 focus:ring-warning",
+        info: "bg-info/75 border-info text-info hover:bg-info/50 focus:ring-info",
         muted: "border-gray-500 hover:bg-gray-400/50"
       },
       variant: {
@@ -149,6 +149,7 @@ export interface ButtonProps
   height?: string
   asIconButton?: boolean
   noShadow?: boolean
+  isLoading?: boolean
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -163,6 +164,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       asIconButton,
       height,
       noShadow,
+      isLoading,
       asChild = false,
       ...props
     },
@@ -183,10 +185,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             noShadow
           }),
           className,
-          size !== "xs" && `rounded-${round}-${size}`,
-          height
+          size && size !== "xs" && `rounded-${round}-${size}`,
+          height,
+          isLoading && "animate-border-pulse"
         )}
         ref={ref}
+        disabled={isLoading}
         {...props}
       >
         {children}

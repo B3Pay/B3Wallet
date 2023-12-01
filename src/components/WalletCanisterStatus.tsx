@@ -1,30 +1,32 @@
 "use client"
 import { Principal } from "@dfinity/principal"
 import { ShadowInnerIcon } from "@radix-ui/react-icons"
-import { objectToString } from "lib/utils"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useSystemMethod } from "service/system"
+import DisplayData from "./DisplayData"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 
-interface WalletStatusProps {
+interface WalletCanisterStatusProps {
   canisterId?: string
 }
 
-const WalletStatus: React.FC<WalletStatusProps> = ({ canisterId }) => {
+const WalletCanisterStatus: React.FC<WalletCanisterStatusProps> = ({
+  canisterId
+}) => {
   const { call, data, error, loading } = useSystemMethod(
     "get_user_canister_status"
   )
-
   const [input, setInput] = useState(canisterId || "")
 
-  const installWalletHandler = async () => {
-    if (!input) return
+  const principal = useMemo(() => {
+    if (!input) return null
+    return Principal.fromText(input)
+  }, [input])
 
-    const principal = Principal.fromText(input)
-
-    const res = await call(principal)
-    console.log(res)
+  const clickHandler = () => {
+    if (!principal) return
+    call(principal)
   }
 
   return (
@@ -39,25 +41,18 @@ const WalletStatus: React.FC<WalletStatusProps> = ({ canisterId }) => {
           iconSize="sm"
         />
         <Button
+          isLoading={loading}
           round="right"
           variant="outline"
           color="secondary"
-          onClick={installWalletHandler}
+          onClick={clickHandler}
         >
           Wallet Status
         </Button>
       </div>
-      <label>Response: &nbsp;</label>
-      {loading ? <span>Loading...</span> : null}
-      {error ? <span>Error: {JSON.stringify(error)}</span> : null}
-      {data && <span>{objectToString(data)}</span>}
-      {/* {hash ? (
-          <span>Hash: {hash}</span>
-        ) : (
-          <InstallWallet canisterId={"ajuq4-ruaaa-aaaaa-qaaga-cai"} />
-        )} */}
+      <DisplayData loading={loading} error={error} data={data} />
     </div>
   )
 }
 
-export default WalletStatus
+export default WalletCanisterStatus

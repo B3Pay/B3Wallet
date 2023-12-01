@@ -1,8 +1,8 @@
 import { Principal } from "@dfinity/principal"
 import { ShadowInnerIcon } from "@radix-ui/react-icons"
-import { objectToString } from "lib/utils"
 import { useState } from "react"
 import { useSystemMethod } from "service/system"
+import DisplayData from "./DisplayData"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 
@@ -42,16 +42,12 @@ const InstallWallet: React.FC<InstallWalletProps> = ({ canisterId }) => {
           variant="outline"
           color="secondary"
           onClick={installWalletHandler}
+          isLoading={loading}
         >
-          Instal Wallet
+          Install Wallet
         </Button>
       </div>
-      <section>
-        <label>Response: &nbsp;</label>
-        {loading ? <span>Loading...</span> : null}
-        {error ? <span>Error: {JSON.stringify(error)}</span> : null}
-        {data && <span>{objectToString(data)}</span>}
-      </section>
+      <DisplayData loading={loading} error={error} data={data} />
     </div>
   )
 }

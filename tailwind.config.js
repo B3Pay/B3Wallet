@@ -139,11 +139,15 @@ module.exports = {
         "accordion-up": {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: 0 }
+        },
+        "border-pulse": {
+          "50%": { borderColor: "transparent" }
         }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out"
+        "accordion-up": "accordion-up 0.2s ease-out",
+        "border-pulse": "border-pulse 2s ease-in-out infinite"
       }
     }
   },

@@ -55,6 +55,22 @@ fn get_user_states() -> UserStates {
 }
 
 #[query]
+async fn get_user_status() -> UserStatus {
+    let user_id: UserId = ic_cdk::caller().into();
+
+    let canisters = with_user_state(user_id, |rs| rs.canisters());
+
+    match canisters {
+        Ok(canisters) => match canisters.len() {
+            0 => UserStatus::Registered,
+            1 => UserStatus::SingleCanister(canisters[0].clone()),
+            _ => UserStatus::MultipleCanister(canisters),
+        },
+        Err(_) => UserStatus::Unregistered,
+    }
+}
+
+#[query]
 fn get_canisters() -> CanisterIds {
     let user_id = ic_cdk::caller();
 
@@ -81,22 +97,6 @@ fn get_bugs(canister_id: CanisterId) -> WalletBugs {
     let canister_id: StoredPrincipal = canister_id.into();
 
     with_canister_bugs(&canister_id, |bugs| bugs.clone()).unwrap_or_else(revert)
-}
-
-#[query]
-async fn get_user_status() -> UserStatus {
-    let user_id: UserId = ic_cdk::caller().into();
-
-    let canisters = with_user_state(user_id, |rs| rs.canisters());
-
-    match canisters {
-        Ok(canisters) => match canisters.len() {
-            0 => UserStatus::Registered,
-            1 => UserStatus::SingleCanister(canisters[0].clone()),
-            _ => UserStatus::MultipleCanister(canisters),
-        },
-        Err(_) => UserStatus::Unregistered,
-    }
 }
 
 #[update]
