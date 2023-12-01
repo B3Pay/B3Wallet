@@ -104,7 +104,7 @@ service : () -> {
   deprecate_release : (text) -> (Release);
   get_bugs : (principal) -> (vec Bug) query;
   get_canister_info : (principal) -> (CanisterInfoResponse);
-  get_canister_version : (principal) -> (text);
+  get_canister_version : (principal) -> (text) composite_query;
   get_canisters : () -> (vec principal) query;
   get_create_canister_wallet_cycle : () -> (nat) query;
   get_latest_release : () -> (Release) query;

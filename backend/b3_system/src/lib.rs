@@ -99,28 +99,7 @@ fn get_bugs(canister_id: CanisterId) -> WalletBugs {
     with_canister_bugs(&canister_id, |bugs| bugs.clone()).unwrap_or_else(revert)
 }
 
-#[update]
-async fn get_user_canister_status(canister_id: CanisterId) -> UserCanisterStatus {
-    let user_id: UserId = ic_cdk::caller().into();
-
-    let canister = with_user_canister(user_id, &canister_id, |w| w.clone()).unwrap_or_else(revert);
-
-    let version = WalletCanister(canister)
-        .version()
-        .await
-        .unwrap_or("not installed".to_string());
-
-    let canister_status = Management::canister_status(canister_id)
-        .await
-        .unwrap_or_else(revert);
-
-    UserCanisterStatus {
-        version,
-        canister_status,
-    }
-}
-
-#[update]
+#[query(composite = true)]
 async fn get_canister_version(canister_id: CanisterId) -> WalletVersion {
     let user_id: UserId = ic_cdk::caller().into();
 
@@ -130,6 +109,20 @@ async fn get_canister_version(canister_id: CanisterId) -> WalletVersion {
         .version()
         .await
         .unwrap_or_else(revert)
+}
+
+#[update]
+async fn get_user_canister_status(canister_id: CanisterId) -> UserCanisterStatus {
+    let version = get_canister_version(canister_id).await;
+
+    let canister_status = Management::canister_status(canister_id)
+        .await
+        .unwrap_or_else(revert);
+
+    UserCanisterStatus {
+        version,
+        canister_status,
+    }
 }
 
 #[update]
