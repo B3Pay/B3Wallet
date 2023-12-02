@@ -6,7 +6,8 @@ use crate::store::with_users;
 use crate::store::with_users_mut;
 use crate::user::User;
 use async_trait::async_trait;
-use b3_utils::types::{Metadata, UserId};
+use b3_utils::ledger::Metadata;
+use b3_utils::types::UserId;
 use b3_wallet_lib::error::WalletError;
 use candid::{CandidType, Deserialize};
 

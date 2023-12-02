@@ -1,5 +1,8 @@
 use crate::{ledger::ledger::Ledger, types::WalletAccountView};
-use b3_utils::{types::Metadata, Environment, Subaccount};
+use b3_utils::{
+    ledger::{Metadata, Value},
+    Environment, Subaccount,
+};
 use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
@@ -111,11 +114,11 @@ impl WalletAccount {
         &mut self.ledger
     }
 
-    pub fn add_metadata(&mut self, key: String, value: String) {
+    pub fn add_metadata(&mut self, key: String, value: Value) {
         self.metadata.insert(key, value);
     }
 
-    pub fn update_metadata(&mut self, key: String, value: String) {
+    pub fn update_metadata(&mut self, key: String, value: Value) {
         self.metadata.insert(key, value);
     }
 

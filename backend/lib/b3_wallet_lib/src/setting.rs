@@ -1,8 +1,10 @@
+use std::collections::HashMap;
+
 use crate::error::WalletError;
 use b3_utils::{
     api::Management,
-    api::{AppController, AppControllerMap},
-    types::{ControllerId, ControllerIds, Metadata},
+    ledger::{Metadata, Value},
+    types::{AppControllerMap, ControllerId, ControllerIds},
 };
 use candid::{CandidType, Nat};
 use ic_cdk::api::management_canister::{
@@ -13,7 +15,7 @@ use serde::{Deserialize, Serialize};
 #[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct WalletSettings {
     pub metadata: Metadata,
-    pub controllers: AppControllerMap,
+    pub controllers: HashMap<ControllerId, String>,
     pub compute_allocation: Option<Nat>,
     pub memory_allocation: Option<Nat>,
     pub freezing_threshold: Option<Nat>,
@@ -24,7 +26,7 @@ impl Default for WalletSettings {
     fn default() -> Self {
         WalletSettings {
             metadata: Metadata::default(),
-            controllers: AppControllerMap::default(),
+            controllers: HashMap::new(),
             compute_allocation: None,
             memory_allocation: None,
             freezing_threshold: None,
@@ -58,7 +60,7 @@ impl WalletSettings {
         &mut self.metadata
     }
 
-    pub fn add_metadata(&mut self, key: String, value: String) {
+    pub fn add_metadata(&mut self, key: String, value: Value) {
         self.metadata.insert(key, value);
     }
 
@@ -105,8 +107,8 @@ impl WalletSettings {
     /// returns the updated controllers.
     pub async fn add_controller_and_update(
         &mut self,
+        name: String,
         controller_id: ControllerId,
-        controller: AppController,
     ) -> Result<(), WalletError> {
         let canister_id = ic_cdk::id();
 
@@ -142,7 +144,7 @@ impl WalletSettings {
             .await
             .map_err(|err| WalletError::UpdateCanisterControllersError(err.to_string()))?;
 
-        self.controllers.insert(controller_id, controller);
+        self.controllers.insert(controller_id, name);
 
         // check the controller is exist in self.controllers if not add it with unknown name
         self.update_controllers(controller_ids);
@@ -156,7 +158,8 @@ impl WalletSettings {
     pub async fn update_settings(&mut self) -> Result<(), WalletError> {
         let canister_id = ic_cdk::id();
 
-        let mut controller_ids = self.controllers.keys().cloned().collect::<Vec<_>>();
+        let mut controller_ids: ControllerIds =
+            self.controllers.iter().map(|(id, _)| id.clone()).collect();
 
         if !controller_ids.contains(&canister_id) {
             controller_ids.push(canister_id);
@@ -191,8 +194,8 @@ impl WalletSettings {
         controller_ids
             .iter()
             .fold(AppControllerMap::new(), |mut acc, id| {
-                if let Some(controller) = self.controllers.get(id) {
-                    acc.insert(id.clone(), controller.clone());
+                if let Some(name) = self.controllers.get(id) {
+                    acc.insert(id.clone(), name.clone());
                 } else {
                     let name = if id == &canister_id {
                         "self"
@@ -200,8 +203,7 @@ impl WalletSettings {
                         "unknown"
                     };
 
-                    let controller = AppController::new(name.to_owned(), None);
-                    acc.insert(id.clone(), controller);
+                    acc.insert(id.clone(), name.to_owned());
                 }
                 acc
             });
@@ -216,21 +218,20 @@ mod tests {
 
     #[test]
     fn test_remove_controller() {
-        let mut controller_map = AppControllerMap::default();
+        let mut controller_map = AppControllerMap::new();
 
         for i in 0..4u8 {
             let canister_id = Principal::from_slice(&[i; 29]);
+            let name = format!("controller-{}", i);
 
-            let controller = AppController::new(format!("controller-{}", i), None);
-
-            controller_map.insert(canister_id, controller);
+            controller_map.insert(canister_id, name);
         }
 
         let canister_id = Principal::from_slice(&[4; 29]);
 
-        let controller = AppController::new(format!("controller-{}", 4), None);
+        let name = format!("controller-{}", 4);
 
-        controller_map.insert(canister_id, controller);
+        controller_map.insert(canister_id, name);
 
         assert_eq!(controller_map.len(), 5);
 
@@ -248,8 +249,8 @@ mod tests {
                 if let Some(controller) = controller_map.get(id) {
                     acc.insert(id.clone(), controller.clone());
                 } else {
-                    let controller = AppController::new("unknown".to_owned(), None);
-                    acc.insert(id.clone(), controller);
+                    let name = "unknown".to_owned();
+                    acc.insert(id.clone(), name);
                 }
                 acc
             });

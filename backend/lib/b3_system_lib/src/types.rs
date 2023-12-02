@@ -7,13 +7,13 @@ use candid::CandidType;
 use ic_cdk::api::management_canister::main::CanisterStatusResponse;
 use serde::{Deserialize, Serialize};
 
-use crate::user::UserState;
+use crate::user::User;
 
 pub type ReleaseVersion = String;
 
 pub type AppId = String;
 
-pub type UserStates = Vec<UserState>;
+pub type UserStates = Vec<User>;
 
 pub type Features = Vec<String>;
 pub type Users = Vec<UserId>;

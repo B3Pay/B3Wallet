@@ -4,7 +4,7 @@ use crate::{
     release::Release,
     state::State,
     types::{AppId, ReleaseVersion},
-    user::UserState,
+    user::User,
 };
 use b3_utils::{
     api::{bugs::AppBugs, AppVersion},
@@ -17,7 +17,7 @@ use b3_utils::{
 
 use std::cell::RefCell;
 
-pub type UserMap = DefaultStableBTreeMap<UserId, UserState>;
+pub type UserMap = DefaultStableBTreeMap<UserId, User>;
 pub type ReleaseMap = DefaultStableBTreeMap<ReleaseVersion, Release>;
 pub type AppMap = DefaultStableBTreeMap<AppId, App>;
 
@@ -28,8 +28,8 @@ thread_local! {
     static STATE: RefCell<State> = RefCell::new(
         State {
             users: init_stable_mem("user_map", 1).unwrap(),
-            releases: init_stable_mem("release_map", 2).unwrap(),
-            apps: init_stable_mem("product_map", 3).unwrap(),
+            apps: init_stable_mem("product_map", 2).unwrap(),
+            releases: init_stable_mem("release_map", 3).unwrap(),
         }
     );
     static WASM_MAP: RefCell<WasmMap> = init_stable_mem_refcell("wasm_map", 10).unwrap();
@@ -101,7 +101,7 @@ pub fn with_users_mut<R>(f: impl FnOnce(&mut UserMap) -> R) -> R {
 
 pub fn with_user_state<F, T>(user_id: UserId, f: F) -> Result<T, SystemError>
 where
-    F: FnOnce(UserState) -> T,
+    F: FnOnce(User) -> T,
 {
     with_users(|signers| {
         signers
@@ -113,7 +113,7 @@ where
 
 pub fn with_user_state_mut<F, T>(user_id: &UserId, f: F) -> Result<T, SystemError>
 where
-    F: FnOnce(&mut UserState) -> T,
+    F: FnOnce(&mut User) -> T,
 {
     with_users_mut(|signers| {
         signers

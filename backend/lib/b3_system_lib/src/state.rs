@@ -5,7 +5,7 @@ use crate::{
     store::{AppMap, ReleaseMap, UserMap},
     types::{AppId, ReleaseVersion, Users},
     types::{ReleaseArgs, UserStates},
-    user::UserState,
+    user::User,
 };
 use b3_utils::{
     api::{AppInitArgs, AppInstallArg},
@@ -22,14 +22,14 @@ pub struct State {
 
 impl State {
     // user
-    pub fn init_user(&mut self, user: UserId) -> Result<UserState, SystemError> {
+    pub fn init_user(&mut self, user: UserId) -> Result<User, SystemError> {
         if let Some(user_state) = self.users.get(&user) {
             if !user_state.canisters().is_empty() {
                 return Err(SystemError::UserAlreadyExists);
             }
         }
 
-        let user_state = UserState::new(None);
+        let user_state = User::new(None);
 
         self.users.insert(user, user_state.clone());
 
@@ -40,7 +40,7 @@ impl State {
         &mut self,
         user: UserId,
         opt_canister_id: Option<CanisterId>,
-    ) -> Result<UserState, SystemError> {
+    ) -> Result<User, SystemError> {
         if let Some(mut states) = self.users.get(&user) {
             let mut user_state = states.update_rate()?;
 
@@ -51,14 +51,14 @@ impl State {
             return Ok(user_state);
         }
 
-        let user_state = UserState::new(opt_canister_id);
+        let user_state = User::new(opt_canister_id);
 
         self.users.insert(user, user_state.clone());
 
         Ok(user_state)
     }
 
-    pub fn add_user(&mut self, user: UserId, user_state: UserState) {
+    pub fn add_user(&mut self, user: UserId, user_state: User) {
         self.users.insert(user, user_state);
     }
 
@@ -78,7 +78,7 @@ impl State {
             .collect()
     }
 
-    pub fn user_state(&self, user_id: UserId) -> Result<UserState, SystemError> {
+    pub fn user_state(&self, user_id: UserId) -> Result<User, SystemError> {
         self.users
             .get(&user_id)
             .ok_or(SystemError::UserNotFound)

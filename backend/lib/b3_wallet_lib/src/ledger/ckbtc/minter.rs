@@ -9,7 +9,7 @@ use super::{
 };
 use b3_utils::{
     constants::{CKBTC_MINTER_CANISTER_MAINNET, CKBTC_MINTER_CANISTER_TESTNET},
-    ledger::{types::TransferBlockIndex, ICRCAccount},
+    ledger::{ICRCAccount, TransferBlockIndex},
     types::CanisterId,
 };
 use candid::CandidType;

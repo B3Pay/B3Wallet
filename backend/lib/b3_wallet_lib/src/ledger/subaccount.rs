@@ -93,7 +93,7 @@ mod tests {
         assert_eq!(subaccount.name(), "Default");
         assert_eq!(subaccount.id(), "-default");
 
-        let identifier = AccountIdentifier::new(TEST_PRINCIPAL, subaccount);
+        let identifier = AccountIdentifier::new(TEST_PRINCIPAL, Some(subaccount));
 
         println!("{:?}", identifier.to_string());
     }

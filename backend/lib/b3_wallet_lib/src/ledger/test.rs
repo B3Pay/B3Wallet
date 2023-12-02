@@ -18,7 +18,7 @@ mod tests {
 
         let owner = CanisterId::from_text("bkyz2-fmaaa-aaaaa-qaaaq-cai").unwrap();
 
-        let identifier = AccountIdentifier::new(owner, subaccount.clone());
+        let identifier = AccountIdentifier::new(owner, Some(subaccount.clone()));
 
         let mut chains = ChainMap::new();
 
@@ -113,12 +113,16 @@ mod tests {
             0, 0, 0,
         ]);
 
-        let identifier = AccountIdentifier::new(id_mock(), subaccount.clone());
+        let identifier = AccountIdentifier::new(id_mock(), Some(subaccount.clone()));
 
-        let expected_identifier = AccountIdentifier::from(vec![
-            45, 14, 137, 127, 126, 134, 45, 43, 87, 217, 188, 158, 165, 198, 95, 154, 36, 172, 108,
-            7, 69, 117, 244, 120, 152, 49, 75, 141, 108, 176, 146, 157,
-        ]);
+        let expected_identifier = AccountIdentifier::from_slice(
+            [
+                45, 14, 137, 127, 126, 134, 45, 43, 87, 217, 188, 158, 165, 198, 95, 154, 36, 172,
+                108, 7, 69, 117, 244, 120, 152, 49, 75, 141, 108, 176, 146, 157,
+            ]
+            .as_slice(),
+        )
+        .unwrap();
 
         println!("identifier: {:?}", identifier);
 
@@ -185,14 +189,18 @@ mod tests {
 
         let owner = CanisterId::from_text("bkyz2-fmaaa-aaaaa-qaaaq-cai").unwrap();
 
-        let identifier = AccountIdentifier::new(owner, subaccount.clone());
+        let identifier = AccountIdentifier::new(owner, Some(subaccount.clone()));
 
         println!("identifier: {}", identifier.to_string());
 
-        let expected_identifier = AccountIdentifier::from(vec![
-            146, 231, 37, 157, 114, 49, 157, 239, 199, 132, 229, 111, 180, 128, 68, 147, 19, 27,
-            21, 176, 125, 49, 244, 123, 149, 241, 38, 235, 86, 180, 38, 113,
-        ]);
+        let expected_identifier = AccountIdentifier::from_slice(
+            [
+                146, 231, 37, 157, 114, 49, 157, 239, 199, 132, 229, 111, 180, 128, 68, 147, 19,
+                27, 21, 176, 125, 49, 244, 123, 149, 241, 38, 235, 86, 180, 38, 113,
+            ]
+            .as_slice(),
+        )
+        .unwrap();
 
         assert_eq!(identifier, expected_identifier);
 

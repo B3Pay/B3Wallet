@@ -1,7 +1,7 @@
 use crate::error::SystemError;
 use b3_utils::{
     api::Management,
-    ledger::constants::SYSTEM_RATE_LIMIT,
+    ledger::{constants::SYSTEM_RATE_LIMIT, Metadata},
     memory::types::{Bound, Storable},
     types::{CanisterId, CanisterIds, ControllerId},
     NanoTimeStamp,
@@ -16,41 +16,14 @@ use serde::{Deserialize, Serialize};
 use std::io::Cursor;
 
 #[derive(CandidType, Deserialize, Serialize, Clone)]
-pub struct UserState {
+pub struct User {
     pub canisters: Vec<CanisterId>,
     pub created_at: NanoTimeStamp,
     pub updated_at: NanoTimeStamp,
+    pub metadata: Metadata,
 }
 
-impl From<CanisterId> for UserState {
-    fn from(canister_id: CanisterId) -> Self {
-        let mut canisters = Vec::new();
-
-        canisters.push(canister_id);
-
-        Self {
-            canisters,
-            updated_at: NanoTimeStamp::now(),
-            created_at: NanoTimeStamp::now(),
-        }
-    }
-}
-
-impl Storable for UserState {
-    const BOUND: Bound = Bound::Unbounded;
-
-    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
-        let mut bytes = vec![];
-        into_writer(&self, &mut bytes).unwrap();
-        std::borrow::Cow::Owned(bytes)
-    }
-
-    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
-        from_reader(&mut Cursor::new(&bytes)).unwrap()
-    }
-}
-
-impl UserState {
+impl User {
     /// Create a new canister.
     pub fn new(opt_canister_id: Option<CanisterId>) -> Self {
         let mut canisters = Vec::new();
@@ -63,11 +36,12 @@ impl UserState {
             canisters,
             updated_at: NanoTimeStamp::now(),
             created_at: NanoTimeStamp::now(),
+            metadata: Metadata::new(),
         }
     }
 
     /// get with updated_at.
-    pub fn update_rate(&mut self) -> Result<UserState, SystemError> {
+    pub fn update_rate(&mut self) -> Result<User, SystemError> {
         self.check_rate()?;
         self.updated_at = NanoTimeStamp::now();
 
@@ -135,5 +109,34 @@ impl UserState {
             }
             Err(err) => Err(SystemError::CreateCanisterError(err.to_string())),
         }
+    }
+}
+
+impl From<CanisterId> for User {
+    fn from(canister_id: CanisterId) -> Self {
+        let mut canisters = Vec::new();
+
+        canisters.push(canister_id);
+
+        Self {
+            canisters,
+            metadata: Metadata::new(),
+            updated_at: NanoTimeStamp::now(),
+            created_at: NanoTimeStamp::now(),
+        }
+    }
+}
+
+impl Storable for User {
+    const BOUND: Bound = Bound::Unbounded;
+
+    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
+        let mut bytes = vec![];
+        into_writer(&self, &mut bytes).unwrap();
+        std::borrow::Cow::Owned(bytes)
+    }
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
+        from_reader(&mut Cursor::new(&bytes)).unwrap()
     }
 }

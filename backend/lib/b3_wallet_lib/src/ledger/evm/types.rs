@@ -1,4 +1,4 @@
-use b3_utils::ledger::raw_keccak256;
+use b3_utils::{ledger::raw_keccak256, vec_to_hex_string_with_0x};
 use bitcoin::secp256k1::PublicKey;
 
 pub trait PublicKeyTrait {
@@ -12,9 +12,7 @@ impl PublicKeyTrait for PublicKey {
 
         let keccak256 = raw_keccak256(&pub_key[1..]);
 
-        let keccak256_hex = keccak256.to_hex_string();
-
-        let address = "0x".to_owned() + &keccak256_hex[24..];
+        let address = vec_to_hex_string_with_0x(&keccak256[12..]);
 
         address
     }

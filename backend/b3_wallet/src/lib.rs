@@ -29,7 +29,7 @@ use b3_operations::{
 };
 use b3_utils::{
     api::{
-        bugs::AppBug, AppAccountsNonce, AppController, AppControllerMap, AppInitArgs,
+        bugs::AppBug, AppAccountsNonce, AppController, AppControllers, AppInitArgs,
         AppInititializeArgs, AppStatus, Management,
     },
     ledger::currency::{ICPToken, TokenAmount},
@@ -640,7 +640,7 @@ async fn add_controller_and_update(
 }
 
 #[update(guard = "caller_is_admin")]
-async fn update_controller(controller_map: AppControllerMap) -> AppControllerMap {
+async fn update_controller(controller_map: AppControllers) -> AppControllers {
     log_cycle!("Update controller: {:?}", controller_map);
 
     let mut settings = with_setting(|s| s.clone());

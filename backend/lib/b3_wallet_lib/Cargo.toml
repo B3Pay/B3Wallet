@@ -7,7 +7,7 @@ license = "Apache-2.0"
 readme = "./README.md"
 
 [dependencies]
-serde = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
 candid = { workspace = true }
 ic-cdk = { workspace = true }
 async-trait = { workspace = true }

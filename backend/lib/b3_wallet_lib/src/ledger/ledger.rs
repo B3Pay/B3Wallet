@@ -7,7 +7,7 @@ use super::{
 use crate::ledger::chain::ChainTrait;
 use b3_utils::{
     ledger::{currency::TokenAmount, raw_keccak256},
-    Environment, Subaccount,
+    vec_to_hex_string, Environment, Subaccount,
 };
 use bitcoin::secp256k1;
 use candid::CandidType;
@@ -120,7 +120,7 @@ impl Ledger {
 
         let keccak256 = raw_keccak256(&pub_key[1..]);
 
-        let keccak256_hex = keccak256.to_hex_string();
+        let keccak256_hex = vec_to_hex_string(keccak256);
 
         let address = "0x".to_owned() + &keccak256_hex[24..];
 

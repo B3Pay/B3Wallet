@@ -6,11 +6,8 @@ use b3_utils::{
     ledger::{
         constants::{CANISTER_TOP_UP_MEMO, CANISTER_TRANSFER_MEMO, IC_TRANSACTION_FEE_ICP},
         currency::ICPToken,
-        types::{
-            ICPAccountBalanceArgs, ICPTransferArgs, ICPTransferResult, ICPTransferTimestamp,
-            NotifyTopUpResult, NotifyTopupArgs, TransferBlockIndex, TransferMemo,
-        },
-        AccountIdentifier,
+        AccountIdentifier, ICPAccountBalanceArgs, ICPTransferArgs, ICPTransferResult,
+        ICPTransferTimestamp, NotifyTopUpResult, NotifyTopupArgs, TransferBlockIndex, TransferMemo,
     },
     types::CanisterId,
     Subaccount,
@@ -80,7 +77,7 @@ impl IcpChain {
     ) -> Result<TransferBlockIndex, IcpError> {
         let canister_subaccount = Subaccount::from(canister_id);
 
-        let to = AccountIdentifier::new(CYCLES_MINTING_CANISTER_ID, canister_subaccount);
+        let to = AccountIdentifier::new(CYCLES_MINTING_CANISTER_ID, Some(canister_subaccount));
 
         let block_index = self
             .transfer(to, amount, None, Some(CANISTER_TOP_UP_MEMO))

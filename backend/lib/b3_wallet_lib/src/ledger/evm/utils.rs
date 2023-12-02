@@ -1,12 +1,12 @@
-use b3_utils::ledger::raw_keccak256;
+use b3_utils::{ledger::raw_keccak256, vec_to_hex_string, vec_to_hex_string_with_0x};
 use bitcoin::secp256k1::PublicKey;
 
 use super::{error::EvmError, types::PublicKeyTrait};
 
 pub fn get_method_id(method_sig: &str) -> String {
-    let result = raw_keccak256(method_sig.as_bytes()).to_hex_string();
+    let result = raw_keccak256(method_sig.as_bytes());
 
-    let hex_string = result[..8].to_string();
+    let hex_string = vec_to_hex_string(&result[..4]);
 
     hex_string
 }
@@ -36,14 +36,15 @@ pub fn create_address_from(public_key: &PublicKey, nonce: u64) -> String {
 
     let rlp_encoded = stream.out();
 
-    let hash = raw_keccak256(&rlp_encoded).to_hex_string();
+    let keccak256 = raw_keccak256(&rlp_encoded);
 
     // Grab the right-most 20 bytes
-    let address = "0x".to_string() + &hash[24..];
+    let address = vec_to_hex_string_with_0x(&keccak256[12..]);
 
     address
 }
 
+/// TODO: Remove this function and use b3_utils::hex_string_to_vec instead
 pub fn string_to_vec_u8(str: &str) -> Vec<u8> {
     let starts_from: usize;
     if str.starts_with("0x") {
@@ -87,6 +88,8 @@ pub fn vec_u8_to_u64(vec: &Vec<u8>) -> u64 {
 
 #[cfg(test)]
 mod tests {
+    use b3_utils::hex_string_to_vec;
+
     use super::*;
 
     #[test]
@@ -115,7 +118,8 @@ mod tests {
     #[test]
     fn test_create_address_from() {
         let pub_key =
-            string_to_vec_u8("02c397f23149d3464517d57b7cdc8e287428407f9beabfac731e7c24d536266cd1");
+            hex_string_to_vec("02c397f23149d3464517d57b7cdc8e287428407f9beabfac731e7c24d536266cd1")
+                .unwrap();
 
         println!("pub_key: {:?}", pub_key);
 
@@ -123,9 +127,9 @@ mod tests {
 
         let pub_key = public_key.serialize_uncompressed();
 
-        let pub_key_hash = raw_keccak256(&pub_key[1..]).to_hex_string();
+        let pub_key_hash = raw_keccak256(&pub_key[1..]);
 
-        let sender = "0x".to_string() + &pub_key_hash[24..];
+        let sender = vec_to_hex_string_with_0x(&pub_key_hash[12..]);
 
         let expected_address = "0x907dc4d0be5d691970cae886fcab34ed65a2cd66";
 

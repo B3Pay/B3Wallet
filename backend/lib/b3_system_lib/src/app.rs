@@ -1,28 +1,73 @@
-use b3_utils::memory::types::{Bound, Storable};
+use b3_utils::{
+    ledger::Metadata,
+    memory::types::{Bound, Storable},
+    NanoTimeStamp,
+};
 use candid::CandidType;
 use ciborium::de::from_reader;
 use ciborium::ser::into_writer;
 use serde::{Deserialize, Serialize};
 use std::io::Cursor;
 
-use crate::types::ReleaseVersion;
+use crate::{release::Release, store::with_releases, types::ReleaseVersion};
 
 #[derive(CandidType, Deserialize, Serialize, Clone)]
 pub struct App {
     pub id: String,
     pub name: String,
     pub description: String,
-    pub release: ReleaseVersion,
+    pub created_at: NanoTimeStamp,
+    pub updated_at: NanoTimeStamp,
+    pub releases: Vec<ReleaseVersion>,
+    pub metadata: Metadata,
 }
 
 impl App {
-    pub fn new(id: String, name: String, description: String, release: ReleaseVersion) -> Self {
+    pub fn new(id: String, name: String, description: String) -> Self {
         App {
             id,
             name,
             description,
-            release,
+            created_at: NanoTimeStamp::now(),
+            updated_at: NanoTimeStamp::now(),
+            releases: Vec::new(),
+            metadata: Metadata::new(),
         }
+    }
+
+    pub fn add_release(&mut self, version: ReleaseVersion) {
+        self.updated_at = NanoTimeStamp::now();
+        self.releases.push(version);
+    }
+
+    pub fn remove_release(&mut self, version: ReleaseVersion) {
+        self.updated_at = NanoTimeStamp::now();
+        self.releases.retain(|v| v != &version);
+    }
+
+    pub fn update_release(&mut self, version: ReleaseVersion, new_version: ReleaseVersion) {
+        self.updated_at = NanoTimeStamp::now();
+        self.releases.retain(|v| v != &version);
+        self.releases.push(new_version);
+    }
+
+    pub fn get_release(&self, version: &ReleaseVersion) -> Option<Release> {
+        with_releases(|releases| releases.get(version))
+    }
+
+    pub fn get_latest_release(&self) -> Option<Release> {
+        let latest_version = self.releases.iter().max().unwrap();
+
+        self.get_release(latest_version)
+    }
+
+    pub fn get_releases(&self) -> Vec<Release> {
+        with_releases(|releases| {
+            self.releases
+                .iter()
+                .filter_map(|version| releases.get(version))
+                .collect()
+        })
     }
 }
 

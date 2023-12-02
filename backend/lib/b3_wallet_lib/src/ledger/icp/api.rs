@@ -1,8 +1,6 @@
 use async_trait::async_trait;
 use b3_utils::ledger::{
-    currency::TokenAmount,
-    types::{ICPTransferResult, NotifyTopUpResult},
-    AccountIdentifier,
+    currency::TokenAmount, AccountIdentifier, ICPTransferResult, NotifyTopUpResult,
 };
 use candid::Principal;
 use std::str::FromStr;
@@ -24,7 +22,7 @@ impl ChainTrait for IcpChain {
     fn address(&self) -> String {
         let canister_id = ic_cdk_id();
 
-        let account = AccountIdentifier::new(canister_id, self.subaccount.clone());
+        let account = AccountIdentifier::new(canister_id, Some(self.subaccount.clone()));
 
         account.to_string()
     }
@@ -32,7 +30,7 @@ impl ChainTrait for IcpChain {
     async fn balance(&self) -> Result<Balance, LedgerError> {
         let canister_id = ic_cdk_id();
 
-        let account = AccountIdentifier::new(canister_id, self.subaccount.clone());
+        let account = AccountIdentifier::new(canister_id, Some(self.subaccount.clone()));
 
         let res = self
             .account_balance(account)

@@ -9,7 +9,7 @@ use b3_system_lib::{
     types::{
         LoadRelease, ReleaseArgs, SystemCanisterStatus, UserCanisterStatus, UserStates, UserStatus,
     },
-    user::UserState,
+    user::User,
 };
 use b3_utils::{
     api::{
@@ -34,7 +34,7 @@ use ic_cdk::{
 pub fn init() {}
 
 #[query]
-fn get_states() -> UserState {
+fn get_states() -> User {
     let user_id = ic_cdk::caller();
 
     with_state(|s| s.user_state(user_id.into())).unwrap_or_else(revert)
@@ -131,7 +131,7 @@ async fn get_canister_info(canister_id: CanisterId) -> CanisterInfoResponse {
 }
 
 #[update]
-async fn create_app_canister() -> Result<UserState, String> {
+async fn create_app_canister() -> Result<User, String> {
     let system_id = ic_cdk::id();
     let owner_id = ic_cdk::caller();
     let user_id: UserId = owner_id.into();
@@ -175,7 +175,7 @@ async fn create_app_canister() -> Result<UserState, String> {
 }
 
 #[update]
-async fn install_app(canister_id: CanisterId) -> Result<UserState, String> {
+async fn install_app(canister_id: CanisterId) -> Result<User, String> {
     let system_id = ic_cdk::id();
     let owner_id = ic_cdk::caller();
 

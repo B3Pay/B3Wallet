@@ -1,4 +1,4 @@
-use b3_utils::types::Metadata;
+use b3_utils::ledger::Metadata;
 use candid::{CandidType, Deserialize};
 
 pub mod state;

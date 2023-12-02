@@ -148,7 +148,7 @@ mod test {
             0, 0, 0,
         ]);
 
-        let account_identifier = AccountIdentifier::new(id_mock(), subaccount.clone());
+        let account_identifier = AccountIdentifier::new(id_mock(), Some(subaccount.clone()));
 
         let icp_chain = Chain::new_icp_chain(subaccount.clone());
 
