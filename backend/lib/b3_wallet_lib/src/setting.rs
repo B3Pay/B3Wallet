@@ -1,7 +1,7 @@
 use crate::error::WalletError;
 use b3_utils::{
     api::Management,
-    ledger::types::{WalletController, WalletControllerMap},
+    api::{AppController, AppControllerMap},
     types::{ControllerId, ControllerIds, Metadata},
 };
 use candid::{CandidType, Nat};
@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 #[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct WalletSettings {
     pub metadata: Metadata,
-    pub controllers: WalletControllerMap,
+    pub controllers: AppControllerMap,
     pub compute_allocation: Option<Nat>,
     pub memory_allocation: Option<Nat>,
     pub freezing_threshold: Option<Nat>,
@@ -24,7 +24,7 @@ impl Default for WalletSettings {
     fn default() -> Self {
         WalletSettings {
             metadata: Metadata::default(),
-            controllers: WalletControllerMap::default(),
+            controllers: AppControllerMap::default(),
             compute_allocation: None,
             memory_allocation: None,
             freezing_threshold: None,
@@ -34,7 +34,7 @@ impl Default for WalletSettings {
 }
 
 impl WalletSettings {
-    pub fn new(controllers: WalletControllerMap, metadata: Option<Metadata>) -> Self {
+    pub fn new(controllers: AppControllerMap, metadata: Option<Metadata>) -> Self {
         WalletSettings {
             controllers,
             metadata: metadata.unwrap_or_default(),
@@ -46,11 +46,11 @@ impl WalletSettings {
         &self.metadata
     }
 
-    pub fn controllers(&self) -> &WalletControllerMap {
+    pub fn controllers(&self) -> &AppControllerMap {
         &self.controllers
     }
 
-    pub fn controllers_mut(&mut self) -> &mut WalletControllerMap {
+    pub fn controllers_mut(&mut self) -> &mut AppControllerMap {
         &mut self.controllers
     }
 
@@ -86,7 +86,7 @@ impl WalletSettings {
 
     pub async fn update_controller_and_update(
         &mut self,
-        canister_map: WalletControllerMap,
+        canister_map: AppControllerMap,
     ) -> Result<(), WalletError> {
         if canister_map.len() > 10 {
             return Err(WalletError::TooManyControllers);
@@ -106,7 +106,7 @@ impl WalletSettings {
     pub async fn add_controller_and_update(
         &mut self,
         controller_id: ControllerId,
-        controller: WalletController,
+        controller: AppController,
     ) -> Result<(), WalletError> {
         let canister_id = ic_cdk::id();
 
@@ -190,7 +190,7 @@ impl WalletSettings {
 
         controller_ids
             .iter()
-            .fold(WalletControllerMap::new(), |mut acc, id| {
+            .fold(AppControllerMap::new(), |mut acc, id| {
                 if let Some(controller) = self.controllers.get(id) {
                     acc.insert(id.clone(), controller.clone());
                 } else {
@@ -200,7 +200,7 @@ impl WalletSettings {
                         "unknown"
                     };
 
-                    let controller = WalletController::new(name.to_owned(), None);
+                    let controller = AppController::new(name.to_owned(), None);
                     acc.insert(id.clone(), controller);
                 }
                 acc
@@ -216,19 +216,19 @@ mod tests {
 
     #[test]
     fn test_remove_controller() {
-        let mut controller_map = WalletControllerMap::default();
+        let mut controller_map = AppControllerMap::default();
 
         for i in 0..4u8 {
             let canister_id = Principal::from_slice(&[i; 29]);
 
-            let controller = WalletController::new(format!("controller-{}", i), None);
+            let controller = AppController::new(format!("controller-{}", i), None);
 
             controller_map.insert(canister_id, controller);
         }
 
         let canister_id = Principal::from_slice(&[4; 29]);
 
-        let controller = WalletController::new(format!("controller-{}", 4), None);
+        let controller = AppController::new(format!("controller-{}", 4), None);
 
         controller_map.insert(canister_id, controller);
 
@@ -244,11 +244,11 @@ mod tests {
 
         controller_map = controllers
             .iter()
-            .fold(WalletControllerMap::new(), |mut acc, id| {
+            .fold(AppControllerMap::new(), |mut acc, id| {
                 if let Some(controller) = controller_map.get(id) {
                     acc.insert(id.clone(), controller.clone());
                 } else {
-                    let controller = WalletController::new("unknown".to_owned(), None);
+                    let controller = AppController::new("unknown".to_owned(), None);
                     acc.insert(id.clone(), controller);
                 }
                 acc

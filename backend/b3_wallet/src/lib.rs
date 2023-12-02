@@ -28,15 +28,12 @@ use b3_operations::{
     user::{state::UserState, User},
 };
 use b3_utils::{
-    api::Management,
-    ledger::{
-        currency::{ICPToken, TokenAmount},
-        types::{
-            Bug, NotifyTopUpResult, TransferBlockIndex, WalletAccountsNonce,
-            WalletCanisterInitArgs, WalletCanisterStatus, WalletController, WalletControllerMap,
-            WalletInititializeArgs,
-        },
+    api::{
+        bugs::AppBug, AppAccountsNonce, AppController, AppControllerMap, AppInitArgs,
+        AppInititializeArgs, AppStatus, Management,
     },
+    ledger::currency::{ICPToken, TokenAmount},
+    ledger::types::{NotifyTopUpResult, TransferBlockIndex},
     log_cycle,
     logs::{export_log, export_log_messages_page, LogEntry},
     panic_log, report_log, throw_log,
@@ -82,7 +79,7 @@ fn init() {
     log_cycle!("init");
     // when the canister is created by another canister (e.g. the system canister)
     // this function is called with the arguments passed to the canister constructor.
-    let (call_arg,) = arg_data::<(Option<WalletCanisterInitArgs>,)>();
+    let (call_arg,) = arg_data::<(Option<AppInitArgs>,)>();
 
     let mut signers = UserMap::new();
 
@@ -91,7 +88,7 @@ fn init() {
     let owner_role = Role::new("Owner".to_owned(), AccessLevel::FullAccess);
 
     let owner_id = match call_arg {
-        Some(WalletCanisterInitArgs {
+        Some(AppInitArgs {
             owner_id,
             system_id,
         }) => {
@@ -121,10 +118,10 @@ fn init() {
     // set initial controllers
     with_setting_mut(|s| {
         s.controllers
-            .insert(ic_cdk::id(), WalletController::new("Self".to_owned(), None));
+            .insert(ic_cdk::id(), AppController::new("Self".to_owned(), None));
 
         s.controllers
-            .insert(owner_id, WalletController::new("Owner".to_owned(), None));
+            .insert(owner_id, AppController::new("Owner".to_owned(), None));
     });
 }
 
@@ -176,7 +173,7 @@ fn get_account_count() -> usize {
 }
 
 #[query(guard = "caller_is_signer")]
-fn get_account_counters() -> WalletAccountsNonce {
+fn get_account_counters() -> AppAccountsNonce {
     with_wallet(|s| s.counters().clone())
 }
 
@@ -630,7 +627,7 @@ async fn add_controller_and_update(
 ) {
     log_cycle!("Add controller: {} with name: {}", controller_id, name);
 
-    let controller = WalletController::new(name, metadata);
+    let controller = AppController::new(name, metadata);
 
     let mut settings = with_setting(|s| s.clone());
 
@@ -643,7 +640,7 @@ async fn add_controller_and_update(
 }
 
 #[update(guard = "caller_is_admin")]
-async fn update_controller(controller_map: WalletControllerMap) -> WalletControllerMap {
+async fn update_controller(controller_map: AppControllerMap) -> AppControllerMap {
     log_cycle!("Update controller: {:?}", controller_map);
 
     let mut settings = with_setting(|s| s.clone());
@@ -931,7 +928,7 @@ fn get_signers() -> UserMap {
 async fn report_bug(system_canister_id: CanisterId, message: String) {
     log_cycle!("Report bug: {}", message);
 
-    let request_args = Bug {
+    let request_args = AppBug {
         canister_id: ic_cdk::id(),
         description: message,
         version: version(),
@@ -992,7 +989,7 @@ fn signer_remove(signer_id: UserId) -> UserMap {
 }
 
 #[update(guard = "caller_is_admin")]
-async fn init_wallet(args: WalletInititializeArgs) {
+async fn init_wallet(args: AppInititializeArgs) {
     log_cycle!("Initialize wallet: {:?}", args);
 
     if with_wallet(|w| w.is_initialised()) {
@@ -1040,7 +1037,7 @@ async fn uninstall_wallet() {
 }
 
 #[update(guard = "caller_is_signer")]
-async fn status() -> WalletCanisterStatus {
+async fn status() -> AppStatus {
     log_cycle!("Get status");
 
     let canister_id = ic_cdk::api::id();
@@ -1055,7 +1052,7 @@ async fn status() -> WalletCanisterStatus {
     let account_status = with_wallet(|s| s.account_status());
     let status_at = NanoTimeStamp::now();
 
-    WalletCanisterStatus {
+    AppStatus {
         canister_id,
         name,
         version,

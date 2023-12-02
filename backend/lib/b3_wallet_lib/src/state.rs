@@ -4,7 +4,7 @@ use crate::nonces::NonceTrait;
 use crate::setting::WalletSettings;
 use crate::types::{WalletAccountMap, WalletAccountView};
 use crate::{account::WalletAccount, types::AccountId};
-use b3_utils::ledger::types::WalletAccountsNonce;
+use b3_utils::api::AppAccountsNonce;
 use b3_utils::memory::types::{Bound, Storable};
 use b3_utils::nonce::Nonce;
 use b3_utils::Environment;
@@ -19,7 +19,7 @@ mod test;
 
 #[derive(CandidType, Default, Serialize, Deserialize, Clone)]
 pub struct WalletState {
-    pub nonces: WalletAccountsNonce,
+    pub nonces: AppAccountsNonce,
     pub settings: WalletSettings,
     pub accounts: WalletAccountMap,
 }
@@ -49,7 +49,7 @@ impl WalletState {
         accounts.insert("-default".to_owned(), default_account);
 
         WalletState {
-            nonces: WalletAccountsNonce::new(),
+            nonces: AppAccountsNonce::new(),
             settings: WalletSettings::default(),
             accounts,
         }
@@ -118,7 +118,7 @@ impl WalletState {
         self.accounts.insert(id.clone(), account);
     }
 
-    pub fn counters(&self) -> &WalletAccountsNonce {
+    pub fn counters(&self) -> &AppAccountsNonce {
         &self.nonces
     }
 
@@ -152,7 +152,7 @@ impl WalletState {
         self.accounts.len()
     }
 
-    pub fn account_status(&self) -> WalletAccountsNonce {
+    pub fn account_status(&self) -> AppAccountsNonce {
         self.nonces.clone().into()
     }
 

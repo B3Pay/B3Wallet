@@ -1,12 +1,13 @@
 use crate::{
+    app::App,
     error::SystemError,
     release::Release,
     state::State,
-    types::{ReleaseVersion, WalletBugs},
+    types::{AppId, ReleaseVersion},
     user::UserState,
 };
 use b3_utils::{
-    ledger::types::WalletVersion,
+    api::{bugs::AppBugs, AppVersion},
     memory::types::DefaultStableBTreeMap,
     memory::{init_stable_mem, init_stable_mem_refcell},
     principal::StoredPrincipal,
@@ -18,15 +19,17 @@ use std::cell::RefCell;
 
 pub type UserMap = DefaultStableBTreeMap<UserId, UserState>;
 pub type ReleaseMap = DefaultStableBTreeMap<ReleaseVersion, Release>;
+pub type AppMap = DefaultStableBTreeMap<AppId, App>;
 
-pub type WasmMap = DefaultStableBTreeMap<WalletVersion, Wasm>;
-pub type BugMap = DefaultStableBTreeMap<StoredPrincipal, WalletBugs>;
+pub type WasmMap = DefaultStableBTreeMap<AppVersion, Wasm>;
+pub type BugMap = DefaultStableBTreeMap<StoredPrincipal, AppBugs>;
 
 thread_local! {
     static STATE: RefCell<State> = RefCell::new(
         State {
             users: init_stable_mem("user_map", 1).unwrap(),
             releases: init_stable_mem("release_map", 2).unwrap(),
+            apps: init_stable_mem("product_map", 3).unwrap(),
         }
     );
     static WASM_MAP: RefCell<WasmMap> = init_stable_mem_refcell("wasm_map", 10).unwrap();
@@ -176,7 +179,7 @@ pub fn with_bugs_mut<R>(f: impl FnOnce(&mut BugMap) -> R) -> R {
 
 pub fn with_canister_bugs<F, T>(canister_id: &StoredPrincipal, f: F) -> Result<T, SystemError>
 where
-    F: FnOnce(WalletBugs) -> T,
+    F: FnOnce(AppBugs) -> T,
 {
     with_bugs(|bugs| {
         bugs.get(canister_id)
@@ -187,7 +190,7 @@ where
 
 pub fn with_canister_bugs_mut<F, T>(canister_id: &StoredPrincipal, f: F) -> Result<T, SystemError>
 where
-    F: FnOnce(&mut WalletBugs) -> T,
+    F: FnOnce(&mut AppBugs) -> T,
 {
     with_bugs_mut(|bugs| {
         bugs.get(canister_id)
@@ -198,7 +201,7 @@ where
 
 pub fn with_release_bugs<F, T>(canister_id: &StoredPrincipal, f: F) -> Result<T, SystemError>
 where
-    F: FnOnce(WalletBugs) -> T,
+    F: FnOnce(AppBugs) -> T,
 {
     with_bugs(|bugs| {
         bugs.get(canister_id)
@@ -209,7 +212,7 @@ where
 
 pub fn with_release_bugs_mut<F, T>(canister_id: &StoredPrincipal, f: F) -> Result<T, SystemError>
 where
-    F: FnOnce(&mut WalletBugs) -> T,
+    F: FnOnce(&mut AppBugs) -> T,
 {
     with_bugs_mut(|bugs| {
         bugs.get(canister_id)

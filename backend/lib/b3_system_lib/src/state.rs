@@ -1,19 +1,21 @@
 use crate::{
+    app::App,
     error::SystemError,
     release::Release,
-    store::{ReleaseMap, UserMap},
+    store::{AppMap, ReleaseMap, UserMap},
+    types::{AppId, ReleaseVersion, Users},
     types::{ReleaseArgs, UserStates},
-    types::{ReleaseVersion, Users},
     user::UserState,
 };
 use b3_utils::{
-    ledger::types::{WalletCanisterInitArgs, WalletCanisterInstallArg},
+    api::{AppInitArgs, AppInstallArg},
     types::{CanisterId, CanisterIds, UserId},
     wasm::WasmVersion,
 };
 use ic_cdk::api::management_canister::main::CanisterInstallMode;
 
 pub struct State {
+    pub apps: AppMap,
     pub users: UserMap,
     pub releases: ReleaseMap,
 }
@@ -91,6 +93,19 @@ impl State {
         self.users.len()
     }
 
+    // product
+    pub fn add_product(&mut self, product: App) -> Result<(), SystemError> {
+        if self.apps.contains_key(&product.id) {
+            return Err(SystemError::ProductAlreadyExists); // Assuming you define this error
+        }
+        self.apps.insert(product.id.clone(), product);
+        Ok(())
+    }
+
+    pub fn get_product(&self, id: AppId) -> Option<App> {
+        self.apps.get(&id)
+    }
+
     // release
     pub fn get_release(&self, version: &ReleaseVersion) -> Result<Release, SystemError> {
         self.releases
@@ -102,15 +117,15 @@ impl State {
         &self,
         version: &ReleaseVersion,
         mode: CanisterInstallMode,
-        init_args: WalletCanisterInitArgs,
-    ) -> Result<WalletCanisterInstallArg, SystemError> {
+        init_args: AppInitArgs,
+    ) -> Result<AppInstallArg, SystemError> {
         let wasm_module = self.get_release(version)?.wasm()?.bytes();
 
         let arg = init_args
             .encode()
             .map_err(|e| SystemError::InstallArgError(e.to_string()))?;
 
-        Ok(WalletCanisterInstallArg {
+        Ok(AppInstallArg {
             wasm_module,
             arg,
             mode,
@@ -127,15 +142,15 @@ impl State {
     pub fn get_latest_install_args(
         &self,
         mode: CanisterInstallMode,
-        init_args: WalletCanisterInitArgs,
-    ) -> Result<WalletCanisterInstallArg, SystemError> {
+        init_args: AppInitArgs,
+    ) -> Result<AppInstallArg, SystemError> {
         let wasm_module = self.latest_release()?.wasm()?.bytes();
 
         let arg = init_args
             .encode()
             .map_err(|e| SystemError::InstallArgError(e.to_string()))?;
 
-        Ok(WalletCanisterInstallArg {
+        Ok(AppInstallArg {
             wasm_module,
             arg,
             mode,

@@ -1,4 +1,4 @@
-use b3_utils::{ledger::types::WalletAccountsNonce, nonce::Nonce, Environment};
+use b3_utils::{api::AppAccountsNonce, nonce::Nonce, Environment};
 
 pub trait NonceTrait {
     fn new() -> Self;
@@ -9,7 +9,7 @@ pub trait NonceTrait {
     fn reset(&mut self);
 }
 
-impl NonceTrait for WalletAccountsNonce {
+impl NonceTrait for AppAccountsNonce {
     fn new() -> Self {
         Self {
             development: Nonce::zero(),

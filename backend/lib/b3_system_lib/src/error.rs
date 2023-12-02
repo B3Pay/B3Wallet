@@ -38,6 +38,7 @@ pub enum SystemError {
     WalletCanisterAlreadyExists(String),
     CreateCanisterError(String),
     CanisterStatusError(String),
+    ProductAlreadyExists,
     CanisterIdNotFound,
 }
 
@@ -76,6 +77,7 @@ impl fmt::Display for SystemError {
             SystemError::InstallCodeError(e) => write!(f, "Install code error: {}", e),
             SystemError::CreateCanisterError(e) => write!(f, "Create canister error: {}", e),
             SystemError::CanisterStatusError(e) => write!(f, "Wallet status error: {}", e),
+            SystemError::ProductAlreadyExists => write!(f, "Product already exists!"),
             SystemError::CanisterIdNotFound => write!(f, "Canister id not found!"),
             SystemError::WalletCanisterRateError(e) => write!(f, "Wallet canister rate error: {}", e),
             SystemError::WalletCanisterNotFound => write!(f, "Wallet Canister id not found!"),

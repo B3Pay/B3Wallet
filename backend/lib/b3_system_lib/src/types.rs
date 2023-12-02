@@ -1,17 +1,17 @@
 use b3_utils::{
-    ledger::types::{Bug, WalletVersion},
-    memory::types::{Bound, Storable},
-    types::UserId,
+    api::AppVersion,
+    types::{CanisterId, CanisterIds, UserId},
+    NanoTimeStamp,
 };
 use candid::CandidType;
-use ciborium::de::from_reader;
-use ciborium::ser::into_writer;
+use ic_cdk::api::management_canister::main::CanisterStatusResponse;
 use serde::{Deserialize, Serialize};
-use std::io::Cursor;
 
 use crate::user::UserState;
 
 pub type ReleaseVersion = String;
+
+pub type AppId = String;
 
 pub type UserStates = Vec<UserState>;
 
@@ -22,7 +22,7 @@ pub type Users = Vec<UserId>;
 pub struct LoadRelease {
     pub total: usize,
     pub chunks: usize,
-    pub version: WalletVersion,
+    pub version: AppVersion,
 }
 
 #[derive(CandidType, Deserialize, Clone)]
@@ -33,33 +33,24 @@ pub struct ReleaseArgs {
     pub features: Features,
 }
 
-#[derive(CandidType, Deserialize, Serialize, Clone)]
-pub struct WalletBugs(Vec<Bug>);
-
-impl Storable for WalletBugs {
-    const BOUND: Bound = Bound::Unbounded;
-
-    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
-        let mut bytes = vec![];
-        into_writer(&self, &mut bytes).unwrap();
-        std::borrow::Cow::Owned(bytes)
-    }
-
-    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
-        from_reader(&mut Cursor::new(&bytes)).unwrap()
-    }
+#[derive(CandidType, Deserialize, Serialize)]
+pub enum UserStatus {
+    Registered,
+    Unregistered,
+    SingleCanister(CanisterId),
+    MultipleCanister(CanisterIds),
 }
 
-impl WalletBugs {
-    pub fn new() -> Self {
-        Self(Vec::new())
-    }
+#[derive(CandidType, Deserialize, Serialize)]
+pub struct UserCanisterStatus {
+    pub version: String,
+    pub canister_status: CanisterStatusResponse,
+}
 
-    pub fn push(&mut self, bug: Bug) {
-        self.0.push(bug);
-    }
-
-    pub fn drain(&mut self) -> Vec<Bug> {
-        self.0.drain(..).collect()
-    }
+#[derive(CandidType, Deserialize, Serialize)]
+pub struct SystemCanisterStatus {
+    pub status_at: NanoTimeStamp,
+    pub version: String,
+    pub user_status: u64,
+    pub canister_status: CanisterStatusResponse,
 }

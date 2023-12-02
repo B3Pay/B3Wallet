@@ -6,7 +6,7 @@ use crate::{
     types::{ConsentMessage, ResponseMap, UserIds},
 };
 use b3_utils::{
-    ledger::types::WalletVersion,
+    api::AppVersion,
     types::{OperationId, UserId},
     NanoTimeStamp,
 };
@@ -23,14 +23,14 @@ pub struct PendingOperation {
     pub created_by: UserId,
     pub allowed_signers: UserIds,
     pub consent_message: ConsentMessage,
-    pub version: WalletVersion,
+    pub version: AppVersion,
 }
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
 pub struct RequestArgs {
     pub request: Operation,
     pub reason: String,
-    pub version: WalletVersion,
+    pub version: AppVersion,
     pub allowed_signers: UserIds,
     pub deadline: Option<NanoTimeStamp>,
 }

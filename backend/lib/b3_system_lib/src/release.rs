@@ -1,5 +1,5 @@
 use b3_utils::{
-    ledger::types::WalletVersion,
+    api::AppVersion,
     memory::types::{Bound, Storable},
     wasm::{with_wasm_mut_cache, Wasm, WasmHash, WasmSize},
     NanoTimeStamp,
@@ -21,7 +21,7 @@ pub struct Release {
     pub name: String,
     pub date: NanoTimeStamp,
     pub size: WasmSize,
-    pub version: WalletVersion,
+    pub version: AppVersion,
     pub deprecated: bool,
     pub features: Features,
 }

@@ -11,6 +11,27 @@ type AddUser = record {
   signer_id : vec nat8;
   expires_at : opt nat64;
 };
+type AppAccountsNonce = record {
+  staging : nat64;
+  production : nat64;
+  development : nat64;
+};
+type AppController = record {
+  metadata : vec record { text; text };
+  name : text;
+};
+type AppInititializeArgs = record {
+  controllers : vec record { principal; AppController };
+  metadata : opt vec record { text; text };
+};
+type AppStatus = record {
+  name : text;
+  canister_id : principal;
+  status_at : nat64;
+  version : text;
+  canister_status : CanisterStatusResponse;
+  account_status : AppAccountsNonce;
+};
 type BtcChain = record {
   pendings : vec BtcPending;
   subaccount : vec nat8;
@@ -405,30 +426,9 @@ type WalletAccountView = record {
   addresses : vec record { ChainEnum; text };
   environment : Environment;
 };
-type WalletAccountsNonce = record {
-  staging : nat64;
-  production : nat64;
-  development : nat64;
-};
-type WalletCanisterStatus = record {
-  name : text;
-  canister_id : principal;
-  status_at : nat64;
-  version : text;
-  canister_status : CanisterStatusResponse;
-  account_status : WalletAccountsNonce;
-};
-type WalletController = record {
-  metadata : vec record { text; text };
-  name : text;
-};
-type WalletInititializeArgs = record {
-  controllers : vec record { principal; WalletController };
-  metadata : opt vec record { text; text };
-};
 type WalletSettings = record {
   freezing_threshold : opt nat;
-  controllers : vec record { principal; WalletController };
+  controllers : vec record { principal; AppController };
   initialised : bool;
   metadata : vec record { text; text };
   memory_allocation : opt nat;
@@ -467,7 +467,7 @@ service : () -> {
   canister_version : () -> (nat64) query;
   get_account : (text) -> (WalletAccount) query;
   get_account_count : () -> (nat64) query;
-  get_account_counters : () -> (WalletAccountsNonce) query;
+  get_account_counters : () -> (AppAccountsNonce) query;
   get_account_view : (text) -> (WalletAccountView) query;
   get_account_views : () -> (vec WalletAccountView) query;
   get_addresses : (text) -> (vec record { ChainEnum; text }) query;
@@ -475,7 +475,7 @@ service : () -> {
   get_processed_list : () -> (vec ProcessedOperation) query;
   get_roles : () -> (vec record { nat64; Role }) query;
   get_signers : () -> (vec record { vec nat8; User }) query;
-  init_wallet : (WalletInititializeArgs) -> ();
+  init_wallet : (AppInititializeArgs) -> ();
   is_connected : () -> (bool) query;
   load_wasm : (vec nat8) -> (nat64);
   name : () -> (text) query;
@@ -505,11 +505,11 @@ service : () -> {
   setting_and_signer : () -> (WalletSettingsAndSigners) query;
   signer_add : (vec nat8, Role) -> (vec record { vec nat8; User });
   signer_remove : (vec nat8) -> (vec record { vec nat8; User });
-  status : () -> (WalletCanisterStatus);
+  status : () -> (AppStatus);
   uninstall_wallet : () -> ();
   unload_wasm : () -> (nat64);
-  update_controller : (vec record { principal; WalletController }) -> (
-      vec record { principal; WalletController },
+  update_controller : (vec record { principal; AppController }) -> (
+      vec record { principal; AppController },
     );
   update_settings : () -> ();
   upgrage_wallet : () -> ();
