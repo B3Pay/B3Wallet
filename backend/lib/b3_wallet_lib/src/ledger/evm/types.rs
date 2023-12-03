@@ -1,5 +1,6 @@
-use b3_utils::{ledger::raw_keccak256, vec_to_hex_string_with_0x};
+use b3_utils::vec_to_hex_string_with_0x;
 use bitcoin::secp256k1::PublicKey;
+use tiny_keccak::{Hasher, Keccak};
 
 pub trait PublicKeyTrait {
     fn to_address(&self) -> String;
@@ -10,21 +11,26 @@ impl PublicKeyTrait for PublicKey {
     fn to_address(&self) -> String {
         let pub_key = self.serialize_uncompressed();
 
-        let keccak256 = raw_keccak256(&pub_key[1..]);
+        let mut keccak = Keccak::v256();
+        keccak.update(&pub_key[1..]);
+        let mut output = [0u8; 32];
+        keccak.finalize(&mut output);
 
-        let address = vec_to_hex_string_with_0x(&keccak256[12..]);
+        // Convert the last 20 bytes of hash to hex string
+        let address = vec_to_hex_string_with_0x(&output[12..]);
 
         address
     }
 
     fn to_evm_key(&self) -> Vec<u8> {
-        // Return owned Vec<u8> instead of reference
         let pub_key = self.serialize_uncompressed();
 
-        let pub_key_hash = raw_keccak256(&pub_key[1..]).to_vec();
+        let mut keccak = Keccak::v256();
+        keccak.update(&pub_key[1..]);
+        let mut output = [0u8; 32];
+        keccak.finalize(&mut output);
 
-        let key = pub_key_hash[12..].to_vec();
-
-        key
+        // Return the last 20 bytes of the hash
+        output[12..].to_vec()
     }
 }

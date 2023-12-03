@@ -1,12 +1,18 @@
-use b3_utils::{ledger::raw_keccak256, vec_to_hex_string, vec_to_hex_string_with_0x};
+use b3_utils::vec_to_hex_string_with_0x;
 use bitcoin::secp256k1::PublicKey;
+use tiny_keccak::{Hasher, Keccak};
 
 use super::{error::EvmError, types::PublicKeyTrait};
 
 pub fn get_method_id(method_sig: &str) -> String {
-    let result = raw_keccak256(method_sig.as_bytes());
+    // Keccak-256 hashing using tiny-keccak
+    let mut keccak = Keccak::v256();
+    keccak.update(method_sig.as_bytes());
+    let mut output = [0u8; 32];
+    keccak.finalize(&mut output);
 
-    let hex_string = vec_to_hex_string(&result[..4]);
+    // Convert the first 4 bytes of hash to hex string
+    let hex_string = hex::encode(&output[..4]);
 
     hex_string
 }
@@ -36,10 +42,14 @@ pub fn create_address_from(public_key: &PublicKey, nonce: u64) -> String {
 
     let rlp_encoded = stream.out();
 
-    let keccak256 = raw_keccak256(&rlp_encoded);
+    // Keccak-256 hashing using tiny-keccak
+    let mut keccak = Keccak::v256();
+    keccak.update(&rlp_encoded);
+    let mut output = [0u8; 32];
+    keccak.finalize(&mut output);
 
-    // Grab the right-most 20 bytes
-    let address = vec_to_hex_string_with_0x(&keccak256[12..]);
+    // Convert the last 20 bytes of hash to hex string
+    let address = vec_to_hex_string_with_0x(&output[12..]);
 
     address
 }
@@ -127,7 +137,14 @@ mod tests {
 
         let pub_key = public_key.serialize_uncompressed();
 
-        let pub_key_hash = raw_keccak256(&pub_key[1..]);
+        let pub_key_hash = {
+            let mut keccak = Keccak::v256();
+            keccak.update(&pub_key[1..]);
+            let mut output = [0u8; 32];
+            keccak.finalize(&mut output);
+
+            output.to_vec()
+        };
 
         let sender = vec_to_hex_string_with_0x(&pub_key_hash[12..]);
 

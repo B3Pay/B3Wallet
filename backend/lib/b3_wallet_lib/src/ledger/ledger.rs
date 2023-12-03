@@ -5,13 +5,11 @@ use super::{
     types::{AddressMap, Balance, ChainEnum, ChainMap, PendingEnum, SendResult},
 };
 use crate::ledger::chain::ChainTrait;
-use b3_utils::{
-    ledger::{currency::TokenAmount, raw_keccak256},
-    vec_to_hex_string, Environment, Subaccount,
-};
+use b3_utils::{ledger::currency::TokenAmount, vec_to_hex_string_with_0x, Environment, Subaccount};
 use bitcoin::secp256k1;
 use candid::CandidType;
 use serde::{Deserialize, Serialize};
+use tiny_keccak::{Hasher, Keccak};
 
 #[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct Ledger {
@@ -118,11 +116,13 @@ impl Ledger {
 
         let pub_key = public_key.serialize_uncompressed();
 
-        let keccak256 = raw_keccak256(&pub_key[1..]);
+        // Hashing with Keccak-256 using tiny-keccak
+        let mut keccak = Keccak::v256();
+        keccak.update(&pub_key[1..]);
+        let mut output = [0u8; 32];
+        keccak.finalize(&mut output);
 
-        let keccak256_hex = vec_to_hex_string(keccak256);
-
-        let address = "0x".to_owned() + &keccak256_hex[24..];
+        let address = vec_to_hex_string_with_0x(&output[12..]);
 
         Ok(address)
     }

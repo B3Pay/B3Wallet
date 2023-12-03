@@ -3,9 +3,9 @@ use super::evm::{decode_access_list, encode_access_list, get_recovery_id, EvmSig
 use super::utils::{
     remove_leading, string_to_vec_u8, u64_to_vec_u8, vec_u8_to_string, vec_u8_to_u64,
 };
-use b3_utils::ledger::raw_keccak256;
 use bitcoin::secp256k1::PublicKey;
 use candid::{CandidType, Deserialize};
+use tiny_keccak::{Hasher, Keccak};
 
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
 pub struct EvmTransaction1559 {
@@ -233,17 +233,25 @@ impl EvmSignTrait for EvmTransaction1559 {
     }
 
     fn hash(&self) -> Vec<u8> {
-        let result = self.serialized();
-        let hash = raw_keccak256(&result);
+        let tx = self.serialized();
 
-        hash.to_vec()
+        let mut keccak = Keccak::v256();
+        keccak.update(&tx);
+        let mut output = [0u8; 32];
+        keccak.finalize(&mut output);
+
+        output.to_vec()
     }
 
     fn unsigned_hash(&self) -> Vec<u8> {
-        let result = self.unsigned_serialized();
-        let hash = raw_keccak256(&result);
+        let tx = self.unsigned_serialized();
 
-        hash.to_vec()
+        let mut keccak = Keccak::v256();
+        keccak.update(&tx);
+        let mut output = [0u8; 32];
+        keccak.finalize(&mut output);
+
+        output.to_vec()
     }
 
     fn tx_id(&self) -> String {
