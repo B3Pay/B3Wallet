@@ -28,16 +28,13 @@ use b3_operations::{
     user::{state::UserState, User},
 };
 use b3_utils::{
-    api::{
-        bugs::AppBug, AppAccountsNonce, AppController, AppControllers, AppInitArgs,
-        AppInititializeArgs, AppStatus, Management,
-    },
+    api::{bugs::AppBug, AppAccountsNonce, AppInitArgs, AppStatus, Management},
     ledger::currency::{ICPToken, TokenAmount},
-    ledger::types::{NotifyTopUpResult, TransferBlockIndex},
+    ledger::{Metadata, NotifyTopUpResult, TransferBlockIndex, Value},
     log_cycle,
     logs::{export_log, export_log_messages_page, LogEntry},
     panic_log, report_log, throw_log,
-    types::{CanisterId, ControllerId, Metadata, OperationId, RoleId, UserId},
+    types::{AppControllerMap, CanisterId, ControllerId, OperationId, RoleId, UserId},
     wasm::{with_wasm_cache, with_wasm_mut_cache, WasmDetails, WasmHash, WasmSize},
     Environment, NanoTimeStamp, Subaccount,
 };
@@ -117,11 +114,9 @@ fn init() {
 
     // set initial controllers
     with_setting_mut(|s| {
-        s.controllers
-            .insert(ic_cdk::id(), AppController::new("Self".to_owned(), None));
+        s.controllers.insert(ic_cdk::id(), "Self".to_owned());
 
-        s.controllers
-            .insert(owner_id, AppController::new("Owner".to_owned(), None));
+        s.controllers.insert(owner_id, "Owner".to_owned());
     });
 }
 
@@ -620,19 +615,13 @@ fn setting_and_signer() -> WalletSettingsAndSigners {
 }
 
 #[update(guard = "caller_is_admin")]
-async fn add_controller_and_update(
-    controller_id: ControllerId,
-    name: String,
-    metadata: Option<Metadata>,
-) {
+async fn add_controller_and_update(controller_id: ControllerId, name: String) {
     log_cycle!("Add controller: {} with name: {}", controller_id, name);
-
-    let controller = AppController::new(name, metadata);
 
     let mut settings = with_setting(|s| s.clone());
 
     settings
-        .add_controller_and_update(controller_id, controller)
+        .add_controller_and_update(controller_id, name)
         .await
         .unwrap_or_else(panic_log);
 
@@ -640,7 +629,7 @@ async fn add_controller_and_update(
 }
 
 #[update(guard = "caller_is_admin")]
-async fn update_controller(controller_map: AppControllers) -> AppControllers {
+async fn update_controller(controller_map: AppControllerMap) -> AppControllerMap {
     log_cycle!("Update controller: {:?}", controller_map);
 
     let mut settings = with_setting(|s| s.clone());
@@ -678,7 +667,7 @@ async fn refresh_settings() {
 }
 
 #[update(guard = "caller_is_signer")]
-fn add_setting_metadata(key: String, value: String) {
+fn add_setting_metadata(key: String, value: Value) {
     log_cycle!("Add metadata: {} with value: {}", key, value);
 
     with_setting_mut(|s| s.add_metadata(key, value));
@@ -989,14 +978,14 @@ fn signer_remove(signer_id: UserId) -> UserMap {
 }
 
 #[update(guard = "caller_is_admin")]
-async fn init_wallet(args: AppInititializeArgs) {
-    log_cycle!("Initialize wallet: {:?}", args);
+async fn init_wallet(controller_map: AppControllerMap, metadata: Option<Metadata>) {
+    log_cycle!("Initialize wallet: {:?}", controller_map);
 
     if with_wallet(|w| w.is_initialised()) {
         return panic_log(WalletError::WalletAlreadyInitialized);
     }
 
-    let mut setting = WalletSettings::new(args.controllers, args.metadata);
+    let mut setting = WalletSettings::new(controller_map, metadata);
 
     setting.update_settings().await.unwrap_or_else(panic_log);
 

@@ -107,8 +107,8 @@ impl WalletSettings {
     /// returns the updated controllers.
     pub async fn add_controller_and_update(
         &mut self,
-        name: String,
         controller_id: ControllerId,
+        name: String,
     ) -> Result<(), WalletError> {
         let canister_id = ic_cdk::id();
 
