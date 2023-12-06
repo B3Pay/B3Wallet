@@ -1,4 +1,5 @@
 export const idlFactory = ({ IDL }) => {
+  const Value = IDL.Rec();
   const Minter = IDL.Variant({
     'Mainnet' : IDL.Null,
     'Regtest' : IDL.Null,
@@ -71,6 +72,17 @@ export const idlFactory = ({ IDL }) => {
     }),
     'Checked' : Utxo,
   });
+  Value.fill(
+    IDL.Variant({
+      'Int' : IDL.Int,
+      'Map' : IDL.Vec(IDL.Tuple(IDL.Text, Value)),
+      'Nat' : IDL.Nat,
+      'Nat64' : IDL.Nat64,
+      'Blob' : IDL.Vec(IDL.Nat8),
+      'Text' : IDL.Text,
+      'Array' : IDL.Vec(Value),
+    })
+  );
   const EvmChain = IDL.Record({
     'pendings' : IDL.Vec(EvmPending),
     'chain_id' : IDL.Nat64,
@@ -134,19 +146,19 @@ export const idlFactory = ({ IDL }) => {
   });
   const WalletAccount = IDL.Record({
     'id' : IDL.Text,
-    'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
+    'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, Value)),
     'name' : IDL.Text,
     'hidden' : IDL.Bool,
     'ledger' : Ledger,
   });
-  const WalletAccountsNonce = IDL.Record({
+  const AppAccountsNonce = IDL.Record({
     'staging' : IDL.Nat64,
     'production' : IDL.Nat64,
     'development' : IDL.Nat64,
   });
   const WalletAccountView = IDL.Record({
     'id' : IDL.Text,
-    'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
+    'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, Value)),
     'pendings' : IDL.Vec(PendingEnum),
     'name' : IDL.Text,
     'hidden' : IDL.Bool,
@@ -171,7 +183,7 @@ export const idlFactory = ({ IDL }) => {
     'gas_limit' : IDL.Opt(IDL.Nat64),
   });
   const IcpTransfer = IDL.Record({
-    'to' : IDL.Vec(IDL.Nat8),
+    'to' : IDL.Text,
     'fee' : IDL.Opt(ICPToken),
     'account_id' : IDL.Text,
     'memo' : IDL.Opt(IDL.Nat64),
@@ -416,18 +428,10 @@ export const idlFactory = ({ IDL }) => {
     'timestamp' : IDL.Nat64,
   });
   const User = IDL.Record({
-    'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
+    'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, Value)),
     'name' : IDL.Text,
     'role' : Role,
     'expires_at' : IDL.Opt(IDL.Nat64),
-  });
-  const WalletController = IDL.Record({
-    'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
-    'name' : IDL.Text,
-  });
-  const WalletInititializeArgs = IDL.Record({
-    'controllers' : IDL.Vec(IDL.Tuple(IDL.Principal, WalletController)),
-    'metadata' : IDL.Opt(IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text))),
   });
   const LogVariant = IDL.Variant({
     'info' : IDL.Null,
@@ -456,9 +460,9 @@ export const idlFactory = ({ IDL }) => {
   });
   const WalletSettings = IDL.Record({
     'freezing_threshold' : IDL.Opt(IDL.Nat),
-    'controllers' : IDL.Vec(IDL.Tuple(IDL.Principal, WalletController)),
+    'controllers' : IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Text)),
     'initialised' : IDL.Bool,
-    'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
+    'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, Value)),
     'memory_allocation' : IDL.Opt(IDL.Nat),
     'compute_allocation' : IDL.Opt(IDL.Nat),
   });
@@ -492,13 +496,13 @@ export const idlFactory = ({ IDL }) => {
     'idle_cycles_burned_per_day' : IDL.Nat,
     'module_hash' : IDL.Opt(IDL.Vec(IDL.Nat8)),
   });
-  const WalletCanisterStatus = IDL.Record({
+  const AppStatus = IDL.Record({
     'name' : IDL.Text,
     'canister_id' : IDL.Principal,
     'status_at' : IDL.Nat64,
     'version' : IDL.Text,
     'canister_status' : CanisterStatusResponse,
-    'account_status' : WalletAccountsNonce,
+    'account_status' : AppAccountsNonce,
   });
   const WasmDetails = IDL.Record({
     'hash' : IDL.Vec(IDL.Nat8),
@@ -558,21 +562,13 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(UtxoStatus)],
         [],
       ),
-    'add_controller_and_update' : IDL.Func(
-        [
-          IDL.Principal,
-          IDL.Text,
-          IDL.Opt(IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text))),
-        ],
-        [],
-        [],
-      ),
-    'add_setting_metadata' : IDL.Func([IDL.Text, IDL.Text], [], []),
+    'add_controller_and_update' : IDL.Func([IDL.Principal, IDL.Text], [], []),
+    'add_setting_metadata' : IDL.Func([IDL.Text, Value], [], []),
     'canister_cycle_balance' : IDL.Func([], [IDL.Nat], ['query']),
     'canister_version' : IDL.Func([], [IDL.Nat64], ['query']),
     'get_account' : IDL.Func([IDL.Text], [WalletAccount], ['query']),
     'get_account_count' : IDL.Func([], [IDL.Nat64], ['query']),
-    'get_account_counters' : IDL.Func([], [WalletAccountsNonce], ['query']),
+    'get_account_counters' : IDL.Func([], [AppAccountsNonce], ['query']),
     'get_account_view' : IDL.Func([IDL.Text], [WalletAccountView], ['query']),
     'get_account_views' : IDL.Func([], [IDL.Vec(WalletAccountView)], ['query']),
     'get_addresses' : IDL.Func(
@@ -596,7 +592,14 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(IDL.Tuple(IDL.Vec(IDL.Nat8), User))],
         ['query'],
       ),
-    'init_wallet' : IDL.Func([WalletInititializeArgs], [], []),
+    'init_wallet' : IDL.Func(
+        [
+          IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Text)),
+          IDL.Opt(IDL.Vec(IDL.Tuple(IDL.Text, Value))),
+        ],
+        [],
+        [],
+      ),
     'is_connected' : IDL.Func([], [IDL.Bool], ['query']),
     'load_wasm' : IDL.Func([IDL.Vec(IDL.Nat8)], [IDL.Nat64], []),
     'name' : IDL.Func([], [IDL.Text], ['query']),
@@ -680,12 +683,12 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(IDL.Tuple(IDL.Vec(IDL.Nat8), User))],
         [],
       ),
-    'status' : IDL.Func([], [WalletCanisterStatus], []),
+    'status' : IDL.Func([], [AppStatus], []),
     'uninstall_wallet' : IDL.Func([], [], []),
     'unload_wasm' : IDL.Func([], [IDL.Nat64], []),
     'update_controller' : IDL.Func(
-        [IDL.Vec(IDL.Tuple(IDL.Principal, WalletController))],
-        [IDL.Vec(IDL.Tuple(IDL.Principal, WalletController))],
+        [IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Text))],
+        [IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Text))],
         [],
       ),
     'update_settings' : IDL.Func([], [], []),

@@ -1,7 +1,7 @@
 import type { Principal } from '@dfinity/principal';
 import type { ActorMethod } from '@dfinity/agent';
 
-export interface Bug {
+export interface AppBug {
   'logs' : Array<string>,
   'name' : string,
   'canister_id' : Principal,
@@ -71,7 +71,6 @@ export interface QueryStats {
 export interface Release {
   'features' : Array<string>,
   'date' : bigint,
-  'hash' : Uint8Array | number[],
   'name' : string,
   'size' : bigint,
   'version' : string,
@@ -83,7 +82,7 @@ export interface ReleaseArgs {
   'size' : bigint,
   'version' : string,
 }
-export type Result = { 'Ok' : UserState } |
+export type Result = { 'Ok' : User } |
   { 'Err' : string };
 export interface SystemCanisterStatus {
   'user_status' : bigint,
@@ -91,48 +90,57 @@ export interface SystemCanisterStatus {
   'version' : string,
   'canister_status' : CanisterStatusResponse,
 }
+export interface User {
+  'updated_at' : bigint,
+  'metadata' : Array<[string, Value]>,
+  'created_at' : bigint,
+  'canisters' : Array<Principal>,
+}
 export interface UserCanisterStatus {
   'version' : string,
   'canister_status' : CanisterStatusResponse,
-}
-export interface UserState {
-  'updated_at' : bigint,
-  'created_at' : bigint,
-  'canisters' : Array<Principal>,
 }
 export type UserStatus = { 'Unregistered' : null } |
   { 'SingleCanister' : Principal } |
   { 'MultipleCanister' : Array<Principal> } |
   { 'Registered' : null };
+export type Value = { 'Int' : bigint } |
+  { 'Map' : Array<[string, Value]> } |
+  { 'Nat' : bigint } |
+  { 'Nat64' : bigint } |
+  { 'Blob' : Uint8Array | number[] } |
+  { 'Text' : string } |
+  { 'Array' : Array<Value> };
 export interface _SERVICE {
-  'add_wallet_canister' : ActorMethod<[Principal], undefined>,
+  'add_app' : ActorMethod<[Principal], undefined>,
   'clear_bugs' : ActorMethod<[Principal], undefined>,
-  'create_wallet_canister' : ActorMethod<[], Result>,
-  'deprecate_release' : ActorMethod<[string], undefined>,
-  'get_bugs' : ActorMethod<[Principal], Array<Bug>>,
+  'create_app_canister' : ActorMethod<[], Result>,
+  'deprecate_release' : ActorMethod<[string], Release>,
+  'get_app_version' : ActorMethod<[Principal], string>,
+  'get_bugs' : ActorMethod<[Principal], Array<AppBug>>,
   'get_canister_info' : ActorMethod<[Principal], CanisterInfoResponse>,
-  'get_canister_version' : ActorMethod<[Principal], string>,
   'get_canisters' : ActorMethod<[], Array<Principal>>,
-  'get_create_canister_wallet_cycle' : ActorMethod<[], bigint>,
+  'get_create_canister_app_cycle' : ActorMethod<[], bigint>,
+  'get_latest_release' : ActorMethod<[], Release>,
   'get_release' : ActorMethod<[string], Release>,
   'get_release_by_hash_string' : ActorMethod<[Uint8Array | number[]], Release>,
-  'get_states' : ActorMethod<[], UserState>,
-  'get_user_canister_status' : ActorMethod<[Principal], UserCanisterStatus>,
+  'get_states' : ActorMethod<[], User>,
+  'get_user_app_status' : ActorMethod<[Principal], UserCanisterStatus>,
   'get_user_ids' : ActorMethod<[], Array<Uint8Array | number[]>>,
-  'get_user_states' : ActorMethod<[], Array<UserState>>,
+  'get_user_states' : ActorMethod<[], Array<User>>,
   'get_user_status' : ActorMethod<[], UserStatus>,
-  'install_wallet_canister' : ActorMethod<[Principal], Result>,
-  'latest_release' : ActorMethod<[], Release>,
+  'install_app' : ActorMethod<[Principal], Result>,
   'load_release' : ActorMethod<
     [Uint8Array | number[], ReleaseArgs],
     LoadRelease
   >,
+  'release_wasm_hash' : ActorMethod<[], Array<[string, Uint8Array | number[]]>>,
   'releases' : ActorMethod<[], Array<Release>>,
+  'remove_app' : ActorMethod<[Principal], undefined>,
   'remove_latest_release' : ActorMethod<[], undefined>,
   'remove_release' : ActorMethod<[string], Release>,
   'remove_user' : ActorMethod<[Principal], undefined>,
-  'remove_wallet_canister' : ActorMethod<[Principal], undefined>,
-  'report_bug' : ActorMethod<[Bug], undefined>,
+  'report_bug' : ActorMethod<[AppBug], undefined>,
   'status' : ActorMethod<[], SystemCanisterStatus>,
   'update_release' : ActorMethod<[ReleaseArgs], undefined>,
   'version' : ActorMethod<[], string>,

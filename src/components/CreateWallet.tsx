@@ -1,13 +1,13 @@
-import { useSystemMethod } from "service/system"
+import { useSystemUpdate } from "service/system"
 import DisplayData from "./DisplayData"
 import { Button } from "./ui/button"
 
 interface CreateWalletProps {}
 
 const CreateWallet: React.FC<CreateWalletProps> = ({}) => {
-  const { call, data, error, loading } = useSystemMethod(
-    "create_wallet_canister"
-  )
+  const { call, data, error, loading } = useSystemUpdate({
+    functionName: "create_app_canister"
+  })
 
   return (
     <div>

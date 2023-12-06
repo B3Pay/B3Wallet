@@ -1,4 +1,4 @@
-type Bug = record {
+type AppBug = record {
   logs : vec text;
   name : text;
   canister_id : principal;
@@ -64,7 +64,6 @@ type QueryStats = record {
 type Release = record {
   features : vec text;
   date : nat64;
-  hash : vec nat8;
   name : text;
   size : nat64;
   version : text;
@@ -76,21 +75,22 @@ type ReleaseArgs = record {
   size : nat64;
   version : text;
 };
-type Result = variant { Ok : UserState; Err : text };
+type Result = variant { Ok : User; Err : text };
 type SystemCanisterStatus = record {
   user_status : nat64;
   status_at : nat64;
   version : text;
   canister_status : CanisterStatusResponse;
 };
+type User = record {
+  updated_at : nat64;
+  metadata : vec record { text; Value };
+  created_at : nat64;
+  canisters : vec principal;
+};
 type UserCanisterStatus = record {
   version : text;
   canister_status : CanisterStatusResponse;
-};
-type UserState = record {
-  updated_at : nat64;
-  created_at : nat64;
-  canisters : vec principal;
 };
 type UserStatus = variant {
   Unregistered;
@@ -98,32 +98,42 @@ type UserStatus = variant {
   MultipleCanister : vec principal;
   Registered;
 };
+type Value = variant {
+  Int : int;
+  Map : vec record { text; Value };
+  Nat : nat;
+  Nat64 : nat64;
+  Blob : vec nat8;
+  Text : text;
+  Array : vec Value;
+};
 service : () -> {
-  add_wallet_canister : (principal) -> ();
+  add_app : (principal) -> ();
   clear_bugs : (principal) -> ();
-  create_wallet_canister : () -> (Result);
-  deprecate_release : (text) -> ();
-  get_bugs : (principal) -> (vec Bug) query;
+  create_app_canister : () -> (Result);
+  deprecate_release : (text) -> (Release);
+  get_app_version : (principal) -> (text) composite_query;
+  get_bugs : (principal) -> (vec AppBug) query;
   get_canister_info : (principal) -> (CanisterInfoResponse);
-  get_canister_version : (principal) -> (text);
   get_canisters : () -> (vec principal) query;
-  get_create_canister_wallet_cycle : () -> (nat) query;
+  get_create_canister_app_cycle : () -> (nat) query;
+  get_latest_release : () -> (Release) query;
   get_release : (text) -> (Release) query;
   get_release_by_hash_string : (vec nat8) -> (Release) query;
-  get_states : () -> (UserState) query;
-  get_user_canister_status : (principal) -> (UserCanisterStatus);
+  get_states : () -> (User) query;
+  get_user_app_status : (principal) -> (UserCanisterStatus);
   get_user_ids : () -> (vec vec nat8) query;
-  get_user_states : () -> (vec UserState) query;
+  get_user_states : () -> (vec User) query;
   get_user_status : () -> (UserStatus) query;
-  install_wallet_canister : (principal) -> (Result);
-  latest_release : () -> (Release) query;
+  install_app : (principal) -> (Result);
   load_release : (vec nat8, ReleaseArgs) -> (LoadRelease);
+  release_wasm_hash : () -> (vec record { text; vec nat8 }) query;
   releases : () -> (vec Release) query;
+  remove_app : (principal) -> ();
   remove_latest_release : () -> ();
   remove_release : (text) -> (Release);
   remove_user : (principal) -> ();
-  remove_wallet_canister : (principal) -> ();
-  report_bug : (Bug) -> ();
+  report_bug : (AppBug) -> ();
   status : () -> (SystemCanisterStatus);
   update_release : (ReleaseArgs) -> ();
   version : () -> (text) query;

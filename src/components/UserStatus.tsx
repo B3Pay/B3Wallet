@@ -1,7 +1,7 @@
 "use client"
 import { ReloadIcon } from "@radix-ui/react-icons"
 import { useEffect } from "react"
-import { useSystemMethod } from "service/system"
+import { useSystemUpdate } from "service/system"
 import AddWallet from "./AddWallet"
 import DisplayData from "./DisplayData"
 import InstallWallet from "./InstallWallet"
@@ -10,7 +10,9 @@ import { Button } from "./ui/button"
 interface UserStatusProps {}
 
 const UserStatus: React.FC<UserStatusProps> = ({}) => {
-  const { call, data, error, loading } = useSystemMethod("get_user_status")
+  const { call, data, error, loading } = useSystemUpdate({
+    functionName: "get_user_status"
+  })
 
   useEffect(() => {
     call()

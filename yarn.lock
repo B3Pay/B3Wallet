@@ -67,7 +67,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dfinity/candid@npm:^0.20":
+"@dfinity/candid@npm:0.20, @dfinity/candid@npm:^0.20":
   version: 0.20.2
   resolution: "@dfinity/candid@npm:0.20.2"
   peerDependencies:
@@ -257,6 +257,36 @@ __metadata:
   version: 2.0.1
   resolution: "@humanwhocodes/object-schema@npm:2.0.1"
   checksum: 9dba24e59fdb4041829d92b693aacb778add3b6f612aaa9c0774f3b650c11a378cc64f042a59da85c11dae33df456580a3c36837b953541aed6ff94294f97fac
+  languageName: node
+  linkType: hard
+
+"@ic-reactor/react@npm:^0.0.4":
+  version: 0.0.4
+  resolution: "@ic-reactor/react@npm:0.0.4"
+  dependencies:
+    "@dfinity/agent": "npm:^0.20"
+    "@dfinity/auth-client": "npm:^0.20"
+    "@dfinity/candid": "npm:0.20"
+    "@dfinity/identity": "npm:^0.20"
+    "@dfinity/principal": "npm:^0.20"
+    "@ic-reactor/store": "npm:^0.0.2"
+    zustand: "npm:4.4"
+  peerDependencies:
+    "@peculiar/webcrypto": 1.4
+    react: ">=16.8"
+  checksum: c9f944c9cd658e91af26b004a92bc5c8ebca575ac9774321a137f2501797f39fc1a32f58ea70fd907fc5e703cdba204a6ab887dd8f47ef801f39493a3dd59ea8
+  languageName: node
+  linkType: hard
+
+"@ic-reactor/store@npm:^0.0.2":
+  version: 0.0.2
+  resolution: "@ic-reactor/store@npm:0.0.2"
+  peerDependencies:
+    "@dfinity/agent": ^0.20
+    "@dfinity/auth-client": 0.20
+    "@dfinity/candid": ^0.20
+    zustand: ^4.4
+  checksum: 5dd5176a045353e6654ef381b751e36432cab2f997790bef96e5739ae17c253abadc51ca0adb630e038d73717f4aaf2146dad04a9eea07b1c806d529dea35efa
   languageName: node
   linkType: hard
 
@@ -2105,6 +2135,7 @@ __metadata:
     "@dfinity/nns": "npm:^3.0.0"
     "@dfinity/principal": "npm:^0.20"
     "@dfinity/utils": "npm:^1.1.0"
+    "@ic-reactor/react": "npm:^0.0.4"
     "@radix-ui/react-avatar": "npm:^1.0.4"
     "@radix-ui/react-dialog": "npm:^1.0.5"
     "@radix-ui/react-dropdown-menu": "npm:^2.0.6"

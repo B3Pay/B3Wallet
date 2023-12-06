@@ -1,7 +1,7 @@
 import { Principal } from "@dfinity/principal"
 import { PlusCircledIcon } from "@radix-ui/react-icons"
 import { useState } from "react"
-import { useSystemMethod } from "service/system"
+import { useSystemUpdate } from "service/system"
 import DisplayData from "./DisplayData"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
@@ -11,7 +11,9 @@ interface AddWalletProps {
 }
 
 const AddWallet: React.FC<AddWalletProps> = ({ canisterId }) => {
-  const { call, data, error, loading } = useSystemMethod("add_wallet_canister")
+  const { call, data, error, loading } = useSystemUpdate({
+    functionName: "add_app"
+  })
 
   const [input, setInput] = useState(canisterId || "")
 
@@ -20,7 +22,7 @@ const AddWallet: React.FC<AddWalletProps> = ({ canisterId }) => {
 
     const principal = Principal.fromText(input)
 
-    const res = await call(principal)
+    const res = await call([principal])
     console.log(res)
   }
 

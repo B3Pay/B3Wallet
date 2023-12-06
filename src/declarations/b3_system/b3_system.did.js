@@ -1,11 +1,32 @@
 export const idlFactory = ({ IDL }) => {
-  const UserState = IDL.Record({
+  const Value = IDL.Rec();
+  Value.fill(
+    IDL.Variant({
+      'Int' : IDL.Int,
+      'Map' : IDL.Vec(IDL.Tuple(IDL.Text, Value)),
+      'Nat' : IDL.Nat,
+      'Nat64' : IDL.Nat64,
+      'Blob' : IDL.Vec(IDL.Nat8),
+      'Text' : IDL.Text,
+      'Array' : IDL.Vec(Value),
+    })
+  );
+  const User = IDL.Record({
     'updated_at' : IDL.Nat64,
+    'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, Value)),
     'created_at' : IDL.Nat64,
     'canisters' : IDL.Vec(IDL.Principal),
   });
-  const Result = IDL.Variant({ 'Ok' : UserState, 'Err' : IDL.Text });
-  const Bug = IDL.Record({
+  const Result = IDL.Variant({ 'Ok' : User, 'Err' : IDL.Text });
+  const Release = IDL.Record({
+    'features' : IDL.Vec(IDL.Text),
+    'date' : IDL.Nat64,
+    'name' : IDL.Text,
+    'size' : IDL.Nat64,
+    'version' : IDL.Text,
+    'deprecated' : IDL.Bool,
+  });
+  const AppBug = IDL.Record({
     'logs' : IDL.Vec(IDL.Text),
     'name' : IDL.Text,
     'canister_id' : IDL.Principal,
@@ -48,15 +69,6 @@ export const idlFactory = ({ IDL }) => {
     'module_hash' : IDL.Opt(IDL.Vec(IDL.Nat8)),
     'recent_changes' : IDL.Vec(CanisterChange),
     'total_num_changes' : IDL.Nat64,
-  });
-  const Release = IDL.Record({
-    'features' : IDL.Vec(IDL.Text),
-    'date' : IDL.Nat64,
-    'hash' : IDL.Vec(IDL.Nat8),
-    'name' : IDL.Text,
-    'size' : IDL.Nat64,
-    'version' : IDL.Text,
-    'deprecated' : IDL.Bool,
   });
   const CanisterStatusType = IDL.Variant({
     'stopped' : IDL.Null,
@@ -112,43 +124,48 @@ export const idlFactory = ({ IDL }) => {
     'canister_status' : CanisterStatusResponse,
   });
   return IDL.Service({
-    'add_wallet_canister' : IDL.Func([IDL.Principal], [], []),
+    'add_app' : IDL.Func([IDL.Principal], [], []),
     'clear_bugs' : IDL.Func([IDL.Principal], [], []),
-    'create_wallet_canister' : IDL.Func([], [Result], []),
-    'deprecate_release' : IDL.Func([IDL.Text], [], []),
-    'get_bugs' : IDL.Func([IDL.Principal], [IDL.Vec(Bug)], ['query']),
+    'create_app_canister' : IDL.Func([], [Result], []),
+    'deprecate_release' : IDL.Func([IDL.Text], [Release], []),
+    'get_app_version' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Text],
+        ['composite_query'],
+      ),
+    'get_bugs' : IDL.Func([IDL.Principal], [IDL.Vec(AppBug)], ['query']),
     'get_canister_info' : IDL.Func([IDL.Principal], [CanisterInfoResponse], []),
-    'get_canister_version' : IDL.Func([IDL.Principal], [IDL.Text], []),
     'get_canisters' : IDL.Func([], [IDL.Vec(IDL.Principal)], ['query']),
-    'get_create_canister_wallet_cycle' : IDL.Func([], [IDL.Nat], ['query']),
+    'get_create_canister_app_cycle' : IDL.Func([], [IDL.Nat], ['query']),
+    'get_latest_release' : IDL.Func([], [Release], ['query']),
     'get_release' : IDL.Func([IDL.Text], [Release], ['query']),
     'get_release_by_hash_string' : IDL.Func(
         [IDL.Vec(IDL.Nat8)],
         [Release],
         ['query'],
       ),
-    'get_states' : IDL.Func([], [UserState], ['query']),
-    'get_user_canister_status' : IDL.Func(
-        [IDL.Principal],
-        [UserCanisterStatus],
-        [],
-      ),
+    'get_states' : IDL.Func([], [User], ['query']),
+    'get_user_app_status' : IDL.Func([IDL.Principal], [UserCanisterStatus], []),
     'get_user_ids' : IDL.Func([], [IDL.Vec(IDL.Vec(IDL.Nat8))], ['query']),
-    'get_user_states' : IDL.Func([], [IDL.Vec(UserState)], ['query']),
+    'get_user_states' : IDL.Func([], [IDL.Vec(User)], ['query']),
     'get_user_status' : IDL.Func([], [UserStatus], ['query']),
-    'install_wallet_canister' : IDL.Func([IDL.Principal], [Result], []),
-    'latest_release' : IDL.Func([], [Release], ['query']),
+    'install_app' : IDL.Func([IDL.Principal], [Result], []),
     'load_release' : IDL.Func(
         [IDL.Vec(IDL.Nat8), ReleaseArgs],
         [LoadRelease],
         [],
       ),
+    'release_wasm_hash' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Vec(IDL.Nat8)))],
+        ['query'],
+      ),
     'releases' : IDL.Func([], [IDL.Vec(Release)], ['query']),
+    'remove_app' : IDL.Func([IDL.Principal], [], []),
     'remove_latest_release' : IDL.Func([], [], []),
     'remove_release' : IDL.Func([IDL.Text], [Release], []),
     'remove_user' : IDL.Func([IDL.Principal], [], []),
-    'remove_wallet_canister' : IDL.Func([IDL.Principal], [], []),
-    'report_bug' : IDL.Func([Bug], [], []),
+    'report_bug' : IDL.Func([AppBug], [], []),
     'status' : IDL.Func([], [SystemCanisterStatus], []),
     'update_release' : IDL.Func([ReleaseArgs], [], []),
     'version' : IDL.Func([], [IDL.Text], ['query']),

@@ -2,7 +2,7 @@
 import { Principal } from "@dfinity/principal"
 import { ShadowInnerIcon } from "@radix-ui/react-icons"
 import { useMemo, useState } from "react"
-import { useSystemMethod } from "service/system"
+import { useSystemUpdate } from "service/system"
 import DisplayData from "./DisplayData"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
@@ -14,9 +14,9 @@ interface WalletCanisterStatusProps {
 const WalletCanisterStatus: React.FC<WalletCanisterStatusProps> = ({
   canisterId
 }) => {
-  const { call, data, error, loading } = useSystemMethod(
-    "get_user_canister_status"
-  )
+  const { call, data, error, loading } = useSystemUpdate({
+    functionName: "get_user_app_status"
+  })
   const [input, setInput] = useState(canisterId || "")
 
   const principal = useMemo(() => {
@@ -26,7 +26,7 @@ const WalletCanisterStatus: React.FC<WalletCanisterStatusProps> = ({
 
   const clickHandler = () => {
     if (!principal) return
-    call(principal)
+    call([principal])
   }
 
   return (

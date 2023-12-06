@@ -67,6 +67,7 @@
     "@dfinity/nns": "^3.0.0",
     "@dfinity/principal": "^0.20",
     "@dfinity/utils": "^1.1.0",
+    "@ic-reactor/react": "^0.0.4",
     "@radix-ui/react-avatar": "^1.0.4",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-dropdown-menu": "^2.0.6",

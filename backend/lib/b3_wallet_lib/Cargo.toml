@@ -19,7 +19,7 @@ ciborium = "0.2"
 serde_bytes = "0.11"
 ethereum-rlp = "0.2"
 tiny-keccak = { version = "2.0.0", features = ["keccak"] }
-bitcoin = { version = "0.30", default-features = false, features = [
+bitcoin = { version = "0.31", default-features = false, features = [
     "no-std",
     "secp-recovery",
     "secp-lowmemory",

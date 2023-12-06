@@ -1,12 +1,12 @@
 "use client"
-import createReActor from "@re-actor/core"
+import createReActor from "@ic-reactor/react"
 import { canisterId, createActor } from "declarations/b3_system"
 
 export const {
   initialize: initializeSystem,
   ReActorProvider,
-  callActor: callSystem,
-  useActorMethod: useSystemMethod,
+  useQueryCall: useSystemQuery,
+  useUpdateCall: useSystemUpdate,
   useAuthClient: useSystemAuthClient
 } = createReActor(agent =>
   createActor(canisterId, {

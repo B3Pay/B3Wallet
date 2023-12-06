@@ -12,6 +12,19 @@ export interface AddUser {
   'signer_id' : Uint8Array | number[],
   'expires_at' : [] | [bigint],
 }
+export interface AppAccountsNonce {
+  'staging' : bigint,
+  'production' : bigint,
+  'development' : bigint,
+}
+export interface AppStatus {
+  'name' : string,
+  'canister_id' : Principal,
+  'status_at' : bigint,
+  'version' : string,
+  'canister_status' : CanisterStatusResponse,
+  'account_status' : AppAccountsNonce,
+}
 export interface BtcChain {
   'pendings' : Array<BtcPending>,
   'subaccount' : Uint8Array | number[],
@@ -203,7 +216,7 @@ export interface IcpChain {
 }
 export interface IcpPending { 'block_index' : bigint, 'canister_id' : string }
 export interface IcpTransfer {
-  'to' : Uint8Array | number[],
+  'to' : string,
   'fee' : [] | [ICPToken],
   'account_id' : string,
   'memo' : [] | [bigint],
@@ -387,7 +400,7 @@ export interface UpgradeCanister {
   'wasm_version' : string,
 }
 export interface User {
-  'metadata' : Array<[string, string]>,
+  'metadata' : Array<[string, Value]>,
   'name' : string,
   'role' : Role,
   'expires_at' : [] | [bigint],
@@ -407,48 +420,34 @@ export type UtxoStatus = { 'ValueTooSmall' : Utxo } |
     }
   } |
   { 'Checked' : Utxo };
+export type Value = { 'Int' : bigint } |
+  { 'Map' : Array<[string, Value]> } |
+  { 'Nat' : bigint } |
+  { 'Nat64' : bigint } |
+  { 'Blob' : Uint8Array | number[] } |
+  { 'Text' : string } |
+  { 'Array' : Array<Value> };
 export interface WalletAccount {
   'id' : string,
-  'metadata' : Array<[string, string]>,
+  'metadata' : Array<[string, Value]>,
   'name' : string,
   'hidden' : boolean,
   'ledger' : Ledger,
 }
 export interface WalletAccountView {
   'id' : string,
-  'metadata' : Array<[string, string]>,
+  'metadata' : Array<[string, Value]>,
   'pendings' : Array<PendingEnum>,
   'name' : string,
   'hidden' : boolean,
   'addresses' : Array<[ChainEnum, string]>,
   'environment' : Environment,
 }
-export interface WalletAccountsNonce {
-  'staging' : bigint,
-  'production' : bigint,
-  'development' : bigint,
-}
-export interface WalletCanisterStatus {
-  'name' : string,
-  'canister_id' : Principal,
-  'status_at' : bigint,
-  'version' : string,
-  'canister_status' : CanisterStatusResponse,
-  'account_status' : WalletAccountsNonce,
-}
-export interface WalletController {
-  'metadata' : Array<[string, string]>,
-  'name' : string,
-}
-export interface WalletInititializeArgs {
-  'controllers' : Array<[Principal, WalletController]>,
-  'metadata' : [] | [Array<[string, string]>],
-}
 export interface WalletSettings {
   'freezing_threshold' : [] | [bigint],
-  'controllers' : Array<[Principal, WalletController]>,
+  'controllers' : Array<[Principal, string]>,
   'initialised' : boolean,
-  'metadata' : Array<[string, string]>,
+  'metadata' : Array<[string, Value]>,
   'memory_allocation' : [] | [bigint],
   'compute_allocation' : [] | [bigint],
 }
@@ -499,16 +498,13 @@ export interface _SERVICE {
     [string, BtcNetwork],
     Array<UtxoStatus>
   >,
-  'add_controller_and_update' : ActorMethod<
-    [Principal, string, [] | [Array<[string, string]>]],
-    undefined
-  >,
-  'add_setting_metadata' : ActorMethod<[string, string], undefined>,
+  'add_controller_and_update' : ActorMethod<[Principal, string], undefined>,
+  'add_setting_metadata' : ActorMethod<[string, Value], undefined>,
   'canister_cycle_balance' : ActorMethod<[], bigint>,
   'canister_version' : ActorMethod<[], bigint>,
   'get_account' : ActorMethod<[string], WalletAccount>,
   'get_account_count' : ActorMethod<[], bigint>,
-  'get_account_counters' : ActorMethod<[], WalletAccountsNonce>,
+  'get_account_counters' : ActorMethod<[], AppAccountsNonce>,
   'get_account_view' : ActorMethod<[string], WalletAccountView>,
   'get_account_views' : ActorMethod<[], Array<WalletAccountView>>,
   'get_addresses' : ActorMethod<[string], Array<[ChainEnum, string]>>,
@@ -516,7 +512,10 @@ export interface _SERVICE {
   'get_processed_list' : ActorMethod<[], Array<ProcessedOperation>>,
   'get_roles' : ActorMethod<[], Array<[bigint, Role]>>,
   'get_signers' : ActorMethod<[], Array<[Uint8Array | number[], User]>>,
-  'init_wallet' : ActorMethod<[WalletInititializeArgs], undefined>,
+  'init_wallet' : ActorMethod<
+    [Array<[Principal, string]>, [] | [Array<[string, Value]>]],
+    undefined
+  >,
   'is_connected' : ActorMethod<[], boolean>,
   'load_wasm' : ActorMethod<[Uint8Array | number[]], bigint>,
   'name' : ActorMethod<[], string>,
@@ -571,12 +570,12 @@ export interface _SERVICE {
     [Uint8Array | number[]],
     Array<[Uint8Array | number[], User]>
   >,
-  'status' : ActorMethod<[], WalletCanisterStatus>,
+  'status' : ActorMethod<[], AppStatus>,
   'uninstall_wallet' : ActorMethod<[], undefined>,
   'unload_wasm' : ActorMethod<[], bigint>,
   'update_controller' : ActorMethod<
-    [Array<[Principal, WalletController]>],
-    Array<[Principal, WalletController]>
+    [Array<[Principal, string]>],
+    Array<[Principal, string]>
   >,
   'update_settings' : ActorMethod<[], undefined>,
   'upgrage_wallet' : ActorMethod<[], undefined>,
