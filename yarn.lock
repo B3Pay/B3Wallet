@@ -1485,32 +1485,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@re-actor/core@npm:0.2.5":
-  version: 0.2.5
-  resolution: "@re-actor/core@npm:0.2.5"
-  dependencies:
-    "@re-actor/store": "npm:^0.2.3"
-    "@re-actor/types": "npm:^0.2.0"
-    zustand: "npm:4.4"
-  peerDependencies:
-    react: ">=16.8"
-  checksum: fb0ef6904175589ab858f58329a2797c4cd03df6b2bedecbaf1500254d86ab8df946846ae212ae6110b8fab223a6f0c20f2ce50c47e32383b8f3ba2d208b5683
-  languageName: node
-  linkType: hard
-
-"@re-actor/store@npm:^0.2.3":
-  version: 0.2.3
-  resolution: "@re-actor/store@npm:0.2.3"
-  peerDependencies:
-    "@dfinity/agent": ^0.20.1
-    "@dfinity/auth-client": 0.20.1
-    "@dfinity/candid": ^0.20.1
-    "@re-actor/types": ^0.0.3
-    zustand: ^4.4
-  checksum: 52cc7262b896f10dd6ca1c41482725dd16e8e52c4811a9f5837ac5c8f2f383203243b38e24518faf7f94ce7b20c3b383f65d576b3aaaa7ea5db52cdc48217fd6
-  languageName: node
-  linkType: hard
-
 "@re-actor/types@npm:^0.2.0":
   version: 0.2.0
   resolution: "@re-actor/types@npm:0.2.0"
@@ -2147,7 +2121,6 @@ __metadata:
     "@radix-ui/react-slot": "npm:^1.0.2"
     "@radix-ui/react-tabs": "npm:^1.0.4"
     "@radix-ui/react-toast": "npm:^1.1.5"
-    "@re-actor/core": "npm:0.2.5"
     "@re-actor/types": "npm:^0.2.0"
     "@types/node": "npm:20.8.10"
     "@types/node-fetch": "npm:^2.6.3"
