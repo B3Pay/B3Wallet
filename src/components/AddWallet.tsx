@@ -30,7 +30,12 @@ const AddWallet: React.FC<AddWalletProps> = ({ canisterId }) => {
     <div>
       <div className="flex items-center">
         <Input
-          icon={<PlusCircledIcon className="ml-[4px]" />}
+          icon={
+            <PlusCircledIcon
+              className="ml-[3px]"
+              onClick={() => console.log("clicked")}
+            />
+          }
           value={input}
           onChange={e => setInput(e.target.value)}
           placeholder="Canister ID"

@@ -1,22 +1,8 @@
-import { Button } from "components/ui/button"
+import Login from "./Login"
 
-type User = {
-  name: string
-}
+interface HeaderProps {}
 
-interface HeaderProps {
-  user?: User
-  onLogin: () => void
-  onLogout: () => void
-  onCreateAccount: () => void
-}
-
-const Header: React.FC<HeaderProps> = ({
-  user,
-  onLogin,
-  onLogout,
-  onCreateAccount
-}) => {
+const Header: React.FC<HeaderProps> = ({}) => {
   return (
     <header>
       <div className="storybook-header">
@@ -42,29 +28,9 @@ const Header: React.FC<HeaderProps> = ({
               />
             </g>
           </svg>
-          <h1>Acme</h1>
+          <h1>B3Wallet</h1>
         </div>
-        <div>
-          {user ? (
-            <>
-              <span className="welcome">
-                Welcome, <b>{user.name}</b>!
-              </span>
-              <Button size="sm" onClick={onLogout}>
-                Log out
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button size="sm" onClick={onLogin}>
-                Log in
-              </Button>
-              <Button size="sm" onClick={onCreateAccount}>
-                Sign up
-              </Button>
-            </>
-          )}
-        </div>
+        <Login />
       </div>
     </header>
   )

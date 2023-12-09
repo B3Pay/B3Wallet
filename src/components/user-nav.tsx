@@ -10,12 +10,20 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger
 } from "components/ui/dropdown-menu"
+import { cn } from "lib/utils"
 
-export function UserNav() {
+interface UserNavProps {
+  className?: string
+}
+
+const UserNav: React.FC<UserNavProps> = ({ className }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+        <Button
+          variant="ghost"
+          className={cn("relative h-8 w-8 rounded-full", className)}
+        >
           <Avatar className="h-8 w-8">
             <AvatarImage src="/avatars/01.png" alt="@shadcn" />
             <AvatarFallback>SC</AvatarFallback>
@@ -56,3 +64,5 @@ export function UserNav() {
     </DropdownMenu>
   )
 }
+
+export default UserNav

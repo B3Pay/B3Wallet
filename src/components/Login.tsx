@@ -1,4 +1,6 @@
+import { errorHandler } from "lib/utils"
 import { useSystemAuthClient } from "service/system"
+import Address from "./Address"
 import { Button } from "./ui/button"
 
 const Login = () => {
@@ -13,34 +15,32 @@ const Login = () => {
   } = useSystemAuthClient()
 
   return (
-    <>
-      <div>
-        {loginLoading && <div>Loading...</div>}
-        {loginError ? <div>{JSON.stringify(loginError)}</div> : null}
-        {identity && <div>{identity.getPrincipal().toText()}</div>}
-      </div>
+    <div className="flex items-center">
+      {loginError ? (
+        <div className="text-red-500">{errorHandler(loginError)}</div>
+      ) : loginLoading ? (
+        <div className="text-blue-500">Loading...</div>
+      ) : identity ? (
+        <Address smallest address={identity?.getPrincipal().toText()} />
+      ) : null}
       {authenticated ? (
-        <div className="flex flex-col align-center">
-          <Button onClick={() => logout()}>Logout</Button>
-        </div>
+        <Button onClick={() => logout()}>Logout</Button>
       ) : (
-        <div>
-          <Button
-            onClick={() =>
-              login({
-                identityProvider:
-                  process.env.DFX_NETWORK === "ic"
-                    ? "https://identity.ic0.app/#authorize"
-                    : `http://localhost:4943?canisterId=rdmx6-jaaaa-aaaaa-aaadq-cai#authorize`
-              })
-            }
-            disabled={authenticating}
-          >
-            Login
-          </Button>
-        </div>
+        <Button
+          onClick={() =>
+            login({
+              identityProvider:
+                process.env.DFX_NETWORK === "ic"
+                  ? "https://identity.ic0.app/#authorize"
+                  : `http://localhost:4943?canisterId=rdmx6-jaaaa-aaaaa-aaadq-cai#authorize`
+            })
+          }
+          disabled={authenticating}
+        >
+          Login
+        </Button>
       )}
-    </>
+    </div>
   )
 }
 

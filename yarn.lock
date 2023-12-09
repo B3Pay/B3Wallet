@@ -105,53 +105,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dfinity/ledger-icp@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@dfinity/ledger-icp@npm:2.0.0"
-  peerDependencies:
-    "@dfinity/agent": ^0.19.2
-    "@dfinity/candid": ^0.19.2
-    "@dfinity/nns-proto": ^1.0.0
-    "@dfinity/principal": ^0.19.2
-    "@dfinity/utils": ^1.0.0
-  checksum: 94807a71a4244ccc95a0e2e5f5eb0b6a41939dbd17a5fcf965238ec78b70150852b70e743e6f4c9ac11c0c1533b61906e460c07c4dc4ac287e46acb331e1d2e3
-  languageName: node
-  linkType: hard
-
-"@dfinity/nns@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "@dfinity/nns@npm:3.0.0"
-  dependencies:
-    "@noble/hashes": "npm:^1.3.2"
-    randombytes: "npm:^2.1.0"
-  peerDependencies:
-    "@dfinity/agent": ^0.19.2
-    "@dfinity/candid": ^0.19.2
-    "@dfinity/ledger-icp": ^2.0.0
-    "@dfinity/nns-proto": ^1.0.0
-    "@dfinity/principal": ^0.19.2
-    "@dfinity/utils": ^1.0.0
-  checksum: 44daa84ec525042d59ce2ccafb0e1e1813587398e2afcc257164d65a9c67e79088556a6af720350cef0135814d6870337e91dc36fb71b910cf348abf211123f6
-  languageName: node
-  linkType: hard
-
 "@dfinity/principal@npm:^0.20":
   version: 0.20.2
   resolution: "@dfinity/principal@npm:0.20.2"
   dependencies:
     "@noble/hashes": "npm:^1.3.1"
   checksum: b777ad7cb6a45ac7e76bda15e8c28d15d46fecaf0eb78b450223d8c6404cff43366ad69e95aed386eefdf8c00ab784082dddcb88cb8900de699964af4e25a084
-  languageName: node
-  linkType: hard
-
-"@dfinity/utils@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@dfinity/utils@npm:1.1.0"
-  peerDependencies:
-    "@dfinity/agent": ^0.19.2
-    "@dfinity/candid": ^0.19.2
-    "@dfinity/principal": ^0.19.2
-  checksum: 34add46589eec263692ee45baad26596cf9166b87db56d7821e9d99d95bd8f70342a7b1291b2f382d81b5b2fcf652334e7fe6fa439ec9fadeefbadd04a6803cd
   languageName: node
   linkType: hard
 
@@ -260,33 +219,33 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ic-reactor/react@npm:^0.0.4":
-  version: 0.0.4
-  resolution: "@ic-reactor/react@npm:0.0.4"
+"@ic-reactor/react@npm:*":
+  version: 0.0.10
+  resolution: "@ic-reactor/react@npm:0.0.10"
   dependencies:
     "@dfinity/agent": "npm:^0.20"
     "@dfinity/auth-client": "npm:^0.20"
     "@dfinity/candid": "npm:0.20"
     "@dfinity/identity": "npm:^0.20"
     "@dfinity/principal": "npm:^0.20"
-    "@ic-reactor/store": "npm:^0.0.2"
+    "@ic-reactor/store": "npm:^0.0.6"
     zustand: "npm:4.4"
   peerDependencies:
     "@peculiar/webcrypto": 1.4
     react: ">=16.8"
-  checksum: c9f944c9cd658e91af26b004a92bc5c8ebca575ac9774321a137f2501797f39fc1a32f58ea70fd907fc5e703cdba204a6ab887dd8f47ef801f39493a3dd59ea8
+  checksum: d29ebde8feb5890f852dd8353bf2c8a718af53a3e29a8e3ac57954d6b9c1ffdbf89cf6526e7083861b4d76c8bfd7880b2f2150de2f81cc8415815fded1947e20
   languageName: node
   linkType: hard
 
-"@ic-reactor/store@npm:^0.0.2":
-  version: 0.0.2
-  resolution: "@ic-reactor/store@npm:0.0.2"
-  peerDependencies:
-    "@dfinity/agent": ^0.20
-    "@dfinity/auth-client": 0.20
-    "@dfinity/candid": ^0.20
-    zustand: ^4.4
-  checksum: 5dd5176a045353e6654ef381b751e36432cab2f997790bef96e5739ae17c253abadc51ca0adb630e038d73717f4aaf2146dad04a9eea07b1c806d529dea35efa
+"@ic-reactor/store@npm:^0.0.6":
+  version: 0.0.6
+  resolution: "@ic-reactor/store@npm:0.0.6"
+  dependencies:
+    "@dfinity/agent": "npm:^0.20"
+    "@dfinity/auth-client": "npm:^0.20"
+    "@dfinity/candid": "npm:^0.20"
+    zustand: "npm:^4.4"
+  checksum: a655d77ec75bb2a80155a780a881fad6eab8583f21d2b2ea8e623b89c083ed60941c498e2587074fe2bc1cbc9ae9e4cba679af2bd1fcb408f54a6da721c1dbd2
   languageName: node
   linkType: hard
 
@@ -444,7 +403,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@noble/hashes@npm:1.3.2, @noble/hashes@npm:^1.2.0, @noble/hashes@npm:^1.3.1, @noble/hashes@npm:^1.3.2":
+"@noble/hashes@npm:1.3.2, @noble/hashes@npm:^1.2.0, @noble/hashes@npm:^1.3.1":
   version: 1.3.2
   resolution: "@noble/hashes@npm:1.3.2"
   checksum: 2482cce3bce6a596626f94ca296e21378e7a5d4c09597cbc46e65ffacc3d64c8df73111f2265444e36a3168208628258bbbaccba2ef24f65f58b2417638a20e7
@@ -497,6 +456,39 @@ __metadata:
   dependencies:
     semver: "npm:^7.3.5"
   checksum: 162b4a0b8705cd6f5c2470b851d1dc6cd228c86d2170e1769d738c1fbb69a87160901411c3c035331e9e99db72f1f1099a8b734bf1637cc32b9a5be1660e4e1e
+  languageName: node
+  linkType: hard
+
+"@peculiar/asn1-schema@npm:^2.3.6":
+  version: 2.3.8
+  resolution: "@peculiar/asn1-schema@npm:2.3.8"
+  dependencies:
+    asn1js: "npm:^3.0.5"
+    pvtsutils: "npm:^1.3.5"
+    tslib: "npm:^2.6.2"
+  checksum: 65f16b2a7eb91365b6dac47730ffcad4617ef04b821e0a4286c379ac7283588b0a6744032ee686e0914a0886c2a055108ed945b9c4d22821a3b123640b61f3b2
+  languageName: node
+  linkType: hard
+
+"@peculiar/json-schema@npm:^1.1.12":
+  version: 1.1.12
+  resolution: "@peculiar/json-schema@npm:1.1.12"
+  dependencies:
+    tslib: "npm:^2.0.0"
+  checksum: 202132c66dcc6b6aca5d0af971c015be2e163da2f7f992910783c5d39c8a7db59b6ec4f4ce419459a1f954b7e1d17b6b253f0e60072c1b3d254079f4eaebc311
+  languageName: node
+  linkType: hard
+
+"@peculiar/webcrypto@npm:1.4.3":
+  version: 1.4.3
+  resolution: "@peculiar/webcrypto@npm:1.4.3"
+  dependencies:
+    "@peculiar/asn1-schema": "npm:^2.3.6"
+    "@peculiar/json-schema": "npm:^1.1.12"
+    pvtsutils: "npm:^1.3.2"
+    tslib: "npm:^2.5.0"
+    webcrypto-core: "npm:^1.7.7"
+  checksum: 0b778f32f81feee4f521397a1000d151fbc526ddde4f3f853e4a98815986c08b93b66654a8a9766dc161af13d8340bc3e00f04b17585474bbe260df7b586863a
   languageName: node
   linkType: hard
 
@@ -1301,6 +1293,37 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@radix-ui/react-tooltip@npm:^1.0.7":
+  version: 1.0.7
+  resolution: "@radix-ui/react-tooltip@npm:1.0.7"
+  dependencies:
+    "@babel/runtime": "npm:^7.13.10"
+    "@radix-ui/primitive": "npm:1.0.1"
+    "@radix-ui/react-compose-refs": "npm:1.0.1"
+    "@radix-ui/react-context": "npm:1.0.1"
+    "@radix-ui/react-dismissable-layer": "npm:1.0.5"
+    "@radix-ui/react-id": "npm:1.0.1"
+    "@radix-ui/react-popper": "npm:1.1.3"
+    "@radix-ui/react-portal": "npm:1.0.4"
+    "@radix-ui/react-presence": "npm:1.0.1"
+    "@radix-ui/react-primitive": "npm:1.0.3"
+    "@radix-ui/react-slot": "npm:1.0.2"
+    "@radix-ui/react-use-controllable-state": "npm:1.0.1"
+    "@radix-ui/react-visually-hidden": "npm:1.0.3"
+  peerDependencies:
+    "@types/react": "*"
+    "@types/react-dom": "*"
+    react: ^16.8 || ^17.0 || ^18.0
+    react-dom: ^16.8 || ^17.0 || ^18.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: 915524ea9d102eb26e656c550a084ca460219041c0e7cec0e72b522ee52a43b4d725f4ad3352212f4ae88b3672ef7b23bad07844275cafea075ada590678d873
+  languageName: node
+  linkType: hard
+
 "@radix-ui/react-use-callback-ref@npm:1.0.0":
   version: 1.0.0
   resolution: "@radix-ui/react-use-callback-ref@npm:1.0.0"
@@ -2012,6 +2035,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"asn1js@npm:^3.0.1, asn1js@npm:^3.0.5":
+  version: 3.0.5
+  resolution: "asn1js@npm:3.0.5"
+  dependencies:
+    pvtsutils: "npm:^1.3.2"
+    pvutils: "npm:^1.1.3"
+    tslib: "npm:^2.4.0"
+  checksum: bb8eaf4040c8f49dd475566874986f5976b81bae65a6b5526e2208a13cdca323e69ce297bcd435fdda3eb6933defe888e71974d705b6fcb14f2734a907f8aed4
+  languageName: node
+  linkType: hard
+
 "assert@npm:^2.1":
   version: 2.1.0
   resolution: "assert@npm:2.1.0"
@@ -2105,11 +2139,9 @@ __metadata:
     "@dfinity/candid": "npm:^0.20"
     "@dfinity/identity": "npm:^0.20"
     "@dfinity/identity-secp256k1": "npm:^0.20"
-    "@dfinity/ledger-icp": "npm:^2.0.0"
-    "@dfinity/nns": "npm:^3.0.0"
     "@dfinity/principal": "npm:^0.20"
-    "@dfinity/utils": "npm:^1.1.0"
-    "@ic-reactor/react": "npm:^0.0.4"
+    "@ic-reactor/react": "npm:*"
+    "@peculiar/webcrypto": "npm:1.4.3"
     "@radix-ui/react-avatar": "npm:^1.0.4"
     "@radix-ui/react-dialog": "npm:^1.0.5"
     "@radix-ui/react-dropdown-menu": "npm:^2.0.6"
@@ -2121,6 +2153,7 @@ __metadata:
     "@radix-ui/react-slot": "npm:^1.0.2"
     "@radix-ui/react-tabs": "npm:^1.0.4"
     "@radix-ui/react-toast": "npm:^1.1.5"
+    "@radix-ui/react-tooltip": "npm:^1.0.7"
     "@re-actor/types": "npm:^0.2.0"
     "@types/node": "npm:20.8.10"
     "@types/node-fetch": "npm:^2.6.3"
@@ -5279,19 +5312,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pvtsutils@npm:^1.3.2, pvtsutils@npm:^1.3.5":
+  version: 1.3.5
+  resolution: "pvtsutils@npm:1.3.5"
+  dependencies:
+    tslib: "npm:^2.6.1"
+  checksum: d425aed316907e0b447a459bfb97c55d22270c3cfdba5a07ec90da0737b0e40f4f1771a444636f85bb6a453de90ff8c6b5f4f6ddba7597977166af49974b4534
+  languageName: node
+  linkType: hard
+
+"pvutils@npm:^1.1.3":
+  version: 1.1.3
+  resolution: "pvutils@npm:1.1.3"
+  checksum: 23489e6b3c76b6afb6964a20f891d6bef092939f401c78bba186b2bfcdc7a13904a0af0a78f7933346510f8c1228d5ab02d3c80e968fd84d3c76ff98d8ec9aac
+  languageName: node
+  linkType: hard
+
 "queue-microtask@npm:^1.2.2":
   version: 1.2.3
   resolution: "queue-microtask@npm:1.2.3"
   checksum: 900a93d3cdae3acd7d16f642c29a642aea32c2026446151f0778c62ac089d4b8e6c986811076e1ae180a694cedf077d453a11b58ff0a865629a4f82ab558e102
-  languageName: node
-  linkType: hard
-
-"randombytes@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "randombytes@npm:2.1.0"
-  dependencies:
-    safe-buffer: "npm:^5.1.0"
-  checksum: 50395efda7a8c94f5dffab564f9ff89736064d32addf0cc7e8bf5e4166f09f8ded7a0849ca6c2d2a59478f7d90f78f20d8048bca3cdf8be09d8e8a10790388f3
   languageName: node
   linkType: hard
 
@@ -5681,7 +5721,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"safe-buffer@npm:^5.0.1, safe-buffer@npm:^5.1.0, safe-buffer@npm:^5.1.1, safe-buffer@npm:^5.1.2, safe-buffer@npm:^5.2.0, safe-buffer@npm:~5.2.0":
+"safe-buffer@npm:^5.0.1, safe-buffer@npm:^5.1.1, safe-buffer@npm:^5.1.2, safe-buffer@npm:^5.2.0, safe-buffer@npm:~5.2.0":
   version: 5.2.1
   resolution: "safe-buffer@npm:5.2.1"
   checksum: 6501914237c0a86e9675d4e51d89ca3c21ffd6a31642efeba25ad65720bce6921c9e7e974e5be91a786b25aa058b5303285d3c15dbabf983a919f5f630d349f3
@@ -6245,7 +6285,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.0.0, tslib@npm:^2.1.0, tslib@npm:^2.4.0":
+"tslib@npm:^2.0.0, tslib@npm:^2.1.0, tslib@npm:^2.4.0, tslib@npm:^2.5.0, tslib@npm:^2.6.1, tslib@npm:^2.6.2":
   version: 2.6.2
   resolution: "tslib@npm:2.6.2"
   checksum: e03a8a4271152c8b26604ed45535954c0a45296e32445b4b87f8a5abdb2421f40b59b4ca437c4346af0f28179780d604094eb64546bee2019d903d01c6c19bdb
@@ -6501,6 +6541,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"webcrypto-core@npm:^1.7.7":
+  version: 1.7.7
+  resolution: "webcrypto-core@npm:1.7.7"
+  dependencies:
+    "@peculiar/asn1-schema": "npm:^2.3.6"
+    "@peculiar/json-schema": "npm:^1.1.12"
+    asn1js: "npm:^3.0.1"
+    pvtsutils: "npm:^1.3.2"
+    tslib: "npm:^2.4.0"
+  checksum: 57f0bee4e6c39f04fe5fc5fa615f245b3a9d41b330855cd1c525b96e9124d94e6cd06a174cbe1ff63dcb3b296995ae516e3ff02bad94baddd2a4e1060a854282
+  languageName: node
+  linkType: hard
+
 "which-boxed-primitive@npm:^1.0.2":
   version: 1.0.2
   resolution: "which-boxed-primitive@npm:1.0.2"
@@ -6645,7 +6698,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zustand@npm:4.4":
+"zustand@npm:4.4, zustand@npm:^4.4":
   version: 4.4.7
   resolution: "zustand@npm:4.4.7"
   dependencies:

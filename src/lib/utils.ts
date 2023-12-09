@@ -3,9 +3,8 @@ import { clsx, type ClassValue } from "clsx"
 import { CanisterStatusResponse } from "declarations/b3_system/b3_system.did"
 import { twMerge } from "tailwind-merge"
 
-export const errorHandler = (error: Error | null): string => {
+export const errorHandler = (error: Error | unknown | null): string => {
   // Check if an error was passed
-  console.log(error)
   if (!error) {
     // Return an empty string if no error was passed
     return ""
@@ -22,7 +21,7 @@ export const errorHandler = (error: Error | null): string => {
 
   // Use the regular expression to find the error message
   const match = errorString.match(regex)
-  console.log(match)
+
   // Check if a match was found
   if (match && match[1]) {
     // Return the extracted error message

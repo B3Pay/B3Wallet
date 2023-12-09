@@ -136,7 +136,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     }
 
     return (
-      <Box className="relative flex items-center" color={color} hoverable>
+      <Box className={cn("relative", className)} color={color} hoverable>
         {isIcon && (
           <Icon
             className="absolute left-0"
@@ -155,8 +155,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             inputVariants({ round, variant, size, color, isIcon }),
             height,
             `rounded-${round}-${size}`,
-            noShadow && "shadow-none",
-            className
+            noShadow && "shadow-none"
           )}
           ref={refHandler}
           {...props}
