@@ -1,6 +1,6 @@
+use crate::ledger::btc::types::BtcTxId;
 use crate::ledger::ckbtc::minter::Minter;
-use crate::ledger::ckbtc::types::BtcTxId;
-use crate::ledger::ecdsa::EcdsaPublicKey;
+use crate::ledger::ecdsa::ECDSAPublicKey;
 use crate::ledger::subaccount::SubaccountEcdsaTrait;
 use crate::ledger::types::BtcPending;
 use b3_utils::{ledger::ICRCAccount, Subaccount};
@@ -27,7 +27,7 @@ pub struct BtcChain {
     pub subaccount: Subaccount,
     pub btc_network: BtcNetwork,
     pub pendings: Vec<BtcPending>,
-    pub ecdsa_public_key: EcdsaPublicKey,
+    pub ecdsa_public_key: ECDSAPublicKey,
     pub min_confirmations: Option<u32>,
 }
 

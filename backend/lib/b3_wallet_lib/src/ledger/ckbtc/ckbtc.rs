@@ -1,6 +1,7 @@
 use super::error::CkbtcError;
 use super::minter::Minter;
-use super::types::{RetrieveBtcOk, RetrieveBtcResult, Satoshi, UpdateBalanceResult};
+use super::types::{RetrieveBtcOk, RetrieveBtcResult, UpdateBalanceResult};
+use crate::ledger::btc::types::Satoshi;
 use crate::ledger::types::CkbtcPending;
 use crate::ledger::{
     btc::network::BtcNetwork,

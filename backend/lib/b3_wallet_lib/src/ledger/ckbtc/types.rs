@@ -1,14 +1,10 @@
+use crate::ledger::btc::types::{BtcTxHash, Satoshi};
+
 use super::error::{RetrieveBtcError, UpdateBalanceError};
 use b3_utils::{types::CanisterId, Subaccount};
 use candid::{CandidType, Deserialize};
 
 use std::fmt;
-
-pub type BtcTxId = String;
-
-pub type BtcTxHash = [u8; 32];
-
-pub type Satoshi = u64;
 
 pub type RetrieveBtcResult = Result<RetrieveBtcOk, RetrieveBtcError>;
 

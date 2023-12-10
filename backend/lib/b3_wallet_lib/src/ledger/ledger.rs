@@ -1,6 +1,6 @@
 use super::{
     chain::Chain,
-    ecdsa::EcdsaPublicKey,
+    ecdsa::ECDSAPublicKey,
     error::LedgerError,
     types::{AddressMap, Balance, ChainEnum, ChainMap, PendingEnum, SendResult},
 };
@@ -13,7 +13,7 @@ use tiny_keccak::{Hasher, Keccak};
 
 #[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct Ledger {
-    pub public_key: Option<EcdsaPublicKey>,
+    pub public_key: Option<ECDSAPublicKey>,
     pub subaccount: Subaccount,
     pub chains: ChainMap,
 }
@@ -86,7 +86,7 @@ impl Ledger {
             .collect()
     }
 
-    pub fn public_key(&self) -> Result<&EcdsaPublicKey, LedgerError> {
+    pub fn public_key(&self) -> Result<&ECDSAPublicKey, LedgerError> {
         match &self.public_key {
             Some(public_key) => Ok(public_key),
             None => Err(LedgerError::MissingEcdsaPublicKey),
@@ -168,7 +168,7 @@ impl Ledger {
             return Err(LedgerError::EcdsaPublicKeyAlreadySet);
         }
 
-        let ecdsa = EcdsaPublicKey::from_slice(&ecdsa)?;
+        let ecdsa = ECDSAPublicKey::from_slice(&ecdsa)?;
 
         self.public_key = Some(ecdsa);
 

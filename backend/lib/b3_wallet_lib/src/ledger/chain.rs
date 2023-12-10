@@ -1,7 +1,7 @@
 use super::{
     btc::{btc::BtcChain, network::BtcNetwork},
     ckbtc::ckbtc::CkbtcChain,
-    ecdsa::EcdsaPublicKey,
+    ecdsa::ECDSAPublicKey,
     error::LedgerError,
     evm::api::EvmChain,
     icp::icp::IcpChain,
@@ -71,7 +71,7 @@ impl Chain {
     pub fn new_btc_chain(
         btc_network: BtcNetwork,
         subaccount: Subaccount,
-        ecdsa_public_key: EcdsaPublicKey,
+        ecdsa_public_key: ECDSAPublicKey,
     ) -> Result<Self, LedgerError> {
         let address = ecdsa_public_key
             .btc_address(btc_network.into())?

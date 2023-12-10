@@ -1,6 +1,9 @@
 use super::{error::BitcoinError, utils::mock_signer};
 use crate::ledger::types::{BtcOutPoint, BtcTransaction, BtcTxOut};
-use bitcoin::{absolute::LockTime, hashes::Hash, Address, Script, Transaction, TxIn, Txid};
+use bitcoin::{
+    absolute::LockTime, hashes::Hash, transaction::Version, Address, Script, Transaction, TxIn,
+    Txid,
+};
 use ic_cdk::api::management_canister::bitcoin::{GetUtxosResponse, Utxo};
 
 pub struct BtcUtxos(Vec<Utxo>);
@@ -53,7 +56,7 @@ impl BtcUtxos {
             // If the fee is correct, we're done.
             if total_fee == fee {
                 transaction.input.iter_mut().for_each(|input| {
-                    input.script_sig = Script::empty().into();
+                    input.script_sig = Script::new().into();
                     input.witness.clear();
                 });
 
@@ -80,7 +83,7 @@ impl BtcUtxos {
         const DUST_THRESHOLD: u64 = 1_000;
 
         let mut transaction = BtcTransaction {
-            version: 2,
+            version: Version::ONE,
             input: Vec::new(),
             output: Vec::new(),
             lock_time: LockTime::ZERO,
@@ -132,7 +135,7 @@ mod test {
     use crate::ledger::{
         btc::{network::BtcNetwork, utxos::BtcUtxos},
         chain::{Chain, ChainTrait},
-        ecdsa::EcdsaPublicKey,
+        ecdsa::ECDSAPublicKey,
         ledger::Ledger,
         types::{ChainEnum, ChainMap},
     };
@@ -259,7 +262,7 @@ mod test {
         let chain = Chain::new_btc_chain(
             BtcNetwork::Regtest,
             subaccount,
-            EcdsaPublicKey(ecdsa.clone()),
+            ECDSAPublicKey(ecdsa.clone()),
         )
         .unwrap();
 
@@ -277,7 +280,7 @@ mod test {
             .build_transaction(&own_address, &recipient, 100_000_000, 2000)
             .unwrap();
 
-        assert_eq!(public_key, EcdsaPublicKey(ecdsa).btc_public_key().unwrap());
+        assert_eq!(public_key, ECDSAPublicKey(ecdsa).btc_public_key().unwrap());
 
         assert_eq!(tx.input.len(), 7);
 

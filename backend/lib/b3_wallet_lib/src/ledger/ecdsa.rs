@@ -5,9 +5,9 @@ use serde::{Deserialize, Serialize};
 use super::error::LedgerError;
 
 #[derive(CandidType, Clone, Deserialize, Serialize, PartialEq, Debug)]
-pub struct EcdsaPublicKey(pub Vec<u8>);
+pub struct ECDSAPublicKey(pub Vec<u8>);
 
-impl EcdsaPublicKey {
+impl ECDSAPublicKey {
     pub fn new(ecdsa: Vec<u8>) -> Self {
         Self(ecdsa)
     }

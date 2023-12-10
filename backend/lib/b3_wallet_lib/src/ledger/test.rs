@@ -3,7 +3,7 @@ mod tests {
     use crate::ledger::{
         btc::network::BtcNetwork,
         chain::{Chain, ChainTrait},
-        ecdsa::EcdsaPublicKey,
+        ecdsa::ECDSAPublicKey,
         ledger::Ledger,
         types::{ChainEnum, ChainMap},
     };
@@ -63,7 +63,7 @@ mod tests {
         let chain = Chain::new_btc_chain(
             BtcNetwork::Regtest,
             subaccount.clone(),
-            EcdsaPublicKey(ecdsa.clone()),
+            ECDSAPublicKey(ecdsa.clone()),
         )
         .unwrap();
 
@@ -80,7 +80,7 @@ mod tests {
         let chain = Chain::new_btc_chain(
             BtcNetwork::Mainnet,
             subaccount.clone(),
-            EcdsaPublicKey(ecdsa.clone()),
+            ECDSAPublicKey(ecdsa.clone()),
         )
         .unwrap();
 
@@ -93,7 +93,7 @@ mod tests {
         let chain = Chain::new_btc_chain(
             BtcNetwork::Testnet,
             subaccount.clone(),
-            EcdsaPublicKey(ecdsa.clone()),
+            ECDSAPublicKey(ecdsa.clone()),
         )
         .unwrap();
 
@@ -165,7 +165,7 @@ mod tests {
         assert_eq!(eth_address.len(), 42);
 
         let chain =
-            Chain::new_btc_chain(BtcNetwork::Mainnet, subaccount, EcdsaPublicKey(ecdsa)).unwrap();
+            Chain::new_btc_chain(BtcNetwork::Mainnet, subaccount, ECDSAPublicKey(ecdsa)).unwrap();
 
         ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Mainnet), chain.clone());
 
@@ -241,7 +241,7 @@ mod tests {
         assert_eq!(eth_address.len(), 42);
 
         let chain =
-            Chain::new_btc_chain(BtcNetwork::Testnet, subaccount, EcdsaPublicKey(ecdsa)).unwrap();
+            Chain::new_btc_chain(BtcNetwork::Testnet, subaccount, ECDSAPublicKey(ecdsa)).unwrap();
 
         ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Testnet), chain);
 
