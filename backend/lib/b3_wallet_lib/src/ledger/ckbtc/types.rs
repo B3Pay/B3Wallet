@@ -1,4 +1,4 @@
-use crate::ledger::btc::types::{BtcTxHash, Satoshi};
+use crate::ledger::btc::types::{BtcTxHash, UtxoStatus};
 
 use super::error::{RetrieveBtcError, UpdateBalanceError};
 use b3_utils::{types::CanisterId, Subaccount};
@@ -20,37 +20,6 @@ pub struct GetBtcAddressArgs {
 pub struct UpdateBalanceArgs {
     pub owner: Option<CanisterId>,
     pub subaccount: Option<Subaccount>,
-}
-
-/// A reference to a transaction output.
-#[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct OutPoint {
-    /// A cryptographic hash of the transaction.
-    /// A transaction can output multiple UTXOs.
-    #[serde(with = "serde_bytes")]
-    pub txid: Vec<u8>,
-    /// The index of the output within the transaction.
-    pub vout: u32,
-}
-
-/// An unspent transaction output.
-#[derive(CandidType, Debug, Deserialize, PartialEq, Clone, Hash, Eq)]
-pub struct Utxo {
-    pub outpoint: OutPoint,
-    pub value: Satoshi,
-    pub height: u32,
-}
-
-#[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq)]
-pub enum UtxoStatus {
-    ValueTooSmall(Utxo),
-    Tainted(Utxo),
-    Checked(Utxo),
-    Minted {
-        block_index: u64,
-        minted_amount: u64,
-        utxo: Utxo,
-    },
 }
 
 #[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq)]

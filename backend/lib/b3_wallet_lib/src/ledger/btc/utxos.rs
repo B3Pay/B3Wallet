@@ -1,5 +1,8 @@
 use super::{error::BitcoinError, utils::mock_signer};
-use crate::ledger::types::{BtcOutPoint, BtcTransaction, BtcTxOut};
+use crate::ledger::{
+    btc::types::OutPoint,
+    types::{BtcTransaction, BtcTxOut},
+};
 use bitcoin::{
     absolute::LockTime, hashes::Hash, transaction::Version, Address, Amount, Script, Transaction,
     TxIn, Txid,
@@ -96,7 +99,7 @@ impl BtcUtxos {
             let mut tx_in = TxIn::default();
 
             let txid = Txid::from_slice(&utxo.outpoint.txid).unwrap();
-            tx_in.previous_output = BtcOutPoint::new(txid, utxo.outpoint.vout);
+            tx_in.previous_output = OutPoint::new(txid, utxo.outpoint.vout);
 
             transaction.input.push(tx_in);
 

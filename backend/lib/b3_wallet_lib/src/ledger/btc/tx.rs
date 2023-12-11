@@ -1,9 +1,10 @@
 //! This module contains definitions of Bitcoin P2PKWH transactions and rules to
 //! encode them into a byte stream.
 
-use crate::ledger::{btc::types::Satoshi, types::BtcOutPoint};
+use crate::ledger::btc::types::Satoshi;
 
 use super::signature::EncodedSignature;
+use super::types::OutPoint;
 use super::{address::BitcoinAddress, types::Txid};
 use b3_utils::sha2::Sha256;
 use serde_bytes::{ByteBuf, Bytes};
@@ -35,7 +36,7 @@ mod ops {
     pub const CHECKSIG: u8 = 0xac;
 }
 
-pub struct DisplayOutpoint<'a>(pub &'a BtcOutPoint);
+pub struct DisplayOutpoint<'a>(pub &'a OutPoint);
 
 impl fmt::Display for DisplayOutpoint<'_> {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -198,7 +199,7 @@ pub fn write_compact_size(n: usize, buf: &mut impl Buffer) {
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct SignedInput {
-    pub previous_output: BtcOutPoint,
+    pub previous_output: OutPoint,
     pub sequence: u32,
     pub signature: EncodedSignature,
     // The public key bytes.
@@ -208,7 +209,7 @@ pub struct SignedInput {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UnsignedInput {
-    pub previous_output: BtcOutPoint,
+    pub previous_output: OutPoint,
     pub value: Satoshi,
     pub sequence: u32,
 }
@@ -463,7 +464,7 @@ impl<T: Encode> Encode for [T] {
     }
 }
 
-impl Encode for BtcOutPoint {
+impl Encode for OutPoint {
     fn encode(&self, buf: &mut impl Buffer) {
         buf.write(self.txid.as_ref());
         self.vout.encode(buf)
@@ -545,5 +546,74 @@ impl Encode for SignedTransaction {
                 .encode(buf);
         }
         self.lock_time.encode(buf)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::ledger::btc::{address::BitcoinAddress, tx::encode_address_script_pubkey};
+
+    #[test]
+    fn test_encode_address_script_pubkey() {
+        let pkhash = [
+            0x1f, 0x2f, 0x3f, 0x4f, 0x5f, 0x6f, 0x7f, 0x8f, 0x9f, 0xaf, 0xbf, 0xcf, 0xdf, 0xef,
+            0xff, 0x0f, 0x1f, 0x2f, 0x3f, 0x4f,
+        ];
+        let mut buf = Vec::<u8>::new();
+        encode_address_script_pubkey(&BitcoinAddress::P2wpkhV0(pkhash), &mut buf);
+        assert_eq!(
+            buf,
+            vec![
+                0x16, // PUSH_22
+                0x00, // OP_0
+                0x14, // PUSH_20
+                0x1f, 0x2f, 0x3f, 0x4f, 0x5f, 0x6f, 0x7f, 0x8f, 0x9f, 0xaf, 0xbf, 0xcf, 0xdf, 0xef,
+                0xff, 0x0f, 0x1f, 0x2f, 0x3f, 0x4f,
+            ]
+        );
+    }
+
+    #[test]
+    fn test_encode_p2tr_script_pubkey() {
+        let pkhash = [
+            0x1f, 0x2f, 0x3f, 0x4f, 0x5f, 0x6f, 0x7f, 0x8f, 0x9f, 0xaf, 0xbf, 0xcf, 0xdf, 0xef,
+            0xff, 0x0f, 0x1f, 0x2f, 0x3f, 0x4f, 0x1f, 0x2f, 0x3f, 0x4f, 0x5f, 0x6f, 0x7f, 0x8f,
+            0x9f, 0xaf, 0xbf, 0xcf,
+        ];
+        let mut buf = Vec::<u8>::new();
+        encode_address_script_pubkey(&BitcoinAddress::P2trV1(pkhash), &mut buf);
+        assert_eq!(
+            buf,
+            vec![
+                0x22, // PUSH_34
+                0x51, // OP_PUSHNUM_1
+                0x20, // PUSH_32
+                0x1f, 0x2f, 0x3f, 0x4f, 0x5f, 0x6f, 0x7f, 0x8f, 0x9f, 0xaf, 0xbf, 0xcf, 0xdf, 0xef,
+                0xff, 0x0f, 0x1f, 0x2f, 0x3f, 0x4f, 0x1f, 0x2f, 0x3f, 0x4f, 0x5f, 0x6f, 0x7f, 0x8f,
+                0x9f, 0xaf, 0xbf, 0xcf,
+            ]
+        );
+    }
+
+    #[test]
+    fn test_encode_p2wsh_script() {
+        let pkhash = [
+            0x1f, 0x2f, 0x3f, 0x4f, 0x5f, 0x6f, 0x7f, 0x8f, 0x9f, 0xaf, 0xbf, 0xcf, 0xdf, 0xef,
+            0xff, 0x0f, 0x1f, 0x2f, 0x3f, 0x4f, 0x1f, 0x2f, 0x3f, 0x4f, 0x5f, 0x6f, 0x7f, 0x8f,
+            0x9f, 0xaf, 0xbf, 0xcf,
+        ];
+        let mut buf = Vec::<u8>::new();
+        encode_address_script_pubkey(&BitcoinAddress::P2wshV0(pkhash), &mut buf);
+        assert_eq!(
+            buf,
+            vec![
+                0x22, // PUSH_34
+                0x00, // OP_0
+                0x20, // PUSH_32
+                0x1f, 0x2f, 0x3f, 0x4f, 0x5f, 0x6f, 0x7f, 0x8f, 0x9f, 0xaf, 0xbf, 0xcf, 0xdf, 0xef,
+                0xff, 0x0f, 0x1f, 0x2f, 0x3f, 0x4f, 0x1f, 0x2f, 0x3f, 0x4f, 0x5f, 0x6f, 0x7f, 0x8f,
+                0x9f, 0xaf, 0xbf, 0xcf,
+            ]
+        );
     }
 }

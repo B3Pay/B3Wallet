@@ -11,7 +11,6 @@ mod tests {
         types::{ChainEnum, ChainMap},
     };
     use b3_utils::{ledger::AccountIdentifier, mocks::id_mock, types::CanisterId, Subaccount};
-    use bitcoin::Network;
 
     #[test]
     fn test_generate_address1() {
@@ -130,6 +129,8 @@ mod tests {
 
         println!("identifier: {:?}", identifier);
 
+        assert_eq!(identifier.to_string(), expected_identifier.to_string());
+
         let mut chains = ChainMap::new();
 
         let icp_chain = Chain::new_icp_chain(subaccount.clone());
@@ -146,8 +147,6 @@ mod tests {
             2, 50, 207, 109, 252, 71, 63, 226, 215, 137, 36, 108, 105, 51, 80, 125, 193, 121, 151,
             101, 197, 65, 64, 240, 22, 142, 247, 130, 65, 210, 0, 176, 231,
         ];
-
-        assert_eq!(identifier.to_string(), expected_identifier.to_string());
 
         ledger.set_ecdsa_public_key(ecdsa.clone()).unwrap();
 
@@ -189,7 +188,7 @@ mod tests {
 
         let btc_add = BitcoinAddress::parse(&chain.address(), BtcNetwork::Mainnet).unwrap();
 
-        println!("bitcoin_adress: {:?}", btc_add);
+        println!("bitcoin_adress: {:?}", btc_add.display(BtcNetwork::Mainnet));
 
         let bitcoin_adress = network_and_public_key_to_p2wpkh(BtcNetwork::Mainnet, &ecdsa);
 

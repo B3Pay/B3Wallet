@@ -1,13 +1,44 @@
 use std::fmt;
 use std::str::FromStr;
 
-use candid::CandidType;
+use candid::{CandidType, Deserialize};
 
 pub type BtcTxId = String;
 
 pub type BtcTxHash = [u8; 32];
 
 pub type Satoshi = u64;
+
+/// A reference to a transaction output.
+#[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct OutPoint {
+    /// A cryptographic hash of the transaction.
+    /// A transaction can output multiple UTXOs.
+    #[serde(with = "serde_bytes")]
+    pub txid: Vec<u8>,
+    /// The index of the output within the transaction.
+    pub vout: u32,
+}
+
+/// An unspent transaction output.
+#[derive(CandidType, Debug, Deserialize, PartialEq, Clone, Hash, Eq)]
+pub struct Utxo {
+    pub outpoint: OutPoint,
+    pub value: Satoshi,
+    pub height: u32,
+}
+
+#[derive(CandidType, Clone, Debug, Deserialize, PartialEq, Eq)]
+pub enum UtxoStatus {
+    ValueTooSmall(Utxo),
+    Tainted(Utxo),
+    Checked(Utxo),
+    Minted {
+        block_index: u64,
+        minted_amount: u64,
+        utxo: Utxo,
+    },
+}
 
 #[derive(CandidType, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Txid([u8; 32]);
