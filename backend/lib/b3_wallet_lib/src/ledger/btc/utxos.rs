@@ -1,8 +1,8 @@
 use super::{error::BitcoinError, utils::mock_signer};
 use crate::ledger::types::{BtcOutPoint, BtcTransaction, BtcTxOut};
 use bitcoin::{
-    absolute::LockTime, hashes::Hash, transaction::Version, Address, Script, Transaction, TxIn,
-    Txid,
+    absolute::LockTime, hashes::Hash, transaction::Version, Address, Amount, Script, Transaction,
+    TxIn, Txid,
 };
 use ic_cdk::api::management_canister::bitcoin::{GetUtxosResponse, Utxo};
 
@@ -112,7 +112,7 @@ impl BtcUtxos {
 
         transaction.output.push(BtcTxOut {
             script_pubkey: dst_address.script_pubkey(),
-            value: amount,
+            value: Amount::from_sat(amount),
         });
 
         let remaining_amount = total_spent - amount - fee;
@@ -120,7 +120,7 @@ impl BtcUtxos {
         if remaining_amount >= DUST_THRESHOLD {
             transaction.output.push(BtcTxOut {
                 script_pubkey: own_address.script_pubkey(),
-                value: remaining_amount,
+                value: Amount::from_sat(remaining_amount),
             });
         }
 
@@ -142,6 +142,7 @@ mod test {
 
     use super::*;
     use b3_utils::{ledger::AccountIdentifier, mocks::id_mock, Subaccount};
+    use bitcoin::Amount;
     use ic_cdk::api::management_canister::bitcoin::{Outpoint, Utxo};
 
     #[test]
@@ -286,7 +287,7 @@ mod test {
 
         assert_eq!(tx.output.len(), 2);
 
-        assert_eq!(tx.output[0].value, 100_000_000);
+        assert_eq!(tx.output[0].value, Amount::from_sat(100_000_000u64));
 
         assert_eq!(tx.output[0].script_pubkey, recipient.script_pubkey());
 

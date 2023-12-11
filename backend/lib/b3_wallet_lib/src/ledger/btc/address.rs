@@ -385,10 +385,10 @@ fn parse_bip173_address(
 
 #[cfg(test)]
 mod tests {
-    use crate::ledger::btc::network::BtcNetwork;
-
     use super::{hrp, BitcoinAddress, ParseAddressError};
+    use crate::ledger::btc::network::BtcNetwork;
     use bech32::u5;
+    use bitcoin::address::Payload;
 
     fn generate_address(witness_version: Option<u8>, data: &[u8], network: BtcNetwork) -> String {
         let data: Vec<u5> = witness_version
@@ -408,7 +408,7 @@ mod tests {
     #[test]
     fn test_check_address() {
         use super::ParseAddressError::BadWitnessLength;
-        use bitcoin::util::address::Payload;
+
         use bitcoin::Address;
         use std::str::FromStr;
 
@@ -442,13 +442,19 @@ mod tests {
             "bc1q088j3hnr0htc8fjwhk337aply0w3fwj33a56fqkdqfpq8dupgx6q4l0e39",
         ];
         for p2wsh_address in valid_p2wsh_addresses {
-            let expected_p2wsh_pkhash = match Address::from_str(p2wsh_address).unwrap().payload {
-                Payload::WitnessProgram { program, .. } => program,
-                _ => panic!("expected P2WSH address"),
+            let address = Address::from_str(p2wsh_address).unwrap();
+            let expected_p2wsh_pkhash = match address.payload() {
+                Payload::WitnessProgram(program) => program,
+                _ => panic!("expected p2wsh address"),
             };
+
             assert_eq!(
                 Ok(BitcoinAddress::P2wshV0(
-                    expected_p2wsh_pkhash.try_into().unwrap()
+                    expected_p2wsh_pkhash
+                        .program()
+                        .as_bytes()
+                        .try_into()
+                        .unwrap()
                 )),
                 BitcoinAddress::parse(p2wsh_address, BtcNetwork::Mainnet)
             );
@@ -466,14 +472,16 @@ mod tests {
         ];
 
         for taproot_address in taproot_addresses {
-            let expected_taproot_pkhash = match Address::from_str(taproot_address).unwrap().payload
-            {
-                Payload::WitnessProgram { program, .. } => program,
+            let address = Address::from_str(taproot_address).unwrap();
+            let expected_taproot_pkhash = match address.payload() {
+                Payload::WitnessProgram(program) => program.program().as_bytes(),
                 _ => panic!("expected taproot address"),
             };
-            let expected_taproot_pkhash = expected_taproot_pkhash.try_into().unwrap();
+
             assert_eq!(
-                Ok(BitcoinAddress::P2trV1(expected_taproot_pkhash)),
+                Ok(BitcoinAddress::P2trV1(
+                    expected_taproot_pkhash.try_into().unwrap()
+                )),
                 BitcoinAddress::parse(taproot_address, BtcNetwork::Mainnet)
             );
         }

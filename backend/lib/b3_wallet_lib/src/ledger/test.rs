@@ -1,13 +1,17 @@
 #[cfg(test)]
 mod tests {
     use crate::ledger::{
-        btc::network::BtcNetwork,
+        btc::{
+            address::{network_and_public_key_to_p2wpkh, BitcoinAddress},
+            network::BtcNetwork,
+        },
         chain::{Chain, ChainTrait},
         ecdsa::ECDSAPublicKey,
         ledger::Ledger,
         types::{ChainEnum, ChainMap},
     };
     use b3_utils::{ledger::AccountIdentifier, mocks::id_mock, types::CanisterId, Subaccount};
+    use bitcoin::Network;
 
     #[test]
     fn test_generate_address1() {
@@ -164,8 +168,12 @@ mod tests {
 
         assert_eq!(eth_address.len(), 42);
 
-        let chain =
-            Chain::new_btc_chain(BtcNetwork::Mainnet, subaccount, ECDSAPublicKey(ecdsa)).unwrap();
+        let chain = Chain::new_btc_chain(
+            BtcNetwork::Mainnet,
+            subaccount,
+            ECDSAPublicKey(ecdsa.clone()),
+        )
+        .unwrap();
 
         ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Mainnet), chain.clone());
 
@@ -175,9 +183,17 @@ mod tests {
 
         assert_eq!(ledger_chain.address(), chain.address());
 
-        println!("mainnet address: {}", chain.address());
+        println!("btc_address: {}", chain.address());
 
         assert_eq!(chain.address().len(), 34);
+
+        let btc_add = BitcoinAddress::parse(&chain.address(), BtcNetwork::Mainnet).unwrap();
+
+        println!("bitcoin_adress: {:?}", btc_add);
+
+        let bitcoin_adress = network_and_public_key_to_p2wpkh(BtcNetwork::Mainnet, &ecdsa);
+
+        println!("bitcoin_adress: {}", bitcoin_adress);
     }
 
     #[test]
