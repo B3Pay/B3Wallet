@@ -85,25 +85,6 @@ impl fmt::Display for DisplayAmount {
     }
 }
 
-#[test]
-fn test_amount_display() {
-    fn check(amount: u64, expected: &str) {
-        assert_eq!(format!("{}", DisplayAmount(amount)), expected);
-    }
-    check(0, "0.0");
-    check(1, "0.00000001");
-    check(10, "0.0000001");
-    check(100, "0.000001");
-    check(1_000, "0.00001");
-    check(10_000, "0.0001");
-    check(100_000, "0.001");
-    check(1_000_000, "0.01");
-    check(10_000_000, "0.1");
-    check(100_000_000, "1.0");
-    check(1_000_000_000, "10.0");
-    check(1_234_567_890, "12.3456789");
-}
-
 pub trait Buffer {
     type Output;
 
@@ -551,7 +532,29 @@ impl Encode for SignedTransaction {
 
 #[cfg(test)]
 mod tests {
-    use crate::ledger::btc::{address::BitcoinAddress, tx::encode_address_script_pubkey};
+    use crate::ledger::btc::{
+        address::BitcoinAddress,
+        tx::{encode_address_script_pubkey, DisplayAmount},
+    };
+
+    #[test]
+    fn test_amount_display() {
+        fn check(amount: u64, expected: &str) {
+            assert_eq!(format!("{}", DisplayAmount(amount)), expected);
+        }
+        check(0, "0.0");
+        check(1, "0.00000001");
+        check(10, "0.0000001");
+        check(100, "0.000001");
+        check(1_000, "0.00001");
+        check(10_000, "0.0001");
+        check(100_000, "0.001");
+        check(1_000_000, "0.01");
+        check(10_000_000, "0.1");
+        check(100_000_000, "1.0");
+        check(1_000_000_000, "10.0");
+        check(1_234_567_890, "12.3456789");
+    }
 
     #[test]
     fn test_encode_address_script_pubkey() {
