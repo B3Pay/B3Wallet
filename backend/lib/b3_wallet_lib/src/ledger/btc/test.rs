@@ -1,20 +1,13 @@
-use super::{
-    address::BitcoinAddress, build_unsigned_transaction, estimate_fee, fake_sign, greedy,
-    signature::EncodedSignature, tx, BuildTxError,
-};
-use super::{
-    lifecycle::init::InitArgs,
-    state::{
-        ChangeOutput, CkBtcMinterState, Mode, RetrieveBtcRequest, RetrieveBtcStatus,
-        SubmittedBtcTransaction,
-    },
-};
-use bitcoin::network::constants::Network as BtcNetwork;
-use bitcoin::util::psbt::serialize::{Deserialize, Serialize};
+use super::network::BtcNetwork;
+use super::types::{OutPoint, Satoshi, Utxo};
+use super::{address::BitcoinAddress, signature::EncodedSignature, tx};
+
+use b3_utils::types::CanisterId;
+use bitcoin::address::Payload;
+use bitcoin::WitnessVersion;
+use bitcoin::{Network, WitnessProgram};
 use candid::Principal;
-use ic_base_types::{CanisterId, PrincipalId};
-use ic_btc_interface::{Network, OutPoint, Satoshi, Txid, Utxo};
-use icrc_ledger_types::icrc1::account::Account;
+
 use proptest::proptest;
 use proptest::{
     array::uniform20,
@@ -25,7 +18,6 @@ use proptest::{
 };
 use proptest::{prop_assert, prop_assert_eq, prop_assume, prop_oneof};
 use serde_bytes::ByteBuf;
-use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::str::FromStr;
 
 fn dummy_utxo_from_value(v: u64) -> Utxo {
@@ -41,56 +33,60 @@ fn dummy_utxo_from_value(v: u64) -> Utxo {
     }
 }
 
-fn address_to_script_pubkey(address: &BitcoinAddress) -> bitcoin::Script {
-    let address_string = address.display(Network::Mainnet);
+fn address_to_script_pubkey(address: &BitcoinAddress) -> bitcoin::ScriptBuf {
+    let address_string = address.display(BtcNetwork::Mainnet);
     let btc_address = bitcoin::Address::from_str(&address_string).unwrap();
-    btc_address.script_pubkey()
+    btc_address
+        .require_network(Network::Bitcoin)
+        .unwrap()
+        .script_pubkey()
 }
 
 fn network_to_btc_network(network: Network) -> BtcNetwork {
     match network {
-        Network::Mainnet => BtcNetwork::Bitcoin,
+        Network::Bitcoin => BtcNetwork::Mainnet,
         Network::Testnet => BtcNetwork::Testnet,
         Network::Regtest => BtcNetwork::Regtest,
+        Network::Signet => BtcNetwork::Regtest,
+        _ => panic!("unsupported network"),
     }
 }
 
 fn address_to_btc_address(address: &BitcoinAddress, network: Network) -> bitcoin::Address {
-    use bitcoin::util::address::{Payload, WitnessVersion};
     match address {
-        BitcoinAddress::P2wpkhV0(pkhash) => bitcoin::Address {
-            payload: Payload::WitnessProgram {
-                version: WitnessVersion::V0,
-                program: pkhash.to_vec(),
-            },
-            network: network_to_btc_network(network),
-        },
-        BitcoinAddress::P2wshV0(script_hash) => bitcoin::Address {
-            payload: Payload::WitnessProgram {
-                version: WitnessVersion::V0,
-                program: script_hash.to_vec(),
-            },
-            network: network_to_btc_network(network),
-        },
-        BitcoinAddress::P2pkh(pkhash) => bitcoin::Address {
-            payload: Payload::PubkeyHash(bitcoin::PubkeyHash::from_hash(
+        BitcoinAddress::P2wpkhV0(pkhash) => bitcoin::Address::new(
+            network_to_btc_network(network),
+            Payload::WitnessProgram(
+                WitnessProgram::new(WitnessVersion::V0, pkhash.to_vec())
+                    .expect("failed to create a witness program"),
+            ),
+        ),
+        BitcoinAddress::P2wshV0(script_hash) => bitcoin::Address::new(
+            network_to_btc_network(network),
+            Payload::WitnessProgram(
+                WitnessProgram::new(WitnessVersion::V0, script_hash.to_vec())
+                    .expect("failed to create a witness program"),
+            ),
+        ),
+        BitcoinAddress::P2pkh(pkhash) => bitcoin::Address::new(
+            network_to_btc_network(network),
+            Payload::PubkeyHash(bitcoin::PubkeyHash::from_hash(
                 bitcoin::hashes::Hash::from_slice(pkhash).unwrap(),
-            )),
-            network: network_to_btc_network(network),
-        },
-        BitcoinAddress::P2sh(script_hash) => bitcoin::Address {
-            payload: Payload::ScriptHash(bitcoin::ScriptHash::from_hash(
+            ))
+            .expect("failed to create a pubkey hash"),
+        ),
+        BitcoinAddress::P2sh(script_hash) => bitcoin::Address::new(
+            network_to_btc_network(network),
+            Payload::ScriptHash(bitcoin::ScriptHash::from_hash(
                 bitcoin::hashes::Hash::from_slice(script_hash).unwrap(),
             )),
-            network: network_to_btc_network(network),
-        },
-        BitcoinAddress::P2trV1(pkhash) => bitcoin::Address {
-            payload: Payload::WitnessProgram {
-                version: WitnessVersion::V1,
-                program: pkhash.to_vec(),
-            },
-            network: network_to_btc_network(network),
-        },
+        )
+        .expect("failed to create a script hash"),
+
+        BitcoinAddress::P2trV1(pkhash) => bitcoin::Address::new(
+            network_to_btc_network(network),
+            Payload::WitnessProgram::new(WitnessVersion::V1, pkhash.to_vec()),
+        ),
     }
 }
 

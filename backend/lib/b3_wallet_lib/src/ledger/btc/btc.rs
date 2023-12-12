@@ -1,21 +1,22 @@
-use crate::ledger::btc::types::BtcTxId;
+use crate::ledger::btc::address::BitcoinAddress;
+use crate::ledger::btc::signature;
+use crate::ledger::btc::tx::{hash160, SignedInput, SignedTransaction, TxSigHasher};
 use crate::ledger::ckbtc::minter::Minter;
 use crate::ledger::ecdsa::ECDSAPublicKey;
 use crate::ledger::subaccount::SubaccountEcdsaTrait;
 use crate::ledger::types::BtcPending;
+use b3_utils::vec_to_hex_string;
 use b3_utils::{ledger::ICRCAccount, Subaccount};
-use bitcoin::consensus::serialize;
 use bitcoin::secp256k1::ecdsa::Signature;
-use bitcoin::sighash::{EcdsaSighashType, SighashCache};
 use bitcoin::PublicKey;
-use bitcoin::{ecdsa, hashes::Hash, Address, Script, Transaction};
 use ic_cdk::api::management_canister::bitcoin::Satoshi;
 use ic_cdk::api::management_canister::bitcoin::{GetUtxosResponse, UtxoFilter};
 use ic_cdk::println;
-use std::str::FromStr;
+use serde_bytes::ByteBuf;
 
 use super::error::BitcoinError;
 use super::network::BtcNetwork;
+use super::tx::UnsignedTransaction;
 use super::utxos::BtcUtxos;
 
 use candid::CandidType;
@@ -34,11 +35,8 @@ pub struct BtcChain {
 impl BtcChain {
     /// Get the Bitcoin P2WPKH Address based on the public key.
     /// This is the address that the canister uses to send and receive funds.
-    pub fn btc_address(&self) -> Result<Address, BitcoinError> {
-        let address = self
-            .ecdsa_public_key
-            .btc_address(self.btc_network.into())
-            .map_err(|err| BitcoinError::InvalidAddress(err.to_string()))?;
+    pub fn btc_address(&self) -> Result<BitcoinAddress, BitcoinError> {
+        let address = BitcoinAddress::P2wshV0(self.ecdsa_public_key.0);
 
         Ok(address)
     }
@@ -72,11 +70,9 @@ impl BtcChain {
         &self,
         dst_address: String,
         amount: Satoshi,
-    ) -> Result<BtcTxId, BitcoinError> {
-        let dst_address = Address::from_str(&dst_address)
-            .map_err(|err| BitcoinError::InvalidAddress(err.to_string()))?
-            .require_network(self.btc_network.into())
-            .map_err(|err| BitcoinError::InvalidNetworkAddress(err.to_string()))?;
+    ) -> Result<[u8; 32], BitcoinError> {
+        let dst_address = BitcoinAddress::parse(&dst_address, self.btc_network)
+            .map_err(|err| BitcoinError::InvalidAddress(err.to_string()))?;
 
         let own_address = self.btc_address()?;
 
@@ -86,24 +82,23 @@ impl BtcChain {
 
         let fee_rate = self.btc_network.fee_rate(49).await?;
 
-        let mut tx = utxo.build_transaction(&own_address, &dst_address, amount, fee_rate)?;
+        let unsigned_transaction =
+            utxo.build_unsigned_transaction(&own_address, &dst_address, amount, fee_rate)?;
 
-        let signed_transaction = self.sign_transaction(&mut tx).await?;
-
-        let signed_transaction_bytes = serialize(&signed_transaction);
+        let signed_transaction = self.sign_transaction(unsigned_transaction).await?;
 
         println!(
             "Signed transaction: {}",
-            hex::encode(signed_transaction_bytes.clone())
+            hex::encode(signed_transaction.serialize())
         );
 
         self.btc_network
-            .send_transaction(signed_transaction_bytes)
+            .send_transaction(&signed_transaction)
             .await?;
 
-        let txid = signed_transaction.txid();
+        let txid = signed_transaction.wtxid();
 
-        Ok(txid.to_string())
+        Ok(txid)
     }
 
     /// Signs a message hash with the internet computer threshold signature.
@@ -120,44 +115,47 @@ impl BtcChain {
 
         Ok(signature)
     }
-
-    /// Signs a bitcoin transaction.
-    /// The transaction is signed with the internet computer threshold signature.
-    async fn sign_transaction(
+    /// Gathers ECDSA signatures for all the inputs in the specified unsigned
+    /// transaction.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the `output_account` map does not have an entry for
+    /// at least one of the transaction previous output points.
+    pub async fn sign_transaction(
         &self,
-        transaction: &mut Transaction,
-    ) -> Result<Transaction, BitcoinError> {
-        let address = self.btc_address()?;
+        unsigned_tx: UnsignedTransaction,
+    ) -> Result<SignedTransaction, BitcoinError> {
+        let mut signed_inputs = Vec::with_capacity(unsigned_tx.inputs.len());
+        let sighasher = TxSigHasher::new(&unsigned_tx);
 
-        let public_key = self.btc_public_key()?;
+        for input in &unsigned_tx.inputs {
+            let outpoint = &input.previous_output;
 
-        let sig_cache = SighashCache::new(transaction.clone());
-        for (index, input) in transaction.input.iter_mut().enumerate() {
-            let sign_hash = sig_cache
-                .legacy_signature_hash(
-                    index,
-                    &address.script_pubkey(),
-                    EcdsaSighashType::All.to_u32(),
-                )
-                .map_err(|err| BitcoinError::Signature(err.to_string()))?;
+            let pubkey = ByteBuf::from(self.ecdsa_public_key.to_bytes());
+            let pkhash = hash160(&pubkey);
 
-            let message_bytes = sign_hash.to_byte_array().to_vec();
+            let sighash = sighasher.sighash(input, &pkhash);
 
-            let signature = self
-                .sign_btc_transaction(message_bytes)
+            let sec1_signature = self
+                .subaccount
+                .sign_with_ecdsa(sighash.to_vec())
                 .await
                 .map_err(|err| BitcoinError::Signature(err.to_string()))?;
 
-            let sig = ecdsa::Signature::sighash_all(signature);
-
-            let builder = Script::builder().push_slice(sig.serialize());
-
-            input.script_sig = builder.push_key(&public_key).into_script();
-
-            input.witness.clear();
+            signed_inputs.push(SignedInput {
+                signature: signature::EncodedSignature::from_sec1(&sec1_signature),
+                pubkey,
+                previous_output: outpoint.clone(),
+                sequence: input.sequence,
+            });
         }
 
-        Ok(transaction.clone())
+        Ok(SignedTransaction {
+            inputs: signed_inputs,
+            outputs: unsigned_tx.outputs,
+            lock_time: unsigned_tx.lock_time,
+        })
     }
 
     pub async fn swap_to_ckbtc(&self, amount: Satoshi) -> Result<BtcPending, BitcoinError> {
@@ -170,10 +168,12 @@ impl BtcChain {
             .await
             .map_err(|err| BitcoinError::SwapToCkbtc(err.to_string()))?;
 
-        let txid = self
+        let txid_bytes = self
             .transfer(dst_address, amount)
             .await
             .map_err(|err| BitcoinError::SwapToCkbtc(err.to_string()))?;
+
+        let txid = vec_to_hex_string(txid_bytes);
 
         let pending = BtcPending {
             txid,

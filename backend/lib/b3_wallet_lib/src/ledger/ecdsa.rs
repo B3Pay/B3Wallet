@@ -5,11 +5,15 @@ use serde::{Deserialize, Serialize};
 use super::error::LedgerError;
 
 #[derive(CandidType, Clone, Deserialize, Serialize, PartialEq, Debug)]
-pub struct ECDSAPublicKey(pub Vec<u8>);
+pub struct ECDSAPublicKey(pub [u8; 32]);
 
 impl ECDSAPublicKey {
     pub fn new(ecdsa: Vec<u8>) -> Self {
-        Self(ecdsa)
+        let mut ecdsa_array = [0u8; 32];
+
+        ecdsa_array.copy_from_slice(&ecdsa);
+
+        Self(ecdsa_array)
     }
 
     pub fn from_slice(slice: &[u8]) -> Result<Self, LedgerError> {
@@ -19,11 +23,15 @@ impl ECDSAPublicKey {
             ));
         }
 
-        Ok(Self(slice.to_vec()))
+        Ok(Self::new(slice.to_vec()))
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
-        self.0.clone()
+        let mut bytes = vec![0x02];
+
+        bytes.extend_from_slice(&self.0);
+
+        bytes
     }
 
     pub fn btc_public_key(&self) -> Result<PublicKey, LedgerError> {

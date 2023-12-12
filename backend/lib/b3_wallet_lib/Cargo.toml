@@ -28,3 +28,6 @@ bitcoin = { version = "0.31", default-features = false, features = [
     "secp-recovery",
     "secp-lowmemory",
 ] }
+
+[dev-dependencies]
+proptest = "1.0"

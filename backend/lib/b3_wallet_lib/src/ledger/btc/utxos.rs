@@ -1,109 +1,196 @@
-use super::{error::BitcoinError, utils::mock_signer};
-use crate::ledger::{
-    btc::types::OutPoint,
-    types::{BtcTransaction, BtcTxOut},
-};
-use bitcoin::{
-    absolute::LockTime, hashes::Hash, transaction::Version, Address, Amount, Script, Transaction,
-    TxIn, Txid,
-};
-use ic_cdk::api::management_canister::bitcoin::{GetUtxosResponse, Utxo};
+use std::collections::BTreeSet;
 
-pub struct BtcUtxos(Vec<Utxo>);
+use super::{
+    address::BitcoinAddress,
+    error::BitcoinError,
+    tx::{TxOut, UnsignedTransaction},
+    types::{OutPoint, Utxo},
+};
+use crate::ledger::btc::{fake_sign, tx::UnsignedInput, tx_vsize_estimate};
+use ic_cdk::api::management_canister::bitcoin::GetUtxosResponse;
+
+pub struct BtcUtxos(BTreeSet<Utxo>);
 
 impl BtcUtxos {
-    pub fn build_transaction(
+    /// Computes an estimate for the retrieve_btc fee.
+    ///
+    /// Arguments:
+    ///   * `available_utxos` - the list of UTXOs available to the minter.
+    ///   * `maybe_amount` - the withdrawal amount.
+    ///   * `median_fee_millisatoshi_per_vbyte` - the median network fee, in millisatoshi per vbyte.
+    pub fn estimate_fee(
         &self,
-        own_address: &Address,
-        recipient: &Address,
-        amount: u64,
-        fee_rate: u64,
-    ) -> Result<Transaction, BitcoinError> {
-        let mut total_fee = 0;
-        loop {
-            let mut transaction =
-                self.build_transaction_with_fee(&own_address, recipient, amount, total_fee)?;
+        maybe_amount: Option<u64>,
+        median_fee_millisatoshi_per_vbyte: u64,
+    ) -> u64 {
+        const DEFAULT_INPUT_COUNT: u64 = 3;
+        // One output for the caller and one for the change.
+        const DEFAULT_OUTPUT_COUNT: u64 = 2;
+        let input_count = match maybe_amount {
+            Some(amount) => {
+                // We simulate the algorithm that selects UTXOs for the
+                // specified amount. If the withdrawal rate is low, we
+                // should get the exact number of inputs that the minter
+                // will use.
+                let selected_utxos = self.greedy(amount);
 
-            for (_, input) in transaction.input.iter_mut().enumerate() {
-                input.script_sig = mock_signer();
-                input.witness.clear();
+                if !selected_utxos.is_empty() {
+                    selected_utxos.len() as u64
+                } else {
+                    DEFAULT_INPUT_COUNT
+                }
             }
-
-            let transaction_size = transaction.vsize() as u64;
-            let fee = (fee_rate * transaction_size) / 1000;
-
-            // If the fee is correct, we're done.
-            if total_fee == fee {
-                transaction.input.iter_mut().for_each(|input| {
-                    input.script_sig = Script::new().into();
-                    input.witness.clear();
-                });
-
-                return Ok(transaction);
-            }
-
-            total_fee = fee;
-
-            // If the fee is too high, we're done.
-            if fee > amount {
-                return Err(BitcoinError::FeeTooHigh(fee, amount));
-            }
-        }
-    }
-
-    pub fn build_transaction_with_fee(
-        &self,
-        own_address: &Address,
-        dst_address: &Address,
-        amount: u64,
-        fee: u64,
-    ) -> Result<Transaction, BitcoinError> {
-        // Assume that any amount below this threshold is dust.
-        const DUST_THRESHOLD: u64 = 1_000;
-
-        let mut transaction = BtcTransaction {
-            version: Version::ONE,
-            input: Vec::new(),
-            output: Vec::new(),
-            lock_time: LockTime::ZERO,
+            None => DEFAULT_INPUT_COUNT,
         };
 
-        let mut total_spent = 0;
-        for utxo in self.0.iter().rev() {
-            total_spent += utxo.value;
+        let vsize = tx_vsize_estimate(input_count, DEFAULT_OUTPUT_COUNT);
 
-            let mut tx_in = TxIn::default();
+        // We subtract one from the outputs because the minter's output
+        // does not participate in fees distribution.
+        let bitcoin_fee =
+            vsize * median_fee_millisatoshi_per_vbyte / 1000 / (DEFAULT_OUTPUT_COUNT - 1).max(1);
 
-            let txid = Txid::from_slice(&utxo.outpoint.txid).unwrap();
-            tx_in.previous_output = OutPoint::new(txid, utxo.outpoint.vout);
-
-            transaction.input.push(tx_in);
-
-            if total_spent >= amount + fee {
-                // We have enough inputs to cover the amount we want to spend.
-                break;
-            }
+        bitcoin_fee
+    }
+    /// Selects a subset of UTXOs with the specified total target value and removes
+    /// the selected UTXOs from the available set.
+    ///
+    /// If there are no UTXOs matching the criteria, returns an empty vector.
+    ///
+    /// PROPERTY: sum(u.value for u in available_set) ≥ target ⇒ !solution.is_empty()
+    /// POSTCONDITION: !solution.is_empty() ⇒ sum(u.value for u in solution) ≥ target
+    /// POSTCONDITION:  solution.is_empty() ⇒ available_utxos did not change.
+    fn greedy(mut self, target: u64) -> Vec<Utxo> {
+        let mut solution = vec![];
+        let mut goal = target;
+        while goal > 0 {
+            let utxo = match self.0.iter().max_by_key(|u| u.value) {
+                Some(max_utxo) if max_utxo.value < goal => max_utxo.clone(),
+                Some(_) => self
+                    .0
+                    .iter()
+                    .filter(|u| u.value >= goal)
+                    .min_by_key(|u| u.value)
+                    .cloned()
+                    .expect("bug: there must be at least one UTXO matching the criteria"),
+                None => {
+                    // Not enough available UTXOs to satisfy the request.
+                    for u in solution {
+                        self.0.insert(u);
+                    }
+                    return vec![];
+                }
+            };
+            goal = goal.saturating_sub(utxo.value);
+            assert!(self.0.remove(&utxo));
+            solution.push(utxo);
         }
 
-        if total_spent < amount + fee {
-            return Err(BitcoinError::InsufficientBalance(total_spent, amount + fee));
+        debug_assert!(
+            solution.is_empty() || solution.iter().map(|u| u.value).sum::<u64>() >= target
+        );
+
+        solution
+    }
+
+    /// Builds a transaction that moves BTC to the specified destination accounts
+    /// using the UTXOs that the minter owns. The receivers pay the fee.
+    ///
+    /// Sends the change back to the specified minter main address.
+    ///
+    /// # Arguments
+    ///
+    /// * `minter_utxos` - The set of all UTXOs minter owns
+    /// * `outputs` - The destination BTC addresses and respective amounts.
+    /// * `main_address` - The BTC address of the minter's main account do absorb the change.
+    /// * `fee_per_vbyte` - The current 50th percentile of BTC fees, in millisatoshi/byte
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the `outputs` vector is empty as it indicates a bug
+    /// in the caller's code.
+    ///
+    /// # Success case properties
+    ///
+    /// * The total value of minter UTXOs decreases at least by the amount.
+    /// ```text
+    /// sum([u.value | u ∈ minter_utxos']) ≤ sum([u.value | u ∈ minter_utxos]) - amount
+    /// ```
+    ///
+    /// * If the transaction inputs exceed the amount, the minter gets the change.
+    /// ```text
+    /// inputs_value(tx) > amount ⇒ out_value(tx, main_pubkey) >= inputs_value(tx) - amount
+    /// ```
+    ///
+    /// * If the transaction inputs are equal to the amount, all tokens go to the receiver.
+    /// ```text
+    /// sum([value(in) | in ∈ tx.inputs]) = amount ⇒ tx.outputs == { value = amount - fee(tx); pubkey = dst_pubkey }
+    /// ```
+    ///
+    ///  * The last output of the transaction is the minter's fee + the minter's change.
+    /// ```text
+    /// value(last_out) == minter_fee + minter_change
+    /// ```
+    ///
+    /// # Error case properties
+    ///
+    /// * In case of errors, the function does not modify the inputs.
+    /// ```text
+    /// result.is_err() => minter_utxos' == minter_utxos
+    /// ```
+    ///
+    pub fn build_unsigned_transaction(
+        mut self,
+        own_address: &BitcoinAddress,
+        dst_address: &BitcoinAddress,
+        amount: u64,
+        fee_per_vbyte: u64,
+    ) -> Result<UnsignedTransaction, BitcoinError> {
+        /// Having a sequence number lower than (0xffffffff - 1) signals the use of replacement by fee.
+        /// It allows us to increase the fee of a transaction already sent to the mempool.
+        /// The rbf option is used in `resubmit_retrieve_btc`.
+        /// https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki
+        const SEQUENCE_RBF_ENABLED: u32 = 0xfffffffd;
+
+        let input_utxos = self.greedy(amount);
+
+        if input_utxos.is_empty() {
+            return Err(BitcoinError::NotEnoughFunds);
         }
 
-        transaction.output.push(BtcTxOut {
-            script_pubkey: dst_address.script_pubkey(),
-            value: Amount::from_sat(amount),
-        });
+        let inputs_value = input_utxos.iter().map(|u| u.value).sum::<u64>();
 
-        let remaining_amount = total_spent - amount - fee;
+        let tx_outputs = vec![TxOut {
+            address: dst_address.clone(),
+            value: amount,
+        }];
 
-        if remaining_amount >= DUST_THRESHOLD {
-            transaction.output.push(BtcTxOut {
-                script_pubkey: own_address.script_pubkey(),
-                value: Amount::from_sat(remaining_amount),
-            });
+        let mut unsigned_tx = UnsignedTransaction {
+            inputs: input_utxos
+                .iter()
+                .map(|utxo| UnsignedInput {
+                    previous_output: utxo.outpoint.clone(),
+                    value: utxo.value,
+                    sequence: SEQUENCE_RBF_ENABLED,
+                })
+                .collect(),
+            outputs: tx_outputs,
+            lock_time: 0,
+        };
+
+        let tx_vsize = fake_sign(&unsigned_tx).vsize();
+        let fee = (tx_vsize as u64 * fee_per_vbyte) / 1000;
+
+        if fee > amount {
+            return Err(BitcoinError::FeeTooHigh(fee, amount));
         }
 
-        Ok(transaction)
+        debug_assert_eq!(
+            inputs_value,
+            fee + unsigned_tx.outputs.iter().map(|u| u.value).sum::<u64>()
+        );
+
+        Ok(unsigned_tx)
     }
 }
 
@@ -115,7 +202,20 @@ impl TryFrom<GetUtxosResponse> for BtcUtxos {
             return Err(BitcoinError::NoUtxos);
         }
 
-        Ok(Self(utxos.utxos))
+        let mut set = BTreeSet::new();
+
+        for utxo in utxos.utxos {
+            set.insert(Utxo {
+                outpoint: OutPoint {
+                    txid: utxo.outpoint.txid,
+                    vout: utxo.outpoint.vout,
+                },
+                value: utxo.value,
+                height: utxo.height,
+            });
+        }
+
+        Ok(Self(set))
     }
 }
 
@@ -127,15 +227,21 @@ impl TryFrom<Vec<Utxo>> for BtcUtxos {
             return Err(BitcoinError::NoUtxos);
         }
 
-        Ok(Self(utxos))
+        let mut set = BTreeSet::new();
+
+        for utxo in utxos {
+            set.insert(utxo);
+        }
+
+        Ok(Self(set))
     }
 }
 
 #[cfg(test)]
 mod test {
-    use std::str::FromStr;
 
     use crate::ledger::{
+        btc::types::OutPoint,
         btc::{network::BtcNetwork, utxos::BtcUtxos},
         chain::{Chain, ChainTrait},
         ecdsa::ECDSAPublicKey,
@@ -145,8 +251,6 @@ mod test {
 
     use super::*;
     use b3_utils::{ledger::AccountIdentifier, mocks::id_mock, Subaccount};
-    use bitcoin::Amount;
-    use ic_cdk::api::management_canister::bitcoin::{Outpoint, Utxo};
 
     #[test]
     fn test_build_unsigned_transaction() {
@@ -180,7 +284,7 @@ mod test {
 
         let utxos = BtcUtxos::try_from(vec![
             Utxo {
-                outpoint: Outpoint {
+                outpoint: OutPoint {
                     txid: vec![
                         139, 171, 81, 80, 180, 153, 27, 232, 110, 73, 221, 62, 162, 144, 67, 185,
                         61, 207, 175, 9, 26, 144, 153, 242, 243, 148, 56, 186, 112, 246, 164, 230,
@@ -191,7 +295,7 @@ mod test {
                 height: 0,
             },
             Utxo {
-                outpoint: Outpoint {
+                outpoint: OutPoint {
                     txid: vec![
                         139, 171, 81, 80, 180, 153, 27, 232, 110, 73, 221, 62, 162, 144, 67, 185,
                         61, 207, 175, 9, 26, 144, 153, 242, 243, 148, 56, 186, 112, 246, 164, 230,
@@ -202,7 +306,7 @@ mod test {
                 height: 0,
             },
             Utxo {
-                outpoint: Outpoint {
+                outpoint: OutPoint {
                     txid: vec![
                         139, 171, 81, 80, 180, 153, 27, 232, 110, 73, 221, 62, 162, 144, 67, 185,
                         61, 207, 175, 9, 26, 144, 153, 242, 243, 148, 56, 186, 112, 246, 164, 230,
@@ -213,7 +317,7 @@ mod test {
                 height: 0,
             },
             Utxo {
-                outpoint: Outpoint {
+                outpoint: OutPoint {
                     txid: vec![
                         139, 171, 81, 80, 180, 153, 27, 232, 110, 73, 221, 62, 162, 144, 67, 185,
                         61, 207, 175, 9, 26, 144, 153, 242, 243, 148, 56, 186, 112, 246, 164, 230,
@@ -224,7 +328,7 @@ mod test {
                 height: 0,
             },
             Utxo {
-                outpoint: Outpoint {
+                outpoint: OutPoint {
                     txid: vec![
                         139, 171, 81, 80, 180, 153, 27, 232, 110, 73, 221, 62, 162, 144, 67, 185,
                         61, 207, 175, 9, 26, 144, 153, 242, 243, 148, 56, 186, 112, 246, 164, 230,
@@ -235,7 +339,7 @@ mod test {
                 height: 0,
             },
             Utxo {
-                outpoint: Outpoint {
+                outpoint: OutPoint {
                     txid: vec![
                         139, 171, 81, 80, 180, 153, 27, 232, 110, 73, 221, 62, 162, 144, 67, 185,
                         61, 207, 175, 9, 26, 144, 153, 242, 243, 148, 56, 186, 112, 246, 164, 230,
@@ -246,7 +350,7 @@ mod test {
                 height: 0,
             },
             Utxo {
-                outpoint: Outpoint {
+                outpoint: OutPoint {
                     txid: vec![
                         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4,
                         5, 6, 7, 8, 9, 8, 9,
@@ -259,14 +363,16 @@ mod test {
         ])
         .unwrap();
 
-        let recipient = Address::from_str("bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq")
-            .unwrap()
-            .assume_checked();
+        let recipient = BitcoinAddress::parse(
+            "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq",
+            BtcNetwork::Mainnet,
+        )
+        .unwrap();
 
         let chain = Chain::new_btc_chain(
             BtcNetwork::Regtest,
             subaccount,
-            ECDSAPublicKey(ecdsa.clone()),
+            ECDSAPublicKey::new(ecdsa.clone()),
         )
         .unwrap();
 
@@ -276,28 +382,34 @@ mod test {
 
         let own_address = chain.btc().unwrap().btc_address().unwrap();
 
-        assert_eq!(btc_chain.address(), own_address.to_string());
+        assert_eq!(
+            btc_chain.address(),
+            own_address.display(BtcNetwork::Mainnet)
+        );
 
         let public_key = chain.btc().unwrap().btc_public_key().unwrap();
 
         let tx = utxos
-            .build_transaction(&own_address, &recipient, 100_000_000, 2000)
+            .build_unsigned_transaction(&own_address, &recipient, 100_000_000, 2000)
             .unwrap();
 
-        assert_eq!(public_key, ECDSAPublicKey(ecdsa).btc_public_key().unwrap());
+        assert_eq!(
+            public_key,
+            ECDSAPublicKey::new(ecdsa).btc_public_key().unwrap()
+        );
 
-        assert_eq!(tx.input.len(), 7);
+        assert_eq!(tx.inputs.len(), 7);
 
-        assert_eq!(tx.output.len(), 2);
+        assert_eq!(tx.outputs.len(), 2);
 
-        assert_eq!(tx.output[0].value, Amount::from_sat(100_000_000u64));
+        assert_eq!(tx.outputs[0].value, 100_000_000u64);
 
-        assert_eq!(tx.output[0].script_pubkey, recipient.script_pubkey());
+        assert_eq!(tx.outputs[0].address, recipient);
 
-        assert_eq!(tx.input[0].previous_output.vout, 1);
+        assert_eq!(tx.inputs[0].previous_output.vout, 1);
 
-        assert_eq!(tx.input[0].witness.len(), 0);
+        assert_eq!(tx.inputs[0].value, 50_000_000u64);
 
-        assert_eq!(tx.input[0].script_sig.len(), 0);
+        assert_eq!(tx.inputs[0].sequence, 0xfffffffd);
     }
 }

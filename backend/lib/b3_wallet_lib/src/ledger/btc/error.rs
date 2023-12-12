@@ -5,6 +5,7 @@ use std::fmt;
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
 pub enum BitcoinError {
     NoUtxos,
+    NotEnoughFunds,
     FeeTooHigh(u64, u64),
     Signature(String),
     GetBalance(String),
@@ -21,6 +22,7 @@ pub enum BitcoinError {
     InvalidFeePercentile(String),
     InvalidNetworkAddress(String),
     InvalidChain(String),
+    DustOutput { address: String, amount: u64 },
 }
 
 #[rustfmt::skip]
@@ -28,6 +30,7 @@ impl fmt::Display for BitcoinError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             BitcoinError::NoUtxos => write!(f, "No utxos"),
+            BitcoinError::NotEnoughFunds => write!(f, "Not enough funds"),
             BitcoinError::FeeTooHigh(fee, amount) => write!(f, "Fee too high: {} > {}", fee, amount),
             BitcoinError::Signature(msg) => write!(f, "Error: {}", msg),
             BitcoinError::GetBalance(msg) => write!(f, "Get balance error: {}", msg),
@@ -44,6 +47,7 @@ impl fmt::Display for BitcoinError {
             BitcoinError::InvalidAddress(msg) => write!(f, "Invalid address: {}", msg),
             BitcoinError::InvalidFeePercentile(msg) => write!(f, "Invalid fee percentile: {}", msg),
             BitcoinError::InvalidNetworkAddress(msg) => write!(f, "Invalid network address: {}", msg),
+            BitcoinError::DustOutput { address, amount } => write!(f, "Dust output: {} < {}", address, amount),
         }
     }
 }

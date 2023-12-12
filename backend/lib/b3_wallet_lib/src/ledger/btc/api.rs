@@ -5,7 +5,10 @@ use crate::ledger::{
     types::{Balance, BtcPending, PendingEnum, SendResult},
 };
 use async_trait::async_trait;
-use b3_utils::ledger::{currency::TokenAmount, ICRCAccount};
+use b3_utils::{
+    ledger::{currency::TokenAmount, ICRCAccount},
+    vec_to_hex_string,
+};
 
 use super::btc::BtcChain;
 
@@ -32,7 +35,7 @@ impl ChainTrait for BtcChain {
         let result = self.transfer(to, amount).await;
 
         match result {
-            Ok(txid) => Ok(SendResult::BTC(txid)),
+            Ok(txid) => Ok(SendResult::BTC(vec_to_hex_string(txid))),
             Err(err) => Err(LedgerError::BitcoinError(err)),
         }
     }

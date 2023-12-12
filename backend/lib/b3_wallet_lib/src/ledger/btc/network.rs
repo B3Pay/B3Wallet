@@ -16,6 +16,7 @@ use std::fmt;
 use crate::ledger::types::Balance;
 
 use super::error::BitcoinError;
+use super::tx::SignedTransaction;
 
 /// Bitcoin Network.
 #[derive(
@@ -122,12 +123,15 @@ impl BtcNetwork {
         Ok(utxos)
     }
 
-    pub async fn send_transaction(&self, transaction: Vec<u8>) -> Result<(), BitcoinError> {
+    pub async fn send_transaction(
+        &self,
+        transaction: &SignedTransaction,
+    ) -> Result<(), BitcoinError> {
         let network = BitcoinNetwork::from(*self);
 
         let send_args = SendTransactionRequest {
             network: network.into(),
-            transaction,
+            transaction: transaction.serialize(),
         };
 
         bitcoin_send_transaction(send_args)
