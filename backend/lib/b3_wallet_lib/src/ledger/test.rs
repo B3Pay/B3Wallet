@@ -3,7 +3,7 @@ mod tests {
     use crate::ledger::{
         btc::{
             address::{network_and_public_key_to_p2wpkh, BitcoinAddress},
-            network::BtcNetwork,
+            network::BitcoinNetwork,
         },
         chain::{Chain, ChainTrait},
         ecdsa::ECDSAPublicKey,
@@ -64,15 +64,17 @@ mod tests {
         assert_eq!(eth_address.len(), 42);
 
         let chain = Chain::new_btc_chain(
-            BtcNetwork::Regtest,
+            BitcoinNetwork::Regtest,
             subaccount.clone(),
-            ECDSAPublicKey(ecdsa.clone()),
+            ECDSAPublicKey::new(ecdsa.clone()),
         )
         .unwrap();
 
-        ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Regtest), chain.clone());
+        ledger.insert_chain(ChainEnum::BTC(BitcoinNetwork::Regtest), chain.clone());
 
-        let btc_chain = ledger.chain(&ChainEnum::BTC(BtcNetwork::Regtest)).unwrap();
+        let btc_chain = ledger
+            .chain(&ChainEnum::BTC(BitcoinNetwork::Regtest))
+            .unwrap();
 
         assert_eq!(btc_chain.address(), "n2JigTXi8Nhqe1qmeAaUCAj3rWsgxRzMe3");
 
@@ -81,28 +83,32 @@ mod tests {
         println!("regtest address: {}", btc_chain.address());
 
         let chain = Chain::new_btc_chain(
-            BtcNetwork::Mainnet,
+            BitcoinNetwork::Mainnet,
             subaccount.clone(),
-            ECDSAPublicKey(ecdsa.clone()),
+            ECDSAPublicKey::new(ecdsa.clone()),
         )
         .unwrap();
 
-        ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Mainnet), chain);
+        ledger.insert_chain(ChainEnum::BTC(BitcoinNetwork::Mainnet), chain);
 
-        let btc_address = ledger.chain(&ChainEnum::BTC(BtcNetwork::Mainnet)).unwrap();
+        let btc_address = ledger
+            .chain(&ChainEnum::BTC(BitcoinNetwork::Mainnet))
+            .unwrap();
 
         assert_eq!(btc_address.address(), "1MnmPQSjKMGaruN9vbc6NFWizXGz6SgpdC");
 
         let chain = Chain::new_btc_chain(
-            BtcNetwork::Testnet,
+            BitcoinNetwork::Testnet,
             subaccount.clone(),
-            ECDSAPublicKey(ecdsa.clone()),
+            ECDSAPublicKey::new(ecdsa.clone()),
         )
         .unwrap();
 
-        ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Testnet), chain);
+        ledger.insert_chain(ChainEnum::BTC(BitcoinNetwork::Testnet), chain);
 
-        let btc_address = ledger.chain(&ChainEnum::BTC(BtcNetwork::Testnet)).unwrap();
+        let btc_address = ledger
+            .chain(&ChainEnum::BTC(BitcoinNetwork::Testnet))
+            .unwrap();
 
         assert_eq!(btc_address.address(), "n2JigTXi8Nhqe1qmeAaUCAj3rWsgxRzMe3");
 
@@ -168,15 +174,17 @@ mod tests {
         assert_eq!(eth_address.len(), 42);
 
         let chain = Chain::new_btc_chain(
-            BtcNetwork::Mainnet,
+            BitcoinNetwork::Mainnet,
             subaccount,
-            ECDSAPublicKey(ecdsa.clone()),
+            ECDSAPublicKey::new(ecdsa.clone()),
         )
         .unwrap();
 
-        ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Mainnet), chain.clone());
+        ledger.insert_chain(ChainEnum::BTC(BitcoinNetwork::Mainnet), chain.clone());
 
-        let ledger_chain = ledger.chain(&ChainEnum::BTC(BtcNetwork::Mainnet)).unwrap();
+        let ledger_chain = ledger
+            .chain(&ChainEnum::BTC(BitcoinNetwork::Mainnet))
+            .unwrap();
 
         assert_eq!(chain.address(), "1L2NEvApixneBNULQzcC5qysuWXrCNDhhr");
 
@@ -186,11 +194,14 @@ mod tests {
 
         assert_eq!(chain.address().len(), 34);
 
-        let btc_add = BitcoinAddress::parse(&chain.address(), BtcNetwork::Mainnet).unwrap();
+        let btc_add = BitcoinAddress::parse(&chain.address(), BitcoinNetwork::Mainnet).unwrap();
 
-        println!("bitcoin_adress: {:?}", btc_add.display(BtcNetwork::Mainnet));
+        println!(
+            "bitcoin_adress: {:?}",
+            btc_add.display(BitcoinNetwork::Mainnet)
+        );
 
-        let bitcoin_adress = network_and_public_key_to_p2wpkh(BtcNetwork::Mainnet, &ecdsa);
+        let bitcoin_adress = network_and_public_key_to_p2wpkh(BitcoinNetwork::Mainnet, &ecdsa);
 
         println!("bitcoin_adress: {}", bitcoin_adress);
     }
@@ -255,13 +266,17 @@ mod tests {
 
         assert_eq!(eth_address.len(), 42);
 
-        let chain =
-            Chain::new_btc_chain(BtcNetwork::Testnet, subaccount, ECDSAPublicKey(ecdsa)).unwrap();
+        let chain = Chain::new_btc_chain(
+            BitcoinNetwork::Testnet,
+            subaccount,
+            ECDSAPublicKey::new(ecdsa),
+        )
+        .unwrap();
 
-        ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Testnet), chain);
+        ledger.insert_chain(ChainEnum::BTC(BitcoinNetwork::Testnet), chain);
 
         let btc_address = ledger
-            .chain(&ChainEnum::BTC(BtcNetwork::Testnet))
+            .chain(&ChainEnum::BTC(BitcoinNetwork::Testnet))
             .unwrap()
             .address();
 

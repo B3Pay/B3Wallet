@@ -1,4 +1,6 @@
-use super::{btc::network::BtcNetwork, btc::types::BtcTxId, chain::Chain, icrc::types::TxIndex};
+use super::{
+    btc::network::BitcoinNetwork, btc::types::BtcTxId, chain::Chain, icrc::types::TxIndex,
+};
 use b3_utils::types::CanisterId;
 use bitcoin::{AddressType, Transaction, TxIn, TxOut};
 use candid::{CandidType, Nat};
@@ -97,9 +99,9 @@ pub trait PendingTrait {}
 
 #[derive(CandidType, Serialize, PartialEq, Eq, Debug, PartialOrd, Ord, Deserialize, Clone)]
 pub enum ChainEnum {
-    CKBTC(BtcNetwork),
+    CKBTC(BitcoinNetwork),
     ICRC(CanisterId),
-    BTC(BtcNetwork),
+    BTC(BitcoinNetwork),
     EVM(ChainId),
     ICP,
 }

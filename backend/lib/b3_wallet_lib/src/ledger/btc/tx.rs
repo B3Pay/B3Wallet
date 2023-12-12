@@ -337,6 +337,23 @@ impl UnsignedTransaction {
     pub fn serialized_len(&self) -> usize {
         encode_into(self, CountBytes::default())
     }
+
+    pub fn fake_sign(&self) -> SignedTransaction {
+        SignedTransaction {
+            inputs: self
+                .inputs
+                .iter()
+                .map(|unsigned_input| SignedInput {
+                    previous_output: unsigned_input.previous_output.clone(),
+                    sequence: unsigned_input.sequence,
+                    signature: EncodedSignature::fake(),
+                    pubkey: ByteBuf::from(vec![0u8; PUBKEY_LEN]),
+                })
+                .collect(),
+            outputs: self.outputs.clone(),
+            lock_time: self.lock_time,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]

@@ -4,7 +4,7 @@ use super::types::{RetrieveBtcOk, RetrieveBtcResult, UpdateBalanceResult};
 use crate::ledger::btc::types::Satoshi;
 use crate::ledger::types::CkbtcPending;
 use crate::ledger::{
-    btc::network::BtcNetwork,
+    btc::network::BitcoinNetwork,
     icrc::{
         icrc1::ICRC1,
         types::{ICRC1TransferArgs, ICRCMemo, ICRCTimestamp, ICRCTokens},
@@ -35,11 +35,14 @@ pub struct CkbtcChain {
 }
 
 impl CkbtcChain {
-    pub async fn new(btc_network: BtcNetwork, subaccount: Subaccount) -> Result<Self, CkbtcError> {
+    pub async fn new(
+        btc_network: BitcoinNetwork,
+        subaccount: Subaccount,
+    ) -> Result<Self, CkbtcError> {
         let ledger = match btc_network {
-            BtcNetwork::Testnet => ICRC1(CKBTC_LEDGER_CANISTER_TESTNET),
-            BtcNetwork::Mainnet => ICRC1(CKBTC_LEDGER_CANISTER_MAINNET),
-            BtcNetwork::Regtest => ICRC1(CKBTC_LEDGER_CANISTER_MAINNET),
+            BitcoinNetwork::Testnet => ICRC1(CKBTC_LEDGER_CANISTER_TESTNET),
+            BitcoinNetwork::Mainnet => ICRC1(CKBTC_LEDGER_CANISTER_MAINNET),
+            BitcoinNetwork::Regtest => ICRC1(CKBTC_LEDGER_CANISTER_MAINNET),
         };
 
         let minter = Minter(btc_network);

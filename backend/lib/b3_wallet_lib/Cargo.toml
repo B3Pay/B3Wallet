@@ -31,3 +31,4 @@ bitcoin = { version = "0.31", default-features = false, features = [
 
 [dev-dependencies]
 proptest = "1.0"
+simple_asn1 = "0.6"

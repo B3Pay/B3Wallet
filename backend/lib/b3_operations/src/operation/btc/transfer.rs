@@ -7,7 +7,7 @@ use async_trait::async_trait;
 use b3_utils::ledger::currency::TokenAmount;
 use b3_wallet_lib::ledger::types::ChainEnum;
 use b3_wallet_lib::ledger::{chain::ChainTrait, types::SendResult};
-use b3_wallet_lib::{error::WalletError, ledger::btc::network::BtcNetwork, store::with_chain};
+use b3_wallet_lib::{error::WalletError, ledger::btc::network::BitcoinNetwork, store::with_chain};
 use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
@@ -15,7 +15,7 @@ pub struct BtcTransfer {
     pub account_id: String,
     pub amount: TokenAmount,
     pub to: String,
-    pub network: BtcNetwork,
+    pub network: BitcoinNetwork,
 }
 
 #[async_trait]

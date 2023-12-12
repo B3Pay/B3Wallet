@@ -42,7 +42,7 @@ use b3_wallet_lib::{
     account::WalletAccount,
     error::WalletError,
     ledger::{
-        btc::network::BtcNetwork,
+        btc::network::BitcoinNetwork,
         chain::ChainTrait,
         ckbtc::{
             minter::Minter,
@@ -189,7 +189,7 @@ fn get_addresses(account_id: AccountId) -> AddressMap {
 
 #[query(guard = "caller_is_signer")]
 async fn retrieve_btc_status(
-    network: BtcNetwork,
+    network: BitcoinNetwork,
     block_index: TransferBlockIndex,
 ) -> RetrieveBtcStatus {
     let minter = Minter(network);
@@ -202,7 +202,7 @@ async fn retrieve_btc_status(
 
 // UPDATE ---------------------------------------------------------------------
 #[update(guard = "caller_is_signer")]
-async fn account_update_balance(account_id: AccountId, network: BtcNetwork) -> Vec<UtxoStatus> {
+async fn account_update_balance(account_id: AccountId, network: BitcoinNetwork) -> Vec<UtxoStatus> {
     log_cycle!(
         "Update balance for account: {} on network: {}",
         account_id,
@@ -370,7 +370,7 @@ async fn account_remove_pending(account_id: AccountId, chain: ChainEnum, pending
 #[update(guard = "caller_is_signer")]
 async fn account_swap_btc_to_ckbtc(
     account_id: AccountId,
-    network: BtcNetwork,
+    network: BitcoinNetwork,
     amount: Satoshi,
 ) -> BtcPending {
     log_cycle!(
@@ -402,7 +402,7 @@ async fn account_swap_btc_to_ckbtc(
 #[update(guard = "caller_is_signer")]
 async fn account_swap_ckbtc_to_btc(
     account_id: AccountId,
-    network: BtcNetwork,
+    network: BitcoinNetwork,
     retrieve_address: String,
     amount: Satoshi,
 ) -> TransferBlockIndex {
@@ -532,7 +532,7 @@ async fn account_create_address(account_id: AccountId, chain_enum: ChainEnum) {
 }
 
 #[update(guard = "caller_is_signer")]
-async fn account_btc_fees(network: BtcNetwork, num_blocks: u8) -> u64 {
+async fn account_btc_fees(network: BitcoinNetwork, num_blocks: u8) -> u64 {
     log_cycle!(
         "Get fees for network: {} with {} blocks",
         network,

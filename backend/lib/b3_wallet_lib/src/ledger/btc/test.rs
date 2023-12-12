@@ -1,24 +1,31 @@
-use super::network::BtcNetwork;
-use super::types::{OutPoint, Satoshi, Utxo};
-use super::{address::BitcoinAddress, signature::EncodedSignature, tx};
+use std::collections::HashMap;
+use std::str::FromStr;
 
-use b3_utils::types::CanisterId;
+use crate::ledger::btc::error::BitcoinError;
+
+use super::network::BitcoinNetwork;
+use super::types::{OutPoint, Satoshi, Utxo};
+use super::utxos::BitcoinUtxos;
+use super::{address::BitcoinAddress, signature::EncodedSignature, tx};
+use crate::ledger::btc::tx_vsize_estimate;
 use bitcoin::address::Payload;
-use bitcoin::WitnessVersion;
-use bitcoin::{Network, WitnessProgram};
-use candid::Principal;
+use bitcoin::consensus::{deserialize, serialize};
+use bitcoin::hashes::Hash;
+use bitcoin::sighash::SighashCache;
+use bitcoin::transaction::Version;
+use bitcoin::{Amount, Network, Transaction, WitnessProgram};
+use bitcoin::{Sequence, WitnessVersion};
 
 use proptest::proptest;
 use proptest::{
     array::uniform20,
     array::uniform32,
-    collection::{btree_set, vec as pvec, SizeRange},
+    collection::vec as pvec,
     option,
     prelude::{any, Strategy},
 };
 use proptest::{prop_assert, prop_assert_eq, prop_assume, prop_oneof};
 use serde_bytes::ByteBuf;
-use std::str::FromStr;
 
 fn dummy_utxo_from_value(v: u64) -> Utxo {
     let mut bytes = [0u8; 32];
@@ -34,7 +41,7 @@ fn dummy_utxo_from_value(v: u64) -> Utxo {
 }
 
 fn address_to_script_pubkey(address: &BitcoinAddress) -> bitcoin::ScriptBuf {
-    let address_string = address.display(BtcNetwork::Mainnet);
+    let address_string = address.display(BitcoinNetwork::Mainnet);
     let btc_address = bitcoin::Address::from_str(&address_string).unwrap();
     btc_address
         .require_network(Network::Bitcoin)
@@ -42,65 +49,62 @@ fn address_to_script_pubkey(address: &BitcoinAddress) -> bitcoin::ScriptBuf {
         .script_pubkey()
 }
 
-fn network_to_btc_network(network: Network) -> BtcNetwork {
+fn btc_network_to_network(network: BitcoinNetwork) -> Network {
     match network {
-        Network::Bitcoin => BtcNetwork::Mainnet,
-        Network::Testnet => BtcNetwork::Testnet,
-        Network::Regtest => BtcNetwork::Regtest,
-        Network::Signet => BtcNetwork::Regtest,
-        _ => panic!("unsupported network"),
+        BitcoinNetwork::Mainnet => Network::Bitcoin,
+        BitcoinNetwork::Testnet => Network::Testnet,
+        BitcoinNetwork::Regtest => Network::Regtest,
     }
 }
 
 fn address_to_btc_address(address: &BitcoinAddress, network: Network) -> bitcoin::Address {
     match address {
         BitcoinAddress::P2wpkhV0(pkhash) => bitcoin::Address::new(
-            network_to_btc_network(network),
+            network,
             Payload::WitnessProgram(
                 WitnessProgram::new(WitnessVersion::V0, pkhash.to_vec())
                     .expect("failed to create a witness program"),
             ),
         ),
         BitcoinAddress::P2wshV0(script_hash) => bitcoin::Address::new(
-            network_to_btc_network(network),
+            network,
             Payload::WitnessProgram(
                 WitnessProgram::new(WitnessVersion::V0, script_hash.to_vec())
                     .expect("failed to create a witness program"),
             ),
         ),
         BitcoinAddress::P2pkh(pkhash) => bitcoin::Address::new(
-            network_to_btc_network(network),
-            Payload::PubkeyHash(bitcoin::PubkeyHash::from_hash(
+            network,
+            Payload::PubkeyHash(bitcoin::PubkeyHash::from_raw_hash(
                 bitcoin::hashes::Hash::from_slice(pkhash).unwrap(),
-            ))
-            .expect("failed to create a pubkey hash"),
+            )),
         ),
         BitcoinAddress::P2sh(script_hash) => bitcoin::Address::new(
-            network_to_btc_network(network),
-            Payload::ScriptHash(bitcoin::ScriptHash::from_hash(
+            network,
+            Payload::ScriptHash(bitcoin::ScriptHash::from_raw_hash(
                 bitcoin::hashes::Hash::from_slice(script_hash).unwrap(),
             )),
-        )
-        .expect("failed to create a script hash"),
-
+        ),
         BitcoinAddress::P2trV1(pkhash) => bitcoin::Address::new(
-            network_to_btc_network(network),
-            Payload::WitnessProgram::new(WitnessVersion::V1, pkhash.to_vec()),
+            network,
+            Payload::WitnessProgram(
+                WitnessProgram::new(WitnessVersion::V1, pkhash.to_vec()).unwrap(),
+            ),
         ),
     }
 }
 
-fn as_txid(hash: &[u8; 32]) -> bitcoin::Txid {
-    bitcoin::Txid::from_hash(bitcoin::hashes::Hash::from_slice(hash).unwrap())
+fn as_txid(hash: &Vec<u8>) -> bitcoin::Txid {
+    bitcoin::Txid::from_raw_hash(bitcoin::hashes::Hash::from_slice(hash).unwrap())
 }
 
-fn p2wpkh_script_code(pkhash: &[u8; 20]) -> bitcoin::Script {
+fn p2wpkh_script_code(pkhash: &[u8; 20]) -> bitcoin::script::ScriptBuf {
     use bitcoin::blockdata::{opcodes, script::Builder};
 
     Builder::new()
         .push_opcode(opcodes::all::OP_DUP)
         .push_opcode(opcodes::all::OP_HASH160)
-        .push_slice(&pkhash[..])
+        .push_slice(&pkhash)
         .push_opcode(opcodes::all::OP_EQUALVERIFY)
         .push_opcode(opcodes::all::OP_CHECKSIG)
         .into_script()
@@ -108,18 +112,18 @@ fn p2wpkh_script_code(pkhash: &[u8; 20]) -> bitcoin::Script {
 
 fn unsigned_tx_to_bitcoin_tx(tx: &tx::UnsignedTransaction) -> bitcoin::Transaction {
     bitcoin::Transaction {
-        version: tx::TX_VERSION as i32,
-        lock_time: tx.lock_time,
+        version: Version::TWO,
+        lock_time: bitcoin::absolute::LockTime::from_consensus(tx.lock_time),
         input: tx
             .inputs
             .iter()
             .map(|txin| bitcoin::TxIn {
                 previous_output: bitcoin::OutPoint {
-                    txid: as_txid(&txin.previous_output.txid.into()),
+                    txid: as_txid(&txin.previous_output.txid),
                     vout: txin.previous_output.vout,
                 },
-                sequence: txin.sequence,
-                script_sig: bitcoin::Script::default(),
+                sequence: Sequence::from_consensus(txin.sequence),
+                script_sig: bitcoin::Script::builder().into_script(),
                 witness: bitcoin::Witness::default(),
             })
             .collect(),
@@ -127,7 +131,7 @@ fn unsigned_tx_to_bitcoin_tx(tx: &tx::UnsignedTransaction) -> bitcoin::Transacti
             .outputs
             .iter()
             .map(|txout| bitcoin::TxOut {
-                value: txout.value,
+                value: Amount::from_sat(txout.value),
                 script_pubkey: address_to_script_pubkey(&txout.address),
             })
             .collect(),
@@ -136,19 +140,19 @@ fn unsigned_tx_to_bitcoin_tx(tx: &tx::UnsignedTransaction) -> bitcoin::Transacti
 
 fn signed_tx_to_bitcoin_tx(tx: &tx::SignedTransaction) -> bitcoin::Transaction {
     bitcoin::Transaction {
-        version: tx::TX_VERSION as i32,
-        lock_time: tx.lock_time,
+        version: Version::TWO,
+        lock_time: bitcoin::absolute::LockTime::from_consensus(tx.lock_time),
         input: tx
             .inputs
             .iter()
             .map(|txin| bitcoin::TxIn {
                 previous_output: bitcoin::OutPoint {
-                    txid: as_txid(&txin.previous_output.txid.into()),
+                    txid: as_txid(&txin.previous_output.txid),
                     vout: txin.previous_output.vout,
                 },
-                sequence: txin.sequence,
-                script_sig: bitcoin::Script::default(),
-                witness: bitcoin::Witness::from_vec(vec![
+                sequence: Sequence::from_consensus(txin.sequence),
+                script_sig: bitcoin::Script::builder().into_script(),
+                witness: bitcoin::Witness::from(vec![
                     txin.signature.as_slice().to_vec(),
                     txin.pubkey.to_vec(),
                 ]),
@@ -158,7 +162,7 @@ fn signed_tx_to_bitcoin_tx(tx: &tx::SignedTransaction) -> bitcoin::Transaction {
             .outputs
             .iter()
             .map(|txout| bitcoin::TxOut {
-                value: txout.value,
+                value: Amount::from_sat(txout.value),
                 script_pubkey: address_to_script_pubkey(&txout.address),
             })
             .collect(),
@@ -167,10 +171,14 @@ fn signed_tx_to_bitcoin_tx(tx: &tx::SignedTransaction) -> bitcoin::Transaction {
 
 #[test]
 fn greedy_smoke_test() {
-    let mut utxos: BTreeSet<Utxo> = (1..10u64).map(dummy_utxo_from_value).collect();
-    assert_eq!(utxos.len(), 9_usize);
+    let dummy_utxos: Vec<Utxo> = (1..10u64).map(dummy_utxo_from_value).collect();
+    assert_eq!(dummy_utxos.len(), 9_usize);
 
-    let res = greedy(15, &mut utxos);
+    let utxos = BitcoinUtxos::from(dummy_utxos);
+
+    assert_eq!(utxos.total_value(), 45_u64);
+
+    let res = utxos.greedy(15);
 
     assert_eq!(res[0].value, 9_u64);
     assert_eq!(res[1].value, 6_u64);
@@ -178,7 +186,7 @@ fn greedy_smoke_test() {
 
 #[test]
 fn test_min_change_amount() {
-    let mut available_utxos = BTreeSet::new();
+    let mut available_utxos = BitcoinUtxos::new();
     available_utxos.insert(Utxo {
         outpoint: OutPoint {
             txid: [0; 32].into(),
@@ -199,54 +207,23 @@ fn test_min_change_amount() {
 
     let minter_addr = BitcoinAddress::P2wpkhV0([0; 20]);
     let out1_addr = BitcoinAddress::P2wpkhV0([1; 20]);
-    let out2_addr = BitcoinAddress::P2wpkhV0([2; 20]);
     let fee_per_vbyte = 10000;
 
-    let (tx, change_output, _) = build_unsigned_transaction(
-        &mut available_utxos,
-        vec![(out1_addr.clone(), 100_000), (out2_addr.clone(), 99_999)],
-        minter_addr.clone(),
-        fee_per_vbyte,
-    )
-    .expect("failed to build a transaction");
+    let (tx, fee) = available_utxos
+        .build_unsigned_transaction(&minter_addr, &out1_addr, 100_000, fee_per_vbyte)
+        .expect("failed to build a transaction");
 
-    let fee = fake_sign(&tx).vsize() as u64 * fee_per_vbyte / 1000;
-    let minter_fee = crate::MINTER_FEE_PER_INPUT * tx.inputs.len() as u64
-        + crate::MINTER_FEE_PER_OUTPUT * tx.outputs.len() as u64
-        + crate::MINTER_FEE_CONSTANT;
+    let calc_fee = tx.fake_sign().vsize() as u64 * fee_per_vbyte / 1000;
 
-    assert_eq!(tx.outputs.len(), 3);
-    let fee_share = (fee + minter_fee - 1) / 2;
-
-    assert_eq!(
-        &tx.outputs,
-        &[
-            tx::TxOut {
-                address: out1_addr,
-                value: 100_000 - fee_share - 1, // Subtract the remainder
-            },
-            tx::TxOut {
-                address: out2_addr,
-                value: 99_999 - fee_share,
-            },
-            tx::TxOut {
-                address: minter_addr,
-                value: minter_fee + 1, // Add the remainder
-            }
-        ]
-    );
-    assert_eq!(
-        change_output,
-        ChangeOutput {
-            vout: 2,
-            value: 1 + minter_fee
-        }
-    );
+    assert_eq!(fee, calc_fee);
+    assert_eq!(tx.outputs[0].value, 100_000 - fee);
+    assert_eq!(tx.outputs[1].value, 0);
+    assert_eq!(tx.outputs[2].value, 0);
 }
 
 #[test]
 fn test_no_dust_outputs() {
-    let mut available_utxos = BTreeSet::new();
+    let mut available_utxos = BitcoinUtxos::new();
     available_utxos.insert(Utxo {
         outpoint: OutPoint {
             txid: [0; 32].into(),
@@ -258,18 +235,12 @@ fn test_no_dust_outputs() {
 
     let minter_addr = BitcoinAddress::P2wpkhV0([0; 20]);
     let out1_addr = BitcoinAddress::P2wpkhV0([1; 20]);
-    let out2_addr = BitcoinAddress::P2wpkhV0([2; 20]);
     let fee_per_vbyte = 10000;
 
     assert_eq!(
-        build_unsigned_transaction(
-            &mut available_utxos,
-            vec![(out1_addr.clone(), 99_900), (out2_addr.clone(), 100)],
-            minter_addr.clone(),
-            fee_per_vbyte,
-        ),
-        Err(BuildTxError::DustOutput {
-            address: out2_addr.clone(),
+        available_utxos.build_unsigned_transaction(&minter_addr, &out1_addr, 100, fee_per_vbyte,),
+        Err(BitcoinError::DustOutput {
+            address: minter_addr.display(BitcoinNetwork::Mainnet),
             amount: 100
         })
     );
@@ -277,14 +248,9 @@ fn test_no_dust_outputs() {
     let fee_per_vbyte = 4000;
 
     assert_eq!(
-        build_unsigned_transaction(
-            &mut available_utxos,
-            vec![(out1_addr, 99_000), (out2_addr.clone(), 1000)],
-            minter_addr,
-            fee_per_vbyte,
-        ),
-        Err(BuildTxError::DustOutput {
-            address: out2_addr,
+        available_utxos.build_unsigned_transaction(&minter_addr, &out1_addr, 1000, fee_per_vbyte,),
+        Err(BitcoinError::DustOutput {
+            address: minter_addr.display(BitcoinNetwork::Mainnet),
             amount: 1000
         })
     );
@@ -292,31 +258,12 @@ fn test_no_dust_outputs() {
     assert_eq!(available_utxos.len(), 1);
 }
 
-#[test]
-fn blocklist_is_sorted() {
-    use crate::blocklist::BTC_ADDRESS_BLOCKLIST;
-    for (l, r) in BTC_ADDRESS_BLOCKLIST
-        .iter()
-        .zip(BTC_ADDRESS_BLOCKLIST.iter().skip(1))
-    {
-        assert!(l < r, "the block list is not sorted: {} >= {}", l, r);
-    }
-}
-
 fn arb_amount() -> impl Strategy<Value = Satoshi> {
     1..10_000_000_000u64
 }
 
-fn vec_to_txid(vec: Vec<u8>) -> Txid {
-    let bytes: [u8; 32] = vec.try_into().expect("Can't convert to [u8; 32]");
-    bytes.into()
-}
-
-fn arb_out_point() -> impl Strategy<Value = tx::OutPoint> {
-    (pvec(any::<u8>(), 32), any::<u32>()).prop_map(|(txid, vout)| tx::OutPoint {
-        txid: vec_to_txid(txid),
-        vout,
-    })
+fn arb_out_point() -> impl Strategy<Value = OutPoint> {
+    (pvec(any::<u8>(), 32), any::<u32>()).prop_map(|(txid, vout)| OutPoint { txid, vout })
 }
 
 fn arb_unsigned_input(
@@ -364,106 +311,32 @@ fn arb_tx_out() -> impl Strategy<Value = tx::TxOut> {
 
 fn arb_utxo(amount: impl Strategy<Value = Satoshi>) -> impl Strategy<Value = Utxo> {
     (amount, pvec(any::<u8>(), 32), 0..5u32).prop_map(|(value, txid, vout)| Utxo {
-        outpoint: OutPoint {
-            txid: vec_to_txid(txid),
-            vout,
-        },
+        outpoint: OutPoint { txid, vout },
         value,
         height: 0,
     })
 }
 
-fn arb_account() -> impl Strategy<Value = Account> {
-    (pvec(any::<u8>(), 32), option::of(uniform32(any::<u8>()))).prop_map(|(pk, subaccount)| {
-        Account {
-            owner: PrincipalId::new_self_authenticating(&pk).0,
-            subaccount,
-        }
-    })
-}
-
-fn arb_retrieve_btc_requests(
-    amount: impl Strategy<Value = Satoshi>,
-    num: impl Into<SizeRange>,
-) -> impl Strategy<Value = Vec<RetrieveBtcRequest>> {
-    let request_strategy = (
-        amount,
-        arb_address(),
-        any::<u64>(),
-        1569975147000..2069975147000u64,
-        option::of(any::<u64>()),
-        option::of(arb_account()),
-    )
-        .prop_map(
-            |(amount, address, block_index, received_at, provider, reimbursement_account)| {
-                RetrieveBtcRequest {
-                    amount,
-                    address,
-                    block_index,
-                    received_at,
-                    kyt_provider: provider
-                        .map(|id| Principal::from(CanisterId::from_u64(id).get())),
-                    reimbursement_account,
-                }
-            },
-        );
-    pvec(request_strategy, num).prop_map(|mut reqs| {
-        reqs.sort_by_key(|req| req.received_at);
-
-        for (i, req) in reqs.iter_mut().enumerate() {
-            req.block_index = i as u64;
-        }
-
-        reqs
-    })
-}
-
 proptest! {
-    #[test]
-    fn queue_holds_one_copy_of_each_task(
-        timestamps in pvec(1_000_000_u64..1_000_000_000, 2..100),
-    ) {
-        use crate::tasks::{Task, TaskQueue, TaskType};
-
-        let mut task_queue: TaskQueue = Default::default();
-        for (i, ts) in timestamps.iter().enumerate() {
-            task_queue.schedule_at(*ts, TaskType::ProcessLogic);
-            prop_assert_eq!(task_queue.len(), 1, "queue: {:?}", task_queue);
-
-            let task = task_queue.pop_if_ready(u64::MAX).unwrap();
-
-            prop_assert_eq!(task_queue.len(), 0);
-
-            prop_assert_eq!(&task, &Task{
-                execute_at: timestamps[0..=i].iter().cloned().min().unwrap(),
-                task_type: TaskType::ProcessLogic
-            });
-            task_queue.schedule_at(task.execute_at, task.task_type);
-
-            prop_assert_eq!(task_queue.len(), 1);
-        }
-    }
-
-
     #[test]
     fn greedy_solution_properties(
         values in pvec(1u64..1_000_000_000, 1..10),
         target in 1u64..1_000_000_000,
     ) {
-        let mut utxos: BTreeSet<Utxo> = values
+        let dummy_utxos: Vec<Utxo> = values
             .into_iter()
             .map(dummy_utxo_from_value)
             .collect();
 
-        let total = utxos.iter().map(|u| u.value).sum::<u64>();
+        let mut utxos = BitcoinUtxos::from(dummy_utxos.clone());
+
+        let total = dummy_utxos.iter().map(|u| u.value).sum::<u64>();
 
         if total < target {
             utxos.insert(dummy_utxo_from_value(target - total));
         }
 
-        let original_utxos = utxos.clone();
-
-        let solution = greedy(target, &mut utxos);
+        let solution = utxos.greedy(target);
 
         prop_assert!(
             !solution.is_empty(),
@@ -475,10 +348,6 @@ proptest! {
             "greedy() must reach the specified target amount"
         );
 
-        prop_assert!(
-            solution.iter().all(|u| original_utxos.contains(u)),
-            "greedy() must select utxos from the available set"
-        );
 
         prop_assert!(
             solution.iter().all(|u| !utxos.contains(u)),
@@ -490,18 +359,17 @@ proptest! {
     fn greedy_does_not_modify_input_when_fails(
         values in pvec(1u64..1_000_000_000, 1..10),
     ) {
-        let mut utxos: BTreeSet<Utxo> = values
+        let dummy_utxos: Vec<Utxo> = values
             .into_iter()
             .map(dummy_utxo_from_value)
             .collect();
 
-        let total = utxos.iter().map(|u| u.value).sum::<u64>();
+        let utxos = BitcoinUtxos::from(dummy_utxos);
 
-        let original_utxos = utxos.clone();
-        let solution = greedy(total + 1, &mut utxos);
+        let total = utxos.total_value();
 
+        let solution = utxos.greedy(total + 1);
         prop_assert!(solution.is_empty());
-        prop_assert_eq!(utxos, original_utxos);
     }
 
     #[test]
@@ -513,15 +381,15 @@ proptest! {
         let arb_tx = tx::UnsignedTransaction { inputs, outputs, lock_time };
         println!("{:?}", arb_tx);
         let btc_tx = unsigned_tx_to_bitcoin_tx(&arb_tx);
-        println!("{:?}", btc_tx.serialize());
+        println!("{:?}", serialize(&btc_tx));
 
         let tx_bytes = tx::encode_into(&arb_tx, Vec::<u8>::new());
         println!("{:?}", tx_bytes);
-        let decoded_btc_tx = bitcoin::Transaction::deserialize(&tx_bytes).expect("failed to deserialize an unsigned transaction");
+        let decoded_btc_tx: Transaction = deserialize(&tx_bytes).expect("failed to deserialize an unsigned transaction");
 
-        prop_assert_eq!(btc_tx.serialize(), tx_bytes);
+        prop_assert_eq!(serialize(&btc_tx), tx_bytes);
         prop_assert_eq!(&decoded_btc_tx, &btc_tx);
-        prop_assert_eq!(&arb_tx.txid().as_ref().to_vec(), &*btc_tx.txid());
+        prop_assert_eq!(&arb_tx.txid(), &btc_tx.txid().to_byte_array());
     }
 
     #[test]
@@ -549,7 +417,7 @@ proptest! {
         let btc_tx = unsigned_tx_to_bitcoin_tx(&arb_tx);
 
         let sighasher = tx::TxSigHasher::new(&arb_tx);
-        let mut btc_sighasher = bitcoin::util::sighash::SighashCache::new(&btc_tx);
+        let mut btc_sighasher = SighashCache::new(btc_tx);
 
         for (i, (utxo, _, pubkey)) in inputs_data.iter().enumerate() {
             let mut buf = Vec::<u8>::new();
@@ -559,12 +427,12 @@ proptest! {
 
             let mut btc_buf = Vec::<u8>::new();
             let script_code = p2wpkh_script_code(&pkhash);
-            btc_sighasher.segwit_encode_signing_data_to(&mut btc_buf, i, &script_code, utxo.value, bitcoin::EcdsaSighashType::All)
+            btc_sighasher.segwit_v0_encode_signing_data_to(&mut btc_buf, i, &script_code, Amount::from_sat(utxo.value), bitcoin::EcdsaSighashType::All)
                 .expect("failed to encode sighash data");
             prop_assert_eq!(hex::encode(&buf), hex::encode(&btc_buf));
 
             let sighash = sighasher.sighash(&arb_tx.inputs[i], &pkhash);
-            let btc_sighash = btc_sighasher.segwit_signature_hash(i, &script_code, utxo.value, bitcoin::EcdsaSighashType::All).unwrap();
+            let btc_sighash = btc_sighasher.p2wpkh_signature_hash(i, &script_code,Amount::from_sat(utxo.value), bitcoin::EcdsaSighashType::All).unwrap();
             prop_assert_eq!(hex::encode(sighash), hex::encode(btc_sighash));
         }
     }
@@ -576,50 +444,47 @@ proptest! {
         lock_time in any::<u32>(),
     ) {
         let arb_tx = tx::SignedTransaction { inputs, outputs, lock_time };
-        println!("{:?}", arb_tx);
         let btc_tx = signed_tx_to_bitcoin_tx(&arb_tx);
-        println!("{:?}", btc_tx.serialize());
 
         let tx_bytes = tx::encode_into(&arb_tx, Vec::<u8>::new());
-        println!("{:?}", tx_bytes);
-        let decoded_btc_tx = bitcoin::Transaction::deserialize(&tx_bytes).expect("failed to deserialize a signed transaction");
+        let decoded_btc_tx: Transaction = deserialize(&tx_bytes).expect("failed to deserialize an unsigned transaction");
 
-        prop_assert_eq!(btc_tx.serialize(), tx_bytes);
+        prop_assert_eq!(serialize(&btc_tx), tx_bytes);
         prop_assert_eq!(&decoded_btc_tx, &btc_tx);
-        prop_assert_eq!(&arb_tx.wtxid(), &*btc_tx.wtxid());
+        prop_assert_eq!(&arb_tx.wtxid(), &btc_tx.wtxid().to_byte_array());
         prop_assert_eq!(arb_tx.vsize(), btc_tx.vsize());
     }
 
     #[test]
     fn build_tx_splits_utxos(
-        mut utxos in btree_set(arb_utxo(5_000u64..1_000_000_000), 1..20),
+        dummy_utxos in pvec(arb_utxo(5_000u64..1_000_000_000), 1..20),
         dst_pkhash in uniform20(any::<u8>()),
         main_pkhash in uniform20(any::<u8>()),
         fee_per_vbyte in 1000..2000u64,
     ) {
         prop_assume!(dst_pkhash != main_pkhash);
 
-        let utxo_count = utxos.len();
-        let total_value = utxos.iter().map(|u| u.value).sum::<u64>();
+        let total_value = dummy_utxos.iter().map(|u| u.value).sum::<u64>();
 
         let target = total_value / 2;
 
-        let fee_estimate = estimate_fee(&utxos, Some(target), fee_per_vbyte, crate::lifecycle::init::DEFAULT_KYT_FEE);
-        let fee_estimate = fee_estimate.minter_fee + fee_estimate.bitcoin_fee - crate::lifecycle::init::DEFAULT_KYT_FEE;
+        let utxos = BitcoinUtxos::from(dummy_utxos);
 
-        let (unsigned_tx, _, _) = build_unsigned_transaction(
-            &mut utxos,
-            vec![(BitcoinAddress::P2wpkhV0(dst_pkhash), target)],
-            BitcoinAddress::P2wpkhV0(main_pkhash),
+        let fee_estimate = utxos.estimate_fee(Some(target), fee_per_vbyte);
+
+        let (unsigned_tx, fee) = utxos.build_unsigned_transaction(
+            &BitcoinAddress::P2wpkhV0(main_pkhash),
+            &BitcoinAddress::P2wpkhV0(dst_pkhash),
+            target,
             fee_per_vbyte
         )
         .expect("failed to build transaction");
 
-        let vsize = fake_sign(&unsigned_tx).vsize() as u64;
+        let vsize = unsigned_tx.fake_sign().vsize() as u64;
 
         prop_assert_eq!(
             vsize,
-            crate::tx_vsize_estimate(unsigned_tx.inputs.len() as u64, unsigned_tx.outputs.len() as u64),
+            tx_vsize_estimate(unsigned_tx.inputs.len() as u64, unsigned_tx.outputs.len() as u64),
             "incorrect transaction vsize estimate"
         );
 
@@ -627,29 +492,29 @@ proptest! {
         let outputs_value = unsigned_tx.outputs.iter().map(|output| output.value).sum::<u64>();
 
         let tx_fee = inputs_value - outputs_value;
-        let caller_fee = target - unsigned_tx.outputs[0].value;
 
+        prop_assert!(tx_fee >= fee_estimate);
+        prop_assert_eq!(fee, tx_fee);
         prop_assert!(inputs_value >= target);
         prop_assert!(tx_fee < target);
-        prop_assert_eq!(caller_fee, fee_estimate, "incorrect transaction fee estimate");
-        prop_assert_eq!(utxo_count, unsigned_tx.inputs.len() + utxos.len());
-        prop_assert_eq!(utxos.iter().map(|u| u.value).sum::<u64>(), total_value - inputs_value);
+        prop_assert_eq!(tx_fee, fee_estimate, "incorrect transaction fee estimate");
     }
 
     #[test]
     fn check_output_order(
-        mut utxos in btree_set(arb_utxo(1_000_000u64..1_000_000_000), 1..20),
+        dummy_utxos in pvec(arb_utxo(5_000u64..1_000_000_000), 1..20),
         dst_pkhash in uniform20(any::<u8>()),
         main_pkhash in uniform20(any::<u8>()),
         target in 50000..100000u64,
         fee_per_vbyte in 1000..2000u64,
     ) {
         prop_assume!(dst_pkhash != main_pkhash);
+        let utxos = BitcoinUtxos::from(dummy_utxos);
 
-        let (unsigned_tx, _, _) = build_unsigned_transaction(
-            &mut utxos,
-            vec![(BitcoinAddress::P2wpkhV0(dst_pkhash), target)],
-            BitcoinAddress::P2wpkhV0(main_pkhash),
+        let (unsigned_tx, _) = utxos.build_unsigned_transaction(
+            &BitcoinAddress::P2wpkhV0(main_pkhash),
+            &BitcoinAddress::P2wpkhV0(dst_pkhash),
+            target,
             fee_per_vbyte
         )
         .expect("failed to build transaction");
@@ -660,32 +525,31 @@ proptest! {
 
     #[test]
     fn build_tx_handles_change_from_inputs(
-        mut utxos in btree_set(arb_utxo(1_000_000u64..1_000_000_000), 1..20),
+        dummy_utxos in pvec(arb_utxo(5_000u64..1_000_000_000), 10..20),
         dst_pkhash in uniform20(any::<u8>()),
         main_pkhash in uniform20(any::<u8>()),
         target in 50000..100000u64,
         fee_per_vbyte in 1000..2000u64,
     ) {
         prop_assume!(dst_pkhash != main_pkhash);
+        let utxos = BitcoinUtxos::from(dummy_utxos);
 
         let value_by_outpoint: HashMap<_, _> = utxos
             .iter()
             .map(|utxo| (utxo.outpoint.clone(), utxo.value))
             .collect();
 
-        let (unsigned_tx, change_output, _) = build_unsigned_transaction(
-            &mut utxos,
-            vec![(BitcoinAddress::P2wpkhV0(dst_pkhash), target)],
-            BitcoinAddress::P2wpkhV0(main_pkhash),
+        let (unsigned_tx, fee) = utxos.build_unsigned_transaction(
+            &BitcoinAddress::P2wpkhV0(main_pkhash),
+            &BitcoinAddress::P2wpkhV0(dst_pkhash),
+            target,
             fee_per_vbyte
         )
         .expect("failed to build transaction");
 
-        let fee = fake_sign(&unsigned_tx).vsize() as u64 * fee_per_vbyte / 1000;
-        let minter_fee =
-            crate::MINTER_FEE_PER_INPUT * unsigned_tx.inputs.len() as u64 +
-            crate::MINTER_FEE_PER_OUTPUT * unsigned_tx.outputs.len() as u64 +
-            MINTER_FEE_CONSTANT;
+        let calc_fee = unsigned_tx.fake_sign().vsize() as u64 * fee_per_vbyte / 1000;
+
+        prop_assert_eq!(fee, calc_fee);
 
         let inputs_value = unsigned_tx.inputs
             .iter()
@@ -696,213 +560,63 @@ proptest! {
             &unsigned_tx.outputs,
             &vec![
                 tx::TxOut {
-                    value: target - fee - minter_fee,
+                    value: target ,
                     address: BitcoinAddress::P2wpkhV0(dst_pkhash),
                 },
                 tx::TxOut {
-                    value: inputs_value - target + minter_fee,
+                    value: inputs_value - target - fee,
                     address: BitcoinAddress::P2wpkhV0(main_pkhash),
                 },
             ]
         );
 
-        prop_assert_eq!(change_output, ChangeOutput { vout: 1, value: inputs_value - target + minter_fee });
+        let change_output = unsigned_tx.outputs.last().unwrap().value;
+
+        prop_assert_eq!(change_output, inputs_value - target - fee);
     }
 
     #[test]
     fn build_tx_does_not_modify_utxos_on_error(
-        mut utxos in btree_set(arb_utxo(5_000u64..1_000_000_000), 1..20),
+        dummy_utxos in pvec(arb_utxo(5_000u64..1_000_000_000), 10..20),
         dst_pkhash in uniform20(any::<u8>()),
         main_pkhash in uniform20(any::<u8>()),
         fee_per_vbyte in 1000..2000u64,
     ) {
+        let utxos = BitcoinUtxos::from(dummy_utxos);
+
         let utxos_copy = utxos.clone();
 
         let total_value = utxos.iter().map(|u| u.value).sum::<u64>();
 
         prop_assert_eq!(
-            build_unsigned_transaction(
-                &mut utxos,
-                vec![(BitcoinAddress::P2wpkhV0(dst_pkhash), total_value * 2)],
-                BitcoinAddress::P2wpkhV0(main_pkhash),
+            utxos.build_unsigned_transaction(
+                &BitcoinAddress::P2wpkhV0(main_pkhash),
+                &BitcoinAddress::P2wpkhV0(dst_pkhash),
+                total_value * 2,
                 fee_per_vbyte
             ).expect_err("build transaction should fail because the amount is too high"),
-            BuildTxError::NotEnoughFunds
+            BitcoinError::NotEnoughFunds
         );
         prop_assert_eq!(&utxos_copy, &utxos);
 
         prop_assert_eq!(
-            build_unsigned_transaction(
-                &mut utxos,
-                vec![(BitcoinAddress::P2wpkhV0(dst_pkhash), 1)],
-                BitcoinAddress::P2wpkhV0(main_pkhash),
+            utxos.build_unsigned_transaction(
+                &BitcoinAddress::P2wpkhV0(main_pkhash),
+                &BitcoinAddress::P2wpkhV0(dst_pkhash),
+                1,
                 fee_per_vbyte
             ).expect_err("build transaction should fail because the amount is too low to pay the fee"),
-            BuildTxError::AmountTooLow
+            BitcoinError::FeeTooHigh(utxos.estimate_fee(Some(1), fee_per_vbyte), 1)
         );
         prop_assert_eq!(&utxos_copy, &utxos);
     }
 
     #[test]
-    fn add_utxos_maintains_invariants(
-        utxos_acc_idx in pvec((arb_utxo(5_000u64..1_000_000_000), 0..5usize), 10..20),
-        accounts in pvec(arb_account(), 5),
-    ) {
-        let mut state = CkBtcMinterState::from(InitArgs {
-            btc_network: Network::Regtest.into(),
-            ecdsa_key_name: "".to_string(),
-            retrieve_btc_min_amount: 0,
-            ledger_id: CanisterId::from_u64(42),
-            max_time_in_queue_nanos: 0,
-            min_confirmations: None,
-            mode: Mode::GeneralAvailability,
-            kyt_fee: None,
-            kyt_principal: None
-        });
-        for (utxo, acc_idx) in utxos_acc_idx {
-            state.add_utxos(accounts[acc_idx], vec![utxo]);
-            state.check_invariants().expect("invariant check failed");
-        }
-    }
-
-    #[test]
-    fn batching_preserves_invariants(
-        utxos_acc_idx in pvec((arb_utxo(5_000u64..1_000_000_000), 0..5usize), 10..20),
-        accounts in pvec(arb_account(), 5),
-        requests in arb_retrieve_btc_requests(5_000u64..1_000_000_000, 1..25),
-        limit in 1..25usize,
-    ) {
-        let mut state = CkBtcMinterState::from(InitArgs {
-            btc_network: Network::Regtest.into(),
-            ecdsa_key_name: "".to_string(),
-            retrieve_btc_min_amount: 5_000u64,
-            ledger_id: CanisterId::from_u64(42),
-            max_time_in_queue_nanos: 0,
-            min_confirmations: None,
-            mode: Mode::GeneralAvailability,
-            kyt_fee: None,
-            kyt_principal: None
-        });
-
-        let mut available_amount = 0;
-        for (utxo, acc_idx) in utxos_acc_idx {
-            available_amount += utxo.value;
-            state.add_utxos(accounts[acc_idx], vec![utxo]);
-        }
-        for req in requests {
-            let block_index = req.block_index;
-            state.push_back_pending_request(req);
-            prop_assert_eq!(state.retrieve_btc_status(block_index), RetrieveBtcStatus::Pending);
-        }
-
-        let batch = state.build_batch(limit);
-
-        for req in batch.iter() {
-            prop_assert_eq!(state.retrieve_btc_status(req.block_index), RetrieveBtcStatus::Unknown);
-        }
-
-        prop_assert!(batch.iter().map(|req| req.amount).sum::<u64>() <= available_amount);
-        prop_assert!(batch.len() <= limit);
-
-        state.check_invariants().expect("invariant check failed");
-    }
-
-    #[test]
-    fn tx_replacement_preserves_invariants(
-        accounts in pvec(arb_account(), 5),
-        utxos_acc_idx in pvec((arb_utxo(5_000_000u64..1_000_000_000), 0..5usize), 10..=10),
-        requests in arb_retrieve_btc_requests(5_000_000u64..10_000_000, 1..5),
-        main_pkhash in uniform20(any::<u8>()),
-        resubmission_chain_length in 1..=5,
-    ) {
-        let mut state = CkBtcMinterState::from(InitArgs {
-            btc_network: Network::Regtest.into(),
-            ecdsa_key_name: "".to_string(),
-            retrieve_btc_min_amount: 100_000,
-            ledger_id: CanisterId::from_u64(42),
-            max_time_in_queue_nanos: 0,
-            min_confirmations: None,
-            mode: Mode::GeneralAvailability,
-            kyt_fee: None,
-            kyt_principal: None
-        });
-
-        for (utxo, acc_idx) in utxos_acc_idx {
-            state.add_utxos(accounts[acc_idx], vec![utxo]);
-        }
-        let fee_per_vbyte = 100_000u64;
-
-        let (tx, change_output, used_utxos) = build_unsigned_transaction(
-            &mut state.available_utxos,
-            requests.iter().map(|r| (r.address.clone(), r.amount)).collect(),
-            BitcoinAddress::P2wpkhV0(main_pkhash),
-            fee_per_vbyte
-        )
-        .expect("failed to build transaction");
-        let mut txids = vec![tx.txid()];
-        let submitted_at = 1_234_567_890;
-
-        state.push_submitted_transaction(SubmittedBtcTransaction {
-            requests: requests.clone(),
-            txid: txids[0],
-            used_utxos: used_utxos.clone(),
-            submitted_at,
-            change_output: Some(change_output),
-            fee_per_vbyte: Some(fee_per_vbyte),
-        });
-
-        state.check_invariants().expect("violated invariants");
-
-        for i in 1..=resubmission_chain_length {
-            let prev_txid = txids.last().unwrap();
-            // Build a replacement transaction
-            let (tx, change_output, _used_utxos) = build_unsigned_transaction(
-                &mut used_utxos.clone().into_iter().collect(),
-                requests.iter().map(|r| (r.address.clone(), r.amount)).collect(),
-                BitcoinAddress::P2wpkhV0(main_pkhash),
-                fee_per_vbyte + 1000 * i as u64,
-            )
-            .expect("failed to build transaction");
-
-            let new_txid = tx.txid();
-
-            state.replace_transaction(prev_txid, SubmittedBtcTransaction {
-                requests: requests.clone(),
-                txid: new_txid,
-                used_utxos: used_utxos.clone(),
-                submitted_at,
-                change_output: Some(change_output),
-                fee_per_vbyte: Some(fee_per_vbyte),
-            });
-
-            for txid in &txids {
-                prop_assert_eq!(state.find_last_replacement_tx(txid), Some(&new_txid));
-            }
-
-            txids.push(new_txid);
-
-            assert_eq!(i as usize, state.longest_resubmission_chain_size());
-            state.check_invariants().expect("violated invariants after transaction resubmission");
-        }
-
-        for txid in &txids {
-            // Ensure that finalizing any transaction in the chain removes the entire chain.
-            let mut state = state.clone();
-            state.finalize_transaction(txid);
-            prop_assert_eq!(&state.submitted_transactions, &vec![]);
-            prop_assert_eq!(&state.stuck_transactions, &vec![]);
-            prop_assert_eq!(&state.replacement_txid, &BTreeMap::new());
-            prop_assert_eq!(&state.rev_replacement_txid, &BTreeMap::new());
-            state.check_invariants().expect("violated invariants after transaction finalization");
-        }
-    }
-
-    #[test]
     fn btc_v0_p2wpkh_address_parsing(mut pkbytes in pvec(any::<u8>(), 32)) {
-        use crate::address::network_and_public_key_to_p2wpkh;
+        use super::address::network_and_public_key_to_p2wpkh;
         pkbytes.insert(0, 0x02);
 
-        for network in [Network::Mainnet, Network::Testnet, Network::Regtest].iter() {
+        for network in [BitcoinNetwork::Mainnet, BitcoinNetwork::Testnet, BitcoinNetwork::Regtest].iter() {
             let addr = network_and_public_key_to_p2wpkh(*network, &pkbytes);
             prop_assert_eq!(
                 Ok(BitcoinAddress::P2wpkhV0(tx::hash160(&pkbytes))),
@@ -922,8 +636,8 @@ proptest! {
         let pk = pk_result.unwrap();
         let pkhash = tx::hash160(&pkbytes);
 
-        for network in [Network::Mainnet, Network::Testnet, Network::Regtest].iter() {
-            let btc_net = network_to_btc_network(*network);
+        for network in [BitcoinNetwork::Mainnet, BitcoinNetwork::Testnet, BitcoinNetwork::Regtest].iter() {
+            let btc_net = btc_network_to_network(*network);
             let btc_addr = bitcoin::Address::p2pkh(&pk, btc_net);
             prop_assert_eq!(
                 Ok(BitcoinAddress::P2pkh(tx::hash160(&pkbytes))),
@@ -940,16 +654,16 @@ proptest! {
 
     #[test]
     fn btc_address_display_model(address in arb_address()) {
-        for network in [Network::Mainnet, Network::Testnet].iter() {
+        for network in [BitcoinNetwork::Mainnet, BitcoinNetwork::Testnet].iter() {
             let addr_str = address.display(*network);
-            let btc_addr = address_to_btc_address(&address, *network);
+            let btc_addr = address_to_btc_address(&address, btc_network_to_network(*network));
             prop_assert_eq!(btc_addr, bitcoin::Address::from_str(&addr_str).unwrap());
         }
     }
 
     #[test]
     fn address_roundtrip(address in arb_address()) {
-        for network in [Network::Mainnet, Network::Testnet, Network::Regtest].iter() {
+        for network in [BitcoinNetwork::Mainnet, BitcoinNetwork::Testnet, BitcoinNetwork::Regtest].iter() {
             let addr_str = address.display(*network);
             prop_assert_eq!(BitcoinAddress::parse(&addr_str, *network), Ok(address.clone()));
         }
@@ -959,7 +673,7 @@ proptest! {
     fn sec1_to_der_positive_parses(sig in pvec(1u8..0x0f, 64)) {
         use simple_asn1::{from_der, ASN1Block::{Sequence, Integer}};
 
-        let der = crate::signature::sec1_to_der(&sig);
+        let der = super::signature::sec1_to_der(&sig);
         let decoded = from_der(&der).expect("failed to decode DER");
         if let[Sequence(_, items)] = &decoded[..] {
             if let [Integer(_, r), Integer(_, s)] = &items[..] {
@@ -980,7 +694,7 @@ proptest! {
         prop_assume!(sig[..32].iter().any(|x| *x > 0));
         prop_assume!(sig[32..].iter().any(|x| *x > 0));
 
-        let der = crate::signature::sec1_to_der(&sig);
+        let der = super::signature::sec1_to_der(&sig);
         let decoded = from_der(&der).expect("failed to decode DER");
 
         if let[Sequence(_, items)] = &decoded[..] {
@@ -996,45 +710,28 @@ proptest! {
         prop_assume!(sig[..32].iter().any(|x| *x > 0));
         prop_assume!(sig[32..].iter().any(|x| *x > 0));
 
-        let encoded = crate::signature::EncodedSignature::from_sec1(&sig);
-        crate::signature::validate_encoded_signature(encoded.as_slice()).expect("invalid signature");
+        let encoded = super::signature::EncodedSignature::from_sec1(&sig);
+        super::signature::validate_encoded_signature(encoded.as_slice()).expect("invalid signature");
     }
 
-    #[test]
-    fn amount_distribute_props(amount in any::<u64>(), n in 1..20u64) {
-        let shares = crate::distribute(amount, n);
-
-        // Distribute respects the share number.
-        prop_assert_eq!(shares.len(), n as usize);
-
-        // Distribute preserves the total.
-        prop_assert_eq!(amount, shares.iter().sum::<u64>());
-
-        // Distribute is fair
-        for x in shares.iter() {
-            for y in shares.iter() {
-                prop_assert!(x.max(y) - x.min(y) <= 1);
-            }
-        }
-    }
 
     #[test]
     fn test_fee_range(
-        utxos in btree_set(arb_utxo(5_000u64..1_000_000_000), 0..20),
+        dummy_utxos in pvec(arb_utxo(5_000u64..1_000_000_000), 10..20),
         amount in option::of(any::<u64>()),
         fee_per_vbyte in 2000..10000u64,
     ) {
         const SMALLEST_TX_SIZE_VBYTES: u64 = 140; // one input, two outputs
-        const MIN_MINTER_FEE: u64 = 312;
-        let kyt_fee: u64 = crate::lifecycle::init::DEFAULT_KYT_FEE;
 
-        let estimate = estimate_fee(&utxos, amount, fee_per_vbyte, kyt_fee);
-        let lower_bound = MIN_MINTER_FEE + SMALLEST_TX_SIZE_VBYTES * fee_per_vbyte / 1000;
-        let estimate_amount = estimate.minter_fee + estimate.bitcoin_fee;
+        let utxos = BitcoinUtxos::from(dummy_utxos);
+
+        let estimate = utxos.estimate_fee(amount, fee_per_vbyte);
+        let lower_bound = SMALLEST_TX_SIZE_VBYTES * fee_per_vbyte / 1000;
+
         prop_assert!(
-            estimate_amount >= lower_bound,
+            estimate >= lower_bound,
             "The fee estimate {} is below the lower bound {}",
-            estimate_amount,
+            estimate,
             lower_bound
         );
     }

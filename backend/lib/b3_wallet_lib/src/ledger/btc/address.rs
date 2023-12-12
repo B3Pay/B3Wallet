@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
 use std::fmt;
 
-use super::network::BtcNetwork;
+use super::network::BitcoinNetwork;
 
 // See https://en.bitcoin.it/wiki/List_of_address_prefixes.
 const BTC_MAINNET_PREFIX: u8 = 0;
@@ -45,21 +45,21 @@ enum WitnessVersion {
 
 impl BitcoinAddress {
     /// Converts the address to the textual representation.
-    pub fn display(&self, network: BtcNetwork) -> String {
+    pub fn display(&self, network: BitcoinNetwork) -> String {
         match self {
             Self::P2wpkhV0(pkhash) => encode_bech32(network, pkhash, WitnessVersion::V0),
             Self::P2wshV0(pkhash) => encode_bech32(network, pkhash, WitnessVersion::V0),
             Self::P2pkh(pkhash) => version_and_hash_to_address(
                 match network {
-                    BtcNetwork::Mainnet => BTC_MAINNET_PREFIX,
-                    BtcNetwork::Testnet | BtcNetwork::Regtest => BTC_TESTNET_PREFIX,
+                    BitcoinNetwork::Mainnet => BTC_MAINNET_PREFIX,
+                    BitcoinNetwork::Testnet | BitcoinNetwork::Regtest => BTC_TESTNET_PREFIX,
                 },
                 pkhash,
             ),
             Self::P2sh(script_hash) => version_and_hash_to_address(
                 match network {
-                    BtcNetwork::Mainnet => BTC_MAINNET_P2SH_PREFIX,
-                    BtcNetwork::Testnet | BtcNetwork::Regtest => BTC_TESTNET_P2SH_PREFIX,
+                    BitcoinNetwork::Mainnet => BTC_MAINNET_P2SH_PREFIX,
+                    BitcoinNetwork::Testnet | BitcoinNetwork::Regtest => BTC_TESTNET_P2SH_PREFIX,
                 },
                 script_hash,
             ),
@@ -68,7 +68,10 @@ impl BitcoinAddress {
     }
 
     /// Parses a bitcoin address and checks that it belongs to the specified network.
-    pub fn parse(address: &str, network: BtcNetwork) -> Result<BitcoinAddress, ParseAddressError> {
+    pub fn parse(
+        address: &str,
+        network: BitcoinNetwork,
+    ) -> Result<BitcoinAddress, ParseAddressError> {
         // See https://en.bitcoin.it/wiki/Base58Check_encoding#Version_bytes.
         match address.chars().next() {
             Some('1') => parse_base58_address(address, network),
@@ -97,7 +100,7 @@ pub fn derivation_path(account: &ICRCAccount) -> Vec<ByteBuf> {
     ]
 }
 
-fn encode_bech32(network: BtcNetwork, hash: &[u8], version: WitnessVersion) -> String {
+fn encode_bech32(network: BitcoinNetwork, hash: &[u8], version: WitnessVersion) -> String {
     use bech32::u5;
 
     let hrp = hrp(network);
@@ -135,18 +138,18 @@ pub fn version_and_hash_to_address(version: u8, hash: &[u8; 20]) -> String {
 /// # Panics
 ///
 /// This function panics if the public key in not compressed.
-pub fn network_and_public_key_to_p2wpkh(network: BtcNetwork, public_key: &[u8]) -> String {
+pub fn network_and_public_key_to_p2wpkh(network: BitcoinNetwork, public_key: &[u8]) -> String {
     assert_eq!(public_key.len(), 33);
     assert!(public_key[0] == 0x02 || public_key[0] == 0x03);
     encode_bech32(network, &super::tx::hash160(public_key), WitnessVersion::V0)
 }
 
 /// Returns the human-readable part of a bech32 address
-pub fn hrp(network: BtcNetwork) -> &'static str {
+pub fn hrp(network: BitcoinNetwork) -> &'static str {
     match network {
-        BtcNetwork::Mainnet => "bc",
-        BtcNetwork::Testnet => "tb",
-        BtcNetwork::Regtest => "bcrt",
+        BitcoinNetwork::Mainnet => "bc",
+        BitcoinNetwork::Testnet => "tb",
+        BitcoinNetwork::Regtest => "bcrt",
     }
 }
 
@@ -158,8 +161,8 @@ pub enum ParseAddressError {
     },
     UnsupportedAddressType,
     WrongNetwork {
-        expected: BtcNetwork,
-        actual: BtcNetwork,
+        expected: BitcoinNetwork,
+        actual: BitcoinNetwork,
     },
     MalformedAddress(String),
     UnsupportedWitnessVersion(u8),
@@ -209,7 +212,7 @@ impl fmt::Display for ParseAddressError {
 
 fn parse_base58_address(
     address: &str,
-    network: BtcNetwork,
+    network: BitcoinNetwork,
 ) -> Result<BitcoinAddress, ParseAddressError> {
     let bytes = bs58::decode(address)
         .into_vec()
@@ -239,20 +242,20 @@ fn parse_base58_address(
     data.copy_from_slice(&bytes[1..21]);
 
     if bytes[0] == BTC_MAINNET_PREFIX {
-        if network != BtcNetwork::Mainnet {
+        if network != BitcoinNetwork::Mainnet {
             return Err(ParseAddressError::WrongNetwork {
                 expected: network,
-                actual: BtcNetwork::Mainnet,
+                actual: BitcoinNetwork::Mainnet,
             });
         }
         return Ok(BitcoinAddress::P2pkh(data));
     }
 
     if bytes[0] == BTC_TESTNET_PREFIX {
-        if network != BtcNetwork::Testnet && network != BtcNetwork::Regtest {
+        if network != BitcoinNetwork::Testnet && network != BitcoinNetwork::Regtest {
             return Err(ParseAddressError::WrongNetwork {
                 expected: network,
-                actual: BtcNetwork::Testnet,
+                actual: BitcoinNetwork::Testnet,
             });
         }
         let mut pkhash: [u8; 20] = [0; 20];
@@ -261,20 +264,20 @@ fn parse_base58_address(
     }
 
     if bytes[0] == BTC_MAINNET_P2SH_PREFIX {
-        if network != BtcNetwork::Mainnet {
+        if network != BitcoinNetwork::Mainnet {
             return Err(ParseAddressError::WrongNetwork {
                 expected: network,
-                actual: BtcNetwork::Mainnet,
+                actual: BitcoinNetwork::Mainnet,
             });
         }
         return Ok(BitcoinAddress::P2sh(data));
     }
 
     if bytes[0] == BTC_TESTNET_P2SH_PREFIX {
-        if network != BtcNetwork::Testnet && network != BtcNetwork::Regtest {
+        if network != BitcoinNetwork::Testnet && network != BitcoinNetwork::Regtest {
             return Err(ParseAddressError::WrongNetwork {
                 expected: network,
-                actual: BtcNetwork::Testnet,
+                actual: BitcoinNetwork::Testnet,
             });
         }
         return Ok(BitcoinAddress::P2sh(data));
@@ -286,7 +289,7 @@ fn parse_base58_address(
 /// Parses a BIP-0173 address.
 fn parse_bip173_address(
     address: &str,
-    network: BtcNetwork,
+    network: BitcoinNetwork,
 ) -> Result<BitcoinAddress, ParseAddressError> {
     let (found_hrp, five_bit_groups, variant) =
         bech32::decode(address).map_err(|e| ParseAddressError::MalformedAddress(e.to_string()))?;
@@ -386,11 +389,15 @@ fn parse_bip173_address(
 #[cfg(test)]
 mod tests {
     use super::{hrp, BitcoinAddress, ParseAddressError};
-    use crate::ledger::btc::network::BtcNetwork;
+    use crate::ledger::btc::network::BitcoinNetwork;
     use bech32::u5;
     use bitcoin::address::Payload;
 
-    fn generate_address(witness_version: Option<u8>, data: &[u8], network: BtcNetwork) -> String {
+    fn generate_address(
+        witness_version: Option<u8>,
+        data: &[u8],
+        network: BitcoinNetwork,
+    ) -> String {
         let data: Vec<u5> = witness_version
             .iter()
             .map(|n| u5::try_from_u8(*n).unwrap())
@@ -419,7 +426,7 @@ mod tests {
             ])),
             BitcoinAddress::parse(
                 "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4",
-                BtcNetwork::Mainnet
+                BitcoinNetwork::Mainnet
             )
         );
         assert_eq!(
@@ -429,7 +436,7 @@ mod tests {
             ])),
             BitcoinAddress::parse(
                 "BC1QW508D6QEJXTDG4Y5R3ZARVARY0C5XW7KV8F3T4",
-                BtcNetwork::Mainnet
+                BitcoinNetwork::Mainnet
             )
         );
 
@@ -456,7 +463,7 @@ mod tests {
                         .try_into()
                         .unwrap()
                 )),
-                BitcoinAddress::parse(p2wsh_address, BtcNetwork::Mainnet)
+                BitcoinAddress::parse(p2wsh_address, BitcoinNetwork::Mainnet)
             );
         }
 
@@ -482,7 +489,7 @@ mod tests {
                 Ok(BitcoinAddress::P2trV1(
                     expected_taproot_pkhash.try_into().unwrap()
                 )),
-                BitcoinAddress::parse(taproot_address, BtcNetwork::Mainnet)
+                BitcoinAddress::parse(taproot_address, BitcoinNetwork::Mainnet)
             );
         }
 
@@ -497,7 +504,9 @@ mod tests {
         ];
 
         for invalid_taproot_address in invalid_taproot_addresses {
-            assert!(BitcoinAddress::parse(invalid_taproot_address, BtcNetwork::Mainnet).is_err());
+            assert!(
+                BitcoinAddress::parse(invalid_taproot_address, BitcoinNetwork::Mainnet).is_err()
+            );
         }
 
         assert_eq!(
@@ -507,29 +516,29 @@ mod tests {
             }),
             BitcoinAddress::parse(
                 "bc1pw508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7kt5nd6y",
-                BtcNetwork::Mainnet
+                BitcoinNetwork::Mainnet
             )
         );
 
         // Invalid checksum.
         BitcoinAddress::parse(
             "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t5",
-            BtcNetwork::Mainnet,
+            BitcoinNetwork::Mainnet,
         )
         .unwrap_err();
         // Invalid checksum
         // https://docs.rs/bitcoin/latest/src/bitcoin/address.rs.html#1417
         BitcoinAddress::parse(
             "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kemeawh",
-            BtcNetwork::Mainnet,
+            BitcoinNetwork::Mainnet,
         )
         .unwrap_err();
 
         assert_eq!(
             ParseAddressError::UnsupportedWitnessVersion(2),
             BitcoinAddress::parse(
-                &generate_address(Some(2), &[0u8; 20], BtcNetwork::Mainnet),
-                BtcNetwork::Mainnet,
+                &generate_address(Some(2), &[0u8; 20], BitcoinNetwork::Mainnet),
+                BitcoinNetwork::Mainnet,
             )
             .unwrap_err()
         );
@@ -537,8 +546,8 @@ mod tests {
         assert_eq!(
             ParseAddressError::NoData,
             BitcoinAddress::parse(
-                &generate_address(None, b"", BtcNetwork::Mainnet),
-                BtcNetwork::Mainnet,
+                &generate_address(None, b"", BitcoinNetwork::Mainnet),
+                BitcoinNetwork::Mainnet,
             )
             .unwrap_err()
         );
@@ -549,8 +558,8 @@ mod tests {
                 actual: "tb".to_string()
             },
             BitcoinAddress::parse(
-                &generate_address(Some(0), &[0; 20], BtcNetwork::Testnet),
-                BtcNetwork::Mainnet,
+                &generate_address(Some(0), &[0; 20], BitcoinNetwork::Testnet),
+                BitcoinNetwork::Mainnet,
             )
             .unwrap_err()
         );

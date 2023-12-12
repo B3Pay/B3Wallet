@@ -4,14 +4,59 @@ use super::{
     address::BitcoinAddress,
     error::BitcoinError,
     tx::{TxOut, UnsignedTransaction},
-    types::{OutPoint, Utxo},
+    types::{OutPoint, Satoshi, Utxo},
 };
-use crate::ledger::btc::{fake_sign, tx::UnsignedInput, tx_vsize_estimate};
+use crate::ledger::btc::{tx::UnsignedInput, tx_vsize_estimate};
 use ic_cdk::api::management_canister::bitcoin::GetUtxosResponse;
 
-pub struct BtcUtxos(BTreeSet<Utxo>);
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct BitcoinUtxos(BTreeSet<Utxo>);
 
-impl BtcUtxos {
+impl BitcoinUtxos {
+    pub fn new() -> Self {
+        Self(BTreeSet::new())
+    }
+
+    pub fn from(utxos: Vec<Utxo>) -> Self {
+        Self(utxos.into_iter().collect())
+    }
+
+    pub fn insert(&mut self, utxo: Utxo) -> bool {
+        self.0.insert(utxo)
+    }
+
+    pub fn remove(&mut self, utxo: &Utxo) -> bool {
+        self.0.remove(utxo)
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &Utxo> {
+        self.0.iter()
+    }
+
+    pub fn contains(&self, utxo: &Utxo) -> bool {
+        self.0.contains(utxo)
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Returns the total value of the UTXOs.
+    /// The value is in satoshi.
+    pub fn total_value(&self) -> u64 {
+        self.0.iter().map(|u| u.value).sum()
+    }
+
+    /// Returns the list of UTXOs.
+    /// The list is sorted by value, descending.
+    pub fn utxos(&self) -> Vec<Utxo> {
+        self.0.iter().cloned().collect()
+    }
+
     /// Computes an estimate for the retrieve_btc fee.
     ///
     /// Arguments:
@@ -52,22 +97,23 @@ impl BtcUtxos {
 
         bitcoin_fee
     }
-    /// Selects a subset of UTXOs with the specified total target value and removes
-    /// the selected UTXOs from the available set.
+    /// Selects a subset of UTXOs with the specified total target value.
     ///
     /// If there are no UTXOs matching the criteria, returns an empty vector.
     ///
     /// PROPERTY: sum(u.value for u in available_set) ≥ target ⇒ !solution.is_empty()
     /// POSTCONDITION: !solution.is_empty() ⇒ sum(u.value for u in solution) ≥ target
     /// POSTCONDITION:  solution.is_empty() ⇒ available_utxos did not change.
-    fn greedy(mut self, target: u64) -> Vec<Utxo> {
+    pub fn greedy(&self, target: u64) -> Vec<Utxo> {
+        let mut utxo_clone = self.0.clone();
+
         let mut solution = vec![];
         let mut goal = target;
+
         while goal > 0 {
-            let utxo = match self.0.iter().max_by_key(|u| u.value) {
+            let utxo = match utxo_clone.iter().max_by_key(|u| u.value) {
                 Some(max_utxo) if max_utxo.value < goal => max_utxo.clone(),
                 Some(_) => self
-                    .0
                     .iter()
                     .filter(|u| u.value >= goal)
                     .min_by_key(|u| u.value)
@@ -76,13 +122,13 @@ impl BtcUtxos {
                 None => {
                     // Not enough available UTXOs to satisfy the request.
                     for u in solution {
-                        self.0.insert(u);
+                        utxo_clone.insert(u);
                     }
                     return vec![];
                 }
             };
             goal = goal.saturating_sub(utxo.value);
-            assert!(self.0.remove(&utxo));
+            assert!(utxo_clone.remove(&utxo));
             solution.push(utxo);
         }
 
@@ -140,12 +186,14 @@ impl BtcUtxos {
     /// ```
     ///
     pub fn build_unsigned_transaction(
-        mut self,
+        &self,
         own_address: &BitcoinAddress,
         dst_address: &BitcoinAddress,
-        amount: u64,
+        amount: Satoshi,
         fee_per_vbyte: u64,
-    ) -> Result<UnsignedTransaction, BitcoinError> {
+    ) -> Result<(UnsignedTransaction, u64), BitcoinError> {
+        assert!(!self.is_empty());
+
         /// Having a sequence number lower than (0xffffffff - 1) signals the use of replacement by fee.
         /// It allows us to increase the fee of a transaction already sent to the mempool.
         /// The rbf option is used in `resubmit_retrieve_btc`.
@@ -160,10 +208,22 @@ impl BtcUtxos {
 
         let inputs_value = input_utxos.iter().map(|u| u.value).sum::<u64>();
 
-        let tx_outputs = vec![TxOut {
-            address: dst_address.clone(),
-            value: amount,
-        }];
+        debug_assert!(inputs_value >= amount);
+
+        let tx_outputs: Vec<TxOut> = vec![
+            TxOut {
+                address: dst_address.clone(),
+                value: amount,
+            },
+            TxOut {
+                address: own_address.clone(),
+                value: inputs_value - amount,
+            },
+        ];
+
+        let total_output_value = tx_outputs.iter().map(|out| out.value).sum::<u64>();
+
+        debug_assert_eq!(total_output_value, inputs_value);
 
         let mut unsigned_tx = UnsignedTransaction {
             inputs: input_utxos
@@ -178,23 +238,34 @@ impl BtcUtxos {
             lock_time: 0,
         };
 
-        let tx_vsize = fake_sign(&unsigned_tx).vsize();
+        let tx_vsize = unsigned_tx.fake_sign().vsize();
         let fee = (tx_vsize as u64 * fee_per_vbyte) / 1000;
 
         if fee > amount {
             return Err(BitcoinError::FeeTooHigh(fee, amount));
         }
 
+        // The default dustRelayFee is 3 sat/vB,
+        // which translates to a dust threshold of 546 satoshi for P2PKH outputs.
+        // The threshold for other types is lower,
+        // so we simply use 546 satoshi as the minimum amount per output.
+        const MIN_OUTPUT_AMOUNT: u64 = 546;
+
+        unsigned_tx.outputs[1].value = unsigned_tx.outputs[1]
+            .value
+            .saturating_sub(fee)
+            .max(MIN_OUTPUT_AMOUNT);
+
         debug_assert_eq!(
             inputs_value,
             fee + unsigned_tx.outputs.iter().map(|u| u.value).sum::<u64>()
         );
 
-        Ok(unsigned_tx)
+        Ok((unsigned_tx, fee))
     }
 }
 
-impl TryFrom<GetUtxosResponse> for BtcUtxos {
+impl TryFrom<GetUtxosResponse> for BitcoinUtxos {
     type Error = BitcoinError;
 
     fn try_from(utxos: GetUtxosResponse) -> Result<Self, Self::Error> {
@@ -219,7 +290,7 @@ impl TryFrom<GetUtxosResponse> for BtcUtxos {
     }
 }
 
-impl TryFrom<Vec<Utxo>> for BtcUtxos {
+impl TryFrom<Vec<Utxo>> for BitcoinUtxos {
     type Error = BitcoinError;
 
     fn try_from(utxos: Vec<Utxo>) -> Result<Self, Self::Error> {
@@ -242,7 +313,7 @@ mod test {
 
     use crate::ledger::{
         btc::types::OutPoint,
-        btc::{network::BtcNetwork, utxos::BtcUtxos},
+        btc::{network::BitcoinNetwork, utxos::BitcoinUtxos},
         chain::{Chain, ChainTrait},
         ecdsa::ECDSAPublicKey,
         ledger::Ledger,
@@ -282,7 +353,7 @@ mod test {
 
         ledger.set_ecdsa_public_key(ecdsa.clone()).unwrap();
 
-        let utxos = BtcUtxos::try_from(vec![
+        let utxos = BitcoinUtxos::from(vec![
             Utxo {
                 outpoint: OutPoint {
                     txid: vec![
@@ -360,38 +431,41 @@ mod test {
                 value: 50_000_000,
                 height: 1,
             },
-        ])
-        .unwrap();
+        ]);
 
         let recipient = BitcoinAddress::parse(
             "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq",
-            BtcNetwork::Mainnet,
+            BitcoinNetwork::Mainnet,
         )
         .unwrap();
 
         let chain = Chain::new_btc_chain(
-            BtcNetwork::Regtest,
+            BitcoinNetwork::Regtest,
             subaccount,
             ECDSAPublicKey::new(ecdsa.clone()),
         )
         .unwrap();
 
-        ledger.insert_chain(ChainEnum::BTC(BtcNetwork::Regtest), chain.clone());
+        ledger.insert_chain(ChainEnum::BTC(BitcoinNetwork::Regtest), chain.clone());
 
-        let btc_chain = ledger.chain(&ChainEnum::BTC(BtcNetwork::Regtest)).unwrap();
+        let btc_chain = ledger
+            .chain(&ChainEnum::BTC(BitcoinNetwork::Regtest))
+            .unwrap();
 
-        let own_address = chain.btc().unwrap().btc_address().unwrap();
+        let own_address = chain.btc().unwrap().btc_address();
 
         assert_eq!(
             btc_chain.address(),
-            own_address.display(BtcNetwork::Mainnet)
+            own_address.display(BitcoinNetwork::Mainnet)
         );
 
         let public_key = chain.btc().unwrap().btc_public_key().unwrap();
 
-        let tx = utxos
+        let (tx, fee) = utxos
             .build_unsigned_transaction(&own_address, &recipient, 100_000_000, 2000)
             .unwrap();
+
+        assert!(fee > 0 && fee < 100_000_000);
 
         assert_eq!(
             public_key,

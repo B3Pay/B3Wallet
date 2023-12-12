@@ -4,21 +4,22 @@ pub mod btc;
 pub mod error;
 pub mod network;
 pub mod signature;
-pub mod test;
 pub mod tx;
 pub mod types;
 pub mod utils;
 pub mod utxos;
 
+#[cfg(test)]
+pub mod test;
+
 use address::BitcoinAddress;
 use candid::{CandidType, Deserialize};
 use ic_cdk::api::management_canister::bitcoin::MillisatoshiPerByte;
 use serde::Serialize;
-use serde_bytes::ByteBuf;
 use std::time::Duration;
 use types::Utxo;
 
-use self::network::BtcNetwork;
+use self::network::BitcoinNetwork;
 
 /// Time constants
 const SEC_NANOS: u64 = 1_000_000_000;
@@ -82,7 +83,7 @@ pub struct ECDSAPublicKey {
 
 struct SignTxRequest {
     key_name: String,
-    network: BtcNetwork,
+    network: BitcoinNetwork,
     ecdsa_public_key: ECDSAPublicKey,
     unsigned_tx: tx::UnsignedTransaction,
     /// The original requests that we keep around to place back to the queue
@@ -125,32 +126,15 @@ fn compute_min_withdrawal_amount(median_fee_rate_e3s: MillisatoshiPerByte) -> u6
         + 100_000
 }
 
-fn finalization_time_estimate(min_confirmations: u32, network: BtcNetwork) -> Duration {
+fn finalization_time_estimate(min_confirmations: u32, network: BitcoinNetwork) -> Duration {
     Duration::from_nanos(
         min_confirmations as u64
             * match network {
-                BtcNetwork::Mainnet => 10 * MIN_NANOS,
-                BtcNetwork::Testnet => MIN_NANOS,
-                BtcNetwork::Regtest => SEC_NANOS,
+                BitcoinNetwork::Mainnet => 10 * MIN_NANOS,
+                BitcoinNetwork::Testnet => MIN_NANOS,
+                BitcoinNetwork::Regtest => SEC_NANOS,
             },
     )
-}
-
-pub fn fake_sign(unsigned_tx: &tx::UnsignedTransaction) -> tx::SignedTransaction {
-    tx::SignedTransaction {
-        inputs: unsigned_tx
-            .inputs
-            .iter()
-            .map(|unsigned_input| tx::SignedInput {
-                previous_output: unsigned_input.previous_output.clone(),
-                sequence: unsigned_input.sequence,
-                signature: signature::EncodedSignature::fake(),
-                pubkey: ByteBuf::from(vec![0u8; tx::PUBKEY_LEN]),
-            })
-            .collect(),
-        outputs: unsigned_tx.outputs.clone(),
-        lock_time: unsigned_tx.lock_time,
-    }
 }
 
 /// Computes an estimate for the size of transaction (in vbytes) with the given number of inputs and outputs.

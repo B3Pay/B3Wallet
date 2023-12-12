@@ -6,8 +6,8 @@ use ic_cdk::api::management_canister::bitcoin::{bitcoin_send_transaction, SendTr
 use ic_cdk::api::{
     call::call_with_payment,
     management_canister::bitcoin::{
-        BitcoinNetwork, GetBalanceRequest, GetCurrentFeePercentilesRequest, GetUtxosRequest,
-        GetUtxosResponse, MillisatoshiPerByte, Satoshi, UtxoFilter,
+        BitcoinNetwork as IcBitcoinNetwork, GetBalanceRequest, GetCurrentFeePercentilesRequest,
+        GetUtxosRequest, GetUtxosResponse, MillisatoshiPerByte, Satoshi, UtxoFilter,
     },
 };
 use serde::Serialize;
@@ -22,23 +22,23 @@ use super::tx::SignedTransaction;
 #[derive(
     CandidType, Serialize, Deserialize, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy,
 )]
-pub enum BtcNetwork {
+pub enum BitcoinNetwork {
     Mainnet,
     Testnet,
     Regtest,
 }
 
-impl Default for BtcNetwork {
+impl Default for BitcoinNetwork {
     fn default() -> Self {
         Self::Regtest
     }
 }
 
-impl BtcNetwork {
+impl BitcoinNetwork {
     /// Get the fee percentile.
     /// This is used to calculate the fee rate.
     pub async fn fee_percentiles(&self) -> Result<Vec<MillisatoshiPerByte>, BitcoinError> {
-        let network = BitcoinNetwork::from(*self);
+        let network = IcBitcoinNetwork::from(*self);
 
         let (satoshies,): (Vec<MillisatoshiPerByte>,) = call_with_payment(
             Principal::management_canister(),
@@ -80,7 +80,7 @@ impl BtcNetwork {
         address: String,
         min_confirmations: Option<u32>,
     ) -> Result<Balance, BitcoinError> {
-        let network = BitcoinNetwork::from(*self);
+        let network = IcBitcoinNetwork::from(*self);
 
         let (satoshi,): (Satoshi,) = call_with_payment(
             Principal::management_canister(),
@@ -105,7 +105,7 @@ impl BtcNetwork {
         address: String,
         filter: Option<UtxoFilter>,
     ) -> Result<GetUtxosResponse, BitcoinError> {
-        let network = BitcoinNetwork::from(*self);
+        let network = IcBitcoinNetwork::from(*self);
 
         let (utxos,): (GetUtxosResponse,) = call_with_payment(
             Principal::management_canister(),
@@ -142,52 +142,52 @@ impl BtcNetwork {
     }
 }
 
-impl From<BitcoinNetwork> for BtcNetwork {
+impl From<BitcoinNetwork> for IcBitcoinNetwork {
     fn from(network: BitcoinNetwork) -> Self {
         match network {
-            BitcoinNetwork::Mainnet => BtcNetwork::Mainnet,
-            BitcoinNetwork::Testnet => BtcNetwork::Testnet,
-            BitcoinNetwork::Regtest => BtcNetwork::Regtest,
+            BitcoinNetwork::Mainnet => IcBitcoinNetwork::Mainnet,
+            BitcoinNetwork::Testnet => IcBitcoinNetwork::Testnet,
+            BitcoinNetwork::Regtest => IcBitcoinNetwork::Regtest,
         }
     }
 }
 
-impl From<bitcoin::Network> for BtcNetwork {
+impl From<bitcoin::Network> for BitcoinNetwork {
     fn from(network: bitcoin::Network) -> Self {
         match network {
-            bitcoin::Network::Bitcoin => BtcNetwork::Mainnet,
-            bitcoin::Network::Testnet => BtcNetwork::Testnet,
-            bitcoin::Network::Regtest => BtcNetwork::Regtest,
+            bitcoin::Network::Bitcoin => BitcoinNetwork::Mainnet,
+            bitcoin::Network::Testnet => BitcoinNetwork::Testnet,
+            bitcoin::Network::Regtest => BitcoinNetwork::Regtest,
             _ => panic!("Invalid network"),
         }
     }
 }
 
-impl From<BtcNetwork> for bitcoin::Network {
-    fn from(network: BtcNetwork) -> Self {
+impl From<BitcoinNetwork> for bitcoin::Network {
+    fn from(network: BitcoinNetwork) -> Self {
         match network {
-            BtcNetwork::Mainnet => bitcoin::Network::Bitcoin,
-            BtcNetwork::Testnet => bitcoin::Network::Testnet,
-            BtcNetwork::Regtest => bitcoin::Network::Regtest,
+            BitcoinNetwork::Mainnet => bitcoin::Network::Bitcoin,
+            BitcoinNetwork::Testnet => bitcoin::Network::Testnet,
+            BitcoinNetwork::Regtest => bitcoin::Network::Regtest,
         }
     }
 }
-impl From<BtcNetwork> for BitcoinNetwork {
-    fn from(network: BtcNetwork) -> Self {
+impl From<IcBitcoinNetwork> for BitcoinNetwork {
+    fn from(network: IcBitcoinNetwork) -> Self {
         match network {
-            BtcNetwork::Mainnet => BitcoinNetwork::Mainnet,
-            BtcNetwork::Testnet => BitcoinNetwork::Testnet,
-            BtcNetwork::Regtest => BitcoinNetwork::Regtest,
+            IcBitcoinNetwork::Mainnet => BitcoinNetwork::Mainnet,
+            IcBitcoinNetwork::Testnet => BitcoinNetwork::Testnet,
+            IcBitcoinNetwork::Regtest => BitcoinNetwork::Regtest,
         }
     }
 }
 
-impl fmt::Display for BtcNetwork {
+impl fmt::Display for BitcoinNetwork {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            BtcNetwork::Mainnet => write!(f, "mainnet"),
-            BtcNetwork::Testnet => write!(f, "testnet"),
-            BtcNetwork::Regtest => write!(f, "regtest"),
+            BitcoinNetwork::Mainnet => write!(f, "mainnet"),
+            BitcoinNetwork::Testnet => write!(f, "testnet"),
+            BitcoinNetwork::Regtest => write!(f, "regtest"),
         }
     }
 }

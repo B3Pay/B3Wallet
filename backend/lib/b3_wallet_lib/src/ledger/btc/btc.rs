@@ -7,7 +7,6 @@ use crate::ledger::subaccount::SubaccountEcdsaTrait;
 use crate::ledger::types::BtcPending;
 use b3_utils::vec_to_hex_string;
 use b3_utils::{ledger::ICRCAccount, Subaccount};
-use bitcoin::secp256k1::ecdsa::Signature;
 use bitcoin::PublicKey;
 use ic_cdk::api::management_canister::bitcoin::Satoshi;
 use ic_cdk::api::management_canister::bitcoin::{GetUtxosResponse, UtxoFilter};
@@ -15,9 +14,9 @@ use ic_cdk::println;
 use serde_bytes::ByteBuf;
 
 use super::error::BitcoinError;
-use super::network::BtcNetwork;
+use super::network::BitcoinNetwork;
 use super::tx::UnsignedTransaction;
-use super::utxos::BtcUtxos;
+use super::utxos::BitcoinUtxos;
 
 use candid::CandidType;
 use serde::{Deserialize, Serialize};
@@ -26,7 +25,7 @@ use serde::{Deserialize, Serialize};
 pub struct BtcChain {
     pub address: String,
     pub subaccount: Subaccount,
-    pub btc_network: BtcNetwork,
+    pub btc_network: BitcoinNetwork,
     pub pendings: Vec<BtcPending>,
     pub ecdsa_public_key: ECDSAPublicKey,
     pub min_confirmations: Option<u32>,
@@ -35,10 +34,8 @@ pub struct BtcChain {
 impl BtcChain {
     /// Get the Bitcoin P2WPKH Address based on the public key.
     /// This is the address that the canister uses to send and receive funds.
-    pub fn btc_address(&self) -> Result<BitcoinAddress, BitcoinError> {
-        let address = BitcoinAddress::P2wshV0(self.ecdsa_public_key.0);
-
-        Ok(address)
+    pub fn btc_address(&self) -> BitcoinAddress {
+        BitcoinAddress::P2wshV0(self.ecdsa_public_key.0)
     }
 
     /// Get PublicKey from the ecdsa_public_key
@@ -74,16 +71,14 @@ impl BtcChain {
         let dst_address = BitcoinAddress::parse(&dst_address, self.btc_network)
             .map_err(|err| BitcoinError::InvalidAddress(err.to_string()))?;
 
-        let own_address = self.btc_address()?;
-
         let utxo_res = self.get_utxos(None).await?;
 
-        let utxo = BtcUtxos::try_from(utxo_res)?;
+        let utxo = BitcoinUtxos::try_from(utxo_res)?;
 
         let fee_rate = self.btc_network.fee_rate(49).await?;
 
-        let unsigned_transaction =
-            utxo.build_unsigned_transaction(&own_address, &dst_address, amount, fee_rate)?;
+        let (unsigned_transaction, fee) =
+            utxo.build_unsigned_transaction(&self.btc_address(), &dst_address, amount, fee_rate)?;
 
         let signed_transaction = self.sign_transaction(unsigned_transaction).await?;
 
@@ -101,20 +96,6 @@ impl BtcChain {
         Ok(txid)
     }
 
-    /// Signs a message hash with the internet computer threshold signature.
-    /// The message hash is signed with the internet computer threshold signature.
-    async fn sign_btc_transaction(&self, message_hash: Vec<u8>) -> Result<Signature, BitcoinError> {
-        let sig = self
-            .subaccount
-            .sign_with_ecdsa(message_hash)
-            .await
-            .map_err(|err| BitcoinError::Signature(err.to_string()))?;
-
-        let signature = Signature::from_compact(&sig)
-            .map_err(|err| BitcoinError::Signature(err.to_string()))?;
-
-        Ok(signature)
-    }
     /// Gathers ECDSA signatures for all the inputs in the specified unsigned
     /// transaction.
     ///

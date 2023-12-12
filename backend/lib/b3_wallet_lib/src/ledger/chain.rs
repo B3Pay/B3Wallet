@@ -1,5 +1,5 @@
 use super::{
-    btc::{btc::BtcChain, network::BtcNetwork},
+    btc::{btc::BtcChain, network::BitcoinNetwork},
     ckbtc::ckbtc::CkbtcChain,
     ecdsa::ECDSAPublicKey,
     error::LedgerError,
@@ -57,7 +57,7 @@ impl Chain {
     }
 
     pub async fn new_ckbtc_chain(
-        btc_network: BtcNetwork,
+        btc_network: BitcoinNetwork,
         subaccount: Subaccount,
     ) -> Result<Self, LedgerError> {
         let ckbtc = CkbtcChain::new(btc_network, subaccount)
@@ -69,7 +69,7 @@ impl Chain {
     }
 
     pub fn new_btc_chain(
-        btc_network: BtcNetwork,
+        btc_network: BitcoinNetwork,
         subaccount: Subaccount,
         ecdsa_public_key: ECDSAPublicKey,
     ) -> Result<Self, LedgerError> {

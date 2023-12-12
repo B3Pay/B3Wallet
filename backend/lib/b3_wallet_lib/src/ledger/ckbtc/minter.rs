@@ -1,4 +1,4 @@
-use crate::ledger::btc::network::BtcNetwork;
+use crate::ledger::btc::network::BitcoinNetwork;
 
 use super::{
     error::MinterError,
@@ -17,18 +17,18 @@ use ic_cdk::api::call::call;
 use serde::{Deserialize, Serialize};
 
 #[derive(CandidType, Clone, Serialize, Deserialize, PartialEq, Debug)]
-pub struct Minter(pub BtcNetwork);
+pub struct Minter(pub BitcoinNetwork);
 
 impl Minter {
-    pub fn new(network: BtcNetwork) -> Self {
+    pub fn new(network: BitcoinNetwork) -> Self {
         Self(network)
     }
 
     pub fn canister_id(&self) -> CanisterId {
         match self.0 {
-            BtcNetwork::Testnet => CKBTC_MINTER_CANISTER_TESTNET,
-            BtcNetwork::Regtest => CKBTC_MINTER_CANISTER_MAINNET,
-            BtcNetwork::Mainnet => CKBTC_MINTER_CANISTER_MAINNET,
+            BitcoinNetwork::Testnet => CKBTC_MINTER_CANISTER_TESTNET,
+            BitcoinNetwork::Regtest => CKBTC_MINTER_CANISTER_MAINNET,
+            BitcoinNetwork::Mainnet => CKBTC_MINTER_CANISTER_MAINNET,
         }
     }
 
