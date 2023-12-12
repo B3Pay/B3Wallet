@@ -55,7 +55,7 @@ impl BtcChain {
     }
 
     /// Get the UTXOs of the canister's bitcoin wallet.
-    /// This is the list of all the UTXOs that the canister owns.
+    /// This is the list of all the UTXOs that this Address has.
     pub async fn get_utxos(
         &self,
         filter: Option<UtxoFilter>,

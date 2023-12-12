@@ -13,7 +13,6 @@ pub mod utxos;
 use address::BitcoinAddress;
 use candid::{CandidType, Deserialize};
 use ic_cdk::api::management_canister::bitcoin::MillisatoshiPerByte;
-use memo::Status;
 use num_traits::ToPrimitive;
 use serde::Serialize;
 use serde_bytes::ByteBuf;
@@ -92,9 +91,24 @@ struct SignTxRequest {
     outpoint_account: BTreeMap<OutPoint, Account>,
     /// The original requests that we keep around to place back to the queue
     /// if the signature fails.
-    requests: Vec<state::RetrieveBtcRequest>,
+    requests: Vec<RetrieveBtcRequest>,
     /// The list of UTXOs we use as transaction inputs.
     utxos: Vec<Utxo>,
+}
+
+// A pending retrieve btc request
+#[derive(candid::CandidType, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RetrieveBtcRequest {
+    /// The amount to convert to BTC.
+    /// The minter withdraws BTC transfer fees from this amount.
+    pub amount: u64,
+    /// The destination BTC address.
+    pub address: BitcoinAddress,
+    /// The BURN transaction index on the ledger.
+    /// Serves as a unique request identifier.
+    pub block_index: u64,
+    /// The time at which the minter accepted the request.
+    pub received_at: u64,
 }
 
 /// Updates the UTXOs for the main account of the minter to pick up change from

@@ -11,30 +11,6 @@ use ic_cdk::api::management_canister::bitcoin::{GetUtxosResponse, Utxo};
 
 pub struct BtcUtxos(Vec<Utxo>);
 
-impl TryFrom<GetUtxosResponse> for BtcUtxos {
-    type Error = BitcoinError;
-
-    fn try_from(utxos: GetUtxosResponse) -> Result<Self, Self::Error> {
-        if utxos.utxos.is_empty() {
-            return Err(BitcoinError::NoUtxos);
-        }
-
-        Ok(Self(utxos.utxos))
-    }
-}
-
-impl TryFrom<Vec<Utxo>> for BtcUtxos {
-    type Error = BitcoinError;
-
-    fn try_from(utxos: Vec<Utxo>) -> Result<Self, Self::Error> {
-        if utxos.is_empty() {
-            return Err(BitcoinError::NoUtxos);
-        }
-
-        Ok(Self(utxos))
-    }
-}
-
 impl BtcUtxos {
     pub fn build_transaction(
         &self,
@@ -128,6 +104,30 @@ impl BtcUtxos {
         }
 
         Ok(transaction)
+    }
+}
+
+impl TryFrom<GetUtxosResponse> for BtcUtxos {
+    type Error = BitcoinError;
+
+    fn try_from(utxos: GetUtxosResponse) -> Result<Self, Self::Error> {
+        if utxos.utxos.is_empty() {
+            return Err(BitcoinError::NoUtxos);
+        }
+
+        Ok(Self(utxos.utxos))
+    }
+}
+
+impl TryFrom<Vec<Utxo>> for BtcUtxos {
+    type Error = BitcoinError;
+
+    fn try_from(utxos: Vec<Utxo>) -> Result<Self, Self::Error> {
+        if utxos.is_empty() {
+            return Err(BitcoinError::NoUtxos);
+        }
+
+        Ok(Self(utxos))
     }
 }
 
