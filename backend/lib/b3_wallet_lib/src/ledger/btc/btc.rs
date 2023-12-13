@@ -83,8 +83,9 @@ impl BtcChain {
         let signed_transaction = self.sign_transaction(unsigned_transaction).await?;
 
         println!(
-            "Signed transaction: {}",
-            hex::encode(signed_transaction.serialize())
+            "Signed transaction {} with fee: {} satoshi",
+            vec_to_hex_string(signed_transaction.serialize()),
+            fee
         );
 
         self.btc_network
