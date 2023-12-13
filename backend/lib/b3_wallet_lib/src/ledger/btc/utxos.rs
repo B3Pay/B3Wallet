@@ -6,7 +6,7 @@ use super::{
     tx::{TxOut, UnsignedTransaction},
     types::{OutPoint, Satoshi, Utxo},
 };
-use crate::ledger::btc::{tx::UnsignedInput, tx_vsize_estimate};
+use crate::ledger::btc::{tx::UnsignedInput, utils::tx_vsize_estimate};
 use ic_cdk::api::management_canister::bitcoin::GetUtxosResponse;
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -211,10 +211,13 @@ impl BitcoinUtxos {
         debug_assert!(inputs_value >= amount);
 
         let tx_outputs: Vec<TxOut> = vec![
+            // The first output is the receiver's address.
             TxOut {
                 address: dst_address.clone(),
                 value: amount,
             },
+            // The second output is the change.
+            // The change is sent back to the owner address.
             TxOut {
                 address: own_address.clone(),
                 value: inputs_value - amount,

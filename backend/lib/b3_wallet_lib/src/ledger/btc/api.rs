@@ -35,7 +35,7 @@ impl ChainTrait for BtcChain {
         let result = self.transfer(to, amount).await;
 
         match result {
-            Ok(txid) => Ok(SendResult::BTC(vec_to_hex_string(txid))),
+            Ok((txid, _)) => Ok(SendResult::BTC(vec_to_hex_string(txid))),
             Err(err) => Err(LedgerError::BitcoinError(err)),
         }
     }

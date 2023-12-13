@@ -67,7 +67,7 @@ impl BtcChain {
         &self,
         dst_address: String,
         amount: Satoshi,
-    ) -> Result<[u8; 32], BitcoinError> {
+    ) -> Result<([u8; 32], u64), BitcoinError> {
         let dst_address = BitcoinAddress::parse(&dst_address, self.btc_network)
             .map_err(|err| BitcoinError::InvalidAddress(err.to_string()))?;
 
@@ -93,7 +93,7 @@ impl BtcChain {
 
         let txid = signed_transaction.wtxid();
 
-        Ok(txid)
+        Ok((txid, fee))
     }
 
     /// Gathers ECDSA signatures for all the inputs in the specified unsigned
@@ -149,7 +149,7 @@ impl BtcChain {
             .await
             .map_err(|err| BitcoinError::SwapToCkbtc(err.to_string()))?;
 
-        let txid_bytes = self
+        let (txid_bytes, _) = self
             .transfer(dst_address, amount)
             .await
             .map_err(|err| BitcoinError::SwapToCkbtc(err.to_string()))?;
