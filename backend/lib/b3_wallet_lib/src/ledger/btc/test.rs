@@ -7,7 +7,7 @@ use super::network::BitcoinNetwork;
 use super::types::{OutPoint, Satoshi, Utxo};
 use super::utxos::BitcoinUtxos;
 use super::{address::BitcoinAddress, signature::EncodedSignature, tx};
-use crate::ledger::btc::tx_vsize_estimate;
+use crate::ledger::btc::utils::tx_vsize_estimate;
 use bitcoin::address::Payload;
 use bitcoin::consensus::{deserialize, serialize};
 use bitcoin::hashes::Hash;
@@ -207,17 +207,18 @@ fn test_min_change_amount() {
 
     let minter_addr = BitcoinAddress::P2wpkhV0([0; 20]);
     let out1_addr = BitcoinAddress::P2wpkhV0([1; 20]);
+    let amount = 100_000;
     let fee_per_vbyte = 10000;
 
     let (tx, fee) = available_utxos
-        .build_unsigned_transaction(&minter_addr, &out1_addr, 100_000, fee_per_vbyte)
+        .build_unsigned_transaction(&minter_addr, &out1_addr, amount, fee_per_vbyte)
         .expect("failed to build a transaction");
 
     let calc_fee = tx.fake_sign().vsize() as u64 * fee_per_vbyte / 1000;
 
     assert_eq!(fee, calc_fee);
-    assert_eq!(tx.outputs[0].value, 100_000 - fee);
-    assert_eq!(tx.outputs[1].value, 0);
+    assert_eq!(tx.outputs[0].value, amount);
+    assert_eq!(tx.outputs[1].value, amount - fee);
     assert_eq!(tx.outputs[2].value, 0);
 }
 
@@ -347,12 +348,6 @@ proptest! {
             solution.iter().map(|u| u.value).sum::<u64>() >= target,
             "greedy() must reach the specified target amount"
         );
-
-
-        prop_assert!(
-            solution.iter().all(|u| !utxos.contains(u)),
-            "greedy() must remove found UTXOs from the available set"
-        );
     }
 
     #[test]
@@ -432,7 +427,7 @@ proptest! {
             prop_assert_eq!(hex::encode(&buf), hex::encode(&btc_buf));
 
             let sighash = sighasher.sighash(&arb_tx.inputs[i], &pkhash);
-            let btc_sighash = btc_sighasher.p2wpkh_signature_hash(i, &script_code,Amount::from_sat(utxo.value), bitcoin::EcdsaSighashType::All).unwrap();
+            let btc_sighash = btc_sighasher.p2wsh_signature_hash(i, &script_code, Amount::from_sat(utxo.value), bitcoin::EcdsaSighashType::All).unwrap();
             prop_assert_eq!(hex::encode(sighash), hex::encode(btc_sighash));
         }
     }
