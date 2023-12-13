@@ -2,15 +2,14 @@ use crate::ledger::btc::address::BitcoinAddress;
 use crate::ledger::btc::signature;
 use crate::ledger::btc::tx::{hash160, SignedInput, SignedTransaction, TxSigHasher};
 use crate::ledger::ckbtc::minter::Minter;
-use crate::ledger::ecdsa::ECDSAPublicKey;
 use crate::ledger::subaccount::SubaccountEcdsaTrait;
 use crate::ledger::types::BtcPending;
 use b3_utils::vec_to_hex_string;
 use b3_utils::{ledger::ICRCAccount, Subaccount};
-use bitcoin::PublicKey;
 use ic_cdk::api::management_canister::bitcoin::Satoshi;
 use ic_cdk::api::management_canister::bitcoin::{GetUtxosResponse, UtxoFilter};
 use ic_cdk::println;
+use libsecp256k1::PublicKey;
 use serde_bytes::ByteBuf;
 
 use super::error::BitcoinError;
@@ -18,33 +17,30 @@ use super::network::BitcoinNetwork;
 use super::tx::UnsignedTransaction;
 use super::utxos::BitcoinUtxos;
 
-use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
-#[derive(CandidType, Clone, Serialize, Deserialize, PartialEq, Debug)]
+#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 pub struct BtcChain {
     pub address: String,
     pub subaccount: Subaccount,
     pub btc_network: BitcoinNetwork,
     pub pendings: Vec<BtcPending>,
-    pub ecdsa_public_key: ECDSAPublicKey,
+    pub ecdsa_public_key: PublicKey,
     pub min_confirmations: Option<u32>,
 }
 
 impl BtcChain {
     /// Get the Bitcoin P2WPKH Address based on the public key.
     /// This is the address that the canister uses to send and receive funds.
-    pub fn btc_address(&self) -> BitcoinAddress {
-        BitcoinAddress::P2wshV0(self.ecdsa_public_key.0)
+    pub fn btc_address(&self) -> Result<BitcoinAddress, BitcoinError> {
+        BitcoinAddress::new(self.btc_network, self.ecdsa_public_key)
+            .map_err(|err| BitcoinError::InvalidAddress(err.to_string()))
     }
 
     /// Get PublicKey from the ecdsa_public_key
     /// This is the public key that the canister uses to send and receive funds.
     pub fn btc_public_key(&self) -> Result<PublicKey, BitcoinError> {
-        let public_key = self
-            .ecdsa_public_key
-            .btc_public_key()
-            .map_err(|err| BitcoinError::InvalidPublicKey(err.to_string()))?;
+        let public_key = self.ecdsa_public_key;
 
         Ok(public_key)
     }
@@ -77,8 +73,10 @@ impl BtcChain {
 
         let fee_rate = self.btc_network.fee_rate(49).await?;
 
+        let address = self.btc_address()?;
+
         let (unsigned_transaction, fee) =
-            utxo.build_unsigned_transaction(&self.btc_address(), &dst_address, amount, fee_rate)?;
+            utxo.build_unsigned_transaction(&address, &dst_address, amount, fee_rate)?;
 
         let signed_transaction = self.sign_transaction(unsigned_transaction).await?;
 
@@ -114,7 +112,7 @@ impl BtcChain {
         for input in &unsigned_tx.inputs {
             let outpoint = &input.previous_output;
 
-            let pubkey = ByteBuf::from(self.ecdsa_public_key.to_bytes());
+            let pubkey = ByteBuf::from(self.ecdsa_public_key.serialize());
             let pkhash = hash160(&pubkey);
 
             let sighash = sighasher.sighash(input, &pkhash);

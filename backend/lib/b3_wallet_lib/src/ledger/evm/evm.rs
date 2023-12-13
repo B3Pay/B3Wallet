@@ -7,12 +7,9 @@ use super::error::EvmError;
 use super::legacy::EvmTransactionLegacy;
 use super::london::EvmTransaction1559;
 use super::utils::{string_to_vec_u8, vec_u8_to_string};
-use bitcoin::secp256k1::{
-    ecdsa::{RecoverableSignature, RecoveryId},
-    Message, PublicKey, Secp256k1,
-};
 use candid::{CandidType, Deserialize};
 use enum_dispatch::enum_dispatch;
+use libsecp256k1::{recover, Message, PublicKey, RecoveryId, Signature};
 
 #[enum_dispatch]
 pub trait EvmSignTrait {
@@ -93,30 +90,27 @@ pub fn get_recovery_id(
     message: &[u8],
     signature: &[u8],
     public_key: &PublicKey,
-) -> Result<u8, EvmError> {
+) -> Result<RecoveryId, EvmError> {
     let message =
-        Message::from_slice(message).map_err(|err| EvmError::InvalidMessage(err.to_string()))?;
+        Message::parse_slice(message).map_err(|err| EvmError::InvalidMessage(err.to_string()))?;
 
-    let secp = Secp256k1::verification_only();
+    let signature = Signature::parse_overflowing_slice(signature)
+        .map_err(|err| EvmError::InvalidSignature(err.to_string()))?;
 
     for i in 0..4 {
         let recovery_id =
-            RecoveryId::from_i32(i).map_err(|err| EvmError::InvalidRecoveryId(err.to_string()))?;
+            RecoveryId::parse(i).map_err(|err| EvmError::InvalidRecoveryId(err.to_string()))?;
 
-        let signature = RecoverableSignature::from_compact(signature, recovery_id)
+        let recovered_public_key = recover(&message, &signature, &recovery_id)
             .map_err(|err| EvmError::InvalidSignature(err.to_string()))?;
 
-        let recovered_key = secp
-            .recover_ecdsa(&message, &signature)
-            .map_err(|err| EvmError::InvalidSignature(err.to_string()))?;
-
-        if recovered_key.eq(&public_key) {
-            return Ok(i as u8);
+        if recovered_public_key.eq(public_key) {
+            return Ok(recovery_id);
         }
     }
 
-    Err(EvmError::InvalidSignature(
-        "Not able to recover public key".to_string(),
+    Err(EvmError::InvalidRecoveryId(
+        "recovery id not found".to_string(),
     ))
 }
 
@@ -164,7 +158,7 @@ impl Ledger {
         hex_raw_tx: Vec<u8>,
         chain_id: u64,
     ) -> Result<Vec<u8>, LedgerError> {
-        let public_key = self.eth_public_key()?;
+        let public_key = self.public_key()?;
 
         let mut evm_tx =
             get_evm_transaction(&hex_raw_tx, chain_id).map_err(LedgerError::EvmError)?;
@@ -178,7 +172,7 @@ impl Ledger {
         let signature = self.subaccount.sign_with_ecdsa(message).await?;
 
         let signed_evm_tx = evm_tx
-            .sign(signature, public_key)
+            .sign(signature, public_key.clone())
             .map_err(LedgerError::EvmError)?;
 
         Ok(signed_evm_tx)
@@ -191,17 +185,18 @@ mod tests {
 
     #[test]
     fn get_recovery_id_valid() {
-        let expected = 0;
+        let expected = RecoveryId::parse(0).unwrap();
 
         let pub_key =
             string_to_vec_u8("02c397f23149d3464517d57b7cdc8e287428407f9beabfac731e7c24d536266cd1");
 
-        let public_key = PublicKey::from_slice(&pub_key).unwrap();
+        let public_key = PublicKey::parse_slice(&pub_key, None).unwrap();
 
         let signature =string_to_vec_u8("29edd4e1d65e1b778b464112d2febc6e97bb677aba5034408fd27b49921beca94c4e5b904d58553bcd9c788360e0bd55c513922cf1f33a6386033e886cd4f77f");
         let message =
             string_to_vec_u8("79965df63d7d9364f4bc8ed54ffd1c267042d4db673e129e3c459afbcb73a6f1");
         let result = get_recovery_id(&message, &signature, &public_key).unwrap();
+
         assert_eq!(result, expected);
     }
 
@@ -214,7 +209,7 @@ mod tests {
         let pub_key =
             string_to_vec_u8("02c397f23149d3464517d57b7cdc8e287428407f9beabfac731e7c24d536266cd1");
 
-        let public_key = PublicKey::from_slice(&pub_key).unwrap();
+        let public_key = PublicKey::parse_slice(&pub_key, None).unwrap();
 
         let signature = string_to_vec_u8("");
         let message =
@@ -233,7 +228,7 @@ mod tests {
         let pub_key =
             string_to_vec_u8("02c397f23149d3464517d57b7cdc8e287428407f9beabfac731e7c24d536266cd1");
 
-        let public_key = PublicKey::from_slice(&pub_key).unwrap();
+        let public_key = PublicKey::parse_slice(&pub_key, None).unwrap();
 
         let signature = string_to_vec_u8("29edd4e1d65e1b778b464112d2febc6e97bb677aba5034408fd27b49921beca94c4e5b904d58553bcd9c788360e0bd55c513922cf1f33a6386033e886cd4f77f");
         let message = string_to_vec_u8("");

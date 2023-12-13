@@ -105,7 +105,9 @@ impl BitcoinUtxos {
         let mut total_value = 0u64;
         let mut total_fee = 0u64;
 
-        for utxo in self.0.iter().rev() {
+        println!("total value: {}", self.iter().map(|u| u.value).sum::<u64>());
+
+        for utxo in self.iter() {
             selected_utxos.push(utxo.clone());
             total_value += utxo.value;
 
@@ -264,13 +266,13 @@ mod test {
         btc::types::OutPoint,
         btc::{network::BitcoinNetwork, utxos::BitcoinUtxos},
         chain::{Chain, ChainTrait},
-        ecdsa::ECDSAPublicKey,
         ledger::Ledger,
         types::{ChainEnum, ChainMap},
     };
 
     use super::*;
     use b3_utils::{ledger::AccountIdentifier, mocks::id_mock, Subaccount};
+    use libsecp256k1::PublicKey;
 
     #[test]
     fn test_build_unsigned_transaction() {
@@ -295,12 +297,12 @@ mod test {
             chains,
         };
 
-        let ecdsa = vec![
+        let ecdsa = [
             3, 94, 114, 171, 76, 217, 209, 126, 120, 169, 209, 205, 226, 55, 21, 238, 204, 199,
             153, 192, 65, 30, 59, 177, 153, 39, 80, 76, 185, 200, 51, 255, 218,
         ];
 
-        ledger.set_ecdsa_public_key(ecdsa.clone()).unwrap();
+        ledger.set_ecdsa_public_key(ecdsa.to_vec()).unwrap();
 
         let utxos = BitcoinUtxos::from(vec![
             Utxo {
@@ -309,7 +311,7 @@ mod test {
                         139, 171, 81, 80, 180, 153, 27, 232, 110, 73, 221, 62, 162, 144, 67, 185,
                         61, 207, 175, 9, 26, 144, 153, 242, 243, 148, 56, 186, 112, 246, 164, 230,
                     ],
-                    vout: 0,
+                    vout: 7,
                 },
                 value: 10_000_000,
                 height: 0,
@@ -318,9 +320,9 @@ mod test {
                 outpoint: OutPoint {
                     txid: vec![
                         139, 171, 81, 80, 180, 153, 27, 232, 110, 73, 221, 62, 162, 144, 67, 185,
-                        61, 207, 175, 9, 26, 144, 153, 242, 243, 148, 56, 186, 112, 246, 164, 230,
+                        61, 207, 175, 9, 26, 144, 153, 242, 243, 148, 56, 186, 112, 246, 164, 231,
                     ],
-                    vout: 0,
+                    vout: 6,
                 },
                 value: 10_000_000,
                 height: 0,
@@ -329,9 +331,9 @@ mod test {
                 outpoint: OutPoint {
                     txid: vec![
                         139, 171, 81, 80, 180, 153, 27, 232, 110, 73, 221, 62, 162, 144, 67, 185,
-                        61, 207, 175, 9, 26, 144, 153, 242, 243, 148, 56, 186, 112, 246, 164, 230,
+                        61, 207, 175, 9, 26, 144, 153, 242, 243, 148, 56, 186, 112, 246, 164, 232,
                     ],
-                    vout: 0,
+                    vout: 5,
                 },
                 value: 10_000_000,
                 height: 0,
@@ -340,9 +342,9 @@ mod test {
                 outpoint: OutPoint {
                     txid: vec![
                         139, 171, 81, 80, 180, 153, 27, 232, 110, 73, 221, 62, 162, 144, 67, 185,
-                        61, 207, 175, 9, 26, 144, 153, 242, 243, 148, 56, 186, 112, 246, 164, 230,
+                        61, 207, 175, 9, 26, 144, 153, 242, 243, 148, 56, 186, 112, 246, 164, 233,
                     ],
-                    vout: 0,
+                    vout: 4,
                 },
                 value: 10_000_000,
                 height: 0,
@@ -351,9 +353,9 @@ mod test {
                 outpoint: OutPoint {
                     txid: vec![
                         139, 171, 81, 80, 180, 153, 27, 232, 110, 73, 221, 62, 162, 144, 67, 185,
-                        61, 207, 175, 9, 26, 144, 153, 242, 243, 148, 56, 186, 112, 246, 164, 230,
+                        61, 207, 175, 9, 26, 144, 153, 242, 243, 148, 56, 186, 112, 246, 164, 234,
                     ],
-                    vout: 0,
+                    vout: 3,
                 },
                 value: 10_000_000,
                 height: 0,
@@ -362,9 +364,9 @@ mod test {
                 outpoint: OutPoint {
                     txid: vec![
                         139, 171, 81, 80, 180, 153, 27, 232, 110, 73, 221, 62, 162, 144, 67, 185,
-                        61, 207, 175, 9, 26, 144, 153, 242, 243, 148, 56, 186, 112, 246, 164, 230,
+                        61, 207, 175, 9, 26, 144, 153, 242, 243, 148, 56, 186, 112, 246, 164, 235,
                     ],
-                    vout: 0,
+                    vout: 2,
                 },
                 value: 10_000_000,
                 height: 0,
@@ -391,7 +393,7 @@ mod test {
         let chain = Chain::new_btc_chain(
             BitcoinNetwork::Regtest,
             subaccount,
-            ECDSAPublicKey::new(ecdsa.clone()),
+            PublicKey::parse_compressed(&ecdsa).unwrap(),
         )
         .unwrap();
 
@@ -401,11 +403,11 @@ mod test {
             .chain(&ChainEnum::BTC(BitcoinNetwork::Regtest))
             .unwrap();
 
-        let own_address = chain.btc().unwrap().btc_address();
+        let own_address = chain.btc().unwrap().btc_address().unwrap();
 
         assert_eq!(
             btc_chain.address(),
-            own_address.display(BitcoinNetwork::Mainnet)
+            own_address.display(BitcoinNetwork::Regtest)
         );
 
         let public_key = chain.btc().unwrap().btc_public_key().unwrap();
@@ -414,12 +416,11 @@ mod test {
             .build_unsigned_transaction(&own_address, &recipient, 100_000_000, 2000)
             .unwrap();
 
+        println!("fee: {}", fee);
+
         assert!(fee > 0 && fee < 100_000_000);
 
-        assert_eq!(
-            public_key,
-            ECDSAPublicKey::new(ecdsa).btc_public_key().unwrap()
-        );
+        assert_eq!(public_key, PublicKey::parse_compressed(&ecdsa).unwrap(),);
 
         assert_eq!(tx.inputs.len(), 7);
 

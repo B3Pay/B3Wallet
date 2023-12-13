@@ -3,8 +3,8 @@ use super::evm::{decode_access_list, encode_access_list, get_recovery_id, EvmSig
 use super::utils::{
     remove_leading, string_to_vec_u8, u64_to_vec_u8, vec_u8_to_string, vec_u8_to_u64,
 };
-use bitcoin::secp256k1::PublicKey;
 use candid::{CandidType, Deserialize};
+use libsecp256k1::{PublicKey, RecoveryId};
 use tiny_keccak::{Hasher, Keccak};
 
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
@@ -93,7 +93,7 @@ impl EvmSignTrait for EvmTransaction1559 {
         let recovery_id = get_recovery_id(&message, &signature, &public_key)?;
 
         let v: String;
-        if recovery_id == 0 {
+        if recovery_id == RecoveryId::parse(0).unwrap() {
             v = "".to_string();
         } else {
             v = "01".to_string();

@@ -1,7 +1,7 @@
 use super::{
     btc::{btc::BtcChain, network::BitcoinNetwork},
     ckbtc::ckbtc::CkbtcChain,
-    ecdsa::ECDSAPublicKey,
+    ecdsa::ChainAddress,
     error::LedgerError,
     evm::api::EvmChain,
     icp::icp::IcpChain,
@@ -10,8 +10,8 @@ use super::{
 };
 use async_trait::async_trait;
 use b3_utils::{ledger::currency::TokenAmount, types::CanisterId, Environment, Subaccount};
-use candid::CandidType;
 use enum_dispatch::enum_dispatch;
+use libsecp256k1::PublicKey;
 use serde::{Deserialize, Serialize};
 
 #[async_trait]
@@ -28,7 +28,7 @@ pub trait ChainTrait {
 }
 
 #[enum_dispatch(ChainTrait)]
-#[derive(CandidType, Clone, Serialize, Deserialize, PartialEq, Debug)]
+#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 pub enum Chain {
     CkbtcChain,
     IcrcChain,
@@ -71,11 +71,9 @@ impl Chain {
     pub fn new_btc_chain(
         btc_network: BitcoinNetwork,
         subaccount: Subaccount,
-        ecdsa_public_key: ECDSAPublicKey,
+        ecdsa_public_key: PublicKey,
     ) -> Result<Self, LedgerError> {
-        let address = ecdsa_public_key
-            .btc_address(btc_network.into())?
-            .to_string();
+        let address = ecdsa_public_key.btc_address(btc_network.into())?;
 
         let chain = Chain::BtcChain(BtcChain {
             min_confirmations: None,

@@ -2,7 +2,6 @@ use super::{
     btc::network::BitcoinNetwork, btc::types::BtcTxId, chain::Chain, icrc::types::TxIndex,
 };
 use b3_utils::types::CanisterId;
-use bitcoin::{AddressType, Transaction, TxIn, TxOut};
 use candid::{CandidType, Nat};
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
@@ -12,14 +11,6 @@ use std::fmt;
 pub type ChainId = u64;
 
 pub type Balance = Nat;
-
-pub type BtcAddressType = AddressType;
-
-pub type BtcTransaction = Transaction;
-
-pub type BtcTxIn = TxIn;
-
-pub type BtcTxOut = TxOut;
 
 pub type ChainMap = BTreeMap<ChainEnum, Chain>;
 

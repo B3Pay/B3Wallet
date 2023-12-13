@@ -3,8 +3,8 @@ use super::evm::{get_recovery_id, EvmSignTrait};
 use super::utils::{
     remove_leading, string_to_vec_u8, u64_to_vec_u8, vec_u8_to_string, vec_u8_to_u64,
 };
-use bitcoin::secp256k1::PublicKey;
 use candid::{CandidType, Deserialize};
+use libsecp256k1::PublicKey;
 use tiny_keccak::{Hasher, Keccak};
 
 #[derive(CandidType, Clone, Deserialize, Debug, PartialEq)]
@@ -82,7 +82,7 @@ impl EvmSignTrait for EvmTransactionLegacy {
         let message = self.unsigned_serialized();
         let recovery_id = get_recovery_id(&message, &signature, &public_key)?;
 
-        let v_number = chain_id * 2 + 35 + u64::try_from(recovery_id).unwrap();
+        let v_number = chain_id * 2 + 35 + u64::from(recovery_id.serialize());
         let v = vec_u8_to_string(&u64_to_vec_u8(&v_number));
 
         self.v = v;

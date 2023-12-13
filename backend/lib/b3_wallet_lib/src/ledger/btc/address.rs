@@ -3,6 +3,7 @@
 use b3_utils::{ledger::ICRCAccount, sha2::Sha256};
 use bech32::Variant;
 
+use libsecp256k1::PublicKey;
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
 use std::fmt;
@@ -44,6 +45,22 @@ enum WitnessVersion {
 }
 
 impl BitcoinAddress {
+    pub fn new(
+        network: BitcoinNetwork,
+        public_key: PublicKey,
+    ) -> Result<BitcoinAddress, ParseAddressError> {
+        let address = network_and_public_key_to_p2wpkh(network, &public_key.serialize_compressed());
+        BitcoinAddress::parse(&address, network)
+    }
+
+    pub fn new_legacy(
+        network: BitcoinNetwork,
+        public_key: PublicKey,
+    ) -> Result<BitcoinAddress, ParseAddressError> {
+        let address = network_and_public_key_to_p2pkh(network, &public_key.serialize_compressed());
+        BitcoinAddress::parse(&address, network)
+    }
+
     /// Converts the address to the textual representation.
     pub fn display(&self, network: BitcoinNetwork) -> String {
         match self {
@@ -142,6 +159,25 @@ pub fn network_and_public_key_to_p2wpkh(network: BitcoinNetwork, public_key: &[u
     assert_eq!(public_key.len(), 33);
     assert!(public_key[0] == 0x02 || public_key[0] == 0x03);
     encode_bech32(network, &super::tx::hash160(public_key), WitnessVersion::V0)
+}
+
+pub fn network_and_public_key_to_p2pkh(network: BitcoinNetwork, public_key: &[u8]) -> String {
+    // Step 1: Hash the public key
+    let ripemd160_hash = super::tx::hash160(public_key);
+
+    // Step 2: Add network prefix
+    let mut address = Vec::with_capacity(21);
+    address.push(match network {
+        BitcoinNetwork::Mainnet => BTC_MAINNET_PREFIX,
+        BitcoinNetwork::Testnet | BitcoinNetwork::Regtest => BTC_TESTNET_PREFIX,
+    });
+    address.extend_from_slice(&ripemd160_hash);
+
+    // Step 3: Perform Base58Check encoding
+    let checksum = Sha256::hash(&Sha256::hash(&address));
+    address.extend_from_slice(&checksum[0..4]);
+
+    bs58::encode(address).into_string()
 }
 
 /// Returns the human-readable part of a bech32 address

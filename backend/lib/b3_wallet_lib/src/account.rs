@@ -3,7 +3,6 @@ use b3_utils::{
     ledger::{Metadata, Value},
     Environment, Subaccount,
 };
-use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
 impl From<&WalletAccount> for WalletAccountView {
@@ -20,7 +19,7 @@ impl From<&WalletAccount> for WalletAccountView {
     }
 }
 
-#[derive(CandidType, Serialize, Clone, Deserialize)]
+#[derive(Serialize, Clone, Deserialize)]
 pub struct WalletAccount {
     id: String,
     name: String,

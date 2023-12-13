@@ -152,26 +152,6 @@ impl From<BitcoinNetwork> for IcBitcoinNetwork {
     }
 }
 
-impl From<bitcoin::Network> for BitcoinNetwork {
-    fn from(network: bitcoin::Network) -> Self {
-        match network {
-            bitcoin::Network::Bitcoin => BitcoinNetwork::Mainnet,
-            bitcoin::Network::Testnet => BitcoinNetwork::Testnet,
-            bitcoin::Network::Regtest => BitcoinNetwork::Regtest,
-            _ => panic!("Invalid network"),
-        }
-    }
-}
-
-impl From<BitcoinNetwork> for bitcoin::Network {
-    fn from(network: BitcoinNetwork) -> Self {
-        match network {
-            BitcoinNetwork::Mainnet => bitcoin::Network::Bitcoin,
-            BitcoinNetwork::Testnet => bitcoin::Network::Testnet,
-            BitcoinNetwork::Regtest => bitcoin::Network::Regtest,
-        }
-    }
-}
 impl From<IcBitcoinNetwork> for BitcoinNetwork {
     fn from(network: IcBitcoinNetwork) -> Self {
         match network {

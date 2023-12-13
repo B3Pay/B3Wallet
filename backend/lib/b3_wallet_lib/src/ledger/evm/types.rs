@@ -1,5 +1,5 @@
 use b3_utils::vec_to_hex_string_with_0x;
-use bitcoin::secp256k1::PublicKey;
+use libsecp256k1::PublicKey;
 use tiny_keccak::{Hasher, Keccak};
 
 pub trait PublicKeyTrait {
@@ -9,7 +9,7 @@ pub trait PublicKeyTrait {
 
 impl PublicKeyTrait for PublicKey {
     fn to_address(&self) -> String {
-        let pub_key = self.serialize_uncompressed();
+        let pub_key = self.serialize();
 
         let mut keccak = Keccak::v256();
         keccak.update(&pub_key[1..]);
@@ -23,7 +23,7 @@ impl PublicKeyTrait for PublicKey {
     }
 
     fn to_evm_key(&self) -> Vec<u8> {
-        let pub_key = self.serialize_uncompressed();
+        let pub_key = self.serialize();
 
         let mut keccak = Keccak::v256();
         keccak.update(&pub_key[1..]);

@@ -1,19 +1,17 @@
 use super::{
     chain::Chain,
-    ecdsa::ECDSAPublicKey,
     error::LedgerError,
     types::{AddressMap, Balance, ChainEnum, ChainMap, PendingEnum, SendResult},
 };
 use crate::ledger::chain::ChainTrait;
-use b3_utils::{ledger::currency::TokenAmount, vec_to_hex_string_with_0x, Environment, Subaccount};
-use bitcoin::secp256k1;
-use candid::CandidType;
+use crate::ledger::ecdsa::ChainAddress;
+use b3_utils::{ledger::currency::TokenAmount, Environment, Subaccount};
+use libsecp256k1::{PublicKey, PublicKeyFormat};
 use serde::{Deserialize, Serialize};
-use tiny_keccak::{Hasher, Keccak};
 
-#[derive(CandidType, Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Ledger {
-    pub public_key: Option<ECDSAPublicKey>,
+    pub public_key: Option<PublicKey>,
     pub subaccount: Subaccount,
     pub chains: ChainMap,
 }
@@ -86,17 +84,11 @@ impl Ledger {
             .collect()
     }
 
-    pub fn public_key(&self) -> Result<&ECDSAPublicKey, LedgerError> {
+    pub fn public_key(&self) -> Result<&PublicKey, LedgerError> {
         match &self.public_key {
             Some(public_key) => Ok(public_key),
             None => Err(LedgerError::MissingEcdsaPublicKey),
         }
-    }
-
-    pub fn eth_public_key(&self) -> Result<secp256k1::PublicKey, LedgerError> {
-        let ecdsa = self.public_key()?;
-
-        ecdsa.to_secp256k1_public_key()
     }
 
     pub fn chain(&self, chains: &ChainEnum) -> Result<&Chain, LedgerError> {
@@ -112,18 +104,9 @@ impl Ledger {
     }
 
     pub fn eth_address(&self) -> Result<String, LedgerError> {
-        let public_key = self.eth_public_key()?;
+        let public_key = self.public_key()?;
 
-        let pub_key = public_key.serialize_uncompressed();
-
-        // Hashing with Keccak-256 using tiny-keccak
-        let mut keccak = Keccak::v256();
-        keccak.update(&pub_key[1..]);
-        let mut output = [0u8; 32];
-        keccak.finalize(&mut output);
-
-        let address = vec_to_hex_string_with_0x(&output[12..]);
-
+        let address = public_key.eth_address()?;
         Ok(address)
     }
 
@@ -168,7 +151,8 @@ impl Ledger {
             return Err(LedgerError::EcdsaPublicKeyAlreadySet);
         }
 
-        let ecdsa = ECDSAPublicKey::from_slice(&ecdsa)?;
+        let ecdsa = PublicKey::parse_slice(&ecdsa, Some(PublicKeyFormat::Compressed))
+            .map_err(|err| LedgerError::PublicKeyError(err.to_string()))?;
 
         self.public_key = Some(ecdsa);
 

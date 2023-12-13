@@ -9,7 +9,6 @@ use b3_utils::memory::types::{Bound, Storable};
 use b3_utils::nonce::Nonce;
 use b3_utils::Environment;
 use b3_utils::Subaccount;
-use candid::CandidType;
 use ciborium::de::from_reader;
 use ciborium::ser::into_writer;
 use serde::{Deserialize, Serialize};
@@ -17,7 +16,7 @@ use std::io::Cursor;
 
 mod test;
 
-#[derive(CandidType, Default, Serialize, Deserialize, Clone)]
+#[derive(Default, Serialize, Deserialize, Clone)]
 pub struct WalletState {
     pub nonces: AppAccountsNonce,
     pub settings: WalletSettings,

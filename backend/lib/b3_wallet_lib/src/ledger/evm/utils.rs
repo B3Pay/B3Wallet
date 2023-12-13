@@ -1,5 +1,5 @@
 use b3_utils::vec_to_hex_string_with_0x;
-use bitcoin::secp256k1::PublicKey;
+use libsecp256k1::PublicKey;
 use tiny_keccak::{Hasher, Keccak};
 
 use super::{error::EvmError, types::PublicKeyTrait};
@@ -133,9 +133,9 @@ mod tests {
 
         println!("pub_key: {:?}", pub_key);
 
-        let public_key = PublicKey::from_slice(&pub_key).unwrap();
+        let public_key = PublicKey::parse_slice(&pub_key, None).unwrap();
 
-        let pub_key = public_key.serialize_uncompressed();
+        let pub_key = public_key.serialize();
 
         let pub_key_hash = {
             let mut keccak = Keccak::v256();

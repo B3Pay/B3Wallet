@@ -1,56 +1,38 @@
-use bitcoin::{secp256k1, Address, Network, PublicKey};
-use candid::CandidType;
-use serde::{Deserialize, Serialize};
+use b3_utils::vec_to_hex_string_with_0x;
+use libsecp256k1::PublicKey;
+use tiny_keccak::Hasher;
+use tiny_keccak::Keccak;
 
-use super::error::LedgerError;
+use super::{
+    btc::{address::network_and_public_key_to_p2wpkh, network::BitcoinNetwork},
+    error::LedgerError,
+};
 
-#[derive(CandidType, Clone, Deserialize, Serialize, PartialEq, Debug)]
-pub struct ECDSAPublicKey(pub [u8; 32]);
+pub trait ChainAddress {
+    fn btc_address(&self, network: BitcoinNetwork) -> Result<String, LedgerError>;
+    fn eth_address(&self) -> Result<String, LedgerError>;
+}
 
-impl ECDSAPublicKey {
-    pub fn new(ecdsa: Vec<u8>) -> Self {
-        let mut ecdsa_array = [0u8; 32];
-
-        ecdsa_array.copy_from_slice(&ecdsa);
-
-        Self(ecdsa_array)
-    }
-
-    pub fn from_slice(slice: &[u8]) -> Result<Self, LedgerError> {
-        if slice.len() != 33 {
-            return Err(LedgerError::PublicKeyError(
-                "Invalid public key length".to_string(),
-            ));
-        }
-
-        Ok(Self::new(slice.to_vec()))
-    }
-
-    pub fn to_bytes(&self) -> Vec<u8> {
-        let mut bytes = vec![0x02];
-
-        bytes.extend_from_slice(&self.0);
-
-        bytes
-    }
-
-    pub fn btc_public_key(&self) -> Result<PublicKey, LedgerError> {
-        PublicKey::from_slice(&self.0).map_err(|err| LedgerError::PublicKeyError(err.to_string()))
-    }
-
-    /// Get the Bitcoin P2PKH Address based on the public key.
-    /// This is the address that the canister uses to send and receive funds.
-    pub fn btc_address(&self, network: Network) -> Result<Address, LedgerError> {
-        let public_key = self.btc_public_key()?;
-
-        let address = Address::p2pkh(&public_key, network);
+impl ChainAddress for PublicKey {
+    fn btc_address(&self, network: BitcoinNetwork) -> Result<String, LedgerError> {
+        let address = network_and_public_key_to_p2wpkh(network, &self.serialize_compressed());
 
         Ok(address)
     }
 
-    pub fn to_secp256k1_public_key(&self) -> Result<secp256k1::PublicKey, LedgerError> {
-        let public_key = self.btc_public_key()?;
+    fn eth_address(&self) -> Result<String, LedgerError> {
+        let mut hasher = Keccak::v256();
 
-        Ok(public_key.inner)
+        hasher.update(&self.serialize()[1..]);
+
+        let mut hash = [0u8; 32];
+
+        hasher.finalize(&mut hash);
+
+        let mut address = [0u8; 20];
+
+        address.copy_from_slice(&hash[12..]);
+
+        Ok(vec_to_hex_string_with_0x(&address))
     }
 }
