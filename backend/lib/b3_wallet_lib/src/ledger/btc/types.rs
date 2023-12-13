@@ -19,6 +19,12 @@ pub struct OutPoint {
     pub vout: u32,
 }
 
+impl OutPoint {
+    pub fn new(txid: Vec<u8>, vout: u32) -> Self {
+        Self { txid, vout }
+    }
+}
+
 /// An unspent transaction output.
 #[derive(CandidType, Deserialize, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
 pub struct Utxo {

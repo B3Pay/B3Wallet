@@ -21,24 +21,10 @@ use proptest::{
     array::uniform20,
     array::uniform32,
     collection::vec as pvec,
-    option,
     prelude::{any, Strategy},
 };
 use proptest::{prop_assert, prop_assert_eq, prop_assume, prop_oneof};
 use serde_bytes::ByteBuf;
-
-fn dummy_utxo_from_value(v: u64) -> Utxo {
-    let mut bytes = [0u8; 32];
-    bytes[0..8].copy_from_slice(&v.to_be_bytes());
-    Utxo {
-        outpoint: OutPoint {
-            txid: bytes.into(),
-            vout: 0,
-        },
-        value: v,
-        height: 0,
-    }
-}
 
 fn address_to_script_pubkey(address: &BitcoinAddress) -> bitcoin::ScriptBuf {
     let address_string = address.display(BitcoinNetwork::Mainnet);
@@ -167,21 +153,6 @@ fn signed_tx_to_bitcoin_tx(tx: &tx::SignedTransaction) -> bitcoin::Transaction {
             })
             .collect(),
     }
-}
-
-#[test]
-fn greedy_smoke_test() {
-    let dummy_utxos: Vec<Utxo> = (1..10u64).map(dummy_utxo_from_value).collect();
-    assert_eq!(dummy_utxos.len(), 9_usize);
-
-    let utxos = BitcoinUtxos::from(dummy_utxos);
-
-    assert_eq!(utxos.total_value(), 45_u64);
-
-    let res = utxos.greedy(15);
-
-    assert_eq!(res[0].value, 9_u64);
-    assert_eq!(res[1].value, 6_u64);
 }
 
 #[test]
@@ -320,54 +291,6 @@ fn arb_utxo(amount: impl Strategy<Value = Satoshi>) -> impl Strategy<Value = Utx
 
 proptest! {
     #[test]
-    fn greedy_solution_properties(
-        values in pvec(1u64..1_000_000_000, 1..10),
-        target in 1u64..1_000_000_000,
-    ) {
-        let dummy_utxos: Vec<Utxo> = values
-            .into_iter()
-            .map(dummy_utxo_from_value)
-            .collect();
-
-        let mut utxos = BitcoinUtxos::from(dummy_utxos.clone());
-
-        let total = dummy_utxos.iter().map(|u| u.value).sum::<u64>();
-
-        if total < target {
-            utxos.insert(dummy_utxo_from_value(target - total));
-        }
-
-        let solution = utxos.greedy(target);
-
-        prop_assert!(
-            !solution.is_empty(),
-            "greedy() must always find a solution given enough available UTXOs"
-        );
-
-        prop_assert!(
-            solution.iter().map(|u| u.value).sum::<u64>() >= target,
-            "greedy() must reach the specified target amount"
-        );
-    }
-
-    #[test]
-    fn greedy_does_not_modify_input_when_fails(
-        values in pvec(1u64..1_000_000_000, 1..10),
-    ) {
-        let dummy_utxos: Vec<Utxo> = values
-            .into_iter()
-            .map(dummy_utxo_from_value)
-            .collect();
-
-        let utxos = BitcoinUtxos::from(dummy_utxos);
-
-        let total = utxos.total_value();
-
-        let solution = utxos.greedy(total + 1);
-        prop_assert!(solution.is_empty());
-    }
-
-    #[test]
     fn unsigned_tx_encoding_model(
         inputs in pvec(arb_unsigned_input(5_000u64..1_000_000_000), 1..20),
         outputs in pvec(arb_tx_out(), 1..20),
@@ -465,7 +388,7 @@ proptest! {
 
         let utxos = BitcoinUtxos::from(dummy_utxos);
 
-        let fee_estimate = utxos.estimate_fee(Some(target), fee_per_vbyte);
+        let fee_estimate = utxos.estimate_fee(target, fee_per_vbyte);
 
         let (unsigned_tx, fee) = utxos.build_unsigned_transaction(
             &BitcoinAddress::P2wpkhV0(main_pkhash),
@@ -590,7 +513,7 @@ proptest! {
                 total_value * 2,
                 fee_per_vbyte
             ).expect_err("build transaction should fail because the amount is too high"),
-            BitcoinError::NotEnoughFunds
+            BitcoinError::InsufficientBalance(total_value, total_value * 2)
         );
         prop_assert_eq!(&utxos_copy, &utxos);
 
@@ -601,7 +524,7 @@ proptest! {
                 1,
                 fee_per_vbyte
             ).expect_err("build transaction should fail because the amount is too low to pay the fee"),
-            BitcoinError::FeeTooHigh(utxos.estimate_fee(Some(1), fee_per_vbyte), 1)
+            BitcoinError::FeeTooHigh(utxos.estimate_fee(1, fee_per_vbyte), 1)
         );
         prop_assert_eq!(&utxos_copy, &utxos);
     }
@@ -713,7 +636,7 @@ proptest! {
     #[test]
     fn test_fee_range(
         dummy_utxos in pvec(arb_utxo(5_000u64..1_000_000_000), 10..20),
-        amount in option::of(any::<u64>()),
+        amount in any::<u64>(),
         fee_per_vbyte in 2000..10000u64,
     ) {
         const SMALLEST_TX_SIZE_VBYTES: u64 = 140; // one input, two outputs

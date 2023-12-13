@@ -4,7 +4,7 @@ use super::{
     address::BitcoinAddress,
     error::BitcoinError,
     tx::{TxOut, UnsignedTransaction},
-    types::{OutPoint, Satoshi, Utxo},
+    types::{OutPoint, Utxo},
 };
 use crate::ledger::btc::{tx::UnsignedInput, utils::tx_vsize_estimate};
 use ic_cdk::api::management_canister::bitcoin::GetUtxosResponse;
@@ -57,214 +57,160 @@ impl BitcoinUtxos {
         self.0.iter().cloned().collect()
     }
 
-    /// Computes an estimate for the retrieve_btc fee.
+    /// Computes an estimate for the fee of a transaction.
     ///
     /// Arguments:
-    ///   * `available_utxos` - the list of UTXOs available to the minter.
-    ///   * `maybe_amount` - the withdrawal amount.
-    ///   * `median_fee_millisatoshi_per_vbyte` - the median network fee, in millisatoshi per vbyte.
-    pub fn estimate_fee(
-        &self,
-        maybe_amount: Option<u64>,
-        median_fee_millisatoshi_per_vbyte: u64,
-    ) -> u64 {
-        const DEFAULT_INPUT_COUNT: u64 = 3;
+    /// * `amount` - The amount to send, in satoshi.
+    /// * `fee_per_vbyte` - The fee per vbyte, in satoshi.
+    ///
+    /// Returns:
+    /// * The estimated fee, in satoshi.
+    pub fn estimate_fee(&self, amount: u64, fee_per_vbyte: u64) -> u64 {
         // One output for the caller and one for the change.
         const DEFAULT_OUTPUT_COUNT: u64 = 2;
-        let input_count = match maybe_amount {
-            Some(amount) => {
-                // We simulate the algorithm that selects UTXOs for the
-                // specified amount. If the withdrawal rate is low, we
-                // should get the exact number of inputs that the minter
-                // will use.
-                let selected_utxos = self.greedy(amount);
+        let mut selected_utxos = Vec::new();
+        let mut total_value = 0u64;
+        let mut total_fee = 0u64;
 
-                if !selected_utxos.is_empty() {
-                    selected_utxos.len() as u64
-                } else {
-                    DEFAULT_INPUT_COUNT
-                }
+        for utxo in self.0.iter().rev() {
+            selected_utxos.push(utxo.clone());
+            total_value += utxo.value;
+
+            let estimated_vsize =
+                tx_vsize_estimate(selected_utxos.len() as u64, DEFAULT_OUTPUT_COUNT);
+
+            total_fee = estimated_vsize * fee_per_vbyte / 1000;
+
+            if total_value >= amount + total_fee {
+                break;
             }
-            None => DEFAULT_INPUT_COUNT,
-        };
-
-        let vsize = tx_vsize_estimate(input_count, DEFAULT_OUTPUT_COUNT);
-
-        // We subtract one from the outputs because the minter's output
-        // does not participate in fees distribution.
-        let bitcoin_fee =
-            vsize * median_fee_millisatoshi_per_vbyte / 1000 / (DEFAULT_OUTPUT_COUNT - 1).max(1);
-
-        bitcoin_fee
-    }
-    /// Selects a subset of UTXOs with the specified total target value.
-    ///
-    /// If there are no UTXOs matching the criteria, returns an empty vector.
-    ///
-    /// PROPERTY: sum(u.value for u in available_set) ≥ target ⇒ !solution.is_empty()
-    /// POSTCONDITION: !solution.is_empty() ⇒ sum(u.value for u in solution) ≥ target
-    /// POSTCONDITION:  solution.is_empty() ⇒ available_utxos did not change.
-    pub fn greedy(&self, target: u64) -> Vec<Utxo> {
-        let mut utxo_clone = self.0.clone();
-
-        let mut solution = vec![];
-        let mut goal = target;
-
-        while goal > 0 {
-            let utxo = match utxo_clone.iter().max_by_key(|u| u.value) {
-                Some(max_utxo) if max_utxo.value < goal => max_utxo.clone(),
-                Some(_) => self
-                    .iter()
-                    .filter(|u| u.value >= goal)
-                    .min_by_key(|u| u.value)
-                    .cloned()
-                    .expect("bug: there must be at least one UTXO matching the criteria"),
-                None => {
-                    // Not enough available UTXOs to satisfy the request.
-                    for u in solution {
-                        utxo_clone.insert(u);
-                    }
-                    return vec![];
-                }
-            };
-            goal = goal.saturating_sub(utxo.value);
-            assert!(utxo_clone.remove(&utxo));
-            solution.push(utxo);
         }
 
-        debug_assert!(
-            solution.is_empty() || solution.iter().map(|u| u.value).sum::<u64>() >= target
-        );
-
-        solution
+        total_fee
     }
 
-    /// Builds a transaction that moves BTC to the specified destination accounts
-    /// using the UTXOs that the minter owns. The receivers pay the fee.
-    ///
-    /// Sends the change back to the specified minter main address.
-    ///
-    /// # Arguments
-    ///
-    /// * `minter_utxos` - The set of all UTXOs minter owns
-    /// * `outputs` - The destination BTC addresses and respective amounts.
-    /// * `main_address` - The BTC address of the minter's main account do absorb the change.
-    /// * `fee_per_vbyte` - The current 50th percentile of BTC fees, in millisatoshi/byte
-    ///
-    /// # Panics
-    ///
-    /// This function panics if the `outputs` vector is empty as it indicates a bug
-    /// in the caller's code.
-    ///
-    /// # Success case properties
-    ///
-    /// * The total value of minter UTXOs decreases at least by the amount.
-    /// ```text
-    /// sum([u.value | u ∈ minter_utxos']) ≤ sum([u.value | u ∈ minter_utxos]) - amount
-    /// ```
-    ///
-    /// * If the transaction inputs exceed the amount, the minter gets the change.
-    /// ```text
-    /// inputs_value(tx) > amount ⇒ out_value(tx, main_pubkey) >= inputs_value(tx) - amount
-    /// ```
-    ///
-    /// * If the transaction inputs are equal to the amount, all tokens go to the receiver.
-    /// ```text
-    /// sum([value(in) | in ∈ tx.inputs]) = amount ⇒ tx.outputs == { value = amount - fee(tx); pubkey = dst_pubkey }
-    /// ```
-    ///
-    ///  * The last output of the transaction is the minter's fee + the minter's change.
-    /// ```text
-    /// value(last_out) == minter_fee + minter_change
-    /// ```
-    ///
-    /// # Error case properties
-    ///
-    /// * In case of errors, the function does not modify the inputs.
-    /// ```text
-    /// result.is_err() => minter_utxos' == minter_utxos
-    /// ```
-    ///
     pub fn build_unsigned_transaction(
         &self,
         own_address: &BitcoinAddress,
         dst_address: &BitcoinAddress,
-        amount: Satoshi,
+        amount: u64,
         fee_per_vbyte: u64,
     ) -> Result<(UnsignedTransaction, u64), BitcoinError> {
         assert!(!self.is_empty());
 
-        /// Having a sequence number lower than (0xffffffff - 1) signals the use of replacement by fee.
-        /// It allows us to increase the fee of a transaction already sent to the mempool.
-        /// The rbf option is used in `resubmit_retrieve_btc`.
-        /// https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki
+        const DUST_THRESHOLD: u64 = 1_000;
         const SEQUENCE_RBF_ENABLED: u32 = 0xfffffffd;
 
-        let input_utxos = self.greedy(amount);
+        let mut selected_utxos = Vec::new();
+        let mut total_value = 0u64;
+        let mut total_fee = 0u64;
 
-        if input_utxos.is_empty() {
-            return Err(BitcoinError::NotEnoughFunds);
+        for utxo in self.0.iter().rev() {
+            selected_utxos.push(utxo.clone());
+            total_value += utxo.value;
+
+            let estimated_vsize = tx_vsize_estimate(selected_utxos.len() as u64, 2);
+
+            total_fee = estimated_vsize * fee_per_vbyte / 1000;
+
+            if total_fee > amount {
+                return Err(BitcoinError::FeeTooHigh(total_fee, amount));
+            }
+
+            if total_value >= amount + total_fee {
+                break;
+            }
         }
 
-        let inputs_value = input_utxos.iter().map(|u| u.value).sum::<u64>();
+        if total_value < amount + total_fee {
+            return Err(BitcoinError::InsufficientBalance(
+                total_value,
+                amount + total_fee,
+            ));
+        }
 
-        debug_assert!(inputs_value >= amount);
-
-        let tx_outputs: Vec<TxOut> = vec![
-            // The first output is the receiver's address.
-            TxOut {
-                address: dst_address.clone(),
-                value: amount,
-            },
-            // The second output is the change.
-            // The change is sent back to the owner address.
-            TxOut {
-                address: own_address.clone(),
-                value: inputs_value - amount,
-            },
-        ];
-
-        let total_output_value = tx_outputs.iter().map(|out| out.value).sum::<u64>();
-
-        debug_assert_eq!(total_output_value, inputs_value);
-
-        let mut unsigned_tx = UnsignedTransaction {
-            inputs: input_utxos
-                .iter()
-                .map(|utxo| UnsignedInput {
-                    previous_output: utxo.outpoint.clone(),
-                    value: utxo.value,
-                    sequence: SEQUENCE_RBF_ENABLED,
-                })
-                .collect(),
-            outputs: tx_outputs,
+        let mut unsigned_transaction = UnsignedTransaction {
+            inputs: Vec::new(),
+            outputs: Vec::new(),
             lock_time: 0,
         };
 
-        let tx_vsize = unsigned_tx.fake_sign().vsize();
-        let fee = (tx_vsize as u64 * fee_per_vbyte) / 1000;
+        for utxo in selected_utxos {
+            let tx_in = UnsignedInput {
+                previous_output: OutPoint::new(utxo.outpoint.txid.clone(), utxo.outpoint.vout),
+                sequence: SEQUENCE_RBF_ENABLED,
+                value: utxo.value,
+            };
 
-        if fee > amount {
-            return Err(BitcoinError::FeeTooHigh(fee, amount));
+            unsigned_transaction.inputs.push(tx_in);
         }
 
-        // The default dustRelayFee is 3 sat/vB,
-        // which translates to a dust threshold of 546 satoshi for P2PKH outputs.
-        // The threshold for other types is lower,
-        // so we simply use 546 satoshi as the minimum amount per output.
-        const MIN_OUTPUT_AMOUNT: u64 = 546;
+        unsigned_transaction.outputs.push(TxOut {
+            address: dst_address.clone(),
+            value: amount,
+        });
 
-        unsigned_tx.outputs[1].value = unsigned_tx.outputs[1]
-            .value
-            .saturating_sub(fee)
-            .max(MIN_OUTPUT_AMOUNT);
+        let remaining_amount = total_value - amount - total_fee;
+        if remaining_amount >= DUST_THRESHOLD {
+            unsigned_transaction.outputs.push(TxOut {
+                address: own_address.clone(),
+                value: remaining_amount,
+            });
+        }
 
-        debug_assert_eq!(
-            inputs_value,
-            fee + unsigned_tx.outputs.iter().map(|u| u.value).sum::<u64>()
-        );
+        Ok((unsigned_transaction, total_fee))
+    }
 
-        Ok((unsigned_tx, fee))
+    pub fn build_unsigned_transaction_with_fee(
+        &self,
+        own_address: &BitcoinAddress,
+        dst_address: &BitcoinAddress,
+        amount: u64,
+        fee: u64,
+    ) -> Result<UnsignedTransaction, BitcoinError> {
+        const DUST_THRESHOLD: u64 = 1_000;
+        const SEQUENCE_RBF_ENABLED: u32 = 0xfffffffd;
+
+        let mut unsigned_transaction = UnsignedTransaction {
+            inputs: Vec::new(),
+            outputs: Vec::new(),
+            lock_time: 0,
+        };
+
+        let mut total_spent = 0;
+        for utxo in self.0.iter() {
+            if total_spent >= amount + fee {
+                break;
+            }
+            total_spent += utxo.value;
+
+            let tx_in = UnsignedInput {
+                previous_output: OutPoint::new(utxo.outpoint.txid.clone(), utxo.outpoint.vout),
+                sequence: SEQUENCE_RBF_ENABLED,
+                value: utxo.value,
+            };
+
+            unsigned_transaction.inputs.push(tx_in);
+        }
+
+        if total_spent < amount + fee {
+            return Err(BitcoinError::NotEnoughFunds);
+        }
+
+        unsigned_transaction.outputs.push(TxOut {
+            address: dst_address.clone(),
+            value: amount,
+        });
+
+        let remaining_amount = total_spent - amount - fee;
+        if remaining_amount >= DUST_THRESHOLD {
+            unsigned_transaction.outputs.push(TxOut {
+                address: own_address.clone(),
+                value: remaining_amount,
+            });
+        }
+
+        Ok(unsigned_transaction)
     }
 }
 
