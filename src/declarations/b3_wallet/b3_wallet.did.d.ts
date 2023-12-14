@@ -25,22 +25,14 @@ export interface AppStatus {
   'canister_status' : CanisterStatusResponse,
   'account_status' : AppAccountsNonce,
 }
-export interface BtcChain {
-  'pendings' : Array<BtcPending>,
-  'subaccount' : Uint8Array | number[],
-  'ecdsa_public_key' : Uint8Array | number[],
-  'address' : string,
-  'btc_network' : Minter,
-  'min_confirmations' : [] | [number],
-}
-export type BtcNetwork = { 'Mainnet' : null } |
+export type BitcoinNetwork = { 'Mainnet' : null } |
   { 'Regtest' : null } |
   { 'Testnet' : null };
 export interface BtcPending { 'txid' : string, 'account' : string }
 export interface BtcTransfer {
   'to' : string,
   'account_id' : string,
-  'network' : Minter,
+  'network' : BitcoinNetwork,
   'amount' : TokenAmount,
 }
 export interface CanisterSettings {
@@ -61,25 +53,11 @@ export interface CanisterStatusResponse {
 export type CanisterStatusType = { 'stopped' : null } |
   { 'stopping' : null } |
   { 'running' : null };
-export type Chain = { 'EvmChain' : EvmChain } |
-  { 'BtcChain' : BtcChain } |
-  { 'IcpChain' : IcpChain } |
-  { 'IcrcChain' : IcrcChain } |
-  { 'CkbtcChain' : CkbtcChain };
-export type ChainEnum = { 'BTC' : Minter } |
+export type ChainEnum = { 'BTC' : BitcoinNetwork } |
   { 'EVM' : bigint } |
   { 'ICP' : null } |
   { 'ICRC' : Principal } |
-  { 'CKBTC' : Minter };
-export interface CkbtcChain {
-  'fee' : [] | [bigint],
-  'pendings' : Array<CkbtcPending>,
-  'memo' : [] | [Uint8Array | number[]],
-  'minter' : Minter,
-  'ledger' : Principal,
-  'account' : ICRCAccount,
-  'created_at_time' : [] | [bigint],
-}
+  { 'CKBTC' : BitcoinNetwork };
 export interface CkbtcPending { 'block_index' : bigint, 'txid' : [] | [bigint] }
 export interface ConsentMessage {
   'title' : string,
@@ -99,11 +77,6 @@ export interface DefiniteCanisterSettings {
 export type Environment = { 'Production' : null } |
   { 'Development' : null } |
   { 'Staging' : null };
-export interface EvmChain {
-  'pendings' : Array<EvmPending>,
-  'chain_id' : bigint,
-  'address' : string,
-}
 export interface EvmContractDeployed {
   'transaction' : EvmTransaction1559,
   'contract_address' : string,
@@ -198,22 +171,6 @@ export interface EvmTransferErc20 {
 }
 export interface HideAccount { 'account_id' : string }
 export interface ICPToken { 'e8s' : bigint }
-export interface ICPTransferTimestamp { 'timestamp_nanos' : bigint }
-export type ICRC1MetadataValue = { 'Int' : bigint } |
-  { 'Nat' : bigint } |
-  { 'Blob' : Uint8Array | number[] } |
-  { 'Text' : string };
-export interface ICRCAccount {
-  'owner' : Principal,
-  'subaccount' : [] | [Uint8Array | number[]],
-}
-export interface IcpChain {
-  'fee' : ICPToken,
-  'pendings' : Array<IcpPending>,
-  'memo' : bigint,
-  'subaccount' : Uint8Array | number[],
-  'created_at_time' : [] | [ICPTransferTimestamp],
-}
 export interface IcpPending { 'block_index' : bigint, 'canister_id' : string }
 export interface IcpTransfer {
   'to' : string,
@@ -222,21 +179,7 @@ export interface IcpTransfer {
   'memo' : [] | [bigint],
   'amount' : ICPToken,
 }
-export interface IcrcChain {
-  'fee' : [] | [bigint],
-  'metadata' : Array<[string, ICRC1MetadataValue]>,
-  'pendings' : Array<IcrcPending>,
-  'memo' : [] | [Uint8Array | number[]],
-  'canister_id' : Principal,
-  'subaccount' : Uint8Array | number[],
-  'created_at_time' : [] | [bigint],
-}
 export interface IcrcPending { 'tx_index' : bigint, 'block_index' : bigint }
-export interface Ledger {
-  'public_key' : [] | [Uint8Array | number[]],
-  'subaccount' : Uint8Array | number[],
-  'chains' : Array<[ChainEnum, Chain]>,
-}
 export interface LogEntry {
   'counter' : bigint,
   'file' : string,
@@ -250,9 +193,6 @@ export interface LogEntry {
 export type LogVariant = { 'info' : null } |
   { 'warn' : null } |
   { 'error' : null };
-export type Minter = { 'Mainnet' : null } |
-  { 'Regtest' : null } |
-  { 'Testnet' : null };
 export interface NotifyTopUp {
   'account_id' : string,
   'block_index' : bigint,
@@ -427,13 +367,6 @@ export type Value = { 'Int' : bigint } |
   { 'Blob' : Uint8Array | number[] } |
   { 'Text' : string } |
   { 'Array' : Array<Value> };
-export interface WalletAccount {
-  'id' : string,
-  'metadata' : Array<[string, Value]>,
-  'name' : string,
-  'hidden' : boolean,
-  'ledger' : Ledger,
-}
 export interface WalletAccountView {
   'id' : string,
   'metadata' : Array<[string, Value]>,
@@ -462,7 +395,7 @@ export interface _SERVICE {
     undefined
   >,
   'account_balance' : ActorMethod<[string, ChainEnum], bigint>,
-  'account_btc_fees' : ActorMethod<[BtcNetwork, number], bigint>,
+  'account_btc_fees' : ActorMethod<[BitcoinNetwork, number], bigint>,
   'account_check_pending' : ActorMethod<[string, ChainEnum, bigint], undefined>,
   'account_create' : ActorMethod<
     [[] | [Environment], [] | [string]],
@@ -483,11 +416,11 @@ export interface _SERVICE {
     SendResult
   >,
   'account_swap_btc_to_ckbtc' : ActorMethod<
-    [string, BtcNetwork, bigint],
+    [string, BitcoinNetwork, bigint],
     BtcPending
   >,
   'account_swap_ckbtc_to_btc' : ActorMethod<
-    [string, BtcNetwork, string, bigint],
+    [string, BitcoinNetwork, string, bigint],
     bigint
   >,
   'account_top_up_and_notify' : ActorMethod<
@@ -495,14 +428,14 @@ export interface _SERVICE {
     Result
   >,
   'account_update_balance' : ActorMethod<
-    [string, BtcNetwork],
+    [string, BitcoinNetwork],
     Array<UtxoStatus>
   >,
   'add_controller_and_update' : ActorMethod<[Principal, string], undefined>,
   'add_setting_metadata' : ActorMethod<[string, Value], undefined>,
   'canister_cycle_balance' : ActorMethod<[], bigint>,
   'canister_version' : ActorMethod<[], bigint>,
-  'get_account' : ActorMethod<[string], WalletAccount>,
+  'get_account' : ActorMethod<[string], WalletAccountView>,
   'get_account_count' : ActorMethod<[], bigint>,
   'get_account_counters' : ActorMethod<[], AppAccountsNonce>,
   'get_account_view' : ActorMethod<[string], WalletAccountView>,
@@ -558,7 +491,10 @@ export interface _SERVICE {
   'request_upgrade_canister' : ActorMethod<[string], bigint>,
   'reset_accounts' : ActorMethod<[], undefined>,
   'response' : ActorMethod<[bigint, Response], Result_1>,
-  'retrieve_btc_status' : ActorMethod<[Minter, bigint], RetrieveBtcStatus>,
+  'retrieve_btc_status' : ActorMethod<
+    [BitcoinNetwork, bigint],
+    RetrieveBtcStatus
+  >,
   'role_add' : ActorMethod<[Role], Array<[bigint, Role]>>,
   'role_remove' : ActorMethod<[bigint], Array<[bigint, Role]>>,
   'setting_and_signer' : ActorMethod<[], WalletSettingsAndSigners>,

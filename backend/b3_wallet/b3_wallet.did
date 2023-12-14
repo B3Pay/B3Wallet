@@ -24,20 +24,12 @@ type AppStatus = record {
   canister_status : CanisterStatusResponse;
   account_status : AppAccountsNonce;
 };
-type BtcChain = record {
-  pendings : vec BtcPending;
-  subaccount : vec nat8;
-  ecdsa_public_key : vec nat8;
-  address : text;
-  btc_network : Minter;
-  min_confirmations : opt nat32;
-};
-type BtcNetwork = variant { Mainnet; Regtest; Testnet };
+type BitcoinNetwork = variant { Mainnet; Regtest; Testnet };
 type BtcPending = record { txid : text; account : text };
 type BtcTransfer = record {
   to : text;
   account_id : text;
-  network : Minter;
+  network : BitcoinNetwork;
   amount : TokenAmount;
 };
 type CanisterSettings = record {
@@ -56,28 +48,12 @@ type CanisterStatusResponse = record {
   module_hash : opt vec nat8;
 };
 type CanisterStatusType = variant { stopped; stopping; running };
-type Chain = variant {
-  EvmChain : EvmChain;
-  BtcChain : BtcChain;
-  IcpChain : IcpChain;
-  IcrcChain : IcrcChain;
-  CkbtcChain : CkbtcChain;
-};
 type ChainEnum = variant {
-  BTC : Minter;
+  BTC : BitcoinNetwork;
   EVM : nat64;
   ICP;
   ICRC : principal;
-  CKBTC : Minter;
-};
-type CkbtcChain = record {
-  fee : opt nat;
-  pendings : vec CkbtcPending;
-  memo : opt vec nat8;
-  minter : Minter;
-  ledger : principal;
-  account : ICRCAccount;
-  created_at_time : opt nat64;
+  CKBTC : BitcoinNetwork;
 };
 type CkbtcPending = record { block_index : nat64; txid : opt nat };
 type ConsentMessage = record { title : text; message : text; reason : text };
@@ -89,11 +65,6 @@ type DefiniteCanisterSettings = record {
   compute_allocation : nat;
 };
 type Environment = variant { Production; Development; Staging };
-type EvmChain = record {
-  pendings : vec EvmPending;
-  chain_id : nat64;
-  address : text;
-};
 type EvmContractDeployed = record {
   transaction : EvmTransaction1559;
   contract_address : text;
@@ -190,21 +161,6 @@ type EvmTransferErc20 = record {
 };
 type HideAccount = record { account_id : text };
 type ICPToken = record { e8s : nat64 };
-type ICPTransferTimestamp = record { timestamp_nanos : nat64 };
-type ICRC1MetadataValue = variant {
-  Int : int;
-  Nat : nat;
-  Blob : vec nat8;
-  Text : text;
-};
-type ICRCAccount = record { owner : principal; subaccount : opt vec nat8 };
-type IcpChain = record {
-  fee : ICPToken;
-  pendings : vec IcpPending;
-  memo : nat64;
-  subaccount : vec nat8;
-  created_at_time : opt ICPTransferTimestamp;
-};
 type IcpPending = record { block_index : nat64; canister_id : text };
 type IcpTransfer = record {
   to : text;
@@ -213,21 +169,7 @@ type IcpTransfer = record {
   memo : opt nat64;
   amount : ICPToken;
 };
-type IcrcChain = record {
-  fee : opt nat;
-  metadata : vec record { text; ICRC1MetadataValue };
-  pendings : vec IcrcPending;
-  memo : opt vec nat8;
-  canister_id : principal;
-  subaccount : vec nat8;
-  created_at_time : opt nat64;
-};
 type IcrcPending = record { tx_index : nat; block_index : nat64 };
-type Ledger = record {
-  public_key : opt vec nat8;
-  subaccount : vec nat8;
-  chains : vec record { ChainEnum; Chain };
-};
 type LogEntry = record {
   counter : nat64;
   file : text;
@@ -239,7 +181,6 @@ type LogEntry = record {
   "variant" : LogVariant;
 };
 type LogVariant = variant { info; warn; error };
-type Minter = variant { Mainnet; Regtest; Testnet };
 type NotifyTopUp = record {
   account_id : text;
   block_index : nat64;
@@ -411,13 +352,6 @@ type Value = variant {
   Text : text;
   Array : vec Value;
 };
-type WalletAccount = record {
-  id : text;
-  metadata : vec record { text; Value };
-  name : text;
-  hidden : bool;
-  ledger : Ledger;
-};
 type WalletAccountView = record {
   id : text;
   metadata : vec record { text; Value };
@@ -443,7 +377,7 @@ type WasmDetails = record { hash : vec nat8; size : nat64 };
 service : () -> {
   account_add_pending : (text, ChainEnum, PendingEnum) -> ();
   account_balance : (text, ChainEnum) -> (nat);
-  account_btc_fees : (BtcNetwork, nat8) -> (nat64);
+  account_btc_fees : (BitcoinNetwork, nat8) -> (nat64);
   account_check_pending : (text, ChainEnum, nat64) -> ();
   account_create : (opt Environment, opt text) -> ();
   account_create_address : (text, ChainEnum) -> ();
@@ -454,15 +388,15 @@ service : () -> {
   account_rename : (text, text) -> ();
   account_restore : (Environment, nat64) -> ();
   account_send : (text, ChainEnum, text, TokenAmount) -> (SendResult);
-  account_swap_btc_to_ckbtc : (text, BtcNetwork, nat64) -> (BtcPending);
-  account_swap_ckbtc_to_btc : (text, BtcNetwork, text, nat64) -> (nat64);
+  account_swap_btc_to_ckbtc : (text, BitcoinNetwork, nat64) -> (BtcPending);
+  account_swap_ckbtc_to_btc : (text, BitcoinNetwork, text, nat64) -> (nat64);
   account_top_up_and_notify : (text, ICPToken, opt principal) -> (Result);
-  account_update_balance : (text, BtcNetwork) -> (vec UtxoStatus);
+  account_update_balance : (text, BitcoinNetwork) -> (vec UtxoStatus);
   add_controller_and_update : (principal, text) -> ();
   add_setting_metadata : (text, Value) -> ();
   canister_cycle_balance : () -> (nat) query;
   canister_version : () -> (nat64) query;
-  get_account : (text) -> (WalletAccount) query;
+  get_account : (text) -> (WalletAccountView) query;
   get_account_count : () -> (nat64) query;
   get_account_counters : () -> (AppAccountsNonce) query;
   get_account_view : (text) -> (WalletAccountView) query;
@@ -499,7 +433,7 @@ service : () -> {
   request_upgrade_canister : (text) -> (nat64);
   reset_accounts : () -> ();
   response : (nat64, Response) -> (Result_1);
-  retrieve_btc_status : (Minter, nat64) -> (RetrieveBtcStatus) query;
+  retrieve_btc_status : (BitcoinNetwork, nat64) -> (RetrieveBtcStatus) query;
   role_add : (Role) -> (vec record { nat64; Role });
   role_remove : (nat64) -> (vec record { nat64; Role });
   setting_and_signer : () -> (WalletSettingsAndSigners) query;

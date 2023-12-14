@@ -11,7 +11,13 @@ no_color='\033[0m'
 for app_root in "$backend_dir"/*; do
     package=$(basename "$app_root")
     did_file="$app_root/$package.did"
+    optimised_target_dir="./wasm/$package"
 
+    if [ ! -f "$app_root/Cargo.toml" ]; then
+        echo "${yellow}No Cargo.toml found in $app_root. Skipping $package.${no_color}"
+        continue
+    fi
+    
     echo "${green}Building $package in $app_root${no_color}"
     cargo build --manifest-path="$app_root/Cargo.toml" \
         --target wasm32-unknown-unknown \
@@ -31,8 +37,11 @@ for app_root in "$backend_dir"/*; do
     if command -v ic-wasm >/dev/null 2>&1; then
         # you can install ic-wasm via `cargo install ic-wasm` for smaller wasm files
         echo "${green}Shrinking $package.wasm${no_color}"
-        ic-wasm "$target_dir/$package.wasm" -o "$target_dir/$package.wasm" shrink
-        echo "Size of shrunk $package.wasm: $(ls -lh "$target_dir/$package.wasm" | awk '{print $5}')"
+        mkdir -p "$optimised_target_dir"
+        ic-wasm "$target_dir/$package.wasm" -o "$optimised_target_dir/$package.wasm" shrink
+        # copy the candid file to the optimised target dir
+        cp "$did_file" "$optimised_target_dir/$package.did"
+        echo "Size of shrunk $package.wasm: $(ls -lh "$optimised_target_dir/$package.wasm" | awk '{print $5}')"
     else
         echo "${yellow}ic-wasm not found. Skipping shrinking $package.${no_color}"
     fi

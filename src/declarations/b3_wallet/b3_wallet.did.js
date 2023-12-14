@@ -1,16 +1,16 @@
 export const idlFactory = ({ IDL }) => {
   const Value = IDL.Rec();
-  const Minter = IDL.Variant({
+  const BitcoinNetwork = IDL.Variant({
     'Mainnet' : IDL.Null,
     'Regtest' : IDL.Null,
     'Testnet' : IDL.Null,
   });
   const ChainEnum = IDL.Variant({
-    'BTC' : Minter,
+    'BTC' : BitcoinNetwork,
     'EVM' : IDL.Nat64,
     'ICP' : IDL.Null,
     'ICRC' : IDL.Principal,
-    'CKBTC' : Minter,
+    'CKBTC' : BitcoinNetwork,
   });
   const BtcPending = IDL.Record({ 'txid' : IDL.Text, 'account' : IDL.Text });
   const EvmPending = IDL.Record({ 'block_index' : IDL.Nat64 });
@@ -32,11 +32,6 @@ export const idlFactory = ({ IDL }) => {
     'ICP' : IcpPending,
     'ICRC' : IcrcPending,
     'CKBTC' : CkbtcPending,
-  });
-  const BtcNetwork = IDL.Variant({
-    'Mainnet' : IDL.Null,
-    'Regtest' : IDL.Null,
-    'Testnet' : IDL.Null,
   });
   const Environment = IDL.Variant({
     'Production' : IDL.Null,
@@ -83,79 +78,6 @@ export const idlFactory = ({ IDL }) => {
       'Array' : IDL.Vec(Value),
     })
   );
-  const EvmChain = IDL.Record({
-    'pendings' : IDL.Vec(EvmPending),
-    'chain_id' : IDL.Nat64,
-    'address' : IDL.Text,
-  });
-  const BtcChain = IDL.Record({
-    'pendings' : IDL.Vec(BtcPending),
-    'subaccount' : IDL.Vec(IDL.Nat8),
-    'ecdsa_public_key' : IDL.Vec(IDL.Nat8),
-    'address' : IDL.Text,
-    'btc_network' : Minter,
-    'min_confirmations' : IDL.Opt(IDL.Nat32),
-  });
-  const ICPTransferTimestamp = IDL.Record({ 'timestamp_nanos' : IDL.Nat64 });
-  const IcpChain = IDL.Record({
-    'fee' : ICPToken,
-    'pendings' : IDL.Vec(IcpPending),
-    'memo' : IDL.Nat64,
-    'subaccount' : IDL.Vec(IDL.Nat8),
-    'created_at_time' : IDL.Opt(ICPTransferTimestamp),
-  });
-  const ICRC1MetadataValue = IDL.Variant({
-    'Int' : IDL.Int,
-    'Nat' : IDL.Nat,
-    'Blob' : IDL.Vec(IDL.Nat8),
-    'Text' : IDL.Text,
-  });
-  const IcrcChain = IDL.Record({
-    'fee' : IDL.Opt(IDL.Nat),
-    'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, ICRC1MetadataValue)),
-    'pendings' : IDL.Vec(IcrcPending),
-    'memo' : IDL.Opt(IDL.Vec(IDL.Nat8)),
-    'canister_id' : IDL.Principal,
-    'subaccount' : IDL.Vec(IDL.Nat8),
-    'created_at_time' : IDL.Opt(IDL.Nat64),
-  });
-  const ICRCAccount = IDL.Record({
-    'owner' : IDL.Principal,
-    'subaccount' : IDL.Opt(IDL.Vec(IDL.Nat8)),
-  });
-  const CkbtcChain = IDL.Record({
-    'fee' : IDL.Opt(IDL.Nat),
-    'pendings' : IDL.Vec(CkbtcPending),
-    'memo' : IDL.Opt(IDL.Vec(IDL.Nat8)),
-    'minter' : Minter,
-    'ledger' : IDL.Principal,
-    'account' : ICRCAccount,
-    'created_at_time' : IDL.Opt(IDL.Nat64),
-  });
-  const Chain = IDL.Variant({
-    'EvmChain' : EvmChain,
-    'BtcChain' : BtcChain,
-    'IcpChain' : IcpChain,
-    'IcrcChain' : IcrcChain,
-    'CkbtcChain' : CkbtcChain,
-  });
-  const Ledger = IDL.Record({
-    'public_key' : IDL.Opt(IDL.Vec(IDL.Nat8)),
-    'subaccount' : IDL.Vec(IDL.Nat8),
-    'chains' : IDL.Vec(IDL.Tuple(ChainEnum, Chain)),
-  });
-  const WalletAccount = IDL.Record({
-    'id' : IDL.Text,
-    'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, Value)),
-    'name' : IDL.Text,
-    'hidden' : IDL.Bool,
-    'ledger' : Ledger,
-  });
-  const AppAccountsNonce = IDL.Record({
-    'staging' : IDL.Nat64,
-    'production' : IDL.Nat64,
-    'development' : IDL.Nat64,
-  });
   const WalletAccountView = IDL.Record({
     'id' : IDL.Text,
     'metadata' : IDL.Vec(IDL.Tuple(IDL.Text, Value)),
@@ -164,6 +86,11 @@ export const idlFactory = ({ IDL }) => {
     'hidden' : IDL.Bool,
     'addresses' : IDL.Vec(IDL.Tuple(ChainEnum, IDL.Text)),
     'environment' : Environment,
+  });
+  const AppAccountsNonce = IDL.Record({
+    'staging' : IDL.Nat64,
+    'production' : IDL.Nat64,
+    'development' : IDL.Nat64,
   });
   const OperationStatus = IDL.Variant({
     'Fail' : IDL.Null,
@@ -331,7 +258,7 @@ export const idlFactory = ({ IDL }) => {
   const BtcTransfer = IDL.Record({
     'to' : IDL.Text,
     'account_id' : IDL.Text,
-    'network' : Minter,
+    'network' : BitcoinNetwork,
     'amount' : TokenAmount,
   });
   const RemoveUser = IDL.Record({ 'signer_id' : IDL.Vec(IDL.Nat8) });
@@ -515,7 +442,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'account_balance' : IDL.Func([IDL.Text, ChainEnum], [IDL.Nat], []),
-    'account_btc_fees' : IDL.Func([BtcNetwork, IDL.Nat8], [IDL.Nat64], []),
+    'account_btc_fees' : IDL.Func([BitcoinNetwork, IDL.Nat8], [IDL.Nat64], []),
     'account_check_pending' : IDL.Func(
         [IDL.Text, ChainEnum, IDL.Nat64],
         [],
@@ -543,12 +470,12 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'account_swap_btc_to_ckbtc' : IDL.Func(
-        [IDL.Text, BtcNetwork, IDL.Nat64],
+        [IDL.Text, BitcoinNetwork, IDL.Nat64],
         [BtcPending],
         [],
       ),
     'account_swap_ckbtc_to_btc' : IDL.Func(
-        [IDL.Text, BtcNetwork, IDL.Text, IDL.Nat64],
+        [IDL.Text, BitcoinNetwork, IDL.Text, IDL.Nat64],
         [IDL.Nat64],
         [],
       ),
@@ -558,7 +485,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'account_update_balance' : IDL.Func(
-        [IDL.Text, BtcNetwork],
+        [IDL.Text, BitcoinNetwork],
         [IDL.Vec(UtxoStatus)],
         [],
       ),
@@ -566,7 +493,7 @@ export const idlFactory = ({ IDL }) => {
     'add_setting_metadata' : IDL.Func([IDL.Text, Value], [], []),
     'canister_cycle_balance' : IDL.Func([], [IDL.Nat], ['query']),
     'canister_version' : IDL.Func([], [IDL.Nat64], ['query']),
-    'get_account' : IDL.Func([IDL.Text], [WalletAccount], ['query']),
+    'get_account' : IDL.Func([IDL.Text], [WalletAccountView], ['query']),
     'get_account_count' : IDL.Func([], [IDL.Nat64], ['query']),
     'get_account_counters' : IDL.Func([], [AppAccountsNonce], ['query']),
     'get_account_view' : IDL.Func([IDL.Text], [WalletAccountView], ['query']),
@@ -662,7 +589,7 @@ export const idlFactory = ({ IDL }) => {
     'reset_accounts' : IDL.Func([], [], []),
     'response' : IDL.Func([IDL.Nat64, Response], [Result_1], []),
     'retrieve_btc_status' : IDL.Func(
-        [Minter, IDL.Nat64],
+        [BitcoinNetwork, IDL.Nat64],
         [RetrieveBtcStatus],
         ['query'],
       ),
