@@ -36,7 +36,7 @@ impl OperationTrait for EvmDeployContract {
     async fn execute(self) -> Result<OperationResult, WalletError> {
         let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
 
-        let public_key = ledger.eth_public_key()?;
+        let public_key = ledger.public_key()?;
 
         let contract_address = create_address_from(&public_key, self.nonce);
 
@@ -66,7 +66,7 @@ impl OperationTrait for EvmDeployContract {
 
         let signature = ledger.subaccount.sign_with_ecdsa(raw_tx).await?;
 
-        transaction.sign(signature, public_key)?;
+        transaction.sign(signature, *public_key)?;
 
         Ok(EvmContractDeployed {
             transaction,

@@ -12,7 +12,6 @@ use super::inner::setting::{UpdateCanisterSettings, UpgradeCanister};
 use super::inner::user::{AddUser, RemoveUser};
 
 use b3_utils::ledger::TransferBlockIndex;
-use b3_wallet_lib::ledger::ckbtc::types::BtcTxId;
 use b3_wallet_lib::ledger::evm::london::EvmTransaction1559;
 use b3_wallet_lib::ledger::types::SendResult;
 use candid::{CandidType, Deserialize};
@@ -95,7 +94,7 @@ pub struct TopUpTransfered(pub TopUpTransfer, pub TransferBlockIndex);
 pub struct CanisterTopUped(pub NotifyTopUp, pub u128);
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
-pub struct BtcTransfered(pub BtcTransfer, pub BtcTxId);
+pub struct BtcTransfered(pub BtcTransfer, pub String);
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
 pub struct EvmContractDeployed {

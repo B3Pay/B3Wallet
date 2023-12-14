@@ -34,7 +34,7 @@ impl OperationTrait for EvmTransfer {
     async fn execute(self) -> Result<OperationResult, WalletError> {
         let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
 
-        let public_key = ledger.eth_public_key()?;
+        let public_key = ledger.public_key()?;
 
         // TODO: get default gas limit from user settings
         let gas_limit = self.gas_limit.unwrap_or(0);
@@ -60,7 +60,7 @@ impl OperationTrait for EvmTransfer {
 
         let _signed = ledger.subaccount.sign_with_ecdsa(raw_tx).await?;
 
-        transaction.sign(_signed, public_key)?;
+        transaction.sign(_signed, *public_key)?;
 
         Ok(EvmTransfered(self, transaction.tx_id()).into())
     }
@@ -102,7 +102,7 @@ impl OperationTrait for EvmTransferErc20 {
     async fn execute(self) -> Result<OperationResult, WalletError> {
         let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
 
-        let public_key = ledger.eth_public_key()?;
+        let public_key = ledger.public_key()?;
 
         let data = "0x".to_owned() + &get_transfer_data(&self.to, self.value)?;
 
@@ -130,7 +130,7 @@ impl OperationTrait for EvmTransferErc20 {
 
         let signature = ledger.subaccount.sign_with_ecdsa(raw_tx).await?;
 
-        transaction.sign(signature, public_key)?;
+        transaction.sign(signature, *public_key)?;
 
         Ok(EvmErc20Transfered(self, transaction.tx_id()).into())
     }

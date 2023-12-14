@@ -31,7 +31,7 @@ pub struct EvmSignTranscation {
 impl OperationTrait for EvmSignTranscation {
     async fn execute(self) -> Result<OperationResult, WalletError> {
         let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
-        let public_key = ledger.eth_public_key()?;
+        let public_key = ledger.public_key()?;
 
         let mut transaction = self.transaction.clone();
 
@@ -42,7 +42,7 @@ impl OperationTrait for EvmSignTranscation {
             .sign_with_ecdsa(transaction.serialized())
             .await?;
 
-        transaction.sign(signature, public_key)?;
+        transaction.sign(signature, *public_key)?;
 
         Ok(EvmTransactionSigned(self, transaction.tx_id()).into())
     }
@@ -92,7 +92,7 @@ impl OperationTrait for EvmSignRawTransaction {
     async fn execute(self) -> Result<OperationResult, WalletError> {
         let ledger = with_ledger(&self.account_id, |ledger| ledger.clone())?;
 
-        let public_key = ledger.eth_public_key()?;
+        let public_key = ledger.public_key()?;
 
         let mut transaction = get_evm_transaction(&self.hex_raw_tx, self.chain_id)?;
 
@@ -103,7 +103,7 @@ impl OperationTrait for EvmSignRawTransaction {
             .sign_with_ecdsa(transaction.serialized())
             .await?;
 
-        transaction.sign(signature, public_key)?;
+        transaction.sign(signature, *public_key)?;
 
         Ok(EvmRawTransactionSigned(self, transaction.tx_id()).into())
     }

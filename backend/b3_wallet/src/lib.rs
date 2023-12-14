@@ -42,17 +42,13 @@ use b3_wallet_lib::{
     account::WalletAccount,
     error::WalletError,
     ledger::{
-        btc::network::BitcoinNetwork,
+        btc::{network::BitcoinNetwork, types::UtxoStatus},
         chain::ChainTrait,
-        ckbtc::{
-            minter::Minter,
-            types::{RetrieveBtcStatus, UtxoStatus},
-        },
+        ckbtc::{minter::Minter, types::RetrieveBtcStatus},
         subaccount::SubaccountEcdsaTrait,
         types::{AddressMap, Balance, BtcPending, ChainEnum, PendingEnum, SendResult},
     },
     setting::WalletSettings,
-    state::WalletState,
     store::{
         with_account, with_account_mut, with_chain, with_chain_mut, with_ledger, with_ledger_mut,
         with_setting, with_setting_mut, with_wallet, with_wallet_mut,
@@ -126,24 +122,17 @@ fn pre_upgrade() {
     with_wasm_mut_cache(|wasm| wasm.unload());
 
     let permit = with_operation(|o| o.clone());
-    let state = with_wallet(|s| s.clone());
     let users = with_users(|s| s.clone());
     let roles = with_roles(|s| s.clone());
 
-    ic_cdk::storage::stable_save((state, permit, users, roles)).unwrap();
+    ic_cdk::storage::stable_save((permit, users, roles)).unwrap();
 }
 
 #[post_upgrade]
 fn post_upgrade() {
     log_cycle!("post_upgrade");
-    let (state_prev, sign_prev, user_prev, role_prev): (
-        WalletState,
-        OperationState,
-        UserState,
-        RoleState,
-    ) = ic_cdk::storage::stable_restore().unwrap();
-
-    with_wallet_mut(|state| *state = state_prev);
+    let (sign_prev, user_prev, role_prev): (OperationState, UserState, RoleState) =
+        ic_cdk::storage::stable_restore().unwrap();
 
     with_operation_mut(|permit| *permit = sign_prev);
 
@@ -158,8 +147,8 @@ fn get_roles() -> RoleMap {
 }
 
 #[query(guard = "caller_is_signer")]
-fn get_account(account_id: AccountId) -> WalletAccount {
-    with_account(&account_id, |account| account.clone()).unwrap_or_else(panic_log)
+fn get_account(account_id: AccountId) -> WalletAccountView {
+    with_account(&account_id, |account| account.view()).unwrap_or_else(panic_log)
 }
 
 #[query(guard = "caller_is_signer")]
