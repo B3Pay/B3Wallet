@@ -42,7 +42,11 @@ const UserNav: React.FC<UserNavProps> = ({ className }) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
-          <Address size="sm" address={identity!.getPrincipal().toText()} />
+          <Address
+            size="sm"
+            asMenuItem
+            address={identity!.getPrincipal().toText()}
+          />
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>

@@ -8,6 +8,7 @@ import {
 import { cn } from "lib/utils"
 import { useMemo, useState } from "react"
 import { Button } from "./ui/button"
+import { DropdownMenuShortcut } from "./ui/dropdown-menu"
 
 interface AddressWithCopyProps
   extends React.HTMLAttributes<HTMLParagraphElement> {
@@ -15,6 +16,7 @@ interface AddressWithCopyProps
   noIcon?: boolean
   hiddenAddress?: boolean
   size?: "xs" | "sm" | "md" | "lg" | "xl" | null
+  asMenuItem?: boolean
 }
 
 const Address: React.FC<AddressWithCopyProps> = ({
@@ -22,9 +24,12 @@ const Address: React.FC<AddressWithCopyProps> = ({
   noIcon,
   hiddenAddress,
   className,
+  asMenuItem,
   size = "md",
   ...rest
 }) => {
+  const IconComp = asMenuItem ? DropdownMenuShortcut : "span"
+
   const [hasCopied, setHasCopied] = useState(false)
   const [isLargerThan500, setIsLargerThan500] = useState(
     window.innerWidth > 568
@@ -66,18 +71,20 @@ const Address: React.FC<AddressWithCopyProps> = ({
               {truncatedAddress}
             </p>
             {!noIcon && (
-              <Button
-                variant="link"
-                onClick={onCopy}
-                asIconButton
-                aria-label="Copy to clipboard"
-              >
-                {hasCopied ? (
-                  <CheckIcon className="h-5 w-5" />
-                ) : (
-                  <CopyIcon className="h-5 w-5" />
-                )}
-              </Button>
+              <IconComp>
+                <Button
+                  variant="link"
+                  onClick={onCopy}
+                  asIconButton
+                  aria-label="Copy to clipboard"
+                >
+                  {hasCopied ? (
+                    <CheckIcon className="h-5 w-5" />
+                  ) : (
+                    <CopyIcon className="h-5 w-5" />
+                  )}
+                </Button>
+              </IconComp>
             )}
           </div>
         </TooltipTrigger>
