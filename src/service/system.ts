@@ -4,6 +4,7 @@ import { canisterId, createActor } from "declarations/b3_system"
 
 export const {
   initialize: initializeSystem,
+  initializeActor: initializeSystemActor,
   ReActorProvider: SystemProvider,
   useQueryCall: useSystemQuery,
   useUpdateCall: useSystemUpdate,

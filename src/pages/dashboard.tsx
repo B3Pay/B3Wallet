@@ -1,8 +1,6 @@
-import { CalendarDateRangePicker } from "components/date-range-picker"
 import { MainNav } from "components/main-nav"
 import { Overview } from "components/overview"
 import { RecentSales } from "components/recent-sales"
-import Search from "components/search"
 import TeamSwitcher from "components/team-switcher"
 import { Button } from "components/ui/button"
 import {
@@ -12,6 +10,7 @@ import {
   CardHeader,
   CardTitle
 } from "components/ui/card"
+import { CalendarDateRangePicker } from "components/ui/date-range-picker"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "components/ui/tabs"
 import UserNav from "components/user-nav"
 
@@ -23,7 +22,6 @@ export default function Dashboard() {
           <TeamSwitcher />
           <MainNav className="mx-6" />
           <div className="ml-auto flex items-center space-x-4">
-            <Search />
             <UserNav />
           </div>
         </div>

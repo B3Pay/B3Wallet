@@ -105,7 +105,7 @@ const buttonVariants = cva(
         outline:
           "border-2 shadow bg-transparent hover:text-foreground hover:border-foreground",
         ghost: "shadow hover:bg-accent hover:text-accent-foreground",
-        link: "bg-transparent hover:bg-transparent underline focus:ring-offset-0"
+        link: "bg-transparent hover:bg-transparent underline focus:ring-offset-0 focus:ring-0"
       },
       size: {
         xs: "h-5 px-2 text-xs",
