@@ -97,6 +97,7 @@ As the digital economy continues to grow, the `b3_wallet` has the potential to p
 I am considering the creation of a global wallet - a wallet that no one owns but everyone can sign. This revolutionary concept aims to bring the ethos of decentralization in blockchain technology to the next level. Stay tuned for more updates on this.
 
 # Setting Up and Running B3Wallet Locally
+Clone the repo : `git clone --recurse-submodules https://github.com/B3Pay/b3-wallet.git `.(b3_utils is a submodule)  
 
 Follow these instructions to set up and run the B3Wallet project on your local machine:
 
