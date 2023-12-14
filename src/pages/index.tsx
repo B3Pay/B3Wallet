@@ -20,7 +20,7 @@ function HomePage() {
           <div className="flex h-16 items-center px-4">
             <TeamSwitcher sharedClassName="w-screen sm:w-[300px] md:w-[200px]" />
             <MainNav className="hidden mx-6 md:flex" />
-            <div className="flex ml-auto items-center space-x-4">
+            <div className="flex ml-auto items-center space-x-2">
               <Icon
                 size="xl"
                 color="muted"

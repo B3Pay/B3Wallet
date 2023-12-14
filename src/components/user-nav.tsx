@@ -1,3 +1,4 @@
+import { AvatarIcon } from "@radix-ui/react-icons"
 import { Avatar, AvatarFallback } from "components/ui/avatar"
 import {
   DropdownMenu,
@@ -10,28 +11,38 @@ import {
   DropdownMenuTrigger
 } from "components/ui/dropdown-menu"
 import { cn } from "lib/utils"
+import { useSystemAuthClient } from "service/system"
+import Address from "./Address"
+import { Button } from "./ui/button"
 
 interface UserNavProps {
   className?: string
 }
 
 const UserNav: React.FC<UserNavProps> = ({ className }) => {
-  return (
+  const {
+    login,
+    logout,
+    loginLoading,
+    loginError,
+    identity,
+    authenticating,
+    authenticated
+  } = useSystemAuthClient()
+
+  return authenticated ? (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Avatar className={cn("h-8 w-8", className)} asButton>
           {/* <AvatarImage src="/avatars/01.png" alt="@shadcn" /> */}
-          <AvatarFallback>SC</AvatarFallback>
+          <AvatarFallback>
+            {identity?.getPrincipal().toText().slice(0, 2)}
+          </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">shadcn</p>
-            <p className="text-xs leading-none text-muted-foreground">
-              m@example.com
-            </p>
-          </div>
+          <Address size="sm" address={identity!.getPrincipal().toText()} />
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
@@ -50,12 +61,28 @@ const UserNav: React.FC<UserNavProps> = ({ className }) => {
           <DropdownMenuItem>New Team</DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={() => logout()} disabled={authenticating}>
           Log out
           <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  ) : (
+    <Button
+      onClick={() =>
+        login({
+          identityProvider:
+            process.env.DFX_NETWORK === "ic"
+              ? "https://identity.ic0.app/#authorize"
+              : `http://localhost:4943?canisterId=rdmx6-jaaaa-aaaaa-aaadq-cai#authorize`
+        })
+      }
+      disabled={loginLoading || authenticating}
+      isLoading={loginLoading}
+      asIconButton
+    >
+      <AvatarIcon />
+    </Button>
   )
 }
 

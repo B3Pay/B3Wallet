@@ -21,7 +21,7 @@ const Login = () => {
       ) : loginLoading ? (
         <div className="text-blue-500">Loading...</div>
       ) : identity ? (
-        <Address smallest address={identity?.getPrincipal().toText()} />
+        <Address size="sm" address={identity?.getPrincipal().toText()} />
       ) : null}
       {authenticated ? (
         <Button onClick={() => logout()}>Logout</Button>

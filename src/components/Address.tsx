@@ -5,21 +5,25 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from "components/ui/tooltip"
+import { cn } from "lib/utils"
 import { useMemo, useState } from "react"
 import { Button } from "./ui/button"
 
-interface AddressWithCopyProps {
+interface AddressWithCopyProps
+  extends React.HTMLAttributes<HTMLParagraphElement> {
   address: string
   noIcon?: boolean
-  smallest?: boolean
   hiddenAddress?: boolean
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | null
 }
 
 const Address: React.FC<AddressWithCopyProps> = ({
   address,
   noIcon,
-  smallest,
-  hiddenAddress
+  hiddenAddress,
+  className,
+  size = "md",
+  ...rest
 }) => {
   const [hasCopied, setHasCopied] = useState(false)
   const [isLargerThan500, setIsLargerThan500] = useState(
@@ -41,8 +45,10 @@ const Address: React.FC<AddressWithCopyProps> = ({
       return address
     }
 
-    const Start = address.slice(0, isLargerThan500 ? (smallest ? 13 : 20) : 8)
-    const End = address.slice(isLargerThan500 ? (smallest ? -13 : -20) : -8)
+    const maxLength = size === "xs" ? 8 : size === "sm" ? 12 : 20
+
+    const Start = address.slice(0, isLargerThan500 ? maxLength : 8)
+    const End = address.slice(isLargerThan500 ? -maxLength : -8)
 
     return `${Start}...${End}`
   }, [address, isLargerThan500])
@@ -76,7 +82,9 @@ const Address: React.FC<AddressWithCopyProps> = ({
           </div>
         </TooltipTrigger>
         <TooltipContent>
-          <p className="text-xs">{address}</p>
+          <p className={cn("text-xs", className)} {...rest}>
+            {address}
+          </p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
