@@ -1,5 +1,4 @@
-import { Avatar, AvatarFallback, AvatarImage } from "components/ui/avatar"
-import { Button } from "components/ui/button"
+import { Avatar, AvatarFallback } from "components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,15 +19,10 @@ const UserNav: React.FC<UserNavProps> = ({ className }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          className={cn("relative h-8 w-8 rounded-full", className)}
-        >
-          <Avatar className="h-8 w-8">
-            <AvatarImage src="/avatars/01.png" alt="@shadcn" />
-            <AvatarFallback>SC</AvatarFallback>
-          </Avatar>
-        </Button>
+        <Avatar className={cn("h-8 w-8", className)} asButton>
+          {/* <AvatarImage src="/avatars/01.png" alt="@shadcn" /> */}
+          <AvatarFallback>SC</AvatarFallback>
+        </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">

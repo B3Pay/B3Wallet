@@ -150,6 +150,7 @@ export interface ButtonProps
   asIconButton?: boolean
   noShadow?: boolean
   isLoading?: boolean
+  iconSize?: "xs" | "sm" | "md" | "lg" | "xl" | null
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -165,6 +166,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       height,
       noShadow,
       isLoading,
+      iconSize,
       asChild = false,
       ...props
     },

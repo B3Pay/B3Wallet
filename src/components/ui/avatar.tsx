@@ -98,6 +98,7 @@ export interface AvatarProps
   asChild?: boolean
   noShadow?: boolean
   height?: string
+  asButton?: boolean
 }
 
 const Avatar = React.forwardRef<
@@ -105,7 +106,17 @@ const Avatar = React.forwardRef<
   AvatarProps
 >(
   (
-    { className, noShadow, color, height, size, round, variant, ...props },
+    {
+      className,
+      asButton,
+      noShadow,
+      color,
+      height,
+      size,
+      round,
+      variant,
+      ...props
+    },
     ref
   ) => (
     <AvatarPrimitive.Root
@@ -119,6 +130,7 @@ const Avatar = React.forwardRef<
         }),
         `rounded-${round}-${size}`,
         noShadow && "shadow-none",
+        asButton && "cursor-pointer",
         className,
         height
       )}

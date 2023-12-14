@@ -139,7 +139,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <Box className={cn("relative", className)} color={color} hoverable>
         {isIcon && (
           <Icon
-            className="absolute left-0"
+            color={color}
+            className="absolute top-1/2 left-1 transform -translate-y-1/2"
             size={iconSize || size}
             onClick={() => {
               inputRef.current && inputRef.current.focus()
