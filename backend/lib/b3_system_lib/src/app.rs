@@ -1,86 +1,148 @@
-use b3_utils::{
-    ledger::Metadata,
-    memory::types::{Bound, Storable},
-    NanoTimeStamp,
+use crate::{
+    error::SystemError,
+    types::ReleaseArgs,
+    types::{AppId, ReleaseVersion},
 };
-use candid::CandidType;
-use ciborium::de::from_reader;
-use ciborium::ser::into_writer;
-use serde::{Deserialize, Serialize};
-use std::io::Cursor;
+use b3_utils::{
+    api::{AppInitArgs, AppInstallArg, AppVersion},
+    memory::types::DefaultStableBTreeMap,
+    wasm::{Wasm, WasmVersion},
+};
+use ic_cdk::api::management_canister::main::CanisterInstallMode;
 
-use crate::{release::Release, store::with_releases, types::ReleaseVersion};
+pub mod app;
+pub mod constants;
+pub mod release;
+pub mod store;
 
-#[derive(CandidType, Deserialize, Serialize, Clone)]
-pub struct App {
-    pub id: String,
-    pub name: String,
-    pub description: String,
-    pub created_at: NanoTimeStamp,
-    pub updated_at: NanoTimeStamp,
-    pub releases: Vec<ReleaseVersion>,
-    pub metadata: Metadata,
+use app::App;
+use release::Release;
+
+pub type ReleaseMap = DefaultStableBTreeMap<ReleaseVersion, Release>;
+pub type AppMap = DefaultStableBTreeMap<AppId, App>;
+pub type WasmMap = DefaultStableBTreeMap<AppVersion, Wasm>;
+
+pub struct AppState {
+    pub apps: AppMap,
+    pub releases: ReleaseMap,
+    pub wasm_map: WasmMap,
 }
 
-impl App {
-    pub fn new(id: String, name: String, description: String) -> Self {
-        App {
-            id,
-            name,
-            description,
-            created_at: NanoTimeStamp::now(),
-            updated_at: NanoTimeStamp::now(),
-            releases: Vec::new(),
-            metadata: Metadata::new(),
+impl AppState {
+    // App
+    pub fn add_app(&mut self, product: App) -> Result<(), SystemError> {
+        if self.apps.contains_key(&product.id) {
+            return Err(SystemError::ProductAlreadyExists); // Assuming you define this error
         }
+        self.apps.insert(product.id.clone(), product);
+        Ok(())
     }
 
-    pub fn add_release(&mut self, version: ReleaseVersion) {
-        self.updated_at = NanoTimeStamp::now();
-        self.releases.push(version);
+    pub fn get_app(&self, id: AppId) -> Option<App> {
+        self.apps.get(&id)
     }
 
-    pub fn remove_release(&mut self, version: ReleaseVersion) {
-        self.updated_at = NanoTimeStamp::now();
-        self.releases.retain(|v| v != &version);
+    // release
+    pub fn get_release(&self, version: &ReleaseVersion) -> Result<Release, SystemError> {
+        self.releases
+            .get(version)
+            .ok_or(SystemError::ReleaseNotFound)
     }
 
-    pub fn update_release(&mut self, version: ReleaseVersion, new_version: ReleaseVersion) {
-        self.updated_at = NanoTimeStamp::now();
-        self.releases.retain(|v| v != &version);
-        self.releases.push(new_version);
-    }
+    pub fn get_release_install_args(
+        &self,
+        version: &ReleaseVersion,
+        mode: CanisterInstallMode,
+        init_args: AppInitArgs,
+    ) -> Result<AppInstallArg, SystemError> {
+        let wasm_module = self.get_release(version)?.wasm()?.bytes();
 
-    pub fn get_release(&self, version: &ReleaseVersion) -> Option<Release> {
-        with_releases(|releases| releases.get(version))
-    }
+        let arg = init_args
+            .encode()
+            .map_err(|e| SystemError::InstallArgError(e.to_string()))?;
 
-    pub fn get_latest_release(&self) -> Option<Release> {
-        let latest_version = self.releases.iter().max().unwrap();
-
-        self.get_release(latest_version)
-    }
-
-    pub fn get_releases(&self) -> Vec<Release> {
-        with_releases(|releases| {
-            self.releases
-                .iter()
-                .filter_map(|version| releases.get(version))
-                .collect()
+        Ok(AppInstallArg {
+            wasm_module,
+            arg,
+            mode,
         })
     }
-}
 
-impl Storable for App {
-    const BOUND: Bound = Bound::Unbounded;
-
-    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
-        let mut bytes = vec![];
-        into_writer(&self, &mut bytes).unwrap();
-        std::borrow::Cow::Owned(bytes)
+    pub fn latest_release(&self) -> Result<Release, SystemError> {
+        self.releases
+            .last_key_value()
+            .ok_or(SystemError::ReleaseNotFound)
+            .map(|(_, release)| release)
     }
 
-    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
-        from_reader(&mut Cursor::new(&bytes)).unwrap()
+    pub fn get_latest_install_args(
+        &self,
+        mode: CanisterInstallMode,
+        init_args: AppInitArgs,
+    ) -> Result<AppInstallArg, SystemError> {
+        let wasm_module = self.latest_release()?.wasm()?.bytes();
+
+        let arg = init_args
+            .encode()
+            .map_err(|e| SystemError::InstallArgError(e.to_string()))?;
+
+        Ok(AppInstallArg {
+            wasm_module,
+            arg,
+            mode,
+        })
+    }
+
+    pub fn update_release(&mut self, release: ReleaseArgs) {
+        let version = release.version.clone();
+
+        self.releases.insert(version, release.into());
+    }
+
+    pub fn deprecate_release(&mut self, version: ReleaseVersion) -> Result<Release, SystemError> {
+        let mut release = self
+            .releases
+            .get(&version)
+            .ok_or(SystemError::ReleaseNotFound)?;
+
+        release.deprecate();
+
+        self.releases.insert(version, release.clone());
+
+        Ok(release)
+    }
+
+    pub fn add_feature_release(
+        &mut self,
+        version: WasmVersion,
+        feature: String,
+    ) -> Result<Release, SystemError> {
+        let mut release = self
+            .releases
+            .get(&version)
+            .ok_or(SystemError::ReleaseNotFound)?;
+
+        release.add_feature(feature);
+
+        self.releases.insert(version, release.clone());
+
+        Ok(release)
+    }
+
+    pub fn remove_feature_release(
+        &mut self,
+        version: WasmVersion,
+        feature: String,
+    ) -> Result<Release, SystemError> {
+        let mut release = self
+            .releases
+            .get(&version)
+            .ok_or(SystemError::ReleaseNotFound)?;
+
+        release.remove_feature(feature);
+
+        self.releases.insert(version, release.clone());
+
+        Ok(release)
     }
 }

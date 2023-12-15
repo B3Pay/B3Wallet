@@ -1,142 +1,89 @@
-use crate::error::SystemError;
-use b3_utils::{
-    api::Management,
-    ledger::{constants::SYSTEM_RATE_LIMIT, Metadata},
-    memory::types::{Bound, Storable},
-    types::{CanisterId, CanisterIds, ControllerId},
-    NanoTimeStamp,
+use crate::{
+    error::SystemError,
+    types::{UserStates, Users},
 };
-use candid::CandidType;
-use ciborium::de::from_reader;
-use ciborium::ser::into_writer;
-use ic_cdk::api::management_canister::{
-    main::CreateCanisterArgument, provisional::CanisterSettings,
-};
-use serde::{Deserialize, Serialize};
-use std::io::Cursor;
+use user::User;
 
-#[derive(CandidType, Deserialize, Serialize, Clone)]
-pub struct User {
-    pub canisters: Vec<CanisterId>,
-    pub created_at: NanoTimeStamp,
-    pub updated_at: NanoTimeStamp,
-    pub metadata: Metadata,
+pub mod store;
+pub mod test;
+pub mod user;
+use b3_utils::types::{CanisterId, CanisterIds, UserId};
+use store::UserMap;
+
+pub struct UserState {
+    pub users: UserMap,
 }
 
-impl User {
-    /// Create a new canister.
-    pub fn new(opt_canister_id: Option<CanisterId>) -> Self {
-        let mut canisters = Vec::new();
-
-        if let Some(canister_id) = opt_canister_id {
-            canisters.push(canister_id);
-        }
-
-        Self {
-            canisters,
-            updated_at: NanoTimeStamp::now(),
-            created_at: NanoTimeStamp::now(),
-            metadata: Metadata::new(),
-        }
-    }
-
-    /// get with updated_at.
-    pub fn update_rate(&mut self) -> Result<User, SystemError> {
-        self.check_rate()?;
-        self.updated_at = NanoTimeStamp::now();
-
-        Ok(self.clone())
-    }
-
-    /// add the canister id.
-    pub fn add_canister(&mut self, canister_id: CanisterId) {
-        self.canisters.push(canister_id);
-        self.updated_at = NanoTimeStamp::now();
-    }
-
-    /// remove the canister id.
-    pub fn remove_canister(&mut self, canister_id: CanisterId) -> Result<(), SystemError> {
-        let index = self
-            .canisters
-            .iter()
-            .position(|id| id == &canister_id)
-            .ok_or(SystemError::WalletCanisterNotFound)?;
-
-        self.canisters.remove(index);
-        self.updated_at = NanoTimeStamp::now();
-
-        Ok(())
-    }
-
-    /// Returns the canister ids, throws an error if it is not available.
-    pub fn canisters(&self) -> CanisterIds {
-        self.canisters.clone()
-    }
-
-    /// Make an function that use updated_at and check the rate of the user.
-    pub fn check_rate(&self) -> Result<(), SystemError> {
-        if self.updated_at.rate_limit_exceeded(SYSTEM_RATE_LIMIT) {
-            return Err(SystemError::RateLimitExceeded);
-        } else {
-            Ok(())
-        }
-    }
-
-    /// create a new canister and save the canister id.
-    pub async fn create_with_cycles(
-        &mut self,
-        controllers: Vec<ControllerId>,
-        cycles: u128,
-    ) -> Result<CanisterId, SystemError> {
-        let args = CreateCanisterArgument {
-            settings: Some(CanisterSettings {
-                controllers: Some(controllers.clone()),
-                compute_allocation: None,
-                memory_allocation: None,
-                freezing_threshold: None,
-            }),
-        };
-
-        let result = Management::create_canister(args, cycles).await;
-
-        match result {
-            Ok(result) => {
-                let canister_id = result.canister_id;
-
-                self.add_canister(canister_id);
-
-                Ok(canister_id)
+impl UserState {
+    // App
+    pub fn init_user(&mut self, user: UserId) -> Result<User, SystemError> {
+        if let Some(user_state) = self.users.get(&user) {
+            if !user_state.canisters().is_empty() {
+                return Err(SystemError::UserAlreadyExists);
             }
-            Err(err) => Err(SystemError::CreateCanisterError(err.to_string())),
         }
+
+        let user_state = User::new(None);
+
+        self.users.insert(user, user_state.clone());
+
+        Ok(user_state)
     }
-}
 
-impl From<CanisterId> for User {
-    fn from(canister_id: CanisterId) -> Self {
-        let mut canisters = Vec::new();
+    pub fn get_or_init_user(
+        &mut self,
+        user: UserId,
+        opt_canister_id: Option<CanisterId>,
+    ) -> Result<User, SystemError> {
+        if let Some(mut states) = self.users.get(&user) {
+            let mut user_state = states.update_rate()?;
 
-        canisters.push(canister_id);
+            if let Some(canister_id) = opt_canister_id {
+                user_state.add_canister(canister_id);
+            }
 
-        Self {
-            canisters,
-            metadata: Metadata::new(),
-            updated_at: NanoTimeStamp::now(),
-            created_at: NanoTimeStamp::now(),
+            return Ok(user_state);
         }
-    }
-}
 
-impl Storable for User {
-    const BOUND: Bound = Bound::Unbounded;
+        let user_state = User::new(opt_canister_id);
 
-    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
-        let mut bytes = vec![];
-        into_writer(&self, &mut bytes).unwrap();
-        std::borrow::Cow::Owned(bytes)
+        self.users.insert(user, user_state.clone());
+
+        Ok(user_state)
     }
 
-    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
-        from_reader(&mut Cursor::new(&bytes)).unwrap()
+    pub fn add_user(&mut self, user: UserId, user_state: User) {
+        self.users.insert(user, user_state);
+    }
+
+    pub fn remove_user(&mut self, user: &UserId) {
+        self.users.remove(user);
+    }
+
+    pub fn user_ids(&self) -> Users {
+        self.users.iter().map(|(k, _)| k).collect()
+    }
+
+    pub fn wallet_canisters(&self) -> CanisterIds {
+        self.users
+            .iter()
+            .map(|(_, v)| v.canisters())
+            .flatten()
+            .collect()
+    }
+
+    pub fn user_state(&self, user_id: UserId) -> Result<User, SystemError> {
+        self.users
+            .get(&user_id)
+            .ok_or(SystemError::UserNotFound)
+            .map(|state| state.clone())
+    }
+
+    pub fn user_states(&self) -> UserStates {
+        self.users.iter().map(|(_, v)| v.clone()).collect()
+    }
+
+    pub fn number_of_users(&self) -> u64 {
+        self.users.len()
     }
 }

@@ -12,9 +12,10 @@ use std::io::Cursor;
 
 use crate::{
     error::SystemError,
-    store::{with_release_wasm, with_wasm_map_mut},
     types::{Features, ReleaseArgs},
 };
+
+use super::store::{with_release_wasm, with_wasm_map_mut};
 
 #[derive(CandidType, Deserialize, Serialize, Clone)]
 pub struct Release {

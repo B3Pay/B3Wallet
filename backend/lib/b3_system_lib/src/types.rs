@@ -7,7 +7,7 @@ use candid::CandidType;
 use ic_cdk::api::management_canister::main::CanisterStatusResponse;
 use serde::{Deserialize, Serialize};
 
-use crate::user::User;
+use crate::user::user::User;
 
 pub type ReleaseVersion = String;
 

@@ -1,4 +1,5 @@
 use b3_system_lib::{
+    app::CREATE_APP_CANISTER_CYCLES,
     error::SystemError,
     release::Release,
     store::{
@@ -17,7 +18,6 @@ use b3_utils::{
         AppCall, AppInitArgs, AppVersion, Management,
     },
     caller_is_controller,
-    constants::CREATE_WALLET_CANISTER_CYCLES,
     principal::StoredPrincipal,
     revert,
     types::{CanisterId, CanisterIds, UserId},
@@ -42,7 +42,7 @@ fn get_states() -> User {
 
 #[query]
 fn get_create_canister_app_cycle() -> u128 {
-    CREATE_WALLET_CANISTER_CYCLES
+    CREATE_APP_CANISTER_CYCLES
 }
 
 #[query(guard = "caller_is_controller")]
@@ -139,7 +139,7 @@ async fn create_app_canister() -> Result<User, String> {
     let mut user_state = with_state_mut(|s| s.init_user(user_id.clone())).unwrap_or_else(revert);
 
     let canister_id = user_state
-        .create_with_cycles(vec![owner_id, system_id], CREATE_WALLET_CANISTER_CYCLES)
+        .create_with_cycles(vec![owner_id, system_id], CREATE_APP_CANISTER_CYCLES)
         .await
         .unwrap_or_else(revert);
 
@@ -222,7 +222,7 @@ async fn install_app(canister_id: CanisterId) -> Result<User, String> {
 }
 
 #[update]
-async fn add_app(canister_id: CanisterId) {
+async fn add_user_app(canister_id: CanisterId) {
     let user_id: UserId = ic_cdk::caller().into();
 
     let _wallet_canister = AppCall(canister_id);
@@ -240,7 +240,7 @@ async fn add_app(canister_id: CanisterId) {
 }
 
 #[update]
-fn remove_app(canister_id: CanisterId) {
+fn remove_user_app(canister_id: CanisterId) {
     let user_id: UserId = ic_cdk::caller().into();
 
     with_user_state_mut(&user_id, |rs| {
@@ -249,6 +249,7 @@ fn remove_app(canister_id: CanisterId) {
     .unwrap_or_else(revert)
 }
 
+// TODO! Remove this update call for production.
 #[update(guard = "caller_is_controller")]
 fn remove_user(user_principal: Principal) {
     let user_id: UserId = user_principal.into();
@@ -294,8 +295,6 @@ pub fn get_release_by_hash_string(hash: WasmHash) -> Release {
 
     get_release(version)
 }
-
-// UPDATE CALLS
 
 #[update(guard = "caller_is_controller")]
 fn update_release(release_args: ReleaseArgs) {
