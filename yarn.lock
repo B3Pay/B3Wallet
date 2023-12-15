@@ -19,6 +19,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime@npm:^7":
+  version: 7.23.6
+  resolution: "@babel/runtime@npm:7.23.6"
+  dependencies:
+    regenerator-runtime: "npm:^0.14.0"
+  checksum: d886954e985ef8e421222f7a2848884d96a752e0020d3078b920dd104e672fdf23bcc6f51a44313a048796319f1ac9d09c2c88ec8cbb4e1f09174bcd3335b9ff
+  languageName: node
+  linkType: hard
+
 "@babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.13.10, @babel/runtime@npm:^7.21.0, @babel/runtime@npm:^7.23.1, @babel/runtime@npm:^7.23.2":
   version: 7.23.4
   resolution: "@babel/runtime@npm:7.23.4"
@@ -219,33 +228,34 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ic-reactor/react@npm:*":
-  version: 0.0.10
-  resolution: "@ic-reactor/react@npm:0.0.10"
+"@ic-reactor/react@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "@ic-reactor/react@npm:0.1.1"
   dependencies:
     "@dfinity/agent": "npm:^0.20"
     "@dfinity/auth-client": "npm:^0.20"
     "@dfinity/candid": "npm:0.20"
     "@dfinity/identity": "npm:^0.20"
     "@dfinity/principal": "npm:^0.20"
-    "@ic-reactor/store": "npm:^0.0.6"
+    "@ic-reactor/store": "npm:^0.1.1"
     zustand: "npm:4.4"
+    zustand-utils: "npm:^1.3"
   peerDependencies:
     "@peculiar/webcrypto": 1.4
     react: ">=16.8"
-  checksum: d29ebde8feb5890f852dd8353bf2c8a718af53a3e29a8e3ac57954d6b9c1ffdbf89cf6526e7083861b4d76c8bfd7880b2f2150de2f81cc8415815fded1947e20
+  checksum: 97a86d2df940207f97e5f97b81a99cda9d8cf3fb80557b0a9ba42a4d115fa97275c017b3731fab119261bb45cc6696150e752d3a613941527019362d9ae3d544
   languageName: node
   linkType: hard
 
-"@ic-reactor/store@npm:^0.0.6":
-  version: 0.0.6
-  resolution: "@ic-reactor/store@npm:0.0.6"
+"@ic-reactor/store@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "@ic-reactor/store@npm:0.1.1"
   dependencies:
     "@dfinity/agent": "npm:^0.20"
     "@dfinity/auth-client": "npm:^0.20"
     "@dfinity/candid": "npm:^0.20"
     zustand: "npm:^4.4"
-  checksum: a655d77ec75bb2a80155a780a881fad6eab8583f21d2b2ea8e623b89c083ed60941c498e2587074fe2bc1cbc9ae9e4cba679af2bd1fcb408f54a6da721c1dbd2
+  checksum: de797a44d48dde137dabe23e995993e190f7497526b429afe88a5d3893076dd53b35a3e156ce46e75e18e7e659fe5ffefc4101a05ea90424c2a1e1e732255546
   languageName: node
   linkType: hard
 
@@ -1508,19 +1518,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@re-actor/types@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@re-actor/types@npm:0.2.0"
-  peerDependencies:
-    "@dfinity/agent": ^0.20.1
-    "@dfinity/auth-client": ^0.20.1
-    "@dfinity/candid": ^0.20.1
-    "@dfinity/principal": ^0.20.1
-    zustand: 4.4
-  checksum: ddf85cfdeaa253dfc746e27200572b5f4b143526beebf2b4b00e53326a887bc47f1db5f8c080d98e748e5da760212b8248e6ac3fb54ff2fdfcfe7c81ff1472ce
-  languageName: node
-  linkType: hard
-
 "@rushstack/eslint-patch@npm:^1.3.3":
   version: 1.6.0
   resolution: "@rushstack/eslint-patch@npm:1.6.0"
@@ -2140,7 +2137,7 @@ __metadata:
     "@dfinity/identity": "npm:^0.20"
     "@dfinity/identity-secp256k1": "npm:^0.20"
     "@dfinity/principal": "npm:^0.20"
-    "@ic-reactor/react": "npm:*"
+    "@ic-reactor/react": "npm:^0.1.1"
     "@peculiar/webcrypto": "npm:1.4.3"
     "@radix-ui/react-avatar": "npm:^1.0.4"
     "@radix-ui/react-dialog": "npm:^1.0.5"
@@ -2154,7 +2151,6 @@ __metadata:
     "@radix-ui/react-tabs": "npm:^1.0.4"
     "@radix-ui/react-toast": "npm:^1.1.5"
     "@radix-ui/react-tooltip": "npm:^1.0.7"
-    "@re-actor/types": "npm:^0.2.0"
     "@types/node": "npm:20.8.10"
     "@types/node-fetch": "npm:^2.6.3"
     "@types/react": "npm:18.2.36"
@@ -6695,6 +6691,18 @@ __metadata:
   version: 3.22.4
   resolution: "zod@npm:3.22.4"
   checksum: 7578ab283dac0eee66a0ad0fc4a7f28c43e6745aadb3a529f59a4b851aa10872b3890398b3160f257f4b6817b4ce643debdda4fb21a2c040adda7862cab0a587
+  languageName: node
+  linkType: hard
+
+"zustand-utils@npm:^1.3":
+  version: 1.3.1
+  resolution: "zustand-utils@npm:1.3.1"
+  dependencies:
+    "@babel/runtime": "npm:^7"
+  peerDependencies:
+    react: ">=16.8"
+    zustand: ">=4.4.1"
+  checksum: 8f4f97b3825a88c29a775f721ed5b41633fb4d4f0dfb80f6f3a269fab8ae59390e85d4e3d5cfdfa0c11193f2dcb1fd0b807e4e28a6aff806ba11bd56e6bb89a1
   languageName: node
   linkType: hard
 

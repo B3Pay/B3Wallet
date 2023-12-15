@@ -2,20 +2,20 @@
 import { Principal } from "@dfinity/principal"
 import { ShadowInnerIcon } from "@radix-ui/react-icons"
 import { useMemo, useState } from "react"
-import { initializeSystemActor, useSystemUpdate } from "service/system"
+import { useSystemUpdate } from "service/system"
 import DisplayData from "./DisplayData"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 
-interface WalletCanisterStatusProps {
+interface AppCanisterVersionProps {
   canisterId?: string
 }
 
-const WalletCanisterStatus: React.FC<WalletCanisterStatusProps> = ({
+const AppCanisterVersion: React.FC<AppCanisterVersionProps> = ({
   canisterId
 }) => {
   const { call, data, error, loading } = useSystemUpdate({
-    functionName: "get_user_app_status"
+    functionName: "get_app_version"
   })
   const [input, setInput] = useState(canisterId || "")
 
@@ -25,7 +25,6 @@ const WalletCanisterStatus: React.FC<WalletCanisterStatusProps> = ({
   }, [input])
 
   const clickHandler = () => {
-    initializeSystemActor()
     if (!principal) return
     call([principal])
   }
@@ -56,4 +55,4 @@ const WalletCanisterStatus: React.FC<WalletCanisterStatusProps> = ({
   )
 }
 
-export default WalletCanisterStatus
+export default AppCanisterVersion

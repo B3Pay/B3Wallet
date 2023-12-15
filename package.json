@@ -33,7 +33,6 @@
     "build": "npx next build"
   },
   "devDependencies": {
-    "@re-actor/types": "^0.2.0",
     "@types/node": "20.8.10",
     "@types/node-fetch": "^2.6.3",
     "@types/react": "18.2.36",
@@ -64,7 +63,7 @@
     "@dfinity/identity": "^0.20",
     "@dfinity/identity-secp256k1": "^0.20",
     "@dfinity/principal": "^0.20",
-    "@ic-reactor/react": "*",
+    "@ic-reactor/react": "^0.1.1",
     "@peculiar/webcrypto": "1.4.3",
     "@radix-ui/react-avatar": "^1.0.4",
     "@radix-ui/react-dialog": "^1.0.5",

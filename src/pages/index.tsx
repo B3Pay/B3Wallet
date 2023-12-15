@@ -1,7 +1,8 @@
+import AppCanisterStatus from "components/AppCanisterStatus"
+import AppCanisterVersion from "components/AppCanisterVersion"
 import CreateWallet from "components/CreateWallet"
 import Footer from "components/Footer"
 import UserStatus from "components/UserStatus"
-import WalletCanisterStatus from "components/WalletCanisterStatus"
 import Head from "next/head"
 
 function HomePage() {
@@ -12,7 +13,8 @@ function HomePage() {
       </Head>
       <CreateWallet />
       <UserStatus />
-      <WalletCanisterStatus />
+      <AppCanisterStatus />
+      <AppCanisterVersion />
       <Footer />
     </div>
   )
