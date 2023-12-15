@@ -11,21 +11,19 @@ pub type UserMap = DefaultStableBTreeMap<UserId, User>;
 
 // The UserState starts from 10 to 19 to avoid conflicts with the app's stable memory
 thread_local! {
-    static USERS: RefCell<UserState> = RefCell::new(
+    static USER_STATE: RefCell<UserState> = RefCell::new(
         UserState {
             users: init_stable_mem("user_map", 10).unwrap(),
         }
     );
 }
 
-// SIGNER
-
-pub fn with_users<R>(f: impl FnOnce(&UserMap) -> R) -> R {
-    USERS.with(|state| f(&state.borrow().users))
+pub fn with_users<R>(f: impl FnOnce(&UserState) -> R) -> R {
+    USER_STATE.with(|state| f(&*state.borrow()))
 }
 
-pub fn with_users_mut<R>(f: impl FnOnce(&mut UserMap) -> R) -> R {
-    USERS.with(|state| f(&mut state.borrow_mut().users))
+pub fn with_users_mut<R>(f: impl FnOnce(&mut UserState) -> R) -> R {
+    USER_STATE.with(|state| f(&mut *state.borrow_mut()))
 }
 
 pub fn with_user_state<F, T>(user_id: UserId, f: F) -> Result<T, UserSystemError>

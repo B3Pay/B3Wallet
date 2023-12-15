@@ -1,16 +1,10 @@
 use b3_system_lib::{
-    app::CREATE_APP_CANISTER_CYCLES,
-    error::SystemError,
-    release::Release,
-    store::{
-        with_bugs_mut, with_canister_bugs, with_canister_bugs_mut, with_latest_version_release,
-        with_release, with_release_mut, with_releases, with_releases_mut, with_state,
-        with_state_mut, with_user_canister, with_user_state, with_user_state_mut, with_wasm_map,
+    app::{constants::CREATE_APP_CANISTER_CYCLES, store::with_app_state_mut},
+    user::{
+        store::{with_user_state, with_users},
+        types::UserStates,
+        user::User,
     },
-    types::{
-        LoadRelease, ReleaseArgs, SystemCanisterStatus, UserCanisterStatus, UserStates, UserStatus,
-    },
-    user::User,
 };
 use b3_utils::{
     api::{
@@ -35,9 +29,9 @@ pub fn init() {}
 
 #[query]
 fn get_states() -> User {
-    let user_id = ic_cdk::caller();
+    let user_id = ic_cdk::caller().into();
 
-    with_state(|s| s.user_state(user_id.into())).unwrap_or_else(revert)
+    with_user_state(user_id, |s| s.clone()).unwrap_or_else(revert)
 }
 
 #[query]
@@ -47,12 +41,12 @@ fn get_create_canister_app_cycle() -> u128 {
 
 #[query(guard = "caller_is_controller")]
 fn get_user_ids() -> Vec<UserId> {
-    with_state(|s| s.user_ids())
+    with_users(|s| s.user_ids())
 }
 
 #[query(guard = "caller_is_controller")]
 fn get_user_states() -> UserStates {
-    with_state(|s| s.user_states())
+    with_users(|s| s.user_states())
 }
 
 #[query]
@@ -136,14 +130,15 @@ async fn create_app_canister() -> Result<User, String> {
     let owner_id = ic_cdk::caller();
     let user_id: UserId = owner_id.into();
 
-    let mut user_state = with_state_mut(|s| s.init_user(user_id.clone())).unwrap_or_else(revert);
+    let mut user_state =
+        with_app_state_mut(|s| s.init_user(user_id.clone())).unwrap_or_else(revert);
 
     let canister_id = user_state
         .create_with_cycles(vec![owner_id, system_id], CREATE_APP_CANISTER_CYCLES)
         .await
         .unwrap_or_else(revert);
 
-    with_state_mut(|s| s.add_user(user_id, user_state.clone()));
+    with_app_state_mut(|s| s.add_user(user_id, user_state.clone()));
 
     let init_args = AppInitArgs {
         owner_id,
@@ -181,8 +176,8 @@ async fn install_app(canister_id: CanisterId) -> Result<User, String> {
 
     let user_id: UserId = owner_id.into();
 
-    let user_state =
-        with_state_mut(|s| s.get_or_init_user(user_id, Some(canister_id))).unwrap_or_else(revert);
+    let user_state = with_app_state_mut(|s| s.get_or_init_user(user_id, Some(canister_id)))
+        .unwrap_or_else(revert);
 
     let init_args = AppInitArgs {
         owner_id,
@@ -190,7 +185,7 @@ async fn install_app(canister_id: CanisterId) -> Result<User, String> {
     };
 
     let install_arg_result =
-        with_state_mut(|s| s.get_latest_install_args(CanisterInstallMode::Install, init_args));
+        with_app_state_mut(|s| s.get_latest_install_args(CanisterInstallMode::Install, init_args));
 
     match install_arg_result {
         Ok(install_arg) => {
@@ -233,7 +228,7 @@ async fn add_user_app(canister_id: CanisterId) {
     //     .unwrap_or_else(revert);
 
     // if is_valid {
-    with_state_mut(|s| s.get_or_init_user(user_id, Some(canister_id))).unwrap_or_else(revert);
+    with_app_state_mut(|s| s.get_or_init_user(user_id, Some(canister_id))).unwrap_or_else(revert);
     // } else {
     //     revert(SystemError::InvalidSigner)
     // }
@@ -254,7 +249,7 @@ fn remove_user_app(canister_id: CanisterId) {
 fn remove_user(user_principal: Principal) {
     let user_id: UserId = user_principal.into();
 
-    with_state_mut(|s| s.remove_user(&user_id));
+    with_app_state_mut(|s| s.remove_user(&user_id));
 }
 
 #[query]
@@ -298,7 +293,7 @@ pub fn get_release_by_hash_string(hash: WasmHash) -> Release {
 
 #[update(guard = "caller_is_controller")]
 fn update_release(release_args: ReleaseArgs) {
-    with_state_mut(|s| {
+    with_app_state_mut(|s| {
         s.update_release(release_args);
     });
 }
@@ -341,7 +336,7 @@ fn remove_latest_release() {
 
 #[update(guard = "caller_is_controller")]
 fn deprecate_release(version: AppVersion) -> Release {
-    with_state_mut(|state| state.deprecate_release(version)).unwrap_or_else(revert)
+    with_app_state_mut(|state| state.deprecate_release(version)).unwrap_or_else(revert)
 }
 
 #[update(guard = "caller_is_controller")]

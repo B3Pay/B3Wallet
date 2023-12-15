@@ -4,60 +4,41 @@ use b3_utils::{
     wasm::{with_wasm_mut_cache, Wasm, WasmHash, WasmSize},
     NanoTimeStamp,
 };
-use candid::CandidType;
 use ciborium::de::from_reader;
 use ciborium::ser::into_writer;
 use serde::{Deserialize, Serialize};
 use std::io::Cursor;
 
-use super::{
-    error::AppSystemError,
-    types::{Features, ReleaseArgs},
-};
+use super::{error::AppSystemError, types::AppReleaseArgs};
 
 use super::store::{with_release_wasm, with_wasm_map_mut};
 
-#[derive(CandidType, Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct Release {
-    pub name: String,
-    pub date: NanoTimeStamp,
-    pub size: WasmSize,
-    pub version: AppVersion,
-    pub deprecated: bool,
-    pub features: Features,
+    name: String,
+    date: NanoTimeStamp,
+    size: WasmSize,
+    version: AppVersion,
+    deprecated: bool,
+    features: String,
 }
 
+// Create the Release struct
 impl Release {
-    pub fn new(release_args: ReleaseArgs) -> Self {
-        let version = release_args.version.clone();
-
-        with_wasm_map_mut(|wasm_map| {
-            wasm_map.insert(version, Wasm::default());
-        });
-
-        release_args.into()
+    pub fn new(release_args: AppReleaseArgs) -> Self {
+        Self {
+            deprecated: false,
+            size: release_args.size,
+            name: release_args.name,
+            date: NanoTimeStamp::now(),
+            version: release_args.version,
+            features: release_args.features,
+        }
     }
+}
 
-    pub fn is_loading(&self) -> bool {
-        with_release_wasm(&self.version, |wasm| wasm.is_loading(self.size)).unwrap_or(false)
-    }
-
-    pub fn is_loaded(&self) -> bool {
-        with_release_wasm(&self.version, |wasm| wasm.is_loaded(self.size)).unwrap_or(false)
-    }
-
-    pub fn is_same_hash(&self, hash: &WasmHash) -> bool {
-        with_release_wasm(&self.version, |wasm| wasm.verify_hash(hash)).unwrap_or(false)
-    }
-
-    pub fn wasm(&self) -> Result<Wasm, AppSystemError> {
-        with_release_wasm(&self.version, |wasm| Ok(wasm))?
-    }
-
-    pub fn verify_hash(&self, hash: &WasmHash) -> bool {
-        with_release_wasm(&self.version, |wasm| wasm.verify_hash(hash)).unwrap_or(false)
-    }
-
+// Write to the Release struct
+impl Release {
     pub fn load_wasm(&mut self, blob: &Vec<u8>) -> Result<WasmSize, AppSystemError> {
         if self.is_loaded() {
             return Err(AppSystemError::WasmAlreadyLoaded);
@@ -94,38 +75,54 @@ impl Release {
         self.deprecated = true;
     }
 
-    pub fn add_feature(&mut self, feature: String) {
-        self.features.push(feature);
+    pub fn edit_feature(&mut self, feature: String) {
+        self.features = feature;
     }
 
-    pub fn remove_feature(&mut self, feature: String) {
-        self.features.retain(|f| f != &feature);
-    }
-}
-
-impl Default for Release {
-    fn default() -> Self {
-        Self {
-            name: "".to_string(),
-            version: "0.0.0".to_string(),
-            date: NanoTimeStamp(0),
-            size: 0,
-            deprecated: false,
-            features: vec!["".to_string()],
-        }
+    pub fn remove_feature(&mut self) {
+        self.features = "".to_string();
     }
 }
 
-impl From<ReleaseArgs> for Release {
-    fn from(args: ReleaseArgs) -> Self {
-        Self {
-            name: args.name,
-            date: NanoTimeStamp::now(),
-            size: args.size,
-            deprecated: false,
-            version: args.version,
-            features: args.features,
+// Read of the Release struct
+impl Release {
+    pub fn view(&self) -> super::types::ReleaseView {
+        super::types::ReleaseView {
+            name: self.name.clone(),
+            date: self.date.clone(),
+            size: self.size,
+            version: self.version.clone(),
+            deprecated: self.deprecated,
+            features: self.features.clone(),
         }
+    }
+
+    pub fn is_loading(&self) -> bool {
+        with_release_wasm(&self.version, |wasm| wasm.is_loading(self.size)).unwrap_or(false)
+    }
+
+    pub fn is_loaded(&self) -> bool {
+        with_release_wasm(&self.version, |wasm| wasm.is_loaded(self.size)).unwrap_or(false)
+    }
+
+    pub fn wasm(&self) -> Result<Wasm, AppSystemError> {
+        with_release_wasm(&self.version, |wasm| wasm)
+    }
+
+    pub fn verify_hash(&self, hash: &WasmHash) -> bool {
+        with_release_wasm(&self.version, |wasm| wasm.verify_hash(hash)).unwrap_or(false)
+    }
+
+    pub fn wasm_hash(&self) -> Result<WasmHash, AppSystemError> {
+        with_release_wasm(&self.version, |wasm| wasm.hash())
+    }
+
+    pub fn wasm_size(&self) -> Result<WasmSize, AppSystemError> {
+        with_release_wasm(&self.version, |wasm| wasm.len())
+    }
+
+    pub fn is_deprecated(&self) -> bool {
+        self.deprecated
     }
 }
 

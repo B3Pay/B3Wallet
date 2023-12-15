@@ -15,6 +15,7 @@ pub struct UserState {
     pub users: UserMap,
 }
 
+// write to the UserState struct
 impl UserState {
     // App
     pub fn init_user(&mut self, user: UserId) -> Result<User, UserSystemError> {
@@ -60,7 +61,10 @@ impl UserState {
     pub fn remove_user(&mut self, user: &UserId) {
         self.users.remove(user);
     }
+}
 
+// Read from the UserState struct
+impl UserState {
     pub fn user_ids(&self) -> Users {
         self.users.iter().map(|(k, _)| k).collect()
     }

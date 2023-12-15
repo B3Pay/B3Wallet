@@ -1,15 +1,34 @@
-use b3_utils::{api::AppVersion, NanoTimeStamp};
+use b3_utils::{api::AppVersion, ledger::Metadata, nonce::Nonce, NanoTimeStamp};
 use candid::CandidType;
 use ic_cdk::api::management_canister::main::CanisterStatusResponse;
 use serde::{Deserialize, Serialize};
 
-pub type ReleaseVersion = String;
-
 pub type AppId = String;
 
-pub type Features = Vec<String>;
+#[derive(CandidType, PartialEq, Debug)]
+pub struct ReleaseView {
+    pub name: String,
+    pub date: NanoTimeStamp,
+    pub size: usize,
+    pub version: AppVersion,
+    pub deprecated: bool,
+    pub features: String,
+}
 
-#[derive(CandidType)]
+#[derive(CandidType, Debug)]
+pub struct AppView {
+    pub id: AppId,
+    pub name: String,
+    pub description: String,
+    pub created_by: String,
+    pub created_at: NanoTimeStamp,
+    pub updated_at: NanoTimeStamp,
+    pub latest_release: Option<ReleaseView>,
+    pub metadata: Metadata,
+    pub install_count: Nonce,
+}
+
+#[derive(CandidType, Debug)]
 pub struct LoadRelease {
     pub total: usize,
     pub chunks: usize,
@@ -17,11 +36,18 @@ pub struct LoadRelease {
 }
 
 #[derive(CandidType, Deserialize, Clone)]
-pub struct ReleaseArgs {
+pub struct CreateAppArgs {
+    pub name: String,
+    pub description: String,
+    pub metadata: Metadata,
+}
+
+#[derive(CandidType, Deserialize, Clone)]
+pub struct AppReleaseArgs {
     pub size: usize,
     pub name: String,
-    pub version: ReleaseVersion,
-    pub features: Features,
+    pub version: AppVersion,
+    pub features: String,
 }
 
 #[derive(CandidType, Deserialize, Serialize)]
