@@ -5,7 +5,6 @@ use b3_utils::{
     types::{CanisterId, CanisterIds, ControllerId},
     NanoTimeStamp,
 };
-use candid::CandidType;
 use ciborium::de::from_reader;
 use ciborium::ser::into_writer;
 use ic_cdk::api::management_canister::{
@@ -14,18 +13,18 @@ use ic_cdk::api::management_canister::{
 use serde::{Deserialize, Serialize};
 use std::io::Cursor;
 
-use super::error::UserSystemError;
+use super::{error::UserSystemError, types::UserView};
 
-#[derive(CandidType, Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct User {
-    pub canisters: Vec<CanisterId>,
-    pub created_at: NanoTimeStamp,
-    pub updated_at: NanoTimeStamp,
-    pub metadata: Metadata,
+    canisters: Vec<CanisterId>,
+    created_at: NanoTimeStamp,
+    updated_at: NanoTimeStamp,
+    metadata: Metadata,
 }
 
+// Create the User struct
 impl User {
-    /// Create a new canister.
     pub fn new(opt_canister_id: Option<CanisterId>) -> Self {
         let mut canisters = Vec::new();
 
@@ -40,7 +39,10 @@ impl User {
             metadata: Metadata::new(),
         }
     }
+}
 
+// Write to the User struct
+impl User {
     /// get with updated_at.
     pub fn update_rate(&mut self) -> Result<User, UserSystemError> {
         self.check_rate()?;
@@ -69,20 +71,6 @@ impl User {
         Ok(())
     }
 
-    /// Returns the canister ids, throws an error if it is not available.
-    pub fn canisters(&self) -> CanisterIds {
-        self.canisters.clone()
-    }
-
-    /// Make an function that use updated_at and check the rate of the user.
-    pub fn check_rate(&self) -> Result<(), UserSystemError> {
-        if self.updated_at.rate_limit_exceeded(SYSTEM_RATE_LIMIT) {
-            return Err(UserSystemError::RateLimitExceeded);
-        } else {
-            Ok(())
-        }
-    }
-
     /// create a new canister and save the canister id.
     pub async fn create_with_cycles(
         &mut self,
@@ -109,6 +97,32 @@ impl User {
                 Ok(canister_id)
             }
             Err(err) => Err(UserSystemError::CreateCanisterError(err.to_string())),
+        }
+    }
+}
+
+// Read from the User struct
+impl User {
+    pub fn view(&self) -> UserView {
+        UserView {
+            canisters: self.canisters.clone(),
+            updated_at: self.updated_at.clone(),
+            created_at: self.created_at.clone(),
+            metadata: self.metadata.clone(),
+        }
+    }
+
+    /// Returns the canister ids, throws an error if it is not available.
+    pub fn canisters(&self) -> CanisterIds {
+        self.canisters.clone()
+    }
+
+    /// Make an function that use updated_at and check the rate of the user.
+    pub fn check_rate(&self) -> Result<(), UserSystemError> {
+        if self.updated_at.rate_limit_exceeded(SYSTEM_RATE_LIMIT) {
+            return Err(UserSystemError::RateLimitExceeded);
+        } else {
+            Ok(())
         }
     }
 }

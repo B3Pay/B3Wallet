@@ -1,8 +1,4 @@
-use b3_utils::{
-    api::AppVersion,
-    types::{CanisterId, CanisterIds, UserId},
-    NanoTimeStamp,
-};
+use b3_utils::NanoTimeStamp;
 use candid::CandidType;
 use ic_cdk::api::management_canister::main::CanisterStatusResponse;
 use serde::{Deserialize, Serialize};

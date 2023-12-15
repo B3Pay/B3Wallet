@@ -4,6 +4,8 @@ use b3_utils::wasm::WasmHash;
 use b3_utils::{memory::init_stable_mem, wasm::Wasm};
 
 use super::error::AppSystemError;
+use super::types::AppId;
+use super::App;
 use super::{
     release::Release,
     state::{AppState, ReleaseMap, WasmMap},
@@ -28,12 +30,38 @@ pub fn with_app_state_mut<R>(f: impl FnOnce(&mut AppState) -> R) -> R {
     APP_STATE.with(|state| f(&mut *state.borrow_mut()))
 }
 
+pub fn with_app<F, T>(app_id: &AppId, f: F) -> Result<T, AppSystemError>
+where
+    F: FnOnce(App) -> T,
+{
+    with_app_state(|state| {
+        state
+            .apps
+            .get(&app_id)
+            .ok_or(AppSystemError::AppNotFound)
+            .map(f)
+    })
+}
+
+pub fn with_app_mut<F, T>(app_id: &AppId, f: F) -> Result<T, AppSystemError>
+where
+    F: FnOnce(&mut App) -> T,
+{
+    with_app_state_mut(|state| {
+        state
+            .apps
+            .get(app_id)
+            .ok_or(AppSystemError::AppNotFound)
+            .map(|mut app| f(&mut app))
+    })
+}
+
 pub fn with_releases<R>(f: impl FnOnce(&ReleaseMap) -> R) -> R {
-    with_app_state(|state| f(&state.releases))
+    APP_STATE.with(|state| f(&state.borrow().releases))
 }
 
 pub fn with_releases_mut<R>(f: impl FnOnce(&mut ReleaseMap) -> R) -> R {
-    with_app_state_mut(|state| f(&mut state.releases))
+    APP_STATE.with(|state| f(&mut state.borrow_mut().releases))
 }
 
 pub fn with_release<F, T>(hash: &WasmHash, f: F) -> Result<T, AppSystemError>

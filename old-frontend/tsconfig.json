@@ -20,6 +20,6 @@
       "declarations/*": ["declarations/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "../scripts/system.ts"],
   "exclude": ["node_modules"]
 }

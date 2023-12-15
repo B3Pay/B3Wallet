@@ -1,9 +1,9 @@
 import { Actor, HttpAgent } from "@dfinity/agent"
 import { Principal } from "@dfinity/principal"
 import { readFileSync } from "fs"
-import { idlFactory as systemFactory } from "../old-frontend/declarations/b3_system"
-import { idlFactory as userFactory } from "../old-frontend/declarations/b3_wallet"
 import { B3System, B3Wallet } from "../old-frontend/src/service"
+import { idlFactory as systemFactory } from "../src/declarations/b3_system"
+import { idlFactory as userFactory } from "../src/declarations/b3_wallet"
 import { initIdentity } from "./utils"
 
 const systemPrincipalIC = () => {
@@ -46,13 +46,13 @@ export const localAgent = async () => {
 
   await agent.fetchRootKey()
 
-  return agent
+  return { agent, identity }
 }
 
 export const systemLocalActor = async () => {
   const canisterId = systemPrincipalLocal()
 
-  const agent = await localAgent()
+  const { agent } = await localAgent()
 
   return Actor.createActor(systemFactory, {
     agent,
@@ -74,7 +74,7 @@ export const systemActorIC = async () => {
 export const walletLocalActor = async () => {
   const canisterId = walletPrincipalLocal()
 
-  const agent = await localAgent()
+  const { agent } = await localAgent()
 
   return Actor.createActor(userFactory, {
     agent,

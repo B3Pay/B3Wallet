@@ -5,6 +5,7 @@ use candid::{CandidType, Deserialize};
 #[derive(CandidType, Deserialize)]
 pub enum AppSystemError {
     HelperError(HelperError),
+    AppIdMismatch,
     InvalidSigner,
     ValidateSignerError(String),
     UpdateCanisterControllersError(String),
@@ -47,6 +48,7 @@ impl fmt::Display for AppSystemError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             AppSystemError::HelperError(e) => write!(f, "{}", e),
+            AppSystemError::AppIdMismatch => write!(f, "App id mismatch!"),
             AppSystemError::InvalidSigner => write!(f, "Invalid user!"),
             AppSystemError::ValidateSignerError(e) => write!(f, "Validate user error: {}", e),
             AppSystemError::UpdateCanisterControllersError(e) => write!(f, "Update canister controllers error: {}", e),

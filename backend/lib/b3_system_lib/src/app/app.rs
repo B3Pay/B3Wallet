@@ -21,7 +21,7 @@ use super::{
     error::AppSystemError,
     release::Release,
     store::{with_release_mut, with_releases, with_releases_mut},
-    types::{AppId, AppReleaseArgs, AppView, CreateAppArgs},
+    types::{AppId, AppView, CreateAppArgs, CreateReleaseArgs, ReleaseView, ReleaseViews},
 };
 
 #[derive(Deserialize, Serialize, Clone)]
@@ -80,20 +80,21 @@ impl App {
         self.clone()
     }
 
-    pub fn add_release_hash(&mut self, wasm_hash: WasmHash) {
+    fn add_release_hash(&mut self, wasm_hash: WasmHash) {
         self.updated_at = NanoTimeStamp::now();
         self.release_hashes.push(wasm_hash);
     }
 
-    pub fn remove_release_hash(&mut self, wasm_hash: WasmHash) {
-        self.updated_at = NanoTimeStamp::now();
-        self.release_hashes.retain(|v| v != &wasm_hash);
-    }
+    pub fn add_release(&mut self, release_args: CreateReleaseArgs) {
+        if let Some(_) = self.release(&release_args.wasm_hash) {
+            return;
+        }
 
-    pub fn add_release(&mut self, wasm_hash: WasmHash, release_args: AppReleaseArgs) {
-        let release = Release::new(release_args);
+        let wasm_hash = release_args.wasm_hash.clone();
 
         self.add_release_hash(wasm_hash);
+
+        let release = Release::new(release_args);
 
         with_releases_mut(|releases| releases.insert(wasm_hash, release));
     }
@@ -123,7 +124,7 @@ impl App {
             description: self.description.clone(),
             created_by: self.created_by.to_string(),
             install_count: self.install_count.clone(),
-            latest_release: self.latest_release().map(|release| release.view()),
+            latest_release: self.latest_release_view(),
         }
     }
 
@@ -143,14 +144,27 @@ impl App {
         with_releases(|releases| releases.get(wasm_hash))
     }
 
-    pub fn release_view(&self, wasm_hash: &WasmHash) -> Option<super::types::ReleaseView> {
+    pub fn release_view(&self, wasm_hash: &WasmHash) -> Option<ReleaseView> {
         self.release(wasm_hash).map(|release| release.view())
+    }
+
+    pub fn release_views(&self) -> ReleaseViews {
+        self.releases()
+            .iter()
+            .map(|release| release.view())
+            .collect()
     }
 
     pub fn latest_release(&self) -> Option<Release> {
         let latest_hash = self.release_hashes.iter().max().cloned()?;
 
         self.release(&latest_hash)
+    }
+
+    pub fn latest_release_view(&self) -> Option<ReleaseView> {
+        let latest_hash = self.release_hashes.iter().max().cloned()?;
+
+        self.release_view(&latest_hash)
     }
 
     pub fn releases(&self) -> Vec<Release> {

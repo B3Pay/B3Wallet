@@ -1,9 +1,11 @@
-use b3_utils::{api::AppVersion, ledger::Metadata, nonce::Nonce, NanoTimeStamp};
+use b3_utils::{api::AppVersion, ledger::Metadata, nonce::Nonce, wasm::WasmHash, NanoTimeStamp};
 use candid::CandidType;
 use ic_cdk::api::management_canister::main::CanisterStatusResponse;
 use serde::{Deserialize, Serialize};
 
 pub type AppId = String;
+
+pub type ReleaseViews = Vec<ReleaseView>;
 
 #[derive(CandidType, PartialEq, Debug)]
 pub struct ReleaseView {
@@ -32,7 +34,6 @@ pub struct AppView {
 pub struct LoadRelease {
     pub total: usize,
     pub chunks: usize,
-    pub version: AppVersion,
 }
 
 #[derive(CandidType, Deserialize, Clone)]
@@ -43,11 +44,12 @@ pub struct CreateAppArgs {
 }
 
 #[derive(CandidType, Deserialize, Clone)]
-pub struct AppReleaseArgs {
+pub struct CreateReleaseArgs {
+    pub id: AppId,
     pub size: usize,
-    pub name: String,
     pub version: AppVersion,
     pub features: String,
+    pub wasm_hash: WasmHash,
 }
 
 #[derive(CandidType, Deserialize, Serialize)]

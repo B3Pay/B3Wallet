@@ -33,6 +33,7 @@
     "build": "npx next build"
   },
   "devDependencies": {
+    "@ic-reactor/store": "^0.1.1",
     "@types/node": "20.8.10",
     "@types/node-fetch": "^2.6.3",
     "@types/react": "18.2.36",

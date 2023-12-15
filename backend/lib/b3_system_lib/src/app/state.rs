@@ -6,7 +6,7 @@ use b3_utils::{
 use ic_cdk::api::management_canister::main::CanisterInstallMode;
 
 use super::release::Release;
-use super::types::{AppId, AppReleaseArgs, CreateAppArgs};
+use super::types::{AppId, CreateAppArgs, CreateReleaseArgs};
 use super::App;
 use super::{error::AppSystemError, types::AppView};
 
@@ -22,7 +22,7 @@ pub struct AppState {
 
 // Write to the AppState struct
 impl AppState {
-    pub fn add_app(&mut self, app_args: CreateAppArgs) -> Result<(), AppSystemError> {
+    pub fn create_app(&mut self, app_args: CreateAppArgs) -> Result<App, AppSystemError> {
         let app = App::new(app_args);
 
         let app_id = app.id();
@@ -31,21 +31,25 @@ impl AppState {
             return Err(AppSystemError::AppAlreadyExists);
         }
 
-        self.apps.insert(app_id, app);
+        self.apps.insert(app_id, app.clone());
 
-        Ok(())
+        Ok(app)
     }
 
-    pub fn update_app(&mut self, id: AppId, app_args: CreateAppArgs) -> Result<(), AppSystemError> {
+    pub fn update_app(
+        &mut self,
+        id: AppId,
+        app_args: CreateAppArgs,
+    ) -> Result<App, AppSystemError> {
         let app = self
             .apps
             .get(&id)
             .ok_or(AppSystemError::AppNotFound)?
             .update(app_args);
 
-        self.apps.insert(id, app);
+        self.apps.insert(id, app.clone());
 
-        Ok(())
+        Ok(app)
     }
 
     pub fn remove_app(&mut self, id: AppId) -> Result<(), AppSystemError> {
@@ -54,13 +58,13 @@ impl AppState {
         Ok(())
     }
 
-    pub fn add_release(&mut self, wasm_hash: WasmHash, release_args: AppReleaseArgs) {
+    pub fn add_release(&mut self, wasm_hash: WasmHash, release_args: CreateReleaseArgs) {
         let release = Release::new(release_args);
 
         self.releases.insert(wasm_hash, release);
     }
 
-    pub fn update_release(&mut self, wasm_hash: WasmHash, release_args: AppReleaseArgs) {
+    pub fn update_release(&mut self, wasm_hash: WasmHash, release_args: CreateReleaseArgs) {
         let release = Release::new(release_args);
 
         self.releases.insert(wasm_hash, release);
@@ -119,7 +123,7 @@ impl AppState {
         })
     }
 
-    pub fn install_args_by_hash(
+    pub fn install_args_by_wasm_hash(
         &self,
         wasm_hash: &WasmHash,
         mode: CanisterInstallMode,
@@ -130,7 +134,7 @@ impl AppState {
         self.install_args(wasm, mode, init_args)
     }
 
-    pub fn install_args_by_app(
+    pub fn install_args_by_app_id(
         &self,
         id: AppId,
         mode: CanisterInstallMode,

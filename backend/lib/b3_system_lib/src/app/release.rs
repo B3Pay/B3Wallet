@@ -9,13 +9,16 @@ use ciborium::ser::into_writer;
 use serde::{Deserialize, Serialize};
 use std::io::Cursor;
 
-use super::{error::AppSystemError, types::AppReleaseArgs};
+use super::{
+    error::AppSystemError,
+    types::{AppId, CreateReleaseArgs, ReleaseView},
+};
 
 use super::store::{with_release_wasm, with_wasm_map_mut};
 
 #[derive(Deserialize, Serialize, Clone)]
 pub struct Release {
-    name: String,
+    id: AppId,
     date: NanoTimeStamp,
     size: WasmSize,
     version: AppVersion,
@@ -25,11 +28,11 @@ pub struct Release {
 
 // Create the Release struct
 impl Release {
-    pub fn new(release_args: AppReleaseArgs) -> Self {
+    pub fn new(release_args: CreateReleaseArgs) -> Self {
         Self {
             deprecated: false,
+            id: release_args.id,
             size: release_args.size,
-            name: release_args.name,
             date: NanoTimeStamp::now(),
             version: release_args.version,
             features: release_args.features,
@@ -39,6 +42,14 @@ impl Release {
 
 // Write to the Release struct
 impl Release {
+    pub fn update(&mut self, release_args: CreateReleaseArgs) -> Self {
+        self.size = release_args.size;
+        self.version = release_args.version;
+        self.features = release_args.features;
+
+        self.clone()
+    }
+
     pub fn load_wasm(&mut self, blob: &Vec<u8>) -> Result<WasmSize, AppSystemError> {
         if self.is_loaded() {
             return Err(AppSystemError::WasmAlreadyLoaded);
@@ -86,9 +97,13 @@ impl Release {
 
 // Read of the Release struct
 impl Release {
-    pub fn view(&self) -> super::types::ReleaseView {
-        super::types::ReleaseView {
-            name: self.name.clone(),
+    pub fn id(&self) -> String {
+        self.id.clone()
+    }
+
+    pub fn view(&self) -> ReleaseView {
+        ReleaseView {
+            name: self.id.clone(),
             date: self.date.clone(),
             size: self.size,
             version: self.version.clone(),
