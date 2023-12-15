@@ -27,20 +27,6 @@ pub struct Release {
     pub features: Features,
 }
 
-impl Storable for Release {
-    const BOUND: Bound = Bound::Unbounded;
-
-    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
-        let mut bytes = vec![];
-        into_writer(&self, &mut bytes).unwrap();
-        std::borrow::Cow::Owned(bytes)
-    }
-
-    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
-        from_reader(&mut Cursor::new(&bytes)).unwrap()
-    }
-}
-
 impl Release {
     pub fn new(release_args: ReleaseArgs) -> Self {
         let version = release_args.version.clone();
@@ -140,5 +126,19 @@ impl From<ReleaseArgs> for Release {
             version: args.version,
             features: args.features,
         }
+    }
+}
+
+impl Storable for Release {
+    const BOUND: Bound = Bound::Unbounded;
+
+    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
+        let mut bytes = vec![];
+        into_writer(&self, &mut bytes).unwrap();
+        std::borrow::Cow::Owned(bytes)
+    }
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
+        from_reader(&mut Cursor::new(&bytes)).unwrap()
     }
 }
