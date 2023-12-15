@@ -10,8 +10,8 @@ use ciborium::ser::into_writer;
 use serde::{Deserialize, Serialize};
 use std::io::Cursor;
 
-use crate::{
-    error::SystemError,
+use super::{
+    error::AppSystemError,
     types::{Features, ReleaseArgs},
 };
 
@@ -64,7 +64,7 @@ impl Release {
         with_release_wasm(&self.version, |wasm| wasm.verify_hash(hash)).unwrap_or(false)
     }
 
-    pub fn wasm(&self) -> Result<Wasm, SystemError> {
+    pub fn wasm(&self) -> Result<Wasm, AppSystemError> {
         with_release_wasm(&self.version, |wasm| Ok(wasm))?
     }
 
@@ -72,9 +72,9 @@ impl Release {
         with_release_wasm(&self.version, |wasm| wasm.verify_hash(hash)).unwrap_or(false)
     }
 
-    pub fn load_wasm(&mut self, blob: &Vec<u8>) -> Result<WasmSize, SystemError> {
+    pub fn load_wasm(&mut self, blob: &Vec<u8>) -> Result<WasmSize, AppSystemError> {
         if self.is_loaded() {
-            return Err(SystemError::WasmAlreadyLoaded);
+            return Err(AppSystemError::WasmAlreadyLoaded);
         }
 
         let wasm_len = with_wasm_mut_cache(|wasm| wasm.load(blob));

@@ -9,9 +9,7 @@ use ciborium::ser::into_writer;
 use serde::{Deserialize, Serialize};
 use std::io::Cursor;
 
-use crate::types::ReleaseVersion;
-
-use super::{release::Release, store::with_releases};
+use super::{release::Release, store::with_releases, types::ReleaseVersion};
 
 #[derive(CandidType, Deserialize, Serialize, Clone)]
 pub struct App {

@@ -2,11 +2,11 @@ use std::cell::RefCell;
 
 use b3_utils::{memory::init_stable_mem, wasm::Wasm};
 
-use crate::{error::SystemError, types::ReleaseVersion};
+use super::{error::AppSystemError, types::ReleaseVersion};
 
 use super::{release::Release, AppState, ReleaseMap, WasmMap};
 
-// The AppState starts from 1 to 10 to avoid conflicts with the user's stable memory
+// The AppState starts from 1 to 9 to avoid conflicts with the user's stable memory
 thread_local! {
     static STATE: RefCell<AppState> = RefCell::new(
         AppState {
@@ -33,36 +33,36 @@ pub fn with_releases_mut<R>(f: impl FnOnce(&mut ReleaseMap) -> R) -> R {
     with_state_mut(|state| f(&mut state.releases))
 }
 
-pub fn with_release<F, T>(version: &ReleaseVersion, f: F) -> Result<T, SystemError>
+pub fn with_release<F, T>(version: &ReleaseVersion, f: F) -> Result<T, AppSystemError>
 where
     F: FnOnce(Release) -> T,
 {
     with_releases(|releases| {
         releases
             .get(version)
-            .ok_or(SystemError::ReleaseNotFound)
+            .ok_or(AppSystemError::ReleaseNotFound)
             .map(f)
     })
 }
 
-pub fn with_release_mut<F, T>(version: &ReleaseVersion, f: F) -> Result<T, SystemError>
+pub fn with_release_mut<F, T>(version: &ReleaseVersion, f: F) -> Result<T, AppSystemError>
 where
     F: FnOnce(&mut Release) -> T,
 {
     with_releases_mut(|releases| {
         releases
             .get(version)
-            .ok_or(SystemError::ReleaseNotFound)
+            .ok_or(AppSystemError::ReleaseNotFound)
             .map(|mut release| f(&mut release))
     })
 }
 
-pub fn with_latest_version_release<F, T>(f: F) -> Result<T, SystemError>
+pub fn with_latest_version_release<F, T>(f: F) -> Result<T, AppSystemError>
 where
     F: FnOnce((ReleaseVersion, Release)) -> T,
 {
     with_releases(|releases| releases.last_key_value())
-        .ok_or(SystemError::ReleaseNotFound)
+        .ok_or(AppSystemError::ReleaseNotFound)
         .map(f)
 }
 
@@ -82,14 +82,14 @@ where
     with_state_mut(|state| f(&mut state.wasm_map))
 }
 
-pub fn with_release_wasm<F, T>(version: &String, f: F) -> Result<T, SystemError>
+pub fn with_release_wasm<F, T>(version: &String, f: F) -> Result<T, AppSystemError>
 where
     F: FnOnce(Wasm) -> T,
 {
     with_wasm_map(|wasm_map| {
         wasm_map
             .get(version)
-            .ok_or(SystemError::WasmNotFound)
+            .ok_or(AppSystemError::WasmNotFound)
             .map(f)
     })
 }

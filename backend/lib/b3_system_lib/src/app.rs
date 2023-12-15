@@ -1,8 +1,3 @@
-use crate::{
-    error::SystemError,
-    types::ReleaseArgs,
-    types::{AppId, ReleaseVersion},
-};
 use b3_utils::{
     api::{AppInitArgs, AppInstallArg, AppVersion},
     memory::types::DefaultStableBTreeMap,
@@ -12,8 +7,13 @@ use ic_cdk::api::management_canister::main::CanisterInstallMode;
 
 pub mod app;
 pub mod constants;
+pub mod error;
 pub mod release;
 pub mod store;
+pub mod types;
+
+use error::AppSystemError;
+use types::{AppId, ReleaseArgs, ReleaseVersion};
 
 use app::App;
 use release::Release;
@@ -30,9 +30,9 @@ pub struct AppState {
 
 impl AppState {
     // App
-    pub fn add_app(&mut self, product: App) -> Result<(), SystemError> {
+    pub fn add_app(&mut self, product: App) -> Result<(), AppSystemError> {
         if self.apps.contains_key(&product.id) {
-            return Err(SystemError::ProductAlreadyExists); // Assuming you define this error
+            return Err(AppSystemError::ProductAlreadyExists); // Assuming you define this error
         }
         self.apps.insert(product.id.clone(), product);
         Ok(())
@@ -43,10 +43,10 @@ impl AppState {
     }
 
     // release
-    pub fn get_release(&self, version: &ReleaseVersion) -> Result<Release, SystemError> {
+    pub fn get_release(&self, version: &ReleaseVersion) -> Result<Release, AppSystemError> {
         self.releases
             .get(version)
-            .ok_or(SystemError::ReleaseNotFound)
+            .ok_or(AppSystemError::ReleaseNotFound)
     }
 
     pub fn get_release_install_args(
@@ -54,12 +54,12 @@ impl AppState {
         version: &ReleaseVersion,
         mode: CanisterInstallMode,
         init_args: AppInitArgs,
-    ) -> Result<AppInstallArg, SystemError> {
+    ) -> Result<AppInstallArg, AppSystemError> {
         let wasm_module = self.get_release(version)?.wasm()?.bytes();
 
         let arg = init_args
             .encode()
-            .map_err(|e| SystemError::InstallArgError(e.to_string()))?;
+            .map_err(|e| AppSystemError::InstallArgError(e.to_string()))?;
 
         Ok(AppInstallArg {
             wasm_module,
@@ -68,10 +68,10 @@ impl AppState {
         })
     }
 
-    pub fn latest_release(&self) -> Result<Release, SystemError> {
+    pub fn latest_release(&self) -> Result<Release, AppSystemError> {
         self.releases
             .last_key_value()
-            .ok_or(SystemError::ReleaseNotFound)
+            .ok_or(AppSystemError::ReleaseNotFound)
             .map(|(_, release)| release)
     }
 
@@ -79,12 +79,12 @@ impl AppState {
         &self,
         mode: CanisterInstallMode,
         init_args: AppInitArgs,
-    ) -> Result<AppInstallArg, SystemError> {
+    ) -> Result<AppInstallArg, AppSystemError> {
         let wasm_module = self.latest_release()?.wasm()?.bytes();
 
         let arg = init_args
             .encode()
-            .map_err(|e| SystemError::InstallArgError(e.to_string()))?;
+            .map_err(|e| AppSystemError::InstallArgError(e.to_string()))?;
 
         Ok(AppInstallArg {
             wasm_module,
@@ -99,11 +99,14 @@ impl AppState {
         self.releases.insert(version, release.into());
     }
 
-    pub fn deprecate_release(&mut self, version: ReleaseVersion) -> Result<Release, SystemError> {
+    pub fn deprecate_release(
+        &mut self,
+        version: ReleaseVersion,
+    ) -> Result<Release, AppSystemError> {
         let mut release = self
             .releases
             .get(&version)
-            .ok_or(SystemError::ReleaseNotFound)?;
+            .ok_or(AppSystemError::ReleaseNotFound)?;
 
         release.deprecate();
 
@@ -116,11 +119,11 @@ impl AppState {
         &mut self,
         version: WasmVersion,
         feature: String,
-    ) -> Result<Release, SystemError> {
+    ) -> Result<Release, AppSystemError> {
         let mut release = self
             .releases
             .get(&version)
-            .ok_or(SystemError::ReleaseNotFound)?;
+            .ok_or(AppSystemError::ReleaseNotFound)?;
 
         release.add_feature(feature);
 
@@ -133,11 +136,11 @@ impl AppState {
         &mut self,
         version: WasmVersion,
         feature: String,
-    ) -> Result<Release, SystemError> {
+    ) -> Result<Release, AppSystemError> {
         let mut release = self
             .releases
             .get(&version)
-            .ok_or(SystemError::ReleaseNotFound)?;
+            .ok_or(AppSystemError::ReleaseNotFound)?;
 
         release.remove_feature(feature);
 

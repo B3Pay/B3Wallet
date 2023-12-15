@@ -5,13 +5,11 @@ use b3_utils::{
 
 use std::cell::RefCell;
 
-use crate::error::SystemError;
-
-use super::{user::User, UserState};
+use super::{error::UserSystemError, user::User, UserState};
 
 pub type UserMap = DefaultStableBTreeMap<UserId, User>;
 
-// The UserState starts from 10 to 20 to avoid conflicts with the app's stable memory
+// The UserState starts from 10 to 19 to avoid conflicts with the app's stable memory
 thread_local! {
     static USERS: RefCell<UserState> = RefCell::new(
         UserState {
@@ -30,26 +28,26 @@ pub fn with_users_mut<R>(f: impl FnOnce(&mut UserMap) -> R) -> R {
     USERS.with(|state| f(&mut state.borrow_mut().users))
 }
 
-pub fn with_user_state<F, T>(user_id: UserId, f: F) -> Result<T, SystemError>
+pub fn with_user_state<F, T>(user_id: UserId, f: F) -> Result<T, UserSystemError>
 where
     F: FnOnce(User) -> T,
 {
     with_users(|signers| {
         signers
             .get(&user_id)
-            .ok_or(SystemError::UserNotFound)
+            .ok_or(UserSystemError::UserNotFound)
             .map(f)
     })
 }
 
-pub fn with_user_state_mut<F, T>(user_id: &UserId, f: F) -> Result<T, SystemError>
+pub fn with_user_state_mut<F, T>(user_id: &UserId, f: F) -> Result<T, UserSystemError>
 where
     F: FnOnce(&mut User) -> T,
 {
     with_users_mut(|signers| {
         signers
             .get(user_id)
-            .ok_or(SystemError::UserNotFound)
+            .ok_or(UserSystemError::UserNotFound)
             .map(|mut user| f(&mut user))
     })
 }
@@ -58,7 +56,7 @@ pub fn with_user_app<F, T>(
     user_id: UserId,
     canister_id: &CanisterId,
     f: F,
-) -> Result<T, SystemError>
+) -> Result<T, UserSystemError>
 where
     F: FnOnce(&CanisterId) -> T,
 {
@@ -67,7 +65,7 @@ where
             .canisters
             .iter()
             .find(|canister| canister == &canister_id)
-            .ok_or(SystemError::WalletCanisterNotFound)
+            .ok_or(UserSystemError::WalletCanisterNotFound)
             .map(f)
     })?
 }

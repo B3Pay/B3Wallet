@@ -1,14 +1,15 @@
-use crate::{
-    error::SystemError,
-    types::{UserStates, Users},
-};
-use user::User;
+use b3_utils::types::{CanisterId, CanisterIds, UserId};
 
+pub mod error;
 pub mod store;
 pub mod test;
+pub mod types;
 pub mod user;
-use b3_utils::types::{CanisterId, CanisterIds, UserId};
+use error::UserSystemError;
 use store::UserMap;
+use user::User;
+
+use self::types::{UserStates, Users};
 
 pub struct UserState {
     pub users: UserMap,
@@ -16,10 +17,10 @@ pub struct UserState {
 
 impl UserState {
     // App
-    pub fn init_user(&mut self, user: UserId) -> Result<User, SystemError> {
+    pub fn init_user(&mut self, user: UserId) -> Result<User, UserSystemError> {
         if let Some(user_state) = self.users.get(&user) {
             if !user_state.canisters().is_empty() {
-                return Err(SystemError::UserAlreadyExists);
+                return Err(UserSystemError::UserAlreadyExists);
             }
         }
 
@@ -34,7 +35,7 @@ impl UserState {
         &mut self,
         user: UserId,
         opt_canister_id: Option<CanisterId>,
-    ) -> Result<User, SystemError> {
+    ) -> Result<User, UserSystemError> {
         if let Some(mut states) = self.users.get(&user) {
             let mut user_state = states.update_rate()?;
 
@@ -72,10 +73,10 @@ impl UserState {
             .collect()
     }
 
-    pub fn user_state(&self, user_id: UserId) -> Result<User, SystemError> {
+    pub fn user_state(&self, user_id: UserId) -> Result<User, UserSystemError> {
         self.users
             .get(&user_id)
-            .ok_or(SystemError::UserNotFound)
+            .ok_or(UserSystemError::UserNotFound)
             .map(|state| state.clone())
     }
 

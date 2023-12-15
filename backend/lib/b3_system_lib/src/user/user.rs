@@ -1,4 +1,3 @@
-use crate::error::SystemError;
 use b3_utils::{
     api::Management,
     ledger::{constants::SYSTEM_RATE_LIMIT, Metadata},
@@ -14,6 +13,8 @@ use ic_cdk::api::management_canister::{
 };
 use serde::{Deserialize, Serialize};
 use std::io::Cursor;
+
+use super::error::UserSystemError;
 
 #[derive(CandidType, Deserialize, Serialize, Clone)]
 pub struct User {
@@ -41,7 +42,7 @@ impl User {
     }
 
     /// get with updated_at.
-    pub fn update_rate(&mut self) -> Result<User, SystemError> {
+    pub fn update_rate(&mut self) -> Result<User, UserSystemError> {
         self.check_rate()?;
         self.updated_at = NanoTimeStamp::now();
 
@@ -55,12 +56,12 @@ impl User {
     }
 
     /// remove the canister id.
-    pub fn remove_canister(&mut self, canister_id: CanisterId) -> Result<(), SystemError> {
+    pub fn remove_canister(&mut self, canister_id: CanisterId) -> Result<(), UserSystemError> {
         let index = self
             .canisters
             .iter()
             .position(|id| id == &canister_id)
-            .ok_or(SystemError::WalletCanisterNotFound)?;
+            .ok_or(UserSystemError::WalletCanisterNotFound)?;
 
         self.canisters.remove(index);
         self.updated_at = NanoTimeStamp::now();
@@ -74,9 +75,9 @@ impl User {
     }
 
     /// Make an function that use updated_at and check the rate of the user.
-    pub fn check_rate(&self) -> Result<(), SystemError> {
+    pub fn check_rate(&self) -> Result<(), UserSystemError> {
         if self.updated_at.rate_limit_exceeded(SYSTEM_RATE_LIMIT) {
-            return Err(SystemError::RateLimitExceeded);
+            return Err(UserSystemError::RateLimitExceeded);
         } else {
             Ok(())
         }
@@ -87,7 +88,7 @@ impl User {
         &mut self,
         controllers: Vec<ControllerId>,
         cycles: u128,
-    ) -> Result<CanisterId, SystemError> {
+    ) -> Result<CanisterId, UserSystemError> {
         let args = CreateCanisterArgument {
             settings: Some(CanisterSettings {
                 controllers: Some(controllers.clone()),
@@ -107,7 +108,7 @@ impl User {
 
                 Ok(canister_id)
             }
-            Err(err) => Err(SystemError::CreateCanisterError(err.to_string())),
+            Err(err) => Err(UserSystemError::CreateCanisterError(err.to_string())),
         }
     }
 }
