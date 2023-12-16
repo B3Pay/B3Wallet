@@ -5,7 +5,8 @@ import { canisterId, createActor } from "declarations/b3_system"
 export const {
   useQueryCall: useSystemQuery,
   useUpdateCall: useSystemUpdate,
-  useAuthClient: useSystemAuthClient
+  useAuthClient: useSystemAuthClient,
+  useActorStore: useSystemActorStore
 } = createReActor(
   agent =>
     createActor(canisterId, {
