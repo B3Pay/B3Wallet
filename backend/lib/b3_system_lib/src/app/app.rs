@@ -124,6 +124,22 @@ impl App {
         self.id.clone()
     }
 
+    pub fn validate(&self) -> Result<(), AppSystemError> {
+        if let Ok(release) = self.latest_release() {
+            if release.is_deprecated() {
+                return Err(AppSystemError::AppIsDeprecated);
+            }
+
+            if !release.is_loaded() {
+                return Err(AppSystemError::WasmNotFound);
+            }
+
+            Ok(())
+        } else {
+            return Err(AppSystemError::ReleaseNotFound);
+        }
+    }
+
     pub fn view(&self) -> AppView {
         AppView {
             id: self.id(),

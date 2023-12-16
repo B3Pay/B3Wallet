@@ -38,6 +38,7 @@ pub enum AppSystemError {
     CanisterStatusError(String),
     AppNotFound,
     AppAlreadyExists,
+    AppIsDeprecated,
     CanisterIdNotFound,
 }
 
@@ -49,6 +50,7 @@ impl fmt::Display for AppSystemError {
         match self {
             AppSystemError::HelperError(e) => write!(f, "{}", e),
             AppSystemError::AppIdMismatch => write!(f, "App id mismatch!"),
+            AppSystemError::AppIsDeprecated => write!(f, "App is deprecated!"),
             AppSystemError::InvalidSigner => write!(f, "Invalid user!"),
             AppSystemError::ValidateSignerError(e) => write!(f, "Validate user error: {}", e),
             AppSystemError::UpdateCanisterControllersError(e) => write!(f, "Update canister controllers error: {}", e),

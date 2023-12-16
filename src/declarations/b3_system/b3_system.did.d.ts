@@ -8,6 +8,42 @@ export interface AppBug {
   'description' : string,
   'version' : string,
 }
+export type AppSystemError = { 'InvalidSigner' : null } |
+  { 'UserAlreadyExists' : null } |
+  { 'WasmGetError' : string } |
+  { 'CreateCanisterError' : string } |
+  { 'UpdateCanisterControllersError' : string } |
+  { 'HelperError' : HelperError } |
+  { 'CanisterIdNotFound' : null } |
+  { 'InvalidWalletCanister' : null } |
+  { 'ValidateSignerError' : string } |
+  { 'AppIdMismatch' : null } |
+  { 'EncodeError' : string } |
+  { 'InstallArgError' : string } |
+  { 'AppAlreadyExists' : null } |
+  { 'OwnerMismatch' : { 'owner' : string, 'user' : string } } |
+  { 'ReleaseNameNotFound' : null } |
+  { 'InvalidAccountIdentifier' : null } |
+  { 'AppNotFound' : null } |
+  { 'WalletCanisterAlreadyInstalled' : null } |
+  { 'WalletCanisterRateError' : string } |
+  { 'WalletCanisterAlreadyExists' : string } |
+  { 'AppIsDeprecated' : null } |
+  { 'RateLimitExceeded' : null } |
+  { 'UpdateControllersError' : string } |
+  { 'WasmHashError' : string } |
+  { 'ReleaseNotFound' : null } |
+  { 'WasmNotFound' : null } |
+  { 'WasmInstallError' : string } |
+  { 'VersionError' : string } |
+  { 'NoCanisterAvailable' : null } |
+  { 'WalletCanisterDoesNotExist' : string } |
+  { 'InstallCodeError' : string } |
+  { 'WalletCanisterNotFound' : null } |
+  { 'CanisterStatusError' : string } |
+  { 'WasmAlreadyLoaded' : null } |
+  { 'InvalidReleaseName' : string } |
+  { 'ReleaseAlreadyExists' : null };
 export interface AppView {
   'id' : string,
   'updated_at' : bigint,
@@ -80,6 +116,24 @@ export interface FromCanisterRecord {
   'canister_id' : Principal,
 }
 export interface FromUserRecord { 'user_id' : Principal }
+export type HelperError = { 'CreateCanisterError' : string } |
+  { 'UpdateCanisterControllersError' : string } |
+  { 'ValidateSignerError' : string } |
+  { 'HexStringToVecError' : string } |
+  { 'InvalidHexString' : null } |
+  { 'InvalidSubaccount' : string } |
+  { 'EncodeError' : string } |
+  { 'InvalidAccountIdentifier' : null } |
+  { 'RateLimitExceeded' : null } |
+  { 'WasmHashError' : string } |
+  { 'HexStringToU64Error' : string } |
+  { 'HexStringToNatError' : string } |
+  { 'VersionError' : string } |
+  { 'SignerNotAvailable' : null } |
+  { 'HexStringToU128Error' : string } |
+  { 'InstallCodeError' : string } |
+  { 'CanisterStatusError' : string } |
+  { 'InvalidReleaseName' : string };
 export interface LoadRelease { 'total' : bigint, 'chunks' : bigint }
 export interface QueryStats {
   'response_payload_bytes_total' : bigint,
@@ -97,6 +151,14 @@ export interface ReleaseView {
 }
 export type Result = { 'Ok' : UserView } |
   { 'Err' : string };
+export type Result_1 = { 'Ok' : ReleaseView } |
+  { 'Err' : AppSystemError };
+export interface SystemCanisterStatus {
+  'user_status' : bigint,
+  'status_at' : bigint,
+  'version' : string,
+  'canister_status' : CanisterStatusResponse,
+}
 export interface UserCanisterStatus {
   'version' : string,
   'canister_status' : CanisterStatusResponse,
@@ -124,12 +186,16 @@ export interface _SERVICE {
   'clear_bugs' : ActorMethod<[Principal], undefined>,
   'create_app' : ActorMethod<[CreateAppArgs], AppView>,
   'create_app_canister' : ActorMethod<[string], Result>,
+  'deprecate_release' : ActorMethod<
+    [string, Uint8Array | number[]],
+    ReleaseView
+  >,
   'get_app_version' : ActorMethod<[Principal], string>,
   'get_bugs' : ActorMethod<[Principal], Array<AppBug>>,
   'get_canister_info' : ActorMethod<[Principal], CanisterInfoResponse>,
   'get_canisters' : ActorMethod<[], Array<Principal>>,
   'get_create_canister_app_cycle' : ActorMethod<[], bigint>,
-  'get_latest_release' : ActorMethod<[string], [] | [ReleaseView]>,
+  'get_latest_release' : ActorMethod<[string], Result_1>,
   'get_release' : ActorMethod<[Uint8Array | number[]], ReleaseView>,
   'get_states' : ActorMethod<[], UserView>,
   'get_user_app_status' : ActorMethod<[Principal], UserCanisterStatus>,
@@ -137,19 +203,16 @@ export interface _SERVICE {
   'get_user_states' : ActorMethod<[], Array<UserView>>,
   'get_user_status' : ActorMethod<[], UserStatus>,
   'install_app' : ActorMethod<[Principal, string], Result>,
-  'load_release' : ActorMethod<
+  'load_wasm' : ActorMethod<
     [Uint8Array | number[], Uint8Array | number[]],
     LoadRelease
   >,
   'releases' : ActorMethod<[string], Array<ReleaseView>>,
-  'releases_wasm_hash' : ActorMethod<
-    [],
-    Array<[string, Uint8Array | number[]]>
-  >,
   'remove_release' : ActorMethod<[Uint8Array | number[]], undefined>,
   'remove_user' : ActorMethod<[Principal], undefined>,
   'remove_user_app' : ActorMethod<[Principal], undefined>,
   'report_bug' : ActorMethod<[AppBug], undefined>,
+  'status' : ActorMethod<[], SystemCanisterStatus>,
   'update_app' : ActorMethod<[string, CreateAppArgs], AppView>,
   'version' : ActorMethod<[], string>,
 }

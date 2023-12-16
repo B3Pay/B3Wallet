@@ -55,6 +55,10 @@ impl WriteAppState {
 pub struct ReadAppState(pub AppId);
 
 impl ReadAppState {
+    pub fn validate(&self) -> Result<(), AppSystemError> {
+        with_app(&self.0, |app| app.validate())?
+    }
+
     pub fn app_view(&self) -> Result<AppView, AppSystemError> {
         with_app(&self.0, |app| app.view())
     }

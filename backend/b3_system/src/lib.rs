@@ -138,6 +138,10 @@ async fn get_canister_info(canister_id: CanisterId) -> CanisterInfoResponse {
 
 #[update]
 async fn create_app_canister(app_id: AppId) -> Result<UserView, String> {
+    AppState::read(app_id.clone())
+        .validate()
+        .unwrap_or_else(revert);
+
     let system_id = ic_cdk::id();
     let owner_id = ic_cdk::caller();
     let user_id: UserId = owner_id.into();
@@ -183,6 +187,10 @@ async fn create_app_canister(app_id: AppId) -> Result<UserView, String> {
 
 #[update]
 async fn install_app(canister_id: CanisterId, app_id: AppId) -> Result<UserView, String> {
+    AppState::read(app_id.clone())
+        .validate()
+        .unwrap_or_else(revert);
+
     let system_id = ic_cdk::id();
     let owner_id = ic_cdk::caller();
 
