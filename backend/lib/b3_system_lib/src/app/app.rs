@@ -20,7 +20,7 @@ use ic_cdk::api::id as ic_cdk_id;
 use super::{
     error::AppSystemError,
     release::Release,
-    store::{with_release_mut, with_releases, with_releases_mut},
+    store::{with_release, with_release_mut, with_releases, with_releases_mut},
     types::{AppId, AppView, CreateAppArgs, CreateReleaseArgs, ReleaseView, ReleaseViews},
 };
 
@@ -86,7 +86,7 @@ impl App {
     }
 
     pub fn add_release(&mut self, release_args: CreateReleaseArgs) {
-        if let Some(_) = self.release(&release_args.wasm_hash) {
+        if let Ok(_) = self.release(&release_args.wasm_hash) {
             return;
         }
 
@@ -97,6 +97,16 @@ impl App {
         let release = Release::new(release_args);
 
         with_releases_mut(|releases| releases.insert(wasm_hash, release));
+    }
+
+    pub fn update_release(&mut self, release_args: CreateReleaseArgs) {
+        let wasm_hash = release_args.wasm_hash.clone();
+
+        if let Ok(mut release) = self.release(&wasm_hash) {
+            let release = release.update(release_args);
+
+            with_releases_mut(|releases| releases.insert(wasm_hash, release));
+        }
     }
 
     pub fn deprecate_release(&mut self, wasm_hash: WasmHash) -> Result<Release, AppSystemError> {
@@ -124,7 +134,7 @@ impl App {
             description: self.description.clone(),
             created_by: self.created_by.to_string(),
             install_count: self.install_count.clone(),
-            latest_release: self.latest_release_view(),
+            latest_release: self.latest_release_view().ok(),
         }
     }
 
@@ -140,11 +150,11 @@ impl App {
     }
 
     // DIRECT ACCESS TO RELEASES
-    pub fn release(&self, wasm_hash: &WasmHash) -> Option<Release> {
-        with_releases(|releases| releases.get(wasm_hash))
+    pub fn release(&self, wasm_hash: &WasmHash) -> Result<Release, AppSystemError> {
+        with_release(wasm_hash, |release| release.clone())
     }
 
-    pub fn release_view(&self, wasm_hash: &WasmHash) -> Option<ReleaseView> {
+    pub fn release_view(&self, wasm_hash: &WasmHash) -> Result<ReleaseView, AppSystemError> {
         self.release(wasm_hash).map(|release| release.view())
     }
 
@@ -155,14 +165,24 @@ impl App {
             .collect()
     }
 
-    pub fn latest_release(&self) -> Option<Release> {
-        let latest_hash = self.release_hashes.iter().max().cloned()?;
+    pub fn latest_release(&self) -> Result<Release, AppSystemError> {
+        let latest_hash = self
+            .release_hashes
+            .iter()
+            .max()
+            .cloned()
+            .ok_or(AppSystemError::ReleaseNotFound)?;
 
         self.release(&latest_hash)
     }
 
-    pub fn latest_release_view(&self) -> Option<ReleaseView> {
-        let latest_hash = self.release_hashes.iter().max().cloned()?;
+    pub fn latest_release_view(&self) -> Result<ReleaseView, AppSystemError> {
+        let latest_hash = self
+            .release_hashes
+            .iter()
+            .max()
+            .cloned()
+            .ok_or(AppSystemError::ReleaseNotFound)?;
 
         self.release_view(&latest_hash)
     }

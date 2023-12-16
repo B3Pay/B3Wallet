@@ -1,125 +1,122 @@
 use std::cell::RefCell;
 
+use b3_utils::memory::init_stable_mem_refcell;
+use b3_utils::memory::types::DefaultStableBTreeMap;
+use b3_utils::wasm::Wasm;
 use b3_utils::wasm::WasmHash;
-use b3_utils::{memory::init_stable_mem, wasm::Wasm};
 
 use super::error::AppSystemError;
+use super::release::Release;
 use super::types::AppId;
 use super::App;
-use super::{
-    release::Release,
-    state::{AppState, ReleaseMap, WasmMap},
-};
+
+pub type ReleaseMap = DefaultStableBTreeMap<WasmHash, Release>;
+pub type AppMap = DefaultStableBTreeMap<AppId, App>;
+pub type WasmMap = DefaultStableBTreeMap<WasmHash, Wasm>;
 
 // The AppState starts from 1 to 9 to avoid conflicts with the user's stable memory
 thread_local! {
-    static APP_STATE: RefCell<AppState> = RefCell::new(
-        AppState {
-            apps: init_stable_mem("app_map", 1).unwrap(),
-            releases: init_stable_mem("release_map", 2).unwrap(),
-            wasm_map: init_stable_mem("wasm_map", 3).unwrap(),
-        }
-    );
+    static APP_MAP: RefCell<AppMap> = init_stable_mem_refcell("app_map", 1).unwrap();
+    static RELEASE_MAP: RefCell<ReleaseMap> = init_stable_mem_refcell("release_map", 2).unwrap();
+    static WASM_MAP: RefCell<WasmMap>  = init_stable_mem_refcell("wasm_map", 3).unwrap();
 }
 
-pub fn with_app_state<R>(f: impl FnOnce(&AppState) -> R) -> R {
-    APP_STATE.with(|state| f(&*state.borrow()))
+// APPS
+pub fn with_apps<R>(f: impl FnOnce(&AppMap) -> R) -> R {
+    APP_MAP.with(|state| f(&*state.borrow()))
 }
 
-pub fn with_app_state_mut<R>(f: impl FnOnce(&mut AppState) -> R) -> R {
-    APP_STATE.with(|state| f(&mut *state.borrow_mut()))
+pub fn with_apps_mut<R>(f: impl FnOnce(&mut AppMap) -> R) -> R {
+    APP_MAP.with(|state| f(&mut *state.borrow_mut()))
 }
 
 pub fn with_app<F, T>(app_id: &AppId, f: F) -> Result<T, AppSystemError>
 where
     F: FnOnce(App) -> T,
 {
-    with_app_state(|state| {
-        state
-            .apps
-            .get(&app_id)
-            .ok_or(AppSystemError::AppNotFound)
-            .map(f)
-    })
+    with_apps(|state| state.get(&app_id).ok_or(AppSystemError::AppNotFound).map(f))
 }
 
 pub fn with_app_mut<F, T>(app_id: &AppId, f: F) -> Result<T, AppSystemError>
 where
     F: FnOnce(&mut App) -> T,
 {
-    with_app_state_mut(|state| {
+    with_apps_mut(|state| {
         state
-            .apps
             .get(app_id)
             .ok_or(AppSystemError::AppNotFound)
             .map(|mut app| f(&mut app))
     })
 }
 
+// RELEASES
 pub fn with_releases<R>(f: impl FnOnce(&ReleaseMap) -> R) -> R {
-    APP_STATE.with(|state| f(&state.borrow().releases))
+    RELEASE_MAP.with(|state| f(&state.borrow()))
 }
 
 pub fn with_releases_mut<R>(f: impl FnOnce(&mut ReleaseMap) -> R) -> R {
-    APP_STATE.with(|state| f(&mut state.borrow_mut().releases))
+    RELEASE_MAP.with(|state| f(&mut state.borrow_mut()))
 }
 
-pub fn with_release<F, T>(hash: &WasmHash, f: F) -> Result<T, AppSystemError>
+pub fn with_release<F, T>(wasm_hash: &WasmHash, f: F) -> Result<T, AppSystemError>
 where
     F: FnOnce(Release) -> T,
 {
     with_releases(|releases| {
         releases
-            .get(hash)
+            .get(wasm_hash)
             .ok_or(AppSystemError::ReleaseNotFound)
             .map(f)
     })
 }
 
-pub fn with_release_mut<F, T>(hash: &WasmHash, f: F) -> Result<T, AppSystemError>
+pub fn with_release_mut<F, T>(wasm_hash: &WasmHash, f: F) -> Result<T, AppSystemError>
 where
     F: FnOnce(&mut Release) -> T,
 {
     with_releases_mut(|releases| {
         releases
-            .get(hash)
+            .get(wasm_hash)
             .ok_or(AppSystemError::ReleaseNotFound)
             .map(|mut release| f(&mut release))
     })
 }
 
-pub fn with_latest_hash_release<F, T>(f: F) -> Result<T, AppSystemError>
-where
-    F: FnOnce((WasmHash, Release)) -> T,
-{
-    with_releases(|releases| releases.last_key_value())
-        .ok_or(AppSystemError::ReleaseNotFound)
-        .map(f)
-}
-
 // WASM
-pub fn with_wasm_map<F, R>(f: F) -> R
+pub fn with_wasms<F, R>(f: F) -> R
 where
     F: FnOnce(&WasmMap) -> R,
 {
-    with_app_state(|state| f(&state.wasm_map))
+    WASM_MAP.with(|state| f(&*state.borrow()))
 }
 
-pub fn with_wasm_map_mut<F, R>(f: F) -> R
+pub fn with_wasms_mut<F, R>(f: F) -> R
 where
     F: FnOnce(&mut WasmMap) -> R,
 {
-    with_app_state_mut(|state| f(&mut state.wasm_map))
+    WASM_MAP.with(|state| f(&mut *state.borrow_mut()))
 }
 
-pub fn with_release_wasm<F, T>(hash: &String, f: F) -> Result<T, AppSystemError>
+pub fn with_wasm<F, T>(wasm_hash: &WasmHash, f: F) -> Result<T, AppSystemError>
 where
     F: FnOnce(Wasm) -> T,
 {
-    with_wasm_map(|wasm_map| {
+    with_wasms(|wasm_map| {
         wasm_map
-            .get(hash)
+            .get(wasm_hash)
             .ok_or(AppSystemError::WasmNotFound)
             .map(f)
+    })
+}
+
+pub fn with_wasm_mut<F, T>(wasm_hash: &WasmHash, f: F) -> Result<T, AppSystemError>
+where
+    F: FnOnce(&mut Wasm) -> T,
+{
+    with_wasms_mut(|wasm_map| {
+        wasm_map
+            .get(wasm_hash)
+            .ok_or(AppSystemError::WasmNotFound)
+            .map(|mut wasm| f(&mut wasm))
     })
 }

@@ -2,13 +2,11 @@ use b3_system_lib::{
     app::{
         constants::CREATE_APP_CANISTER_CYCLES,
         error::AppSystemError,
-        store::{
-            with_app, with_app_mut, with_app_state, with_app_state_mut, with_release,
-            with_release_mut, with_releases_mut, with_wasm_map,
-        },
+        state::AppState,
+        store::{with_app, with_release, with_release_mut, with_releases_mut},
         types::{
             AppId, AppView, CreateAppArgs, CreateReleaseArgs, LoadRelease, ReleaseView,
-            ReleaseViews,
+            ReleaseViews, SystemCanisterStatus,
         },
     },
     bug::store::{with_app_bugs, with_app_bugs_mut, with_bugs_mut},
@@ -29,7 +27,8 @@ use b3_utils::{
     principal::StoredPrincipal,
     revert,
     types::{CanisterId, CanisterIds, UserId},
-    wasm::{vec_to_wasm_hash, Blob, WasmHash, WasmVersion},
+    wasm::{vec_to_wasm_hash, Blob, WasmHash},
+    NanoTimeStamp,
 };
 use candid::Principal;
 use ic_cdk::{
@@ -158,9 +157,8 @@ async fn create_app_canister(app_id: AppId) -> Result<UserView, String> {
         system_id,
     };
 
-    let install_arg_result = with_app_state(|s| {
-        s.install_args_by_app_id(app_id, CanisterInstallMode::Install, init_args)
-    });
+    let install_arg_result =
+        AppState::read(app_id).install_args(CanisterInstallMode::Install, init_args);
 
     match install_arg_result {
         Ok(install_arg) => {
@@ -198,9 +196,8 @@ async fn install_app(canister_id: CanisterId, app_id: AppId) -> Result<UserView,
         system_id,
     };
 
-    let install_arg_result = with_app_state_mut(|s| {
-        s.install_args_by_app_id(app_id, CanisterInstallMode::Install, init_args)
-    });
+    let install_arg_result =
+        AppState::read(app_id).install_args(CanisterInstallMode::Upgrade, init_args);
 
     match install_arg_result {
         Ok(install_arg) => {
@@ -284,14 +281,16 @@ fn remove_user(user_principal: Principal) {
 
 #[update]
 fn create_app(app_args: CreateAppArgs) -> AppView {
-    let app = with_app_state_mut(|s| s.create_app(app_args)).unwrap_or_else(revert);
+    let app = AppState::create(app_args).unwrap_or_else(revert);
 
     app.view()
 }
 
 #[update]
 fn update_app(app_id: AppId, app_args: CreateAppArgs) -> AppView {
-    let app = with_app_state_mut(|s| s.update_app(app_id, app_args)).unwrap_or_else(revert);
+    let app = AppState::write(app_id)
+        .update(app_args)
+        .unwrap_or_else(revert);
 
     app.view()
 }
@@ -302,32 +301,26 @@ fn releases(app_id: AppId) -> ReleaseViews {
 }
 
 #[query]
-fn releases_wasm_hash() -> Vec<(WasmVersion, WasmHash)> {
-    with_wasm_map(|wasm_map| {
-        wasm_map
-            .iter()
-            .map(|(version, wasm)| (version.clone(), wasm.hash()))
-            .collect()
-    })
-}
-
-#[query]
-fn get_latest_release(app_id: AppId) -> Option<ReleaseView> {
-    with_app(&app_id, |app| app.latest_release_view()).unwrap_or_else(revert)
+fn get_latest_release(app_id: AppId) -> Result<ReleaseView, AppSystemError> {
+    AppState::read(app_id)
+        .latest_release()
+        .map(|release| release.view())
 }
 
 #[query]
 pub fn get_release(wasm_hash: WasmHash) -> ReleaseView {
-    with_release(&wasm_hash, |r| r.view()).unwrap_or_else(revert)
+    with_release(&wasm_hash, |release| release.view()).unwrap_or_else(revert)
 }
 
 #[update(guard = "caller_is_controller")]
 fn add_release(app_id: AppId, release_args: CreateReleaseArgs) {
-    with_app_mut(&app_id, |app| app.add_release(release_args)).unwrap_or_else(revert);
+    AppState::write(app_id)
+        .add_release(release_args)
+        .unwrap_or_else(revert);
 }
 
 #[update(guard = "caller_is_controller")]
-fn load_release(wasm_hash: WasmHash, blob: Blob) -> LoadRelease {
+fn load_wasm(wasm_hash: WasmHash, blob: Blob) -> LoadRelease {
     let total = with_release_mut(&wasm_hash, |rs| rs.load_wasm(&blob).unwrap_or_else(revert))
         .unwrap_or_else(revert);
 
@@ -342,38 +335,34 @@ pub fn remove_release(wasm_hash: WasmHash) {
         .unwrap_or_else(|| revert(AppSystemError::ReleaseNotFound));
 }
 
-// #[update(guard = "caller_is_controller")]
-// fn remove_latest_release() {
-//     let latest_version = with_latest_version_release(|(version, _)| version).unwrap_or_else(revert);
+#[update(guard = "caller_is_controller")]
+fn deprecate_release(app_id: AppId, wasm_hash: WasmHash) -> ReleaseView {
+    AppState::write(app_id)
+        .deprecate_release(wasm_hash)
+        .unwrap_or_else(revert)
+        .view()
+}
 
-//     remove_release(latest_version);
-// }
+#[update(guard = "caller_is_controller")]
+pub async fn status() -> SystemCanisterStatus {
+    let canister_id = ic_cdk::id();
 
-// #[update(guard = "caller_is_controller")]
-// fn deprecate_release(version: AppVersion) -> Release {
-//     with_app_state_mut(|state| state.deprecate_release(version)).unwrap_or_else(revert)
-// }
+    let version = version();
 
-// #[update(guard = "caller_is_controller")]
-// pub async fn status() -> SystemCanisterStatus {
-//     let canister_id = ic_cdk::id();
+    let canister_status = Management::canister_status(canister_id)
+        .await
+        .unwrap_or_else(revert);
 
-//     let version = version();
+    let user_status = with_user_state(|s| s.number_of_users());
+    let status_at = NanoTimeStamp::now();
 
-//     let canister_status = Management::canister_status(canister_id)
-//         .await
-//         .unwrap_or_else(revert);
-
-//     let user_status = with_state(|s| s.number_of_users());
-//     let status_at = NanoTimeStamp::now();
-
-//     SystemCanisterStatus {
-//         version,
-//         status_at,
-//         user_status,
-//         canister_status,
-//     }
-// }
+    SystemCanisterStatus {
+        version,
+        status_at,
+        user_status,
+        canister_status,
+    }
+}
 
 #[query]
 pub fn version() -> String {

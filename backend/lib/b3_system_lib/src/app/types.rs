@@ -4,6 +4,7 @@ use ic_cdk::api::management_canister::main::CanisterStatusResponse;
 use serde::{Deserialize, Serialize};
 
 pub type AppId = String;
+pub type ReleaseId = String;
 
 pub type ReleaseViews = Vec<ReleaseView>;
 

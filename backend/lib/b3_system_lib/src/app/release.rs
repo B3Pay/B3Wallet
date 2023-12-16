@@ -6,36 +6,38 @@ use b3_utils::{
 };
 use ciborium::de::from_reader;
 use ciborium::ser::into_writer;
+use ic_cdk::api::management_canister::main::WasmModule;
 use serde::{Deserialize, Serialize};
 use std::io::Cursor;
 
 use super::{
     error::AppSystemError,
+    store::{with_wasm, with_wasms_mut},
     types::{AppId, CreateReleaseArgs, ReleaseView},
 };
 
-use super::store::{with_release_wasm, with_wasm_map_mut};
-
 #[derive(Deserialize, Serialize, Clone)]
 pub struct Release {
-    id: AppId,
+    app_id: AppId,
     date: NanoTimeStamp,
     size: WasmSize,
     version: AppVersion,
     deprecated: bool,
     features: String,
+    wasm_hash: WasmHash,
 }
 
 // Create the Release struct
 impl Release {
     pub fn new(release_args: CreateReleaseArgs) -> Self {
         Self {
+            app_id: release_args.id,
             deprecated: false,
-            id: release_args.id,
             size: release_args.size,
             date: NanoTimeStamp::now(),
             version: release_args.version,
             features: release_args.features,
+            wasm_hash: release_args.wasm_hash,
         }
     }
 }
@@ -59,8 +61,10 @@ impl Release {
 
         if wasm_len >= self.size {
             with_wasm_mut_cache(|wasm| {
-                with_wasm_map_mut(|wasm_map| {
-                    wasm_map.insert(self.version.clone(), wasm.clone()).unwrap();
+                with_wasms_mut(|wasm_map| {
+                    wasm_map
+                        .insert(self.wasm_hash.clone(), wasm.clone())
+                        .unwrap();
                 });
 
                 wasm.unload();
@@ -71,16 +75,16 @@ impl Release {
     }
 
     pub fn unload_wasm(&mut self) -> WasmSize {
-        with_wasm_map_mut(|wasm_map| {
-            wasm_map.remove(&self.version);
+        with_wasms_mut(|wasm_map| {
+            wasm_map.remove(&self.wasm_hash);
         });
 
         with_wasm_mut_cache(|wasm| wasm.unload())
     }
 
     pub fn deprecate(&mut self) {
-        with_wasm_map_mut(|wasm_map| {
-            wasm_map.remove(&self.version);
+        with_wasms_mut(|wasm_map| {
+            wasm_map.remove(&self.wasm_hash);
         });
 
         self.deprecated = true;
@@ -98,12 +102,12 @@ impl Release {
 // Read of the Release struct
 impl Release {
     pub fn id(&self) -> String {
-        self.id.clone()
+        self.app_id.clone()
     }
 
     pub fn view(&self) -> ReleaseView {
         ReleaseView {
-            name: self.id.clone(),
+            name: self.app_id.clone(),
             date: self.date.clone(),
             size: self.size,
             version: self.version.clone(),
@@ -113,27 +117,31 @@ impl Release {
     }
 
     pub fn is_loading(&self) -> bool {
-        with_release_wasm(&self.version, |wasm| wasm.is_loading(self.size)).unwrap_or(false)
+        with_wasm(&self.wasm_hash, |wasm| wasm.is_loading(self.size)).unwrap_or(false)
     }
 
     pub fn is_loaded(&self) -> bool {
-        with_release_wasm(&self.version, |wasm| wasm.is_loaded(self.size)).unwrap_or(false)
+        with_wasm(&self.wasm_hash, |wasm| wasm.is_loaded(self.size)).unwrap_or(false)
     }
 
     pub fn wasm(&self) -> Result<Wasm, AppSystemError> {
-        with_release_wasm(&self.version, |wasm| wasm)
+        with_wasm(&self.wasm_hash, |wasm| wasm)
+    }
+
+    pub fn wasm_module(&self) -> Result<WasmModule, AppSystemError> {
+        with_wasm(&self.wasm_hash, |wasm| wasm.bytes())
     }
 
     pub fn verify_hash(&self, hash: &WasmHash) -> bool {
-        with_release_wasm(&self.version, |wasm| wasm.verify_hash(hash)).unwrap_or(false)
+        with_wasm(&self.wasm_hash, |wasm| wasm.verify_hash(hash)).unwrap_or(false)
     }
 
     pub fn wasm_hash(&self) -> Result<WasmHash, AppSystemError> {
-        with_release_wasm(&self.version, |wasm| wasm.hash())
+        with_wasm(&self.wasm_hash, |wasm| wasm.hash())
     }
 
     pub fn wasm_size(&self) -> Result<WasmSize, AppSystemError> {
-        with_release_wasm(&self.version, |wasm| wasm.len())
+        with_wasm(&self.wasm_hash, |wasm| wasm.len())
     }
 
     pub fn is_deprecated(&self) -> bool {
