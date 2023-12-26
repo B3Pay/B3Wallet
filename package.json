@@ -33,7 +33,7 @@
     "build": "npx next build"
   },
   "devDependencies": {
-    "@ic-reactor/store": "^0.1.1",
+    "@ic-reactor/store": "^0.1.2",
     "@types/node": "20.8.10",
     "@types/node-fetch": "^2.6.3",
     "@types/react": "18.2.36",
@@ -60,11 +60,11 @@
   "dependencies": {
     "@dfinity/agent": "^0.20",
     "@dfinity/auth-client": "^0.20",
-    "@dfinity/candid": "^0.20",
+    "@dfinity/candid": "git+https://github.com/b3hr4d/agent-js.git#385b277acdbafa3e6748515b9624f4bada242570",
     "@dfinity/identity": "^0.20",
     "@dfinity/identity-secp256k1": "^0.20",
     "@dfinity/principal": "^0.20",
-    "@ic-reactor/react": "^0.1.1",
+    "@ic-reactor/react": "^0.1.2",
     "@peculiar/webcrypto": "1.4.3",
     "@radix-ui/react-avatar": "^1.0.4",
     "@radix-ui/react-dialog": "^1.0.5",

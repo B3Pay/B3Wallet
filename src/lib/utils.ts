@@ -1,4 +1,4 @@
-import { toHexString } from "@dfinity/candid/lib/cjs"
+import { toHex } from "@dfinity/candid/lib/cjs"
 import { clsx, type ClassValue } from "clsx"
 import { CanisterStatusResponse } from "declarations/b3_system/b3_system.did"
 import { twMerge } from "tailwind-merge"
@@ -46,7 +46,7 @@ export const getModuleHash = (
   const moduleHash = status.module_hash
 
   if (moduleHash.length === 1) {
-    return toHexString(moduleHash[0] as Uint8Array)
+    return toHex(moduleHash[0] as Uint8Array)
   }
   return undefined
 }

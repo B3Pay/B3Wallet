@@ -25,7 +25,7 @@ const loadRelease = async (
   await callMethod("add_release", name, release)
 
   for await (const chunks of chunkGenerator(wasmModule)) {
-    const result = await callMethod("load_release", wasm_hash, chunks)
+    const result = await callMethod("load_wasm", wasm_hash, chunks)
 
     console.log(`Chunks :`, result)
   }

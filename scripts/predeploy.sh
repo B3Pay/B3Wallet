@@ -38,7 +38,7 @@ for app_root in "$backend_dir"/*; do
         # you can install ic-wasm via `cargo install ic-wasm` for smaller wasm files
         echo -e "${green}Shrinking $package.wasm${no_color}"
         mkdir -p "$optimised_target_dir"
-        ic-wasm "$target_dir/$package.wasm" -o "$optimised_target_dir/$package.wasm" shrink
+        ic-wasm "$target_dir/$package.wasm" -o "$optimised_target_dir/$package.wasm" optimize Oz
         # copy the candid file to the optimised target dir
         cp "$did_file" "$optimised_target_dir/$package.did"
         echo -e "Size of shrunk $package.wasm: $(ls -lh "$optimised_target_dir/$package.wasm" | awk '{print $5}')"
