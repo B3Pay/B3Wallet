@@ -1,36 +1,30 @@
-import { CreateAppArgs, Value } from "declarations/b3_system/b3_system.did"
-import { useState } from "react"
-import { useSystemActorStore, useSystemUpdate } from "service/system"
+"use client"
+import { useSystemUpdate } from "service/system"
 import DisplayData from "./DisplayData"
 import FormComponent from "./Candid"
+import SystemMethod from "./SystemMethod"
+import { CreateAppArgs } from "declarations/b3_system/b3_system.did"
 
 interface CreateAppProps {}
 
 const CreateApp: React.FC<CreateAppProps> = ({}) => {
-  const [appName, setAppName] = useState("b3-wallet")
-  const [metadata, setMetadata] = useState<Array<[string, Value]>>([])
-  const [description, setDescription] = useState("")
-
-  const { methodState } = useSystemActorStore()
-
-  const { call, data, error, loading } = useSystemUpdate({
+  const { call, data, error, loading, field } = useSystemUpdate({
     functionName: "create_app"
   })
 
-  const callCreateApp = () => {
-    const createAppArgs: CreateAppArgs = {
-      name: appName,
-      metadata,
-      description
-    }
+  console.log("field", field)
 
-    call([createAppArgs])
+  const onSubmit = (args: any) => {
+    console.log("args", args)
+    const create_app_args = Object.values(args) as [CreateAppArgs]
+
+    call(create_app_args)
   }
 
   return (
     <div>
       <h2>Create App</h2>
-      <FormComponent />
+      {field ? <SystemMethod onSubmit={onSubmit} {...field} /> : null}
       <DisplayData loading={loading} error={error} data={data} />
     </div>
   )

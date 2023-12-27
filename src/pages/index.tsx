@@ -1,3 +1,4 @@
+"use client"
 import AppCanisterStatus from "components/AppCanisterStatus"
 import AppCanisterVersion from "components/AppCanisterVersion"
 import CreateApp from "components/CreateApp"
@@ -10,13 +11,15 @@ function HomePage() {
   return (
     <div>
       <Head>
-        <title>Internet Computer</title>
+        <title>B3Wallet</title>
       </Head>
-      <CreateApp />
-      <CreateWallet />
-      <UserStatus />
-      <AppCanisterStatus />
-      <AppCanisterVersion />
+      <div>
+        <CreateApp />
+        <CreateWallet />
+        <UserStatus />
+        <AppCanisterStatus />
+        <AppCanisterVersion />
+      </div>
       <Footer />
     </div>
   )

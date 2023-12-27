@@ -15,13 +15,17 @@ const Vector: React.FC<VectorProps> = ({ field, errors, registerName }) => {
 
   return (
     <div className="w-full box-border">
-      <label className="block text-lg font-medium">{field.label}</label>
-      <Button
-        className="mb-1 bg-gray-400 hover:bg-gray-500 mt-1"
-        onClick={() => append("")}
-      >
-        +
-      </Button>
+      <div className="flex justify-between items-center">
+        <label className="flex-1 w-full block text-lg font-medium">
+          {field.label}
+        </label>
+        <Button
+          className="flex-auto w-18 bg-gray-400 hover:bg-gray-500 mt-1"
+          onClick={() => append("")}
+        >
+          +
+        </Button>
+      </div>
       {fields.length > 0 && <hr className="my-2" />}
       {fields.map((item, index) => (
         <div

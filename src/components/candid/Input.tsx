@@ -2,9 +2,13 @@ import { useFormContext } from "react-hook-form"
 import { FormFieldsProps } from "./FormField"
 import { cn } from "lib/utils"
 
-interface InputProps extends FormFieldsProps {}
+interface FieldInputProps extends FormFieldsProps {}
 
-const Input: React.FC<InputProps> = ({ registerName, errors, field }) => {
+const FieldInput: React.FC<FieldInputProps> = ({
+  registerName,
+  errors,
+  field
+}) => {
   const { register, resetField, trigger } = useFormContext()
 
   const validate = (x: any) => {
@@ -19,7 +23,7 @@ const Input: React.FC<InputProps> = ({ registerName, errors, field }) => {
 
   return field.type !== "null" ? (
     <div className="w-full p-1">
-      <label className="block">
+      <label htmlFor={registerName} className="block">
         {field.label}
         {field.required && <span className="text-red-500">*</span>}
         {errorMessage && (
@@ -28,6 +32,7 @@ const Input: React.FC<InputProps> = ({ registerName, errors, field }) => {
       </label>
       <div className="relative">
         <input
+          id={registerName}
           {...register(registerName as never, { ...field, validate })}
           className={cn(
             "w-full h-8 pl-2 pr-8 border rounded",
@@ -52,4 +57,4 @@ const Input: React.FC<InputProps> = ({ registerName, errors, field }) => {
   ) : null
 }
 
-export default Input
+export default FieldInput

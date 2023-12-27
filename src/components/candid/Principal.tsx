@@ -58,7 +58,7 @@ const Principal: React.FC<PrincipalProps> = ({
 
   return (
     <div className="w-full p-1">
-      <label className="block">
+      <label className="block" htmlFor={registerName}>
         {field.label}
         {field.required && <span className="text-red-500">*</span>}
         {errorMessage && (
@@ -67,6 +67,7 @@ const Principal: React.FC<PrincipalProps> = ({
       </label>
       <div className="relative">
         <input
+          id={registerName}
           {...register(registerName as never, { ...field, validate })}
           className={cn(
             "w-full h-8 pl-2 pr-8 border rounded",

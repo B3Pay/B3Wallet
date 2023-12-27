@@ -1,16 +1,20 @@
-import { ExtractedField } from '@dfinity/candid';
-import { useState, useEffect } from 'react';
-import FormField, { FormFieldsProps } from './FormField';
+import { useState, useEffect } from "react"
+import FormField, { FormFieldsProps } from "./FormField"
+import { ExtractedField } from "@ic-reactor/store/dist/candid"
 
 interface RecursiveProps extends FormFieldsProps {}
 
-const Recursive: React.FC<RecursiveProps> = ({ field, errors, registerName }) => {
-  const [extractedField, setExtractedFields] = useState<ExtractedField>();
+const Recursive: React.FC<RecursiveProps> = ({
+  field,
+  errors,
+  registerName,
+}) => {
+  const [extractedField, setExtractedFields] = useState<ExtractedField>()
 
   useEffect(() => {
-    const fields = field.extract?.();
-    setExtractedFields(fields);
-  }, [field]);
+    const fields = field.extract?.()
+    setExtractedFields(fields)
+  }, [field])
 
   return extractedField ? (
     <FormField
@@ -20,6 +24,6 @@ const Recursive: React.FC<RecursiveProps> = ({ field, errors, registerName }) =>
     />
   ) : (
     <div>Loading...</div>
-  );
-};
-export default Recursive;
+  )
+}
+export default Recursive

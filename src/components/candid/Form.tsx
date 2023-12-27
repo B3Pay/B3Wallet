@@ -1,15 +1,19 @@
-import { ExtractedField } from "@dfinity/candid"
 import { useCallback, useState } from "react"
 import { Button } from "components/ui/button"
 import FormField from "./FormField"
 import { FormProvider, useForm } from "react-hook-form"
+import { SystemDynamicField, useSystemQuery } from "service/system"
 
-interface FormProps extends ExtractedField {}
+interface FormProps extends SystemDynamicField {}
 
-const Form: React.FC<FormProps> = ({ label, defaultValues, fields }) => {
+const Form: React.FC<FormProps> = ({ functionName, defaultValues, fields }) => {
   const [argState, setArgState] = useState<any>(null)
   const [argErrorState, setArgErrorState] = useState<any>(null)
-  const [resultState, setResultState] = useState<any>(null)
+
+  const { data, loading, error, call } = useSystemQuery({
+    functionName,
+    disableInitialCall: true
+  })
 
   const methods = useForm({
     progressive: false,
@@ -21,7 +25,6 @@ const Form: React.FC<FormProps> = ({ label, defaultValues, fields }) => {
 
   const onSubmit = useCallback(
     (data: any) => {
-      setResultState(null)
       setArgState(null)
       setArgErrorState(null)
       const args = (Object.values(data) || []) as any[]
@@ -49,25 +52,20 @@ const Form: React.FC<FormProps> = ({ label, defaultValues, fields }) => {
 
   const callHandler = useCallback(
     async (data: any) => {
-      setResultState(null)
       setArgState(null)
       setArgErrorState(null)
       const args = (Object.values(data) || []) as any[]
       console.log("args", args)
+      setArgState(args)
 
-      // try {
-      //   const result = await actor[label as keyof typeof actor](
-      //     ...(args as any)
-      //   )
-      //   console.log("result", result)
-      //   setArgState(args)
-      //   setResultState(result)
-      // } catch (error) {
-      //   console.log("error", error)
-      //   setResultState((error as Error).message)
-      // }
+      try {
+        const result = await call([args])
+        console.log("result", result)
+      } catch (error) {
+        console.log("error", error)
+      }
     },
-    [label]
+    [call]
   )
 
   return (
@@ -76,14 +74,14 @@ const Form: React.FC<FormProps> = ({ label, defaultValues, fields }) => {
         onSubmit={methods.handleSubmit(onSubmit)}
         className="border border-gray-500 rounded p-2 mt-2 w-full"
       >
-        <h1 className="text-xl font-bold mb-4">{label}</h1>
+        <h1 className="text-xl font-bold mb-4">{functionName}</h1>
         {fields?.map((field, index) => {
           return (
             <div key={index} className="mb-2">
               <FormField
                 field={field}
-                registerName={`arg${index}`}
-                errors={methods.formState.errors[`arg${index}`]}
+                registerName={`${functionName}-arg${index}`}
+                errors={methods.formState.errors[`${functionName}-arg${index}`]}
               />
             </div>
           )
@@ -108,15 +106,29 @@ const Form: React.FC<FormProps> = ({ label, defaultValues, fields }) => {
             </span>
           </fieldset>
         )}
-        {resultState && (
+        {error && (
+          <fieldset className="border p-2 my-2 text-red-500 border-red-500 rounded">
+            <legend className="font-semibold">Error</legend>
+            <span className="text-sm">
+              <div>{error.message}</div>
+            </span>
+          </fieldset>
+        )}
+        {loading && (
+          <fieldset className="border p-2 my-2 rounded">
+            <legend className="font-semibold">Loading</legend>
+            <span className="text-sm">Calling...</span>
+          </fieldset>
+        )}
+        {data && (
           <fieldset className="border p-2 my-2 rounded">
             <legend className="font-semibold">Results</legend>
             <span className="text-sm">
-              {!resultState ? (
+              {!data ? (
                 <div>Calling...</div>
               ) : (
                 JSON.stringify(
-                  resultState,
+                  data,
                   (_, value) =>
                     typeof value === "bigint" ? value.toString() : value,
                   2
