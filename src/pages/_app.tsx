@@ -6,6 +6,7 @@ import { Icon } from "components/ui/icon"
 import UserNav from "components/user-nav"
 import { AppProps } from "next/app"
 import { Inter } from "next/font/google"
+
 import "styles/globals.css"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })

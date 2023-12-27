@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from "react"
-import FormField, { FormFieldsProps } from "./FormField"
+import FormFieldSwitch, { FormFieldSwitchProps } from "./FieldSwitch"
 import { useFormContext } from "react-hook-form"
 
-interface VariantProps extends FormFieldsProps {}
+interface VariantProps extends FormFieldSwitchProps {}
 
 const Variant: React.FC<VariantProps> = ({ field, registerName, errors }) => {
   const { unregister, setValue, resetField } = useFormContext()
@@ -31,7 +31,7 @@ const Variant: React.FC<VariantProps> = ({ field, registerName, errors }) => {
   }
 
   const selectedField = field.fields?.find(
-    (field) => field.label === selectedRef.current
+    field => field.label === selectedRef.current
   )
 
   return (
@@ -51,7 +51,7 @@ const Variant: React.FC<VariantProps> = ({ field, registerName, errors }) => {
         ))}
       </select>
       {selectedField ? (
-        <FormField
+        <FormFieldSwitch
           registerName={`${registerName}.${selectedRef.current}`}
           errors={errors?.[selectedRef.current as never]}
           field={selectedField}

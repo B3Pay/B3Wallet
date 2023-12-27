@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react"
-import FormField, { FormFieldsProps } from "./FormField"
+import FormFieldSwitch, { FormFieldSwitchProps } from "./FieldSwitch"
 import { ExtractedField } from "@ic-reactor/store/dist/candid"
 
-interface RecursiveProps extends FormFieldsProps {}
+interface RecursiveProps extends FormFieldSwitchProps {}
 
 const Recursive: React.FC<RecursiveProps> = ({
   field,
   errors,
-  registerName,
+  registerName
 }) => {
   const [extractedField, setExtractedFields] = useState<ExtractedField>()
 
@@ -17,7 +17,7 @@ const Recursive: React.FC<RecursiveProps> = ({
   }, [field])
 
   return extractedField ? (
-    <FormField
+    <FormFieldSwitch
       field={extractedField}
       registerName={registerName}
       errors={errors?.[field.label as never]}

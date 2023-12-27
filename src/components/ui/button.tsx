@@ -147,6 +147,7 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
   height?: string
+  fullWidth?: boolean
   asIconButton?: boolean
   noShadow?: boolean
   isLoading?: boolean
@@ -167,6 +168,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       noShadow,
       isLoading,
       iconSize,
+      fullWidth,
       asChild = false,
       ...props
     },
@@ -187,6 +189,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             noShadow
           }),
           className,
+          fullWidth && "w-full",
           size && size !== "xs" && `rounded-${round}-${size}`,
           height,
           isLoading && "animate-border-pulse"

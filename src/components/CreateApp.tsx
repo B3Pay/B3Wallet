@@ -1,7 +1,5 @@
-"use client"
 import { useSystemUpdate } from "service/system"
 import DisplayData from "./DisplayData"
-import FormComponent from "./Candid"
 import SystemMethod from "./SystemMethod"
 import { CreateAppArgs } from "declarations/b3_system/b3_system.did"
 

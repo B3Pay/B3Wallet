@@ -1,5 +1,3 @@
-"use client"
-
 import { CalendarIcon } from "@radix-ui/react-icons"
 import { addDays, format } from "date-fns"
 import * as React from "react"

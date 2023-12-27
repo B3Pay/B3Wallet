@@ -1,8 +1,8 @@
 import { useFormContext } from "react-hook-form"
-import { FormFieldsProps } from "./FormField"
+import { FormFieldSwitchProps } from "./FieldSwitch"
 import { cn } from "lib/utils"
 
-interface FieldInputProps extends FormFieldsProps {}
+interface FieldInputProps extends FormFieldSwitchProps {}
 
 const FieldInput: React.FC<FieldInputProps> = ({
   registerName,

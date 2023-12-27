@@ -1,4 +1,3 @@
-"use client"
 import { ReloadIcon } from "@radix-ui/react-icons"
 import { useEffect } from "react"
 import { useSystemUpdate } from "service/system"

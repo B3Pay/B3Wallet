@@ -1,23 +1,15 @@
-import { Actor } from "@dfinity/agent"
-import { useMemo } from "react"
-import { useSystemActorStore } from "service/system"
-import Form from "./candid/Form"
+import { useSystemMethodFields } from "service/system"
+import MethodForm from "./candid/MethodForm"
 
 interface CandidProps {}
 
 const Candid: React.FC<CandidProps> = () => {
-  const { actor } = useSystemActorStore()
-
-  const field = useMemo(() => {
-    if (!actor) return { fields: [] }
-
-    return Actor.interfaceOf(actor).extractField()
-  }, [actor])
+  const methodFields = useSystemMethodFields()
 
   return (
     <div className="p-2 max-w-3xl mx-auto">
-      {field.fields.map(field => (
-        <Form {...field} key={field.label} />
+      {methodFields.map((field, index) => (
+        <MethodForm {...field} key={index} />
       ))}
     </div>
   )

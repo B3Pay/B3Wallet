@@ -1,9 +1,9 @@
 import { Principal as PrincipalId } from "@dfinity/principal"
 import { useFormContext } from "react-hook-form"
-import { FormFieldsProps } from "./FormField"
+import { FormFieldSwitchProps } from "./FieldSwitch"
 import { cn } from "lib/utils"
 
-interface PrincipalProps extends FormFieldsProps {}
+interface PrincipalProps extends FormFieldSwitchProps {}
 
 const Principal: React.FC<PrincipalProps> = ({
   registerName,

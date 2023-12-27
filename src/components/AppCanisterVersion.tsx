@@ -1,4 +1,3 @@
-"use client"
 import { Principal } from "@dfinity/principal"
 import { ShadowInnerIcon } from "@radix-ui/react-icons"
 import { useMemo, useState } from "react"

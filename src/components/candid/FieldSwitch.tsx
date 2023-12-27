@@ -10,13 +10,13 @@ import { FieldError, FieldErrorsImpl, Merge } from "react-hook-form"
 import Principal from "./Principal"
 import { ExtractedField } from "@ic-reactor/store/dist/candid"
 
-export interface FormFieldsProps {
+export interface FormFieldSwitchProps {
   field: ExtractedField
   registerName: string
   errors: FieldError | Merge<FieldError, FieldErrorsImpl<any>> | undefined
 }
 
-const FormField: React.FC<FormFieldsProps> = (props) => {
+const FormFieldSwitch: React.FC<FormFieldSwitchProps> = props => {
   switch (props.field.type) {
     case "vector":
       return <Vector {...props} />
@@ -37,4 +37,4 @@ const FormField: React.FC<FormFieldsProps> = (props) => {
   }
 }
 
-export default FormField
+export default FormFieldSwitch
