@@ -2,6 +2,7 @@ import { FormProvider, useForm } from "react-hook-form"
 import { SystemDynamicField } from "service/system"
 import FieldSwitch from "components/candid/FieldSwitch"
 import { Button } from "./ui/button"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./ui/card"
 
 interface SystemMethodProps extends SystemDynamicField {
   onSubmit: (data: any) => void
@@ -22,26 +23,32 @@ const SystemMethod: React.FC<SystemMethodProps> = ({
   })
 
   return (
-    <FormProvider {...methods}>
-      <form
-        onSubmit={methods.handleSubmit(onSubmit)}
-        className="border border-gray-500 rounded p-2 mt-2 w-full"
-      >
-        <h1 className="text-xl font-bold mb-4">{functionName}</h1>
-        {fields?.map((field, index) => {
-          return (
-            <div key={index} className="mb-2">
-              <FieldSwitch
-                methodField={field}
-                registerName={`${functionName}-arg${index}`}
-                errors={methods.formState.errors[`${functionName}-arg${index}`]}
-              />
-            </div>
-          )
-        })}
-        <Button type="submit">Submit</Button>
-      </form>
-    </FormProvider>
+    <Card>
+      <FormProvider {...methods}>
+        <form onSubmit={methods.handleSubmit(onSubmit)}>
+          <CardHeader>
+            <CardTitle>{functionName}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {fields?.map((field, index) => {
+              return (
+                <FieldSwitch
+                  key={field.label}
+                  methodField={field}
+                  registerName={`${functionName}-arg${index}`}
+                  errors={
+                    methods.formState.errors[`${functionName}-arg${index}`]
+                  }
+                />
+              )
+            })}
+          </CardContent>
+          <CardFooter>
+            <Button type="submit">Submit</Button>
+          </CardFooter>
+        </form>
+      </FormProvider>
+    </Card>
   )
 }
 

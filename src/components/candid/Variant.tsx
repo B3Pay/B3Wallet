@@ -3,21 +3,24 @@ import FieldSwitch, { FieldSwitchProps } from "./FieldSwitch"
 import { useFormContext } from "react-hook-form"
 import {
   Select,
+  SelectItem,
   SelectContent,
+  SelectGroup,
   SelectTrigger,
   SelectValue
 } from "components/ui/select"
-import { SelectItem } from "@radix-ui/react-select"
+import { Box } from "components/ui/box"
+import { FormItem, FormLabel } from "components/ui/form"
 
 interface VariantProps extends FieldSwitchProps {}
 
 const Variant: React.FC<VariantProps> = ({
-  methodField: field,
+  methodField,
   registerName,
   errors
 }) => {
   const { unregister, setValue, resetField } = useFormContext()
-  const selectedRef = useRef<string>(field.options?.[0] as string)
+  const selectedRef = useRef<string>(methodField.options?.[0] as string)
 
   const changeHandler = (inputValue: string) => {
     const select = selectedRef.current
@@ -26,27 +29,37 @@ const Variant: React.FC<VariantProps> = ({
     unregister(registerName as never)
     setValue(
       registerName as never,
-      { [inputValue]: field.defaultValues?.[inputValue] } as never
+      { [inputValue]: methodField.defaultValues?.[inputValue] } as never
     )
     selectedRef.current = inputValue
   }
 
-  const selectedField = field.fields?.find(
-    field => field.label === selectedRef.current
+  const selectedField = methodField.fields?.find(
+    methodField => methodField.label === selectedRef.current
   )
 
   return (
-    <Select onValueChange={changeHandler} defaultValue={field.options?.[0]}>
-      <SelectTrigger className="w-full">
-        <SelectValue placeholder="Select" />
-      </SelectTrigger>
-      <SelectContent>
-        {field.options?.map((label, index) => (
-          <SelectItem key={index} value={label}>
-            {label}
-          </SelectItem>
-        ))}
-      </SelectContent>
+    <Box>
+      <FormItem>
+        <FormLabel>{methodField.label}</FormLabel>
+        <Select
+          onValueChange={changeHandler}
+          defaultValue={methodField.options?.[0]}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {methodField.options?.map((label, index) => (
+                <SelectItem key={index} value={label}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </FormItem>
       {selectedField ? (
         <FieldSwitch
           registerName={`${registerName}.${selectedRef.current}`}
@@ -56,7 +69,7 @@ const Variant: React.FC<VariantProps> = ({
       ) : (
         <div className="mt-2">Field not found</div>
       )}
-    </Select>
+    </Box>
   )
 }
 
