@@ -1,11 +1,15 @@
 import React from "react"
 import { useFieldArray, useFormContext } from "react-hook-form"
 import { Button } from "components/ui/button"
-import FormFieldSwitch, { FormFieldSwitchProps } from "./FieldSwitch"
+import FieldSwitch, { FieldSwitchProps } from "./FieldSwitch"
 
-interface VectorProps extends FormFieldSwitchProps {}
+interface VectorProps extends FieldSwitchProps {}
 
-const Vector: React.FC<VectorProps> = ({ field, errors, registerName }) => {
+const Vector: React.FC<VectorProps> = ({
+  methodField: field,
+  errors,
+  registerName
+}) => {
   const { control } = useFormContext()
 
   const { fields, append, swap, remove } = useFieldArray({
@@ -52,8 +56,8 @@ const Vector: React.FC<VectorProps> = ({ field, errors, registerName }) => {
             </button>
           </div>
           <div className="flex-auto">
-            <FormFieldSwitch
-              field={field.fields?.[0]}
+            <FieldSwitch
+              methodField={field.fields?.[0]}
               errors={errors?.[index as never]}
               registerName={`${registerName}.[${index}]`}
             />

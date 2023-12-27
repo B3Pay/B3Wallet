@@ -1,16 +1,20 @@
-import FormFieldSwitch, { FormFieldSwitchProps } from "./FieldSwitch"
+import FieldSwitch, { FieldSwitchProps } from "./FieldSwitch"
 
-interface RecordProps extends FormFieldSwitchProps {}
+interface RecordProps extends FieldSwitchProps {}
 
-const Record: React.FC<RecordProps> = ({ field, errors, registerName }) => {
+const Record: React.FC<RecordProps> = ({
+  methodField: field,
+  errors,
+  registerName
+}) => {
   return (
     <div className="w-full">
       <div className="font-semibold">{field.label}</div>
       {field.fields?.map((field, index) => (
-        <FormFieldSwitch
+        <FieldSwitch
           key={index}
           registerName={`${registerName}.${field.label}`}
-          field={field}
+          methodField={field}
           errors={errors?.[field.label as never]}
         />
       ))}

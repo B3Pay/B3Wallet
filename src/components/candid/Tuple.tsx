@@ -1,17 +1,21 @@
-import FormFieldSwitch, { FormFieldSwitchProps } from "./FieldSwitch"
+import FieldSwitch, { FieldSwitchProps } from "./FieldSwitch"
 
-interface TupleProps extends FormFieldSwitchProps {}
+interface TupleProps extends FieldSwitchProps {}
 
-const Tuple: React.FC<TupleProps> = ({ field, registerName, errors }) => {
+const Tuple: React.FC<TupleProps> = ({
+  methodField: field,
+  registerName,
+  errors
+}) => {
   return (
     <div className="w-full">
       <div className="font-semibold">{field.label}</div>
       {field.fields?.map((field, index) => (
-        <FormFieldSwitch
+        <FieldSwitch
           key={index}
           registerName={`${registerName}.[${index}]`}
           errors={errors?.[index as never]}
-          field={field}
+          methodField={field}
         />
       ))}
     </div>

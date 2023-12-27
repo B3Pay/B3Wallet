@@ -19,7 +19,7 @@ function HomePage() {
         <UserStatus />
         <AppCanisterStatus />
         <AppCanisterVersion />
-        <Candid />
+        {/* <Candid /> */}
       </div>
       <Footer />
     </div>

@@ -4,6 +4,7 @@ import { VariantProps, cva } from "class-variance-authority"
 import { cn, focusRing } from "lib/utils"
 import { Box } from "./box"
 import { Icon } from "./icon"
+import { Cross2Icon } from "@radix-ui/react-icons"
 
 const inputVariants = cva(
   "ml-1px flex h-9 w-full px-2 py-1 shadow text-foreground hover:border-foreground text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
@@ -99,6 +100,7 @@ export interface InputProps
   icon?: React.ReactNode
   noShadow?: boolean
   asChild?: boolean
+  closeHandler?: () => void
   iconSize?: "xs" | "sm" | "md" | "lg" | "xl" | null
 }
 
@@ -116,6 +118,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       round,
       size,
       type,
+      closeHandler,
       ...props
     },
     ref
@@ -162,6 +165,19 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {...props}
         />
         {children}
+        {closeHandler && (
+          <Icon
+            color="error"
+            className="absolute top-1/2 right-0 transform -translate-y-1/2 cursor-pointer"
+            size={iconSize || size}
+            onClick={() => {
+              closeHandler()
+              inputRef.current && inputRef.current.focus()
+            }}
+          >
+            <Cross2Icon />
+          </Icon>
+        )}
       </Box>
     )
   }

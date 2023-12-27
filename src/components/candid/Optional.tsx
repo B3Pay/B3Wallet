@@ -1,10 +1,14 @@
 import { useFieldArray, useFormContext } from "react-hook-form"
-import FormFieldSwitch, { FormFieldSwitchProps } from "./FieldSwitch"
+import FieldSwitch, { FieldSwitchProps } from "./FieldSwitch"
 import { Switch } from "components/ui/switch"
 
-interface OptionalProps extends FormFieldSwitchProps {}
+interface OptionalProps extends FieldSwitchProps {}
 
-const Optional: React.FC<OptionalProps> = ({ field, registerName, errors }) => {
+const Optional: React.FC<OptionalProps> = ({
+  methodField: field,
+  registerName,
+  errors
+}) => {
   const { control } = useFormContext()
 
   const { fields, append, remove } = useFieldArray({
@@ -26,8 +30,8 @@ const Optional: React.FC<OptionalProps> = ({ field, registerName, errors }) => {
       </div>
       {fields.length > 0 && (
         <div className="flex justify-between items-start p-1 mb-1 w-full border-dashed border border-gray-400 rounded">
-          <FormFieldSwitch
-            field={field.fields?.[0]}
+          <FieldSwitch
+            methodField={field.fields?.[0]}
             registerName={`${registerName}.[0]`}
             errors={errors?.[0 as never]}
           />

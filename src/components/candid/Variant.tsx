@@ -1,24 +1,25 @@
 import React, { useEffect, useRef } from "react"
-import FormFieldSwitch, { FormFieldSwitchProps } from "./FieldSwitch"
+import FieldSwitch, { FieldSwitchProps } from "./FieldSwitch"
 import { useFormContext } from "react-hook-form"
+import {
+  Select,
+  SelectContent,
+  SelectTrigger,
+  SelectValue
+} from "components/ui/select"
+import { SelectItem } from "@radix-ui/react-select"
 
-interface VariantProps extends FormFieldSwitchProps {}
+interface VariantProps extends FieldSwitchProps {}
 
-const Variant: React.FC<VariantProps> = ({ field, registerName, errors }) => {
+const Variant: React.FC<VariantProps> = ({
+  methodField: field,
+  registerName,
+  errors
+}) => {
   const { unregister, setValue, resetField } = useFormContext()
   const selectedRef = useRef<string>(field.options?.[0] as string)
 
-  useEffect(() => {
-    const select = selectedRef.current
-    setValue(
-      registerName as never,
-      { [select]: field.defaultValues?.[select] } as never
-    )
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  const changeHandler = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const inputValue = e.target.value
+  const changeHandler = (inputValue: string) => {
     const select = selectedRef.current
 
     resetField(`${registerName}.${select}`)
@@ -35,31 +36,27 @@ const Variant: React.FC<VariantProps> = ({ field, registerName, errors }) => {
   )
 
   return (
-    <div className="w-full flex-col">
-      <label className="block mr-2" htmlFor={registerName}>
-        {field.label}
-      </label>
-      <select
-        id={registerName}
-        className="w-full h-8 pl-2 pr-8 border rounded border-gray-300"
-        onChange={changeHandler}
-      >
+    <Select onValueChange={changeHandler} defaultValue={field.options?.[0]}>
+      <SelectTrigger className="w-full">
+        <SelectValue placeholder="Select" />
+      </SelectTrigger>
+      <SelectContent>
         {field.options?.map((label, index) => (
-          <option key={index} value={label}>
+          <SelectItem key={index} value={label}>
             {label}
-          </option>
+          </SelectItem>
         ))}
-      </select>
+      </SelectContent>
       {selectedField ? (
-        <FormFieldSwitch
+        <FieldSwitch
           registerName={`${registerName}.${selectedRef.current}`}
           errors={errors?.[selectedRef.current as never]}
-          field={selectedField}
+          methodField={selectedField}
         />
       ) : (
         <div className="mt-2">Field not found</div>
       )}
-    </div>
+    </Select>
   )
 }
 

@@ -1,6 +1,6 @@
 import React from "react"
 import Vector from "./Vector"
-import Input from "./Input"
+import Input from "./FieldInput"
 import Optional from "./Optional"
 import Variant from "./Variant"
 import Recursive from "./Recursive"
@@ -10,14 +10,14 @@ import { FieldError, FieldErrorsImpl, Merge } from "react-hook-form"
 import Principal from "./Principal"
 import { ExtractedField } from "@ic-reactor/store/dist/candid"
 
-export interface FormFieldSwitchProps {
-  field: ExtractedField
+export interface FieldSwitchProps {
+  methodField: ExtractedField
   registerName: string
   errors: FieldError | Merge<FieldError, FieldErrorsImpl<any>> | undefined
 }
 
-const FormFieldSwitch: React.FC<FormFieldSwitchProps> = props => {
-  switch (props.field.type) {
+const FieldSwitch: React.FC<FieldSwitchProps> = props => {
+  switch (props.methodField.type) {
     case "vector":
       return <Vector {...props} />
     case "optional":
@@ -37,4 +37,4 @@ const FormFieldSwitch: React.FC<FormFieldSwitchProps> = props => {
   }
 }
 
-export default FormFieldSwitch
+export default FieldSwitch
