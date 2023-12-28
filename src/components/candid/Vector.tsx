@@ -7,7 +7,7 @@ import { Separator } from "components/ui/separator"
 import { Label } from "components/ui/label"
 import { Cross1Icon, PlusIcon } from "@radix-ui/react-icons"
 import { Icon } from "components/ui/icon"
-import { Card, CardAction, CardContent } from "components/ui/card"
+import { Card, CardContent } from "components/ui/card"
 
 interface VectorProps extends FieldRouteProps {}
 
@@ -35,15 +35,14 @@ const Vector: React.FC<VectorProps> = ({
       </div>
       {fields.length > 0 && <Separator className="my-2" />}
       {fields.map((item, index) => (
-        <div key={item.id} className="relative mb-1">
-          <CardAction
-            title={methodField.label}
-            icon={
-              <Icon color="primary" roundSide="tl">
-                {index + 1}
-              </Icon>
-            }
-          >
+        <Card
+          key={item.id}
+          noShadow
+          margin="sm"
+          color="primary"
+          icon={<Icon roundSide="tl">{index + 1}</Icon>}
+          title={methodField.label}
+          action={
             <Box className="flex">
               <div className="flex">
                 {index !== 0 && (
@@ -77,25 +76,16 @@ const Vector: React.FC<VectorProps> = ({
                 <Cross1Icon />
               </Button>
             </Box>
-          </CardAction>
-          <Card
-            key={item.id}
-            noShadow
-            color="primary"
-            border={0}
-            className="border-2 border-t-0"
-            margin="none"
-            round="b"
-          >
-            <CardContent>
-              <FieldRoute
-                methodField={methodField.fields?.[0]}
-                errors={errors?.[index as never]}
-                registerName={`${registerName}.[${index}]`}
-              />
-            </CardContent>
-          </Card>
-        </div>
+          }
+        >
+          <CardContent>
+            <FieldRoute
+              methodField={methodField.fields?.[0]}
+              errors={errors?.[index as never]}
+              registerName={`${registerName}.[${index}]`}
+            />
+          </CardContent>
+        </Card>
       ))}
     </Box>
   )

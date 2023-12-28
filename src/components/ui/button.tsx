@@ -4,7 +4,7 @@ import { cn, focusRing } from "lib/utils"
 import * as React from "react"
 
 const buttonVariants = cva(
-  "ml-1px inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors whitespace-nowrap transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors whitespace-nowrap transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
   {
     compoundVariants: [
       {

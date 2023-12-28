@@ -3,10 +3,23 @@ import { cva, VariantProps } from "class-variance-authority"
 import { cn } from "lib/utils"
 import * as React from "react"
 
-const boxVariants = cva("p-0 m-0 transition-colors", {
+const colorVariants = cva("", {
   variants: {
     color: {
-      default: "text-foreground",
+      primary: "bg-primary/5 border-primary",
+      secondary: "bg-secondary/5 border-secondary",
+      error: "bg-error/5 border-error",
+      success: "bg-success/5 border-success",
+      warning: "bg-warning/5 border-warning",
+      info: "bg-info/5 border-info",
+      muted: "bg-gray-400/5 border-gray-500"
+    }
+  }
+})
+
+const textColorVariants = cva("text-inherit", {
+  variants: {
+    color: {
       primary: "text-primary",
       secondary: "text-secondary",
       error: "text-error",
@@ -14,6 +27,42 @@ const boxVariants = cva("p-0 m-0 transition-colors", {
       warning: "text-warning",
       info: "text-info",
       muted: "text-gray-500"
+    }
+  }
+})
+
+const paddingVariants = cva("p-0", {
+  variants: {
+    padding: {
+      xs: "p-1",
+      sm: "p-2",
+      md: "p-3",
+      lg: "p-4",
+      xl: "p-5"
+    }
+  }
+})
+
+const marginVariants = cva("m-0", {
+  variants: {
+    margin: {
+      xs: "m-1",
+      sm: "m-2",
+      md: "m-3",
+      lg: "m-4",
+      xl: "m-5"
+    }
+  }
+})
+
+const boxVariants = cva("transition-colors", {
+  variants: {
+    size: {
+      xs: "text-xs",
+      sm: "text-sm",
+      md: "text-base",
+      lg: "text-lg",
+      xl: "text-xl"
     },
     hoverColor: {
       primary: "hover:text-primary-dark",
@@ -23,15 +72,6 @@ const boxVariants = cva("p-0 m-0 transition-colors", {
       warning: "hover:text-warning-dark",
       info: "hover:text-info-dark",
       muted: "hover:text-gray-700"
-    },
-    bgColor: {
-      primary: "bg-primary/5 border-primary",
-      secondary: "bg-secondary/5 border-secondary",
-      error: "bg-error/5 border-error",
-      success: "bg-success/5 border-success",
-      warning: "bg-warning/5 border-warning",
-      info: "bg-info/5 border-info",
-      muted: "bg-gray-400/5 border-gray-400"
     },
     hoverBgColor: {
       primary: "hover:bg-primary/50",
@@ -44,18 +84,26 @@ const boxVariants = cva("p-0 m-0 transition-colors", {
     },
     hoverable: {
       true: "hover:text-foreground"
+    },
+    border: {
+      0: "border-0",
+      1: "border-1",
+      2: "border-2",
+      3: "border-3",
+      4: "border-4"
     }
-  },
-  defaultVariants: {
-    color: "default"
   }
 })
 
 export interface BoxProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, "color">,
-    VariantProps<typeof boxVariants> {
+    VariantProps<typeof boxVariants>,
+    VariantProps<typeof colorVariants>,
+    VariantProps<typeof paddingVariants>,
+    VariantProps<typeof marginVariants> {
   asChild?: boolean
   hoverable?: boolean
+  roundSize?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "full" | null
 }
 
 const Box = React.forwardRef<HTMLDivElement, BoxProps>(
@@ -63,10 +111,14 @@ const Box = React.forwardRef<HTMLDivElement, BoxProps>(
     {
       asChild,
       color,
-      bgColor,
       hoverColor,
       hoverBgColor,
       hoverable,
+      padding,
+      margin,
+      roundSize,
+      border,
+      size,
       children,
       className,
       ...props
@@ -80,12 +132,16 @@ const Box = React.forwardRef<HTMLDivElement, BoxProps>(
         ref={ref}
         className={cn(
           boxVariants({
-            color,
-            bgColor,
+            border,
+            size,
             hoverColor,
             hoverBgColor,
             hoverable
           }),
+          colorVariants({ color }),
+          paddingVariants({ padding }),
+          marginVariants({ margin }),
+          roundSize && `rounded-${roundSize}`,
           className
         )}
         {...props}
@@ -98,4 +154,11 @@ const Box = React.forwardRef<HTMLDivElement, BoxProps>(
 
 Box.displayName = "Box"
 
-export { Box }
+export {
+  Box,
+  boxVariants,
+  colorVariants,
+  textColorVariants,
+  paddingVariants,
+  marginVariants
+}

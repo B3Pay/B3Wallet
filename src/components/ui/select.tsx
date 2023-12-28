@@ -38,18 +38,6 @@ const selectVariants = cva(
         lg: "h-10 text-lg",
         xl: "h-12 px-3 text-xl"
       },
-      round: {
-        none: "rounded-none",
-        both: "rounded-full",
-        left: "rounded-l-full",
-        right: "rounded-r-full",
-        top: "rounded-t-sm",
-        bottom: "rounded-b-sm",
-        topLeft: "rounded-tl-sm",
-        topRight: "rounded-tr-sm",
-        bottomLeft: "rounded-bl-sm",
-        bottomRight: "rounded-br-sm"
-      },
       position: {
         popper:
           "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1"
@@ -57,8 +45,7 @@ const selectVariants = cva(
     },
     defaultVariants: {
       variant: "default",
-      color: "muted",
-      round: "both",
+      color: "primary",
       size: "md"
     }
   }
@@ -79,6 +66,8 @@ export interface SelectProps
   className?: string
   noShadow?: boolean
   icon?: React.ReactNode
+  roundSize?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "full" | null
+  roundSide?: "t" | "b" | "l" | "r" | "tl" | "tr" | "bl" | "br" | "none" | null
 }
 
 const SelectTrigger = React.forwardRef<
@@ -92,35 +81,41 @@ const SelectTrigger = React.forwardRef<
       icon,
       color,
       variant,
-      round,
+      roundSide,
+      roundSize = "xl",
       size,
       children,
       ...props
     },
     ref
-  ) => (
-    <SelectPrimitive.Trigger
-      ref={ref}
-      className={cn(
-        focusRing,
-        selectVariants({
-          variant,
-          color,
-          round,
-          size
-        }),
-        size !== "xs" && `rounded-${round}-${size}`,
-        noShadow && "shadow-none",
-        className
-      )}
-      {...props}
-    >
-      {children}
-      <SelectPrimitive.Icon asChild>
-        {icon || <CaretSortIcon className="h-4 w-4 opacity-50" />}
-      </SelectPrimitive.Icon>
-    </SelectPrimitive.Trigger>
-  )
+  ) => {
+    const roundingClass = roundSide
+      ? `rounded-${roundSide}-${roundSize}`
+      : `rounded-${roundSize}`
+
+    return (
+      <SelectPrimitive.Trigger
+        ref={ref}
+        className={cn(
+          focusRing,
+          selectVariants({
+            variant,
+            color,
+            size
+          }),
+          roundingClass,
+          noShadow && "shadow-none",
+          className
+        )}
+        {...props}
+      >
+        {children}
+        <SelectPrimitive.Icon asChild>
+          {icon || <CaretSortIcon className="h-4 w-4 opacity-50" />}
+        </SelectPrimitive.Icon>
+      </SelectPrimitive.Trigger>
+    )
+  }
 )
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
 

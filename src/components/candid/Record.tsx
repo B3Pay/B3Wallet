@@ -1,4 +1,6 @@
+import { Box } from "components/ui/box"
 import FieldRoute, { FieldRouteProps } from "./FieldRoute"
+import { Label } from "components/ui/label"
 
 interface RecordProps extends FieldRouteProps {}
 
@@ -8,8 +10,8 @@ const Record: React.FC<RecordProps> = ({
   registerName
 }) => {
   return (
-    <div className="w-full">
-      <div className="font-semibold">{field.label}</div>
+    <Box>
+      <Label>{field.label}</Label>
       {field.fields?.map((field, index) => (
         <FieldRoute
           key={index}
@@ -18,7 +20,7 @@ const Record: React.FC<RecordProps> = ({
           errors={errors?.[field.label as never]}
         />
       ))}
-    </div>
+    </Box>
   )
 }
 
