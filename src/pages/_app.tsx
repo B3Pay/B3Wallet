@@ -26,7 +26,14 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
               <TeamSwitcher sharedClassName="w-screen sm:w-[300px] md:w-[200px]" />
               <MainNav className="hidden mx-6 md:flex" />
               <div className="flex ml-auto items-center space-x-2">
-                <Icon size="xl" asButton onClick={() => console.log("search")}>
+                <Icon
+                  size="xl"
+                  asButton
+                  noShadow
+                  asChild
+                  variant="ghost"
+                  onClick={() => console.log("search")}
+                >
                   <MagnifyingGlassIcon />
                 </Icon>
                 <UserNav />

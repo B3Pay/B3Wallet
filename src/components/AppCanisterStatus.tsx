@@ -32,20 +32,19 @@ const AppCanisterStatus: React.FC<AppCanisterStatusProps> = ({
     <div>
       <div className="flex items-center">
         <Input
-          icon={<ShadowInnerIcon className="ml-[4px]" />}
+          icon={<ShadowInnerIcon />}
           value={input}
           onChange={e => setInput(e.target.value)}
           placeholder="Canister ID"
-          round="left"
-          iconSize="sm"
+          roundSide="l"
         />
         <Button
           isLoading={loading}
           disabled={loading}
-          round="right"
           variant="outline"
           color="secondary"
           onClick={clickHandler}
+          roundSide="r"
         >
           Wallet Status
         </Button>

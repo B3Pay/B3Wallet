@@ -13,27 +13,27 @@ const inputVariants = cva(
       {
         isIcon: true,
         size: "xs",
-        className: "pl-6"
+        className: "pl-5"
       },
       {
         isIcon: true,
         size: "sm",
-        className: "pl-7"
+        className: "pl-6"
       },
       {
         isIcon: true,
         size: "md",
-        className: "pl-8"
+        className: "pl-7"
       },
       {
         isIcon: true,
         size: "lg",
-        className: "pl-9"
+        className: "pl-8"
       },
       {
         isIcon: true,
         size: "xl",
-        className: "pl-10"
+        className: "pl-9"
       },
       {
         variant: ["outline", "default"],
@@ -64,18 +64,6 @@ const inputVariants = cva(
         lg: "h-10 px-4 text-lg",
         xl: "h-12 px-4 text-xl"
       },
-      round: {
-        none: "rounded-none",
-        both: "rounded-full",
-        left: "rounded-l-full",
-        right: "rounded-r-full",
-        top: "rounded-t-sm",
-        bottom: "rounded-b-sm",
-        topLeft: "rounded-tl-sm",
-        topRight: "rounded-tr-sm",
-        bottomLeft: "rounded-bl-sm",
-        bottomRight: "rounded-br-sm"
-      },
       isIcon: {
         true: "pr-0"
       }
@@ -83,7 +71,6 @@ const inputVariants = cva(
     defaultVariants: {
       variant: "outline",
       color: "primary",
-      round: "none",
       size: "md"
     }
   }
@@ -102,6 +89,8 @@ export interface InputProps
   asChild?: boolean
   closeHandler?: () => void
   iconSize?: "xs" | "sm" | "md" | "lg" | "xl" | null
+  roundSize?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "full" | null
+  roundSide?: "t" | "b" | "l" | "r" | "tl" | "tr" | "bl" | "br" | "none" | null
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
@@ -115,7 +104,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       height,
       className,
       noShadow,
-      round,
+      roundSize = "xl",
+      roundSide,
       size,
       type,
       closeHandler,
@@ -138,12 +128,16 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       inputRef.current = instance
     }
 
+    const roundingClass = roundSide
+      ? `rounded-${roundSide}-${roundSize}`
+      : `rounded-${roundSize}`
+
     return (
       <Box className={cn("relative", className)} color={color} hoverable>
         {isIcon && (
           <Icon
             color={color}
-            className="absolute top-1/2 left-1 transform -translate-y-1/2"
+            className="absolute p-1.5 top-1/2 left-1 transform -translate-y-1/2"
             size={iconSize || size}
             onClick={() => {
               inputRef.current && inputRef.current.focus()
@@ -159,9 +153,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           type={type}
           className={cn(
             focusRing,
-            inputVariants({ round, variant, size, color, isIcon }),
+            inputVariants({ variant, size, color, isIcon }),
             height,
-            `rounded-${round}-${size}`,
+            roundingClass,
             noShadow && "shadow-none"
           )}
           ref={refHandler}

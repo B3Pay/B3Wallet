@@ -50,7 +50,7 @@ const tabsListVariants = cva(
     defaultVariants: {
       size: "md",
       radius: "md",
-      round: "none",
+      round: "both",
       color: "primary"
     }
   }

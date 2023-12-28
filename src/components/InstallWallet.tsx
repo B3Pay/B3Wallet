@@ -22,7 +22,7 @@ const InstallWallet: React.FC<InstallWalletProps> = ({ canisterId }) => {
 
     const principal = Principal.fromText(input)
 
-    const res = await call([principal])
+    const res = await call([principal, "b3wallet"])
     console.log(res)
   }
 
@@ -30,15 +30,14 @@ const InstallWallet: React.FC<InstallWalletProps> = ({ canisterId }) => {
     <div>
       <div className="flex items-center">
         <Input
-          icon={<ShadowInnerIcon className="ml-[4px]" />}
+          icon={<ShadowInnerIcon />}
           value={input}
           onChange={e => setInput(e.target.value)}
           placeholder="Canister ID"
-          round="left"
-          iconSize="sm"
+          roundSide="l"
         />
         <Button
-          round="right"
+          roundSide="r"
           variant="outline"
           color="secondary"
           onClick={installWalletHandler}

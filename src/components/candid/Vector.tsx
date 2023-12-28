@@ -35,8 +35,15 @@ const Vector: React.FC<VectorProps> = ({
       </div>
       {fields.length > 0 && <Separator className="my-2" />}
       {fields.map((item, index) => (
-        <Card key={item.id} noShadow color="primary" border={0}>
-          <CardAction title={methodField.label} icon={<Icon>{index + 1}</Icon>}>
+        <div key={item.id} className="relative mb-1">
+          <CardAction
+            title={methodField.label}
+            icon={
+              <Icon color="primary" roundSide="tl">
+                {index + 1}
+              </Icon>
+            }
+          >
             <Box className="flex">
               <div className="flex">
                 {index !== 0 && (
@@ -44,6 +51,7 @@ const Vector: React.FC<VectorProps> = ({
                     onClick={() => swap(index, index - 1)}
                     color="secondary"
                     asIconButton
+                    roundSide="none"
                   >
                     ↑
                   </Button>
@@ -52,15 +60,16 @@ const Vector: React.FC<VectorProps> = ({
                   <Button
                     onClick={() => swap(index, index + 1)}
                     color="info"
+                    roundSide="none"
                     asIconButton
                   >
                     ↓
                   </Button>
                 )}
               </div>
-              <Separator orientation="vertical" className="my-2" />
               <Button
                 onClick={() => remove(index)}
+                roundSide="tr"
                 asIconButton
                 noShadow
                 color="error"
@@ -69,14 +78,24 @@ const Vector: React.FC<VectorProps> = ({
               </Button>
             </Box>
           </CardAction>
-          <CardContent>
-            <FieldRoute
-              methodField={methodField.fields?.[0]}
-              errors={errors?.[index as never]}
-              registerName={`${registerName}.[${index}]`}
-            />
-          </CardContent>
-        </Card>
+          <Card
+            key={item.id}
+            noShadow
+            color="primary"
+            border={0}
+            className="border-2 border-t-0"
+            margin="none"
+            round="b"
+          >
+            <CardContent>
+              <FieldRoute
+                methodField={methodField.fields?.[0]}
+                errors={errors?.[index as never]}
+                registerName={`${registerName}.[${index}]`}
+              />
+            </CardContent>
+          </Card>
+        </div>
       ))}
     </Box>
   )

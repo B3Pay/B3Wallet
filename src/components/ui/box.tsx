@@ -25,13 +25,13 @@ const boxVariants = cva("p-0 m-0 transition-colors", {
       muted: "hover:text-gray-700"
     },
     bgColor: {
-      primary: "bg-primary",
-      secondary: "bg-secondary",
-      error: "bg-error",
-      success: "bg-success",
-      warning: "bg-warning",
-      info: "bg-info",
-      muted: "bg-gray-400"
+      primary: "bg-primary/5 border-primary",
+      secondary: "bg-secondary/5 border-secondary",
+      error: "bg-error/5 border-error",
+      success: "bg-success/5 border-success",
+      warning: "bg-warning/5 border-warning",
+      info: "bg-info/5 border-info",
+      muted: "bg-gray-400/5 border-gray-400"
     },
     hoverBgColor: {
       primary: "hover:bg-primary/50",

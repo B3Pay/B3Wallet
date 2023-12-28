@@ -11,12 +11,12 @@ const iconVariants = cva(
         true: "p-0 cursor-pointer"
       },
       color: {
-        primary: "bg-primary/25 border-primary/50 text-primary",
-        secondary: "bg-secondary/25 border-secondary/50 text-secondary",
-        error: "bg-error/25 border-error/50 text-error",
-        success: "bg-success/25 border-success/50 text-success",
-        warning: "bg-warning/25 border-warning/50 text-warning",
-        info: "bg-info/25 border-info/50 text-info",
+        primary: "bg-primary/75 border-primary text-primary",
+        secondary: "bg-secondary/75 border-secondary text-secondary",
+        error: "bg-error/75 border-error text-error",
+        success: "bg-success/75 border-success text-success",
+        warning: "bg-warning/75 border-warning text-warning",
+        info: "bg-info/75 border-info text-info",
         muted: "border-gray-500"
       },
       variant: {
@@ -24,32 +24,19 @@ const iconVariants = cva(
         filled: "shadow text-foreground",
         outline: "border-2 shadow bg-transparent",
         ghost: "shadow bg-transparent",
-        link: "bg-transparent underline focus:ring-offset-0 focus:ring-0"
-      },
-      round: {
-        none: "rounded-none",
-        both: "rounded-full",
-        left: "rounded-l-full",
-        right: "rounded-r-full",
-        t: "rounded-t",
-        b: "rounded-b",
-        tl: "rounded-tl",
-        tr: "rounded-tr",
-        bl: "rounded-bl",
-        br: "rounded-br"
+        link: "bg-transparent underline"
       },
       size: {
-        xs: "w-5 h-5",
-        sm: "w-8 h-8 p-1.5",
-        md: "w-9 h-9 p-1.5",
-        lg: "w-10 h-10 p-2",
-        xl: "w-12 h-12 p-2"
+        xs: "h-5 w-5 text-xs",
+        sm: "h-6 w-6 text-sm",
+        md: "h-8 w-8 text-base",
+        lg: "h-10 w-10 text-lg",
+        xl: "h-12 w-12 text-xl"
       }
     },
     defaultVariants: {
       variant: "default",
       color: "primary",
-      round: "none",
       size: "md"
     }
   }
@@ -61,6 +48,8 @@ export interface IconProps
   asButton?: boolean
   asChild?: boolean
   noShadow?: boolean
+  roundSize?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | null
+  roundSide?: "t" | "b" | "l" | "r" | "tl" | "tr" | "bl" | "br" | "none" | null
 }
 
 const Icon = React.forwardRef<HTMLSpanElement, IconProps>(
@@ -68,7 +57,8 @@ const Icon = React.forwardRef<HTMLSpanElement, IconProps>(
     {
       children,
       asButton,
-      round,
+      roundSize = "xl",
+      roundSide,
       variant,
       className,
       noShadow,
@@ -81,13 +71,17 @@ const Icon = React.forwardRef<HTMLSpanElement, IconProps>(
   ) => {
     const Comp = asChild ? Slot : "span"
 
+    const roundingClass = roundSide
+      ? `rounded-${roundSide}-${roundSize}`
+      : `rounded-${roundSize}`
+
     return (
       <Comp
         ref={ref}
         className={cn(
-          iconVariants({ size, variant, round, color, asButton }),
+          iconVariants({ size, variant, color, asButton }),
           noShadow && "shadow-none",
-          size && size !== "xs" && `rounded-${round}-${size}`,
+          roundingClass,
           className
         )}
         {...props}

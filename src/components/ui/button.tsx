@@ -114,18 +114,6 @@ const buttonVariants = cva(
         lg: "h-10 px-8 text-lg",
         xl: "h-12 px-10 text-xl"
       },
-      round: {
-        none: "rounded-none",
-        both: "rounded-full",
-        left: "rounded-l-full",
-        right: "rounded-r-full",
-        t: "rounded-t",
-        b: "rounded-b",
-        tl: "rounded-tl",
-        tr: "rounded-tr",
-        bl: "rounded-bl",
-        br: "rounded-br"
-      },
       asIconButton: {
         true: "p-0"
       },
@@ -136,7 +124,6 @@ const buttonVariants = cva(
     defaultVariants: {
       variant: "default",
       color: "primary",
-      round: "none",
       size: "md"
     }
   }
@@ -151,7 +138,9 @@ export interface ButtonProps
   asIconButton?: boolean
   noShadow?: boolean
   isLoading?: boolean
-  iconSize?: "xs" | "sm" | "md" | "lg" | "xl" | null
+  iconSize?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "full" | null
+  roundSize?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "full" | null
+  roundSide?: "t" | "b" | "l" | "r" | "tl" | "tr" | "bl" | "br" | "none" | null
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -161,8 +150,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       children,
       color,
       variant,
-      round,
       size,
+      roundSize = "xl",
+      roundSide,
       asIconButton,
       height,
       noShadow,
@@ -176,6 +166,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const Comp = asChild ? Slot : "button"
 
+    const roundingClass = roundSide
+      ? `rounded-${roundSide}-${roundSize}`
+      : `rounded-${roundSize}`
+
     return (
       <Comp
         className={cn(
@@ -184,15 +178,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             variant,
             color,
             size,
-            round,
             asIconButton,
             noShadow
           }),
-          className,
           fullWidth && "w-full",
-          size && size !== "xs" && `rounded-${round}-${size}`,
+          roundingClass,
           height,
-          isLoading && "animate-border-pulse"
+          isLoading && "animate-border-pulse",
+          className
         )}
         ref={ref}
         disabled={isLoading}

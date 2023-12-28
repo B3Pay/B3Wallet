@@ -1,6 +1,7 @@
 import * as React from "react"
 import { VariantProps, cva } from "class-variance-authority"
 import { cn } from "lib/utils"
+import { Box } from "./box"
 
 const cardVariants = cva("shadow", {
   variants: {
@@ -60,7 +61,7 @@ const cardVariants = cva("shadow", {
     color: "muted",
     size: "md",
     border: 1,
-    round: "none",
+    round: "both",
     padding: "none",
     margin: "xs"
   }
@@ -122,11 +123,13 @@ const CardAction = React.forwardRef<HTMLDivElement, CardActionProps>(
   ({ className, children, title, icon, ...props }, ref) => (
     <div
       ref={ref}
-      className="flex items-center justify-between mb-2"
+      className="flex justify-between w-full items-stretch"
       {...props}
     >
       <div className="flex-none">{icon}</div>
-      <CardTitle className="flex-1 pl-2">{title}</CardTitle>
+      <Box bgColor="primary" className="flex-1 pl-2 flex items-center border-t">
+        {title}
+      </Box>
       <div className="flex items-center justify-between">{children}</div>
     </div>
   )

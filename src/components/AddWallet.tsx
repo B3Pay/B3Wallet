@@ -12,7 +12,7 @@ interface AddWalletProps {
 
 const AddWallet: React.FC<AddWalletProps> = ({ canisterId }) => {
   const { call, data, error, loading } = useSystemUpdate({
-    functionName: "add_app"
+    functionName: "add_user_app"
   })
 
   const [input, setInput] = useState(canisterId || "")
@@ -22,7 +22,7 @@ const AddWallet: React.FC<AddWalletProps> = ({ canisterId }) => {
 
     const principal = Principal.fromText(input)
 
-    const res = await call([principal])
+    const res = await call([principal, "wallet"])
     console.log(res)
   }
 
@@ -30,22 +30,16 @@ const AddWallet: React.FC<AddWalletProps> = ({ canisterId }) => {
     <div>
       <div className="flex items-center">
         <Input
-          icon={
-            <PlusCircledIcon
-              className="ml-[3px]"
-              onClick={() => console.log("clicked")}
-            />
-          }
+          icon={<PlusCircledIcon onClick={() => console.log("clicked")} />}
           value={input}
           onChange={e => setInput(e.target.value)}
           placeholder="Canister ID"
-          round="left"
-          iconSize="sm"
+          roundSide="l"
         />
         <Button
-          round="right"
           variant="outline"
           color="secondary"
+          roundSide="r"
           onClick={addWalletHandler}
         >
           Add Wallet
