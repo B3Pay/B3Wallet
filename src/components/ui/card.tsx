@@ -1,5 +1,4 @@
 import * as React from "react"
-
 import { VariantProps, cva } from "class-variance-authority"
 import { cn } from "lib/utils"
 
@@ -46,22 +45,22 @@ const cardVariants = cva("shadow", {
     },
     round: {
       none: "rounded-none",
-      both: "rounded-sm",
-      left: "rounded-l-sm",
-      right: "rounded-r-sm",
-      top: "rounded-t-sm",
-      bottom: "rounded-b-sm",
-      topLeft: "rounded-tl-sm",
-      topRight: "rounded-tr-sm",
-      bottomLeft: "rounded-bl-sm",
-      bottomRight: "rounded-br-sm"
+      both: "rounded-md",
+      left: "rounded-l-md",
+      right: "rounded-r-md",
+      t: "rounded-t-md",
+      b: "rounded-b-md",
+      tl: "rounded-tl-md",
+      tr: "rounded-tr-md",
+      bl: "rounded-bl-md",
+      br: "rounded-br-md"
     }
   },
   defaultVariants: {
     color: "muted",
     size: "md",
     border: 1,
-    round: "both",
+    round: "none",
     padding: "none",
     margin: "xs"
   }
@@ -92,9 +91,9 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     <div
       ref={ref}
       className={cn(
-        cardVariants({ round, size, border, color, padding, margin }),
-        `rounded-${round}`,
+        cardVariants({ size, round, border, color, padding, margin }),
         noShadow && "shadow-none",
+        size && size !== "xs" && `rounded-${round}-${size}`,
         className
       )}
       {...props}
@@ -114,6 +113,25 @@ const CardHeader = React.forwardRef<
   />
 ))
 CardHeader.displayName = "CardHeader"
+
+export interface CardActionProps extends React.HTMLAttributes<HTMLDivElement> {
+  icon?: React.ReactNode
+}
+
+const CardAction = React.forwardRef<HTMLDivElement, CardActionProps>(
+  ({ className, children, title, icon, ...props }, ref) => (
+    <div
+      ref={ref}
+      className="flex items-center justify-between mb-2"
+      {...props}
+    >
+      <div className="flex-none">{icon}</div>
+      <CardTitle className="flex-1 pl-2">{title}</CardTitle>
+      <div className="flex items-center justify-between">{children}</div>
+    </div>
+  )
+)
+CardAction.displayName = "CardAction"
 
 const CardTitle = React.forwardRef<
   HTMLParagraphElement,
@@ -159,4 +177,12 @@ const CardFooter = React.forwardRef<
 ))
 CardFooter.displayName = "CardFooter"
 
-export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
+export {
+  Card,
+  CardContent,
+  CardAction,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
+}

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react"
-import FieldSwitch, { FieldSwitchProps } from "./FieldSwitch"
+import FieldRoute, { FieldRouteProps } from "./FieldRoute"
 import { useFormContext } from "react-hook-form"
 import {
   Select,
@@ -12,7 +12,7 @@ import {
 import { Box } from "components/ui/box"
 import { FormItem, FormLabel } from "components/ui/form"
 
-interface VariantProps extends FieldSwitchProps {}
+interface VariantProps extends FieldRouteProps {}
 
 const Variant: React.FC<VariantProps> = ({
   methodField,
@@ -61,7 +61,7 @@ const Variant: React.FC<VariantProps> = ({
         </Select>
       </FormItem>
       {selectedField ? (
-        <FieldSwitch
+        <FieldRoute
           registerName={`${registerName}.${selectedRef.current}`}
           errors={errors?.[selectedRef.current as never]}
           methodField={selectedField}

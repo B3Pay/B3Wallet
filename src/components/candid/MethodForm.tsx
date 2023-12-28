@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react"
 import { Button } from "components/ui/button"
-import FieldSwitch from "./FieldSwitch"
+import FieldRoute from "./FieldRoute"
 import { useForm } from "react-hook-form"
 import { SystemDynamicField, useSystemQuery } from "service/system"
 import { Form } from "components/ui/form"
@@ -83,7 +83,7 @@ const MethodForm: React.FC<MethodFormProps> = ({
         {fields?.map((field, index) => {
           return (
             <div key={index} className="mb-2">
-              <FieldSwitch
+              <FieldRoute
                 methodField={field}
                 registerName={`${functionName}-arg${index}`}
                 errors={methods.formState.errors[`${functionName}-arg${index}`]}
@@ -95,10 +95,10 @@ const MethodForm: React.FC<MethodFormProps> = ({
           <fieldset className="border p-2 my-2 rounded">
             <legend className="font-semibold">Arguments</legend>
             <span className="text-sm">
-              ({" "}
+              (
               {argState
                 .map((arg: any) => JSON.stringify(arg, null, 2))
-                .join(", ")}{" "}
+                .join(", ")}
               )
             </span>
           </fieldset>

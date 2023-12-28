@@ -1,6 +1,6 @@
-import FieldSwitch, { FieldSwitchProps } from "./FieldSwitch"
+import FieldRoute, { FieldRouteProps } from "./FieldRoute"
 
-interface TupleProps extends FieldSwitchProps {}
+interface TupleProps extends FieldRouteProps {}
 
 const Tuple: React.FC<TupleProps> = ({
   methodField: field,
@@ -11,7 +11,7 @@ const Tuple: React.FC<TupleProps> = ({
     <div className="w-full">
       <div className="font-semibold">{field.label}</div>
       {field.fields?.map((field, index) => (
-        <FieldSwitch
+        <FieldRoute
           key={index}
           registerName={`${registerName}.[${index}]`}
           errors={errors?.[index as never]}

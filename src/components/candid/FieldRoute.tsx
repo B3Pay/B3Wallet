@@ -10,13 +10,13 @@ import { FieldError, FieldErrorsImpl, Merge } from "react-hook-form"
 import Principal from "./Principal"
 import { ExtractedField } from "@ic-reactor/store/dist/candid"
 
-export interface FieldSwitchProps {
+export interface FieldRouteProps {
   methodField: ExtractedField
   registerName: string
   errors: FieldError | Merge<FieldError, FieldErrorsImpl<any>> | undefined
 }
 
-const FieldSwitch: React.FC<FieldSwitchProps> = props => {
+const FieldRoute: React.FC<FieldRouteProps> = props => {
   switch (props.methodField.type) {
     case "vector":
       return <Vector {...props} />
@@ -37,4 +37,4 @@ const FieldSwitch: React.FC<FieldSwitchProps> = props => {
   }
 }
 
-export default FieldSwitch
+export default FieldRoute

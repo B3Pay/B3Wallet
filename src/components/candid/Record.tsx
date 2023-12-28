@@ -1,6 +1,6 @@
-import FieldSwitch, { FieldSwitchProps } from "./FieldSwitch"
+import FieldRoute, { FieldRouteProps } from "./FieldRoute"
 
-interface RecordProps extends FieldSwitchProps {}
+interface RecordProps extends FieldRouteProps {}
 
 const Record: React.FC<RecordProps> = ({
   methodField: field,
@@ -11,7 +11,7 @@ const Record: React.FC<RecordProps> = ({
     <div className="w-full">
       <div className="font-semibold">{field.label}</div>
       {field.fields?.map((field, index) => (
-        <FieldSwitch
+        <FieldRoute
           key={index}
           registerName={`${registerName}.${field.label}`}
           methodField={field}

@@ -136,7 +136,7 @@ const buttonVariants = cva(
     defaultVariants: {
       variant: "default",
       color: "primary",
-      round: "both",
+      round: "none",
       size: "md"
     }
   }

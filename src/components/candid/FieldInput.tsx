@@ -1,5 +1,5 @@
 import { useFormContext } from "react-hook-form"
-import { FieldSwitchProps } from "./FieldSwitch"
+import { FieldRouteProps } from "./FieldRoute"
 import {
   FormControl,
   FormField,
@@ -14,14 +14,15 @@ import {
   InfoCircledIcon,
   QuestionMarkCircledIcon
 } from "@radix-ui/react-icons"
+import { Box } from "components/ui/box"
 
-interface FieldInputProps extends FieldSwitchProps {}
+interface FieldInputProps extends FieldRouteProps {}
 
 const FieldInput: React.FC<FieldInputProps> = ({
   registerName,
   methodField
 }) => {
-  const { control, getFieldState, resetField } = useFormContext()
+  const { control, resetField } = useFormContext()
 
   const validate = (x: any) => {
     if (methodField.type === "null") {
@@ -31,12 +32,8 @@ const FieldInput: React.FC<FieldInputProps> = ({
     }
   }
 
-  const { isTouched, invalid, isDirty, error } = getFieldState(
-    registerName as never
-  )
-  console.log("error", error)
   return methodField.type !== "null" ? (
-    <div className="mb-4">
+    <Box className="mb-4">
       <FormField
         control={control}
         name={registerName}
@@ -65,7 +62,7 @@ const FieldInput: React.FC<FieldInputProps> = ({
           </FormItem>
         )}
       />
-    </div>
+    </Box>
   ) : null
 }
 

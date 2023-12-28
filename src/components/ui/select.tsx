@@ -57,8 +57,8 @@ const selectVariants = cva(
     },
     defaultVariants: {
       variant: "default",
-      color: "primary",
-      round: "both",
+      color: "muted",
+      round: "none",
       size: "md"
     }
   }

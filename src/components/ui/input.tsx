@@ -82,8 +82,8 @@ const inputVariants = cva(
     },
     defaultVariants: {
       variant: "outline",
-      color: "muted",
-      round: "both",
+      color: "primary",
+      round: "none",
       size: "md"
     }
   }
@@ -148,6 +148,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             onClick={() => {
               inputRef.current && inputRef.current.focus()
             }}
+            variant="ghost"
+            noShadow
+            asChild
           >
             {icon}
           </Icon>
@@ -168,6 +171,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {closeHandler && (
           <Icon
             color="error"
+            variant="ghost"
+            noShadow
             className="absolute top-1/2 right-0 transform -translate-y-1/2 cursor-pointer"
             size={iconSize || size}
             onClick={() => {

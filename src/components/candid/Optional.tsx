@@ -1,8 +1,8 @@
 import { useFieldArray, useFormContext } from "react-hook-form"
-import FieldSwitch, { FieldSwitchProps } from "./FieldSwitch"
+import FieldRoute, { FieldRouteProps } from "./FieldRoute"
 import { Switch } from "components/ui/switch"
 
-interface OptionalProps extends FieldSwitchProps {}
+interface OptionalProps extends FieldRouteProps {}
 
 const Optional: React.FC<OptionalProps> = ({
   methodField: field,
@@ -30,7 +30,7 @@ const Optional: React.FC<OptionalProps> = ({
       </div>
       {fields.length > 0 && (
         <div className="flex justify-between items-start p-1 mb-1 w-full border-dashed border border-gray-400 rounded">
-          <FieldSwitch
+          <FieldRoute
             methodField={field.fields?.[0]}
             registerName={`${registerName}.[0]`}
             errors={errors?.[0 as never]}

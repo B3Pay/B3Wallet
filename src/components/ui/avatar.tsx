@@ -83,7 +83,7 @@ const avatarVariants = cva(
     defaultVariants: {
       variant: "default",
       color: "primary",
-      round: "both",
+      round: "none",
       size: "md"
     }
   }
@@ -143,7 +143,7 @@ Avatar.displayName = AvatarPrimitive.Root.displayName
 Avatar.defaultProps = {
   variant: "default",
   color: "primary",
-  round: "both",
+  round: "none",
   size: "md"
 }
 

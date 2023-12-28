@@ -1,6 +1,6 @@
 import { FormProvider, useForm } from "react-hook-form"
 import { SystemDynamicField } from "service/system"
-import FieldSwitch from "components/candid/FieldSwitch"
+import FieldRoute from "components/candid/FieldRoute"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./ui/card"
 
@@ -32,7 +32,7 @@ const SystemMethod: React.FC<SystemMethodProps> = ({
           <CardContent>
             {fields?.map((field, index) => {
               return (
-                <FieldSwitch
+                <FieldRoute
                   key={field.label}
                   methodField={field}
                   registerName={`${functionName}-arg${index}`}

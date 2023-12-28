@@ -78,7 +78,7 @@ const UserNav: React.FC<UserNavProps> = ({ className }) => {
           identityProvider:
             process.env.DFX_NETWORK === "ic"
               ? "https://identity.ic0.app/#authorize"
-              : `http://localhost:4943?canisterId=rdmx6-jaaaa-aaaaa-aaadq-cai#authorize`
+              : `http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:4943/#authorize`
         })
       }
       disabled={loginLoading || authenticating}
