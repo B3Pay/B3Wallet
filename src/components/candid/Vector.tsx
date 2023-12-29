@@ -27,7 +27,7 @@ const Vector: React.FC<VectorProps> = ({
     <Box className="mb-2">
       <div className="flex justify-between items-center">
         <Label className="flex-1 w-full block text-lg font-medium">
-          {methodField.label}
+          {methodField.label.toTitleCase()}
         </Label>
         <Button onClick={() => append("")} asIconButton>
           <PlusIcon />
@@ -39,9 +39,14 @@ const Vector: React.FC<VectorProps> = ({
           key={item.id}
           noShadow
           margin="sm"
+          dashedBorder
           color="primary"
-          icon={<Icon roundSide="tl">{index + 1}</Icon>}
-          title={methodField.label}
+          icon={
+            <Icon roundSide="tl" className="border-dashed">
+              {index + 1}
+            </Icon>
+          }
+          title={methodField.label.toTitleCase()}
           action={
             <Box className="flex">
               <div className="flex">
@@ -51,6 +56,7 @@ const Vector: React.FC<VectorProps> = ({
                     color="secondary"
                     asIconButton
                     roundSide="none"
+                    className="border-dashed"
                   >
                     ↑
                   </Button>
@@ -61,6 +67,7 @@ const Vector: React.FC<VectorProps> = ({
                     color="info"
                     roundSide="none"
                     asIconButton
+                    className="border-dashed"
                   >
                     ↓
                   </Button>
@@ -72,6 +79,7 @@ const Vector: React.FC<VectorProps> = ({
                 asIconButton
                 noShadow
                 color="error"
+                className="border-dashed"
               >
                 <Cross1Icon />
               </Button>

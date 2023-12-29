@@ -7,40 +7,7 @@ module.exports = {
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}"
   ],
-  safelist: [
-    "rounded-t-sm",
-    "rounded-b-sm",
-    "rounded-sm",
-    "rounded-t-md",
-    "rounded-b-md",
-    "rounded-md",
-    "rounded-t-lg",
-    "rounded-b-lg",
-    "rounded-l-lg",
-    "rounded-r-lg",
-    "rounded-lg",
-    "rounded-t-xl",
-    "rounded-b-xl",
-    "rounded-l-xl",
-    "rounded-r-xl",
-    "rounded-xl",
-    "rounded-tl-sm",
-    "rounded-bl-sm",
-    "rounded-tr-sm",
-    "rounded-br-sm",
-    "rounded-tl-md",
-    "rounded-bl-md",
-    "rounded-tr-md",
-    "rounded-br-md",
-    "rounded-tl-lg",
-    "rounded-bl-lg",
-    "rounded-tr-lg",
-    "rounded-br-lg",
-    "rounded-tl-xl",
-    "rounded-bl-xl",
-    "rounded-tr-xl",
-    "rounded-br-xl"
-  ],
+  safelist: generateTailwindSafelist(),
   theme: {
     container: {
       center: true,
@@ -157,3 +124,31 @@ module.exports = {
   },
   plugins: [require("tailwindcss-animate")]
 }
+
+function generateTailwindSafelist() {
+  const sizes = ["sm", "md", "lg", "xl", "2xl", "none", "0", "2", "4"]
+  const sides = ["", "t", "b", "l", "r", "tl", "tr", "bl", "br"]
+  const properties = ["rounded", "border"]
+
+  const safelist = []
+
+  properties.forEach(prop => {
+    if (prop === "rounded") {
+      sides.forEach(side => {
+        sizes.slice(0, -3).forEach(size => {
+          safelist.push(`${prop}-${side ? side + "-" : ""}${size}`)
+        })
+      })
+    } else if (prop === "border") {
+      ;["t", "b", "l", "r", ""].forEach(side => {
+        sizes.slice(-3).forEach(size => {
+          safelist.push(`${prop}-${side}${side ? "-" : ""}${size}`)
+        })
+      })
+    }
+  })
+
+  return safelist
+}
+
+console.log(generateTailwindSafelist(["border", "rounded"]))

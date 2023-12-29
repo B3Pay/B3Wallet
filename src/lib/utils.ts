@@ -1,4 +1,4 @@
-import { toHex } from "@dfinity/candid/lib/cjs"
+import { toHexString } from "@dfinity/candid/lib/cjs"
 import { clsx, type ClassValue } from "clsx"
 import { CanisterStatusResponse } from "declarations/b3_system/b3_system.did"
 import { twMerge } from "tailwind-merge"
@@ -46,7 +46,7 @@ export const getModuleHash = (
   const moduleHash = status.module_hash
 
   if (moduleHash.length === 1) {
-    return toHex(moduleHash[0] as Uint8Array)
+    return toHexString(moduleHash[0] as Uint8Array)
   }
   return undefined
 }
@@ -57,3 +57,52 @@ export function cn(...inputs: ClassValue[]) {
 
 export const focusRing =
   "focusable-element focus:outline-none ring-inset focus:ring-1 focus:ring-foreground focus:ring-offset-1"
+
+export function toTitleCase(input: string): string {
+  return input
+    .split("_") // Split by underscores
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize first letter
+    .join(" ") // Join with spaces
+}
+
+String.prototype.toTitleCase = function () {
+  return this.split("_")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ")
+}
+
+export function describeCandidType(type: string): string {
+  // Remove outermost "record" and trim whitespace
+  const trimmedType = type
+    .replace(/^record\s*{/, "")
+    .replace(/}$/, "")
+    .trim()
+
+  // Split the fields
+  const fields = trimmedType.split(";").map(field => field.trim())
+
+  // Describe each field
+  const descriptions = fields.map(field => {
+    if (field.startsWith("metadata:vec")) {
+      return "metadata as a list of records"
+    } else if (field.includes("text")) {
+      return `${field.split(":")[0]} as text`
+    } else {
+      return field // Fallback for unrecognized patterns
+    }
+  })
+
+  return `This is a record with fields: ${descriptions.join(", ")}.`
+}
+
+export function describeCandidValue(value: any): string {
+  if (typeof value === "object" && value !== null) {
+    if (Array.isArray(value)) {
+      return `This is a list with ${value.length} elements.`
+    } else {
+      return describeCandidType(value.__type)
+    }
+  } else {
+    return `This is a ${typeof value}.`
+  }
+}

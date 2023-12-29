@@ -15,9 +15,7 @@ const SystemMethod: React.FC<SystemMethodProps> = ({
   onSubmit
 }) => {
   const methods = useForm({
-    progressive: false,
     shouldUseNativeValidation: true,
-    reValidateMode: "onChange",
     mode: "onChange",
     defaultValues
   })
@@ -27,7 +25,7 @@ const SystemMethod: React.FC<SystemMethodProps> = ({
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)}>
           <CardHeader>
-            <CardTitle>{functionName}</CardTitle>
+            <CardTitle>{functionName.toTitleCase()}</CardTitle>
           </CardHeader>
           <CardContent>
             {fields?.map((field, index) => {

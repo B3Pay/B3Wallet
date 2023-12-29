@@ -35,6 +35,7 @@ export interface CardProps
     VariantProps<typeof cardVariants>,
     VariantProps<typeof paddingVariants>,
     VariantProps<typeof marginVariants> {
+  dashedBorder?: boolean
   icon?: React.ReactNode
   asChild?: boolean
   noRadius?: boolean
@@ -52,6 +53,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       noRadius,
       color,
       border = 2,
+      dashedBorder,
       margin,
       padding,
       icon,
@@ -78,8 +80,10 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
           color={color}
           size={size}
           className={cn(
-            "flex-1 pl-2 flex items-center font-semibold",
-            border && `border-t-${border}`,
+            "flex-1 pl-2 flex items-center",
+            `border-t-${border}`,
+            dashedBorder && "border-dashed",
+            "border-b-1 border-b-gray-200 dark:border-b-gray-700",
             noShadow && "shadow-none"
           )}
         >
@@ -96,6 +100,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
           noRadius ? "rounded-none" : "rounded-b-lg",
           `border-${border}`,
           "border-t-0",
+          dashedBorder && "border-dashed",
           className
         )}
         {...props}
@@ -113,7 +118,7 @@ const CardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    className={cn("flex flex-col space-y-1.5 p-4", className)}
     {...props}
   />
 ))

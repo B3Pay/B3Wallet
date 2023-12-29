@@ -143,13 +143,13 @@ const MethodForm: React.FC<MethodFormProps> = ({
           </fieldset>
         )}
         <div className="flex items-center w-full">
-          <Button type="submit" color="secondary" round="left" fullWidth>
+          <Button type="submit" color="secondary" roundSide="l" fullWidth>
             Verify Args
           </Button>
           <Button
             color="primary"
             onClick={methods.handleSubmit(callHandler)}
-            round="right"
+            roundSide="r"
             fullWidth
           >
             Call
