@@ -34,11 +34,44 @@ const textColorVariants = cva("text-inherit", {
 const paddingVariants = cva("p-0", {
   variants: {
     padding: {
+      none: "p-0",
       xs: "p-1",
       sm: "p-2",
       md: "p-3",
       lg: "p-4",
       xl: "p-5"
+    },
+    paddingTop: {
+      none: "pt-0",
+      xs: "pt-1",
+      sm: "pt-2",
+      md: "pt-3",
+      lg: "pt-4",
+      xl: "pt-5"
+    },
+    paddingRight: {
+      none: "pr-0",
+      xs: "pr-1",
+      sm: "pr-2",
+      md: "pr-3",
+      lg: "pr-4",
+      xl: "pr-5"
+    },
+    paddingBottom: {
+      none: "pb-0",
+      xs: "pb-1",
+      sm: "pb-2",
+      md: "pb-3",
+      lg: "pb-4",
+      xl: "pb-5"
+    },
+    paddingLeft: {
+      none: "pl-0",
+      xs: "pl-1",
+      sm: "pl-2",
+      md: "pl-3",
+      lg: "pl-4",
+      xl: "pl-5"
     }
   }
 })
@@ -46,16 +79,49 @@ const paddingVariants = cva("p-0", {
 const marginVariants = cva("m-0", {
   variants: {
     margin: {
+      none: "m-0",
       xs: "m-1",
       sm: "m-2",
       md: "m-3",
       lg: "m-4",
       xl: "m-5"
+    },
+    marginTop: {
+      none: "mt-0",
+      xs: "mt-1",
+      sm: "mt-2",
+      md: "mt-3",
+      lg: "mt-4",
+      xl: "mt-5"
+    },
+    marginRight: {
+      none: "mr-0",
+      xs: "mr-1",
+      sm: "mr-2",
+      md: "mr-3",
+      lg: "mr-4",
+      xl: "mr-5"
+    },
+    marginBottom: {
+      none: "mb-0",
+      xs: "mb-1",
+      sm: "mb-2",
+      md: "mb-3",
+      lg: "mb-4",
+      xl: "mb-5"
+    },
+    marginLeft: {
+      none: "ml-0",
+      xs: "ml-1",
+      sm: "ml-2",
+      md: "ml-3",
+      lg: "ml-4",
+      xl: "ml-5"
     }
   }
 })
 
-const boxVariants = cva("transition-colors", {
+const boxVariants = cva("", {
   variants: {
     size: {
       xs: "text-xs",
@@ -115,7 +181,15 @@ const Box = React.forwardRef<HTMLDivElement, BoxProps>(
       hoverBgColor,
       hoverable,
       padding,
+      paddingBottom,
+      paddingLeft,
+      paddingRight,
+      paddingTop,
       margin,
+      marginBottom,
+      marginLeft,
+      marginRight,
+      marginTop,
       roundSize,
       border,
       size,
@@ -139,8 +213,20 @@ const Box = React.forwardRef<HTMLDivElement, BoxProps>(
             hoverable
           }),
           colorVariants({ color }),
-          paddingVariants({ padding }),
-          marginVariants({ margin }),
+          paddingVariants({
+            padding,
+            paddingBottom,
+            paddingLeft,
+            paddingRight,
+            paddingTop
+          }),
+          marginVariants({
+            margin,
+            marginBottom,
+            marginLeft,
+            marginRight,
+            marginTop
+          }),
           roundSize && `rounded-${roundSize}`,
           className
         )}

@@ -14,12 +14,12 @@ function HomePage() {
         <title>B3Wallet</title>
       </Head>
       <div>
-        <CreateApp />
+        {/* <CreateApp />
         <CreateWallet />
         <UserStatus />
         <AppCanisterStatus />
-        <AppCanisterVersion />
-        {/* <Candid /> */}
+        <AppCanisterVersion /> */}
+        <Candid />
       </div>
       <Footer />
     </div>

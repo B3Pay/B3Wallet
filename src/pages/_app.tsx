@@ -22,16 +22,15 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
       <main className={`${inter.variable} font-sans`}>
         <div className="flex justify-center flex-col space-y-5">
           <div className="border-b">
-            <div className="flex h-16 items-center px-4">
+            <div className="flex h-16 items-center px-4 space-x-2">
               <TeamSwitcher sharedClassName="w-screen sm:w-[300px] md:w-[200px]" />
               <MainNav className="hidden mx-6 md:flex" />
               <div className="flex ml-auto items-center space-x-2">
                 <Icon
-                  size="xl"
+                  variant="ghost"
                   asButton
                   noShadow
                   asChild
-                  variant="ghost"
                   onClick={() => console.log("search")}
                 >
                   <MagnifyingGlassIcon />

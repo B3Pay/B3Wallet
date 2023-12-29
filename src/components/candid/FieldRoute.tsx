@@ -32,6 +32,8 @@ const FieldRoute: React.FC<FieldRouteProps> = props => {
       return <Recursive {...props} />
     case "principal":
       return <Principal {...props} />
+    case "null":
+      return null
     default:
       return <Input {...props} />
   }

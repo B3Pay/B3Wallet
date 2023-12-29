@@ -100,8 +100,7 @@ const buttonVariants = cva(
       },
       variant: {
         default: "border-2 shadow text-foreground hover:border-foreground",
-        filled:
-          "shadow text-foreground hover:bg-foreground hover:text-background",
+        filled: "text-foreground",
         outline:
           "border-2 shadow bg-transparent hover:text-foreground hover:border-foreground",
         ghost: "shadow hover:bg-accent hover:text-accent-foreground",

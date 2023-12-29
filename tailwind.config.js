@@ -126,7 +126,7 @@ module.exports = {
 }
 
 function generateTailwindSafelist() {
-  const sizes = ["sm", "md", "lg", "xl", "2xl", "none", "0", "2", "4"]
+  const sizes = ["sm", "md", "lg", "xl", "2xl", "none", "0", "2", "3", "4"]
   const sides = ["", "t", "b", "l", "r", "tl", "tr", "bl", "br"]
   const properties = ["rounded", "border"]
 
@@ -150,5 +150,3 @@ function generateTailwindSafelist() {
 
   return safelist
 }
-
-console.log(generateTailwindSafelist(["border", "rounded"]))

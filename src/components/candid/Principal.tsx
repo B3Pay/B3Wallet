@@ -1,14 +1,21 @@
 import { Principal as PrincipalId } from "@dfinity/principal"
 import { useFormContext } from "react-hook-form"
 import { FieldRouteProps } from "./FieldRoute"
-import { cn } from "lib/utils"
+import {
+  FormControl,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from "components/ui/form"
+import { Input } from "components/ui/input"
+import { InfoCircledIcon } from "@radix-ui/react-icons"
 
 interface PrincipalProps extends FieldRouteProps {}
 
 const Principal: React.FC<PrincipalProps> = ({
   registerName,
   errors,
-  methodField: field
+  methodField
 }) => {
   const { setValue, register, resetField, setError } = useFormContext()
 
@@ -43,7 +50,7 @@ const Principal: React.FC<PrincipalProps> = ({
       }
       const principal = PrincipalId.fromText(x)
 
-      const validate = field.validate(principal)
+      const validate = methodField.validate(principal)
 
       if (typeof validate === "string") {
         throw new Error(validate)
@@ -57,34 +64,25 @@ const Principal: React.FC<PrincipalProps> = ({
   const errorMessage = errors?.message?.toString()
 
   return (
-    <div className="w-full p-1">
-      <label className="block" htmlFor={registerName}>
-        {field.label}
-        {field.required && <span className="text-red-500">*</span>}
-        {errorMessage && (
-          <span className="text-red-500 text-xs ml-1">( {errorMessage} )</span>
-        )}
-      </label>
-      <div className="relative">
-        <input
-          id={registerName}
-          {...register(registerName as never, { ...field, validate })}
-          className={cn(
-            "w-full h-8 pl-2 pr-8 border rounded",
-            !!errors ? "border-red-500" : "border-gray-300"
-          )}
-          type="text"
-          placeholder={field.type}
+    <FormItem>
+      <FormLabel>{methodField.label.toTitleCase()}</FormLabel>
+      <FormControl>
+        <Input
+          icon={<InfoCircledIcon />}
+          type={methodField.type}
+          placeholder={methodField.type}
+          closeHandler={() => {
+            setValue(registerName as never, "" as never)
+          }}
+          {...register(registerName, {
+            ...methodField,
+            validate
+          })}
           onBlur={blurHandler}
         />
-        <div
-          className="absolute inset-y-0 right-0 flex items-center justify-center w-8 text-red-500 pb-1 px-1 cursor-pointer"
-          onClick={() => setValue(registerName as never, "" as never)}
-        >
-          <span className="text-2xl leading-5 font-bold">×</span>
-        </div>
-      </div>
-    </div>
+      </FormControl>
+      <FormMessage>{errorMessage}</FormMessage>
+    </FormItem>
   )
 }
 

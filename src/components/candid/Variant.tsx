@@ -9,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue
 } from "components/ui/select"
-import { Box } from "components/ui/box"
 import { FormItem, FormLabel } from "components/ui/form"
 
 interface VariantProps extends FieldRouteProps {}
@@ -20,7 +19,7 @@ const Variant: React.FC<VariantProps> = ({
   errors
 }) => {
   const { unregister, setValue, resetField } = useFormContext()
-  const selectedRef = useRef<string>(methodField.options?.[0] as string)
+  const selectedRef = useRef<string>()
 
   const changeHandler = (inputValue: string) => {
     const select = selectedRef.current
@@ -39,37 +38,30 @@ const Variant: React.FC<VariantProps> = ({
   )
 
   return (
-    <Box>
+    <div>
       <FormItem>
         <FormLabel>{methodField.label}</FormLabel>
-        <Select
-          onValueChange={changeHandler}
-          defaultValue={methodField.options?.[0]}
-        >
+        <Select onValueChange={changeHandler}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {methodField.options?.map((label, index) => (
-                <SelectItem key={index} value={label}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
+          <SelectContent position="popper">
+            {methodField.options?.map((label, index) => (
+              <SelectItem key={index} value={label}>
+                {label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </FormItem>
-      {selectedField ? (
+      {selectedField && (
         <FieldRoute
           registerName={`${registerName}.${selectedRef.current}`}
           errors={errors?.[selectedRef.current as never]}
           methodField={selectedField}
         />
-      ) : (
-        <div className="mt-2">Field not found</div>
       )}
-    </Box>
+    </div>
   )
 }
 

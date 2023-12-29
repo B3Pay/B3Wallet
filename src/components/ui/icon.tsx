@@ -4,11 +4,11 @@ import { cn } from "lib/utils"
 import * as React from "react"
 
 const iconVariants = cva(
-  "inline-flex items-center justify-center text-inherit p-1",
+  "inline-flex items-center justify-center text-inherit p-0.5",
   {
     variants: {
       asButton: {
-        true: "p-0 cursor-pointer"
+        true: "cursor-pointer"
       },
       color: {
         primary: "bg-primary/75 border-primary text-primary",

@@ -9,7 +9,7 @@ const Tuple: React.FC<TupleProps> = ({
 }) => {
   return (
     <div className="w-full">
-      <div className="font-semibold">{field.label.toTitleCase()}</div>
+      {/* <div className="font-semibold">{field.label.toTitleCase()}</div> */}
       {field.fields?.map((field, index) => (
         <FieldRoute
           key={index}

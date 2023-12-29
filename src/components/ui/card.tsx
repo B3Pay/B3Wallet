@@ -2,6 +2,7 @@ import * as React from "react"
 import { VariantProps, cva } from "class-variance-authority"
 import { cn } from "lib/utils"
 import { Box, colorVariants, marginVariants, paddingVariants } from "./box"
+import { Icon } from "./icon"
 
 const cardVariants = cva("shadow", {
   variants: {
@@ -52,10 +53,18 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       noShadow,
       noRadius,
       color,
-      border = 2,
+      border = 0,
       dashedBorder,
-      margin,
       padding,
+      paddingBottom,
+      paddingLeft,
+      paddingRight,
+      paddingTop,
+      margin,
+      marginBottom,
+      marginLeft,
+      marginRight,
+      marginTop,
       icon,
       title,
       roundSize,
@@ -64,51 +73,79 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       ...props
     },
     ref
-  ) => (
-    <div
-      className={cn(
-        "relative",
-        paddingVariants({ padding }),
-        marginVariants({ margin }),
-        colorVariants({ color }),
-        cardVariants({ size, roundSize })
-      )}
-    >
-      <div className="flex justify-between w-full items-stretch">
-        <div className="flex-none">{icon}</div>
-        <Box
-          color={color}
-          size={size}
-          className={cn(
-            "flex-1 pl-2 flex items-center",
-            `border-t-${border}`,
-            dashedBorder && "border-dashed",
-            "border-b-1 border-b-gray-200 dark:border-b-gray-700",
-            noShadow && "shadow-none"
-          )}
-        >
-          {title}
-        </Box>
-        <div className="flex items-center justify-between">{action}</div>
-      </div>
+  ) => {
+    border = size === "xl" ? 3 : border
+
+    return (
       <div
-        ref={ref}
         className={cn(
+          "relative",
+          paddingVariants({
+            padding,
+            paddingBottom,
+            paddingLeft,
+            paddingRight,
+            paddingTop
+          }),
+          marginVariants({
+            margin,
+            marginBottom,
+            marginLeft,
+            marginRight,
+            marginTop
+          }),
           colorVariants({ color }),
-          cardVariants({ roundSize: "none" }),
-          noShadow && "shadow-none",
-          noRadius ? "rounded-none" : "rounded-b-lg",
-          `border-${border}`,
-          "border-t-0",
-          dashedBorder && "border-dashed",
-          className
+          cardVariants({ size, roundSize })
         )}
-        {...props}
       >
-        {children}
+        <div className="flex justify-between w-full items-stretch">
+          {icon && (
+            <Icon
+              roundSide="tl"
+              size={size}
+              className={cn(
+                "flex-none flex items-center justify-center rounded-br-xl",
+                `border-${border}`,
+                dashedBorder && "border-dashed",
+                noShadow && "shadow-none"
+              )}
+            >
+              {icon}
+            </Icon>
+          )}
+          <Box
+            color={color}
+            size={size}
+            className={cn(
+              "flex-1 pl-2 flex items-center font-semibold",
+              dashedBorder && "border-dashed",
+              `border-t-${border}`,
+              noShadow && "shadow-none"
+            )}
+          >
+            {title}
+          </Box>
+          {action}
+        </div>
+        <div
+          ref={ref}
+          className={cn(
+            colorVariants({ color }),
+            cardVariants({ roundSize: "none" }),
+            noShadow && "shadow-none",
+            noRadius ? "rounded-none" : "rounded-b-lg",
+            `border-${border}`,
+            "border-t-0",
+            dashedBorder && "border-dashed",
+            className
+          )}
+          {...props}
+        >
+          {children}
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 )
 Card.displayName = "Card"
 

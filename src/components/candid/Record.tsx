@@ -11,7 +11,7 @@ const Record: React.FC<RecordProps> = ({
 }) => {
   return (
     <Box>
-      <Label>{field.label}</Label>
+      {/* <Label>{field.label}</Label> */}
       {field.fields?.map((field, index) => (
         <FieldRoute
           key={index}
