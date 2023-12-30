@@ -1,7 +1,5 @@
-import { MainNav } from "components/main-nav"
 import { Overview } from "components/overview"
 import { RecentSales } from "components/recent-sales"
-import TeamSwitcher from "components/team-switcher"
 import { Button } from "components/ui/button"
 import {
   Card,
@@ -12,7 +10,6 @@ import {
 } from "components/ui/card"
 import { CalendarDateRangePicker } from "components/ui/date-range-picker"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "components/ui/tabs"
-import UserNav from "components/user-nav"
 
 export default function Dashboard() {
   return (

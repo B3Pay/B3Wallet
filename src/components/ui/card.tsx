@@ -79,7 +79,6 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     return (
       <div
         className={cn(
-          "relative",
           paddingVariants({
             padding,
             paddingBottom,
@@ -106,8 +105,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
               className={cn(
                 "flex-none flex items-center justify-center rounded-br-xl",
                 `border-${border}`,
-                dashedBorder && "border-dashed",
-                noShadow && "shadow-none"
+                dashedBorder && "border-dashed"
               )}
             >
               {icon}
@@ -119,8 +117,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
             className={cn(
               "flex-1 pl-2 flex items-center font-semibold",
               dashedBorder && "border-dashed",
-              `border-t-${border}`,
-              noShadow && "shadow-none"
+              `border-t-${border}`
             )}
           >
             {title}
@@ -131,8 +128,6 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
           ref={ref}
           className={cn(
             colorVariants({ color }),
-            cardVariants({ roundSize: "none" }),
-            noShadow && "shadow-none",
             noRadius ? "rounded-none" : "rounded-b-lg",
             `border-${border}`,
             "border-t-0",

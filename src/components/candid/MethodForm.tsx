@@ -28,18 +28,16 @@ const MethodForm: React.FC<MethodFormProps> = ({
   })
 
   const methods = useForm({
-    progressive: false,
-    shouldUseNativeValidation: true,
-    reValidateMode: "onChange",
     mode: "onChange",
     defaultValues
   })
 
   const onSubmit = useCallback(
     (data: any) => {
+      console.log("data", data)
       setArgState(null)
       setArgErrorState(null)
-      const args = (Object.values(data) || []) as any[]
+      const args = (Object.values(data?.data) || []) as any[]
       console.log("args", args)
 
       let errorMessages = ""
@@ -64,9 +62,10 @@ const MethodForm: React.FC<MethodFormProps> = ({
 
   const callHandler = useCallback(
     async (data: any) => {
+      console.log("data", data)
       setArgState(null)
       setArgErrorState(null)
-      const args = (Object.values(data) || []) as [any]
+      const args = (Object.values(data.data) || []) as [any]
       console.log("args", args)
       setArgState(args)
 
@@ -110,8 +109,12 @@ const MethodForm: React.FC<MethodFormProps> = ({
               <FieldRoute
                 key={index}
                 methodField={field}
-                registerName={`${functionName}-arg${index}`}
-                errors={methods.formState.errors[`${functionName}-arg${index}`]}
+                registerName={`data.${functionName}-arg${index}`}
+                errors={
+                  methods.formState.errors?.data?.[
+                    `${functionName}-arg${index}`
+                  ]
+                }
               />
             ))}
             <CardDescription className="flex flex-col mt-2 space-y-2 overflow-auto">

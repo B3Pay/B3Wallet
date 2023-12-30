@@ -1,63 +1,108 @@
-import React, { useEffect, useRef } from "react"
+import React, { useMemo, useRef } from "react"
 import FieldRoute, { FieldRouteProps } from "./FieldRoute"
-import { useFormContext } from "react-hook-form"
+import { Controller, useFormContext, useWatch } from "react-hook-form"
 import {
   Select,
   SelectItem,
   SelectContent,
-  SelectGroup,
   SelectTrigger,
   SelectValue
 } from "components/ui/select"
-import { FormItem, FormLabel } from "components/ui/form"
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from "components/ui/form"
 
 interface VariantProps extends FieldRouteProps {}
+
+let recursiveCounter = 0
 
 const Variant: React.FC<VariantProps> = ({
   methodField,
   registerName,
   errors
 }) => {
-  const { unregister, setValue, resetField } = useFormContext()
-  const selectedRef = useRef<string>()
+  const currentRef = useRef<string>()
+  const { control, unregister, setValue } = useFormContext()
 
-  const changeHandler = (inputValue: string) => {
-    const select = selectedRef.current
+  const selectName = useMemo(() => `select.select${recursiveCounter++}`, [])
 
-    resetField(`${registerName}.${select}`)
-    unregister(registerName as never)
-    setValue(
-      registerName as never,
-      { [inputValue]: methodField.defaultValues?.[inputValue] } as never
-    )
-    selectedRef.current = inputValue
-  }
+  const selected = useWatch({ name: selectName })
 
-  const selectedField = methodField.fields?.find(
-    methodField => methodField.label === selectedRef.current
-  )
+  const { selectedName, selectedField } = useMemo(() => {
+    if (!selected) {
+      return {}
+    }
 
+    if (currentRef.current) unregister(registerName)
+
+    const selectedName = `${registerName}.${selected}`
+
+    setValue(selectedName, methodField.defaultValues?.[selected])
+
+    const selectedField = methodField.fields.find(f => f.label === selected)
+
+    currentRef.current = selectedName
+
+    return { selectedName, selectedField }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected, setValue])
+  console.log("selected", selected)
   return (
     <div>
-      <FormItem>
-        <FormLabel>{methodField.label}</FormLabel>
-        <Select onValueChange={changeHandler}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select" />
-          </SelectTrigger>
-          <SelectContent position="popper">
-            {methodField.options?.map((label, index) => (
-              <SelectItem key={index} value={label}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </FormItem>
+      <FormField
+        name={selectName}
+        control={control}
+        rules={{
+          required: true,
+          validate: value => {
+            console.log("value", value)
+            if (value === "select") {
+              return "Please select one"
+            }
+            return true
+          }
+        }}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>{methodField.label.toTitleCase()}</FormLabel>
+            <Select
+              onValueChange={field.onChange}
+              value={field.value || "select"}
+            >
+              <FormControl>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent position="popper">
+                <SelectItem
+                  value="select"
+                  disabled
+                  style={{
+                    display: "none"
+                  }}
+                >
+                  Select
+                </SelectItem>
+                {methodField.options?.map((label, index) => (
+                  <SelectItem key={index} value={label}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormItem>
+        )}
+      />
+      <FormMessage />
       {selectedField && (
         <FieldRoute
-          registerName={`${registerName}.${selectedRef.current}`}
-          errors={errors?.[selectedRef.current as never]}
+          registerName={selectedName}
+          errors={errors?.[selected as never]}
           methodField={selectedField}
         />
       )}

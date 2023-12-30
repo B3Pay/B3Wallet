@@ -58,16 +58,15 @@ export function cn(...inputs: ClassValue[]) {
 export const focusRing =
   "focusable-element focus:outline-none ring-inset focus:ring-1 focus:ring-foreground focus:ring-offset-1"
 
-export function toTitleCase(input: string): string {
-  return input
-    .split("_") // Split by underscores
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize first letter
-    .join(" ") // Join with spaces
-}
-
 String.prototype.toTitleCase = function () {
   return this.split("_")
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .map(fragment =>
+      fragment
+        .replace(/([a-z])([A-Z])/g, "$1 $2") // Split camelCase
+        .split(" ")
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(" ")
+    )
     .join(" ")
 }
 
