@@ -1,4 +1,10 @@
-use b3_utils::{api::AppVersion, ledger::Metadata, nonce::Nonce, wasm::WasmHash, NanoTimeStamp};
+use b3_utils::{
+    api::AppVersion,
+    ledger::Metadata,
+    nonce::Nonce,
+    wasm::{WasmHash, WasmHashString},
+    NanoTimeStamp,
+};
 use candid::CandidType;
 use ic_cdk::api::management_canister::main::CanisterStatusResponse;
 use serde::{Deserialize, Serialize};
@@ -16,6 +22,7 @@ pub struct ReleaseView {
     pub version: AppVersion,
     pub deprecated: bool,
     pub features: String,
+    pub wasm_hash: WasmHashString,
 }
 
 #[derive(CandidType, Debug)]

@@ -95,6 +95,7 @@ type ReleaseView = record {
   size : nat64;
   version : text;
   deprecated : bool;
+  wasm_hash : text;
 };
 type Result = variant { Ok : AppView; Err : text };
 type Result_1 = variant { Ok : UserView; Err : text };

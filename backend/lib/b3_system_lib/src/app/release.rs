@@ -1,7 +1,8 @@
 use b3_utils::{
     api::AppVersion,
     memory::types::{Bound, Storable},
-    wasm::{with_wasm_mut_cache, Wasm, WasmHash, WasmSize},
+    vec_to_hex_string_with_0x,
+    wasm::{with_wasm_mut_cache, Wasm, WasmHash, WasmHashString, WasmSize},
     NanoTimeStamp,
 };
 use ciborium::de::from_reader;
@@ -57,19 +58,19 @@ impl Release {
             return Err(AppSystemError::WasmAlreadyLoaded);
         }
 
-        let wasm_len = with_wasm_mut_cache(|wasm| wasm.load(blob));
+        with_wasm_mut_cache(|wasm| {
+            let wasm_len = wasm.load(blob);
 
-        if wasm_len >= self.size {
-            with_wasm_mut_cache(|wasm| {
+            if wasm_len >= self.size {
                 with_wasms_mut(|wasm_map| {
                     wasm_map.insert(self.wasm_hash, wasm.clone());
                 });
 
                 wasm.unload();
-            });
-        }
+            }
 
-        Ok(wasm_len)
+            Ok(wasm_len)
+        })
     }
 
     pub fn unload_wasm(&mut self) -> WasmSize {
@@ -111,6 +112,7 @@ impl Release {
             version: self.version.clone(),
             deprecated: self.deprecated,
             features: self.features.clone(),
+            wasm_hash: vec_to_hex_string_with_0x(self.wasm_hash),
         }
     }
 
@@ -136,6 +138,10 @@ impl Release {
 
     pub fn wasm_hash(&self) -> Result<WasmHash, AppSystemError> {
         with_wasm(&self.wasm_hash, |wasm| wasm.hash())
+    }
+
+    pub fn wasm_hash_string(&self) -> Result<WasmHashString, AppSystemError> {
+        with_wasm(&self.wasm_hash, |wasm| wasm.hash_string())
     }
 
     pub fn wasm_size(&self) -> Result<WasmSize, AppSystemError> {
