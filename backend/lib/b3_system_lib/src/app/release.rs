@@ -52,7 +52,7 @@ impl Release {
         self.clone()
     }
 
-    pub fn load_wasm(&mut self, blob: &Vec<u8>) -> Result<WasmSize, AppSystemError> {
+    pub fn load_wasm_chunk(&mut self, blob: &Vec<u8>) -> Result<WasmSize, AppSystemError> {
         if self.is_loaded() {
             return Err(AppSystemError::WasmAlreadyLoaded);
         }
@@ -62,9 +62,7 @@ impl Release {
         if wasm_len >= self.size {
             with_wasm_mut_cache(|wasm| {
                 with_wasms_mut(|wasm_map| {
-                    wasm_map
-                        .insert(self.wasm_hash.clone(), wasm.clone())
-                        .unwrap();
+                    wasm_map.insert(self.wasm_hash, wasm.clone());
                 });
 
                 wasm.unload();

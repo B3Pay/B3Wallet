@@ -38,7 +38,7 @@ use ic_cdk::{
 };
 
 #[init]
-pub fn init() {}
+fn init() {}
 
 #[query]
 fn get_states() -> UserView {
@@ -292,19 +292,27 @@ fn remove_user(user_principal: Principal) {
 }
 
 #[update]
-fn create_app(app_args: CreateAppArgs) -> AppView {
-    let app = AppState::create(app_args).unwrap_or_else(revert);
-
-    app.view()
+fn create_app(app_args: CreateAppArgs) -> Result<AppView, String> {
+    match AppState::create(app_args) {
+        Ok(app) => Ok(app.view()),
+        Err(err) => Err(err.to_string()),
+    }
 }
 
 #[update]
-fn update_app(app_id: AppId, app_args: CreateAppArgs) -> AppView {
-    let app = AppState::write(app_id)
-        .update(app_args)
-        .unwrap_or_else(revert);
+fn get_app(app_id: AppId) -> Result<AppView, String> {
+    match AppState::read(app_id).app_view() {
+        Ok(app) => Ok(app),
+        Err(err) => Err(err.to_string()),
+    }
+}
 
-    app.view()
+#[update]
+fn update_app(app_id: AppId, app_args: CreateAppArgs) -> Result<AppView, String> {
+    match AppState::write(app_id).update(app_args) {
+        Ok(app) => Ok(app.view()),
+        Err(err) => Err(err.to_string()),
+    }
 }
 
 #[query]
@@ -315,14 +323,14 @@ fn releases(app_id: AppId) -> ReleaseViews {
 }
 
 #[query]
-fn get_latest_release(app_id: AppId) -> Result<ReleaseView, AppSystemError> {
+fn get_latest_release(app_id: AppId) -> Result<ReleaseView, String> {
     AppState::read(app_id)
-        .latest_release()
-        .map(|release| release.view())
+        .latest_release_view()
+        .map_err(|e| e.to_string())
 }
 
 #[query]
-pub fn get_release(wasm_hash: WasmHash) -> ReleaseView {
+fn get_release(wasm_hash: WasmHash) -> ReleaseView {
     with_release(&wasm_hash, |release| release.view()).unwrap_or_else(revert)
 }
 
@@ -334,17 +342,19 @@ fn add_release(app_id: AppId, release_args: CreateReleaseArgs) {
 }
 
 #[update(guard = "caller_is_controller")]
-fn load_wasm(wasm_hash: WasmHash, blob: Blob) -> LoadRelease {
-    let total = with_release_mut(&wasm_hash, |rs| rs.load_wasm(&blob).unwrap_or_else(revert))
-        .unwrap_or_else(revert);
+fn load_wasm_chunk(wasm_hash: WasmHash, chunk: Blob) -> LoadRelease {
+    let total = with_release_mut(&wasm_hash, |rs| {
+        rs.load_wasm_chunk(&chunk).unwrap_or_else(revert)
+    })
+    .unwrap_or_else(revert);
 
-    let chunks = blob.len();
+    let chunks = chunk.len();
 
     LoadRelease { chunks, total }
 }
 
 #[update(guard = "caller_is_controller")]
-pub fn remove_release(wasm_hash: WasmHash) {
+fn remove_release(wasm_hash: WasmHash) {
     with_releases_mut(|vrs| vrs.remove(&wasm_hash))
         .unwrap_or_else(|| revert(AppSystemError::ReleaseNotFound));
 }
@@ -358,7 +368,7 @@ fn deprecate_release(app_id: AppId, wasm_hash: WasmHash) -> ReleaseView {
 }
 
 #[update(guard = "caller_is_controller")]
-pub async fn status() -> SystemCanisterStatus {
+async fn status() -> SystemCanisterStatus {
     let canister_id = ic_cdk::id();
 
     let version = version();
@@ -379,7 +389,7 @@ pub async fn status() -> SystemCanisterStatus {
 }
 
 #[query]
-pub fn version() -> String {
+fn version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }
 

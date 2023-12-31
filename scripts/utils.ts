@@ -45,7 +45,9 @@ export const initIdentity = (mainnet: boolean) => {
 
 export const loadWasm = async (name: string, withCandid?: boolean) => {
   const buffer = await readFile(
-    `${process.cwd()}/wasm/${name}/${name}${withCandid ? "_candid" : ""}.wasm`
+    `${process.cwd()}/wasm/${name}/${name}${
+      withCandid ? "_candid" : ""
+    }.wasm.gz`
   )
   console.log(
     "Wasm size:",

@@ -1,6 +1,8 @@
-import { CreateReleaseArgs } from "../src/declarations/b3_system/b3_system.did"
-import { localAgent } from "./actor"
-import { callMethod, initialize } from "./system"
+import {
+  CreateReleaseArgs,
+  Value
+} from "../src/declarations/b3_system/b3_system.did"
+import { callMethod, loadSystemActor } from "./system"
 import {
   calculateWasmHash,
   chunkGenerator,
@@ -8,79 +10,85 @@ import {
   readVersion
 } from "./utils"
 
-const loadRelease = async (
-  name: string,
-  wasm_hash: number[],
-  wasmModule: number[],
-  version: string
-) => {
+async function createApp(name: string) {
+  const repo: Value = {
+    Text: "https://github.com/B3Pay/b3-wallet"
+  }
+
+  return await callMethod("create_app", {
+    name,
+    description: "Decentralized wallet for the Internet Computer",
+    metadata: [["repo", repo]]
+  })
+}
+
+async function addRelease(name: string, version: string) {
+  const wasm_hash = (await calculateWasmHash(name, false)) as number[]
+
   const release: CreateReleaseArgs = {
     id: name,
     version,
     wasm_hash,
     features: "",
-    size: BigInt(wasmModule.length)
+    size: BigInt(0)
   }
 
-  await callMethod("add_release", name, release)
-
-  for await (const chunks of chunkGenerator(wasmModule)) {
-    const result = await callMethod("load_wasm", wasm_hash, chunks)
-
-    console.log(`Chunks :`, result)
-  }
-
-  console.log(`Loading done.`)
+  return await callMethod("add_release", name, release)
 }
 
-export const load = async (name: string, candid: boolean, reload: boolean) => {
-  const wasmModule = await loadWasm(name, candid)
+const loadWasmChunk = async (wasm_hash: number[], wasmModule: number[]) => {
+  for await (const chunks of chunkGenerator(wasmModule)) {
+    const result = await callMethod("load_wasm_chunk", wasm_hash, chunks)
+
+    console.log("Chunks: ", result)
+  }
+
+  console.log("Loading done.")
+}
+
+export const load = async (name: string, reload: boolean) => {
   const version = await readVersion(name)
-  const wasm_hash = (await calculateWasmHash(name, false)) as number[]
 
   if (!version) {
-    console.error(`Version for wasm cannot be read.`)
+    console.error("Version for wasm cannot be read.")
     return
   }
 
-  const versionName = version + (candid ? "-candid" : "")
+  console.log(`Loading ${name} wasmModule v${version} in SystemCanister.`)
 
-  console.log(`Loading ${name} wasm code v${versionName} in SystemCanister.`)
+  const wasm_hash = (await calculateWasmHash(name, false)) as number[]
 
   if (reload) {
     try {
       await callMethod("remove_release", wasm_hash)
     } catch (e) {
-      console.error(`Error removing release:`, name, versionName)
+      console.error("Error removing release:", name, version)
     }
   }
 
-  await loadRelease(name, wasm_hash, wasmModule, versionName)
+  await addRelease(name, version)
+
+  const wasmModule = await loadWasm(name)
+
+  await loadWasmChunk(wasm_hash, wasmModule)
 }
 
-const loader = async (
-  apps: string[],
-  mainnet: boolean,
-  candid: boolean,
-  reload: boolean
-) => {
-  initialize({ host: mainnet ? "https://ic0.app" : "http://localhost:8000" })
-  const { agent, identity } = await localAgent()
+const loader = async (name: string, mainnet: boolean, reload: boolean) => {
+  await loadSystemActor(mainnet)
 
-  initialize({
-    host: mainnet ? "https://ic0.app" : "http://localhost:4943",
-    identity
-  })
+  const app = await callMethod("get_app", name)
 
-  for await (const app of apps) {
-    await load(app, candid, reload)
+  if ("Err" in app) {
+    const appView = await createApp(name)
+    console.log("App created:", appView)
   }
+
+  await load(name, reload)
 }
 
-let apps: string[] = ["b3_wallet"]
+let app = "b3_wallet"
 let mainnet: boolean = false
 let reload: boolean = false
-let candid: boolean = false
 
 for (let i = 2; i < process.argv.length; i++) {
   if (process.argv[i].startsWith("--network=")) {
@@ -88,16 +96,14 @@ for (let i = 2; i < process.argv.length; i++) {
     if (network === "ic" || network === "mainnet") {
       mainnet = true
     }
-  } else if (process.argv[i] === "--candid") {
-    candid = true
   } else if (process.argv[i] === "--reload") {
     reload = true
   } else if (!process.argv[i].startsWith("--")) {
-    apps = [process.argv[i]]
+    app = process.argv[i]
   }
 }
 
 console.log(`Network: ${mainnet ? "mainnet" : "local"}`) // Outputs: 'ic' if you ran: ts-node main.ts renrk-eyaaa-aaaaa-aaada-cai --network=ic --reload
 console.log(`Reload: ${reload}`) // Outputs: 'true' if you ran: ts-node main.ts renrk-eyaaa-aaaaa-aaada-cai --network=ic --reload
 
-loader(apps, mainnet, candid, reload)
+loader(app, mainnet, reload)

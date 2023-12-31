@@ -1,15 +1,15 @@
 import { createReActorStore } from "@ic-reactor/store"
 import {
-  b3_system,
+  b3_wallet,
   canisterId,
   idlFactory
-} from "../src/declarations/b3_system"
+} from "../src/declarations/b3_wallet"
 import { initIdentity } from "./utils"
 
-export type B3System = typeof b3_system
+export type B3Wallet = typeof b3_wallet
 
 export const { actorStore, callMethod, initialize } =
-  createReActorStore<B3System>({
+  createReActorStore<B3Wallet>({
     canisterId,
     idlFactory,
     initializeOnMount: false
