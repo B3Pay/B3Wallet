@@ -9,7 +9,7 @@
       },
       "package": "b3_system",
       "type": "custom",
-      "wasm": "wasm/b3_system/b3_system.wasm"
+      "wasm": "wasm/b3_system/b3_system.wasm.gz"
     },
     "b3_wallet": {
       "build": "scripts/predeploy.sh",
@@ -20,7 +20,7 @@
       },
       "package": "b3_wallet",
       "type": "custom",
-      "wasm": "wasm/b3_wallet/b3_wallet.wasm"
+      "wasm": "wasm/b3_wallet/b3_wallet.wasm.gz"
     },
     "ckbtc": {
       "build": [
