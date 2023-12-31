@@ -7,6 +7,7 @@ import { Separator } from "components/ui/separator"
 import { Label } from "components/ui/label"
 import { Cross1Icon, PlusIcon } from "@radix-ui/react-icons"
 import { Card, CardContent } from "components/ui/card"
+import { isFirstButton } from "lib/utils"
 
 interface VectorProps extends FieldRouteProps {}
 
@@ -44,13 +45,13 @@ const Vector: React.FC<VectorProps> = ({
           icon={index + 1}
           title={methodField.label.toTitleCase()}
           action={
-            <Box className="flex first:rounded-bl-lg">
+            <Box className="flex">
               {index !== 0 && (
                 <Button
+                  roundSide="bl"
                   onClick={() => swap(index, index - 1)}
                   color="secondary"
                   asIconButton
-                  roundSide="none"
                   className="border-dashed "
                 >
                   ↑
@@ -58,9 +59,9 @@ const Vector: React.FC<VectorProps> = ({
               )}
               {index !== fields.length - 1 && (
                 <Button
+                  roundSide={index > 0 ? "none" : "bl"}
                   onClick={() => swap(index, index + 1)}
                   color="info"
-                  roundSide="none"
                   asIconButton
                   className="border-dashed"
                 >
@@ -69,6 +70,7 @@ const Vector: React.FC<VectorProps> = ({
               )}
               <Button
                 onClick={() => remove(index)}
+                diagonalRoundSide={fields.length === 1 ? "r" : "none"}
                 roundSide="tr"
                 asIconButton
                 noShadow

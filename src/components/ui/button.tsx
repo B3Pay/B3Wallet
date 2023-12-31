@@ -139,6 +139,7 @@ export interface ButtonProps
   isLoading?: boolean
   iconSize?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "full" | null
   roundSize?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "full" | null
+  diagonalRoundSide?: "r" | "l" | "none" | null
   roundSide?: "t" | "b" | "l" | "r" | "tl" | "tr" | "bl" | "br" | "none" | null
 }
 
@@ -151,6 +152,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       variant,
       size,
       roundSize = "xl",
+      diagonalRoundSide,
       roundSide,
       asIconButton,
       height,
@@ -169,6 +171,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       ? `rounded-${roundSide}-${roundSize}`
       : `rounded-${roundSize}`
 
+    const diagonalRoundingClass =
+      diagonalRoundSide === "r"
+        ? `rounded-tr-${roundSize} rounded-bl-${roundSize}`
+        : diagonalRoundSide === "l"
+        ? `rounded-tl-${roundSize} rounded-br-${roundSize}`
+        : ""
+
     return (
       <Comp
         className={cn(
@@ -182,6 +191,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           }),
           fullWidth && "w-full",
           roundingClass,
+          diagonalRoundingClass,
           height,
           isLoading && "animate-border-pulse",
           className

@@ -71,6 +71,7 @@ const Principal: React.FC<PrincipalProps> = ({
       <div className="flex items-center">
         <FormControl>
           <Input
+            className="flex-1"
             icon={<InfoCircledIcon />}
             roundSide="l"
             type={methodField.type}
