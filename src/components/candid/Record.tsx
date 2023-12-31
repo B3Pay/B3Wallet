@@ -1,18 +1,17 @@
 import { Box } from "components/ui/box"
 import FieldRoute, { FieldRouteProps } from "./FieldRoute"
-import { Label } from "components/ui/label"
 
 interface RecordProps extends FieldRouteProps {}
 
 const Record: React.FC<RecordProps> = ({
-  methodField: field,
+  methodField,
   errors,
   registerName
 }) => {
   return (
     <Box>
       {/* <Label>{field.label}</Label> */}
-      {field.fields?.map((field, index) => (
+      {methodField.fields.map((field, index) => (
         <FieldRoute
           key={index}
           registerName={`${registerName}.${field.label}`}

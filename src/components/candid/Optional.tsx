@@ -1,11 +1,13 @@
 import { useFieldArray, useFormContext } from "react-hook-form"
 import FieldRoute, { FieldRouteProps } from "./FieldRoute"
 import { Switch } from "components/ui/switch"
+import { Box } from "components/ui/box"
+import { Label } from "components/ui/label"
 
 interface OptionalProps extends FieldRouteProps {}
 
 const Optional: React.FC<OptionalProps> = ({
-  methodField: field,
+  methodField,
   registerName,
   errors
 }) => {
@@ -17,27 +19,23 @@ const Optional: React.FC<OptionalProps> = ({
   })
 
   return (
-    <div className="flex flex-col">
-      <div className="flex h-10 justify-between items-center">
-        <label className="flex-1  w-full block text-lg font-medium">
-          {field.label}
-        </label>
-        <div className="flex-auto w-18 mt-1">
-          <Switch
-            onChange={() => (fields.length === 0 ? append("") : remove(0))}
-          />
-        </div>
-      </div>
+    <Box className="my-2">
+      <Box className="flex justify-between items-center">
+        <Label className="flex-1 w-full block text-lg font-medium">
+          {methodField.label.toTitleCase()}
+        </Label>
+        <Switch
+          onClick={() => (fields.length === 0 ? append("") : remove(0))}
+        />
+      </Box>
       {fields.length > 0 && (
-        <div className="flex justify-between items-start p-1 mb-1 w-full border-dashed border border-gray-400 rounded">
-          <FieldRoute
-            methodField={field.fields?.[0]}
-            registerName={`${registerName}.[0]`}
-            errors={errors?.[0 as never]}
-          />
-        </div>
+        <FieldRoute
+          methodField={methodField.fields[0]}
+          registerName={`${registerName}.[0]`}
+          errors={errors?.[0 as never]}
+        />
       )}
-    </div>
+    </Box>
   )
 }
 export default Optional

@@ -2,12 +2,8 @@ import FieldRoute, { FieldRouteProps } from "./FieldRoute"
 
 interface TupleProps extends FieldRouteProps {}
 
-const Tuple: React.FC<TupleProps> = ({
-  methodField: field,
-  registerName,
-  errors
-}) => {
-  return field.fields?.map((field, index) => (
+const Tuple: React.FC<TupleProps> = ({ methodField, registerName, errors }) => {
+  return methodField.fields.map((field, index) => (
     <FieldRoute
       key={index}
       registerName={`${registerName}.[${index}]`}

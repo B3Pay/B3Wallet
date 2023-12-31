@@ -7,7 +7,6 @@ import { Separator } from "components/ui/separator"
 import { Label } from "components/ui/label"
 import { Cross1Icon, PlusIcon } from "@radix-ui/react-icons"
 import { Card, CardContent } from "components/ui/card"
-import { isFirstButton } from "lib/utils"
 
 interface VectorProps extends FieldRouteProps {}
 
@@ -84,7 +83,7 @@ const Vector: React.FC<VectorProps> = ({
         >
           <CardContent>
             <FieldRoute
-              methodField={methodField.fields?.[0]}
+              methodField={methodField.fields[0]}
               errors={errors?.[index as never]}
               registerName={`${registerName}.[${index}]`}
             />

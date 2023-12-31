@@ -105,7 +105,3 @@ export function describeCandidValue(value: any): string {
     return `This is a ${typeof value}.`
   }
 }
-
-export const isFirstButton = (index: number, length: number): boolean => {
-  return index === length - 1
-}

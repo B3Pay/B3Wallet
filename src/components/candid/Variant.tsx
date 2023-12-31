@@ -1,6 +1,6 @@
 import React, { useMemo, useRef } from "react"
 import FieldRoute, { FieldRouteProps } from "./FieldRoute"
-import { Controller, useFormContext, useWatch } from "react-hook-form"
+import { useFormContext, useWatch } from "react-hook-form"
 import {
   Select,
   SelectItem,
@@ -48,9 +48,8 @@ const Variant: React.FC<VariantProps> = ({
     currentRef.current = selectedName
 
     return { selectedName, selectedField }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected, setValue])
-  console.log("selected", selected)
+
   return (
     <div>
       <FormField
