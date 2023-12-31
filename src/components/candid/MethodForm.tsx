@@ -2,7 +2,8 @@ import { useCallback, useState } from "react"
 import { Button } from "components/ui/button"
 import FieldRoute from "./FieldRoute"
 import { useForm } from "react-hook-form"
-import { SystemDynamicField, useSystemQuery } from "service/system"
+import { SystemDynamicField } from "service/system"
+import { WalletDynamicField } from "service/wallet"
 import { Form } from "components/ui/form"
 import {
   Card,
@@ -12,20 +13,18 @@ import {
 } from "components/ui/card"
 import { GlobeIcon, ResetIcon } from "@radix-ui/react-icons"
 
-interface MethodFormProps extends SystemDynamicField {}
+type MethodFormProps = (SystemDynamicField | WalletDynamicField) & {
+  actorCallHandler: (data: [any]) => Promise<any>
+}
 
 const MethodForm: React.FC<MethodFormProps> = ({
   functionName,
   defaultValues,
-  fields
+  fields,
+  actorCallHandler
 }) => {
   const [argState, setArgState] = useState<any>(null)
   const [argErrorState, setArgErrorState] = useState<any>(null)
-
-  const { data, loading, error, call } = useSystemQuery({
-    functionName,
-    disableInitialCall: true
-  })
 
   const methods = useForm({
     mode: "onChange",
@@ -70,13 +69,13 @@ const MethodForm: React.FC<MethodFormProps> = ({
       setArgState(args)
 
       try {
-        const result = await call(args)
+        const result = await actorCallHandler(args)
         console.log("result", result)
       } catch (error) {
         console.log("error", error)
       }
     },
-    [call]
+    [actorCallHandler]
   )
 
   return (
@@ -111,7 +110,7 @@ const MethodForm: React.FC<MethodFormProps> = ({
                 methodField={field}
                 registerName={`data.${functionName}-arg${index}`}
                 errors={
-                  methods.formState.errors?.data?.[
+                  (methods.formState.errors?.data as Record<string, any>)?.[
                     `${functionName}-arg${index}`
                   ]
                 }
@@ -131,33 +130,6 @@ const MethodForm: React.FC<MethodFormProps> = ({
                 <span>
                   <strong>Arguments Error</strong>
                   {argErrorState}
-                </span>
-              )}
-              {error && (
-                <span>
-                  <strong>Error</strong>
-                  {error.message}
-                </span>
-              )}
-              {loading && (
-                <span>
-                  <strong>Loading</strong>
-                  Calling...
-                </span>
-              )}
-              {data && (
-                <span>
-                  <strong>Results</strong>
-                  {!data ? (
-                    <div>Calling...</div>
-                  ) : (
-                    JSON.stringify(
-                      data,
-                      (_, value) =>
-                        typeof value === "bigint" ? value.toString() : value,
-                      2
-                    )
-                  )}
                 </span>
               )}
             </CardDescription>
