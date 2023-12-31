@@ -42,6 +42,10 @@ for app_root in "$backend_dir"/*; do
         # copy the candid file to the optimised target dir
         cp "$did_file" "$optimised_target_dir/$package.did"
         echo -e "Size of shrunk $package.wasm: $(ls -lh "$optimised_target_dir/$package.wasm" | awk '{print $5}')"
+        # Gunzip target
+        echo -e "${green}Gunzipping $package.wasm${no_color}"
+        gzip -c "$optimised_target_dir/$package.wasm" > "$optimised_target_dir/$package.wasm.gz"
+        echo -e "Size of Gunzipped $package.wasm.gz: $(ls -lh "$optimised_target_dir/$package.wasm.gz" | awk '{print $5}')"
     else
         echo -e "${yellow}ic-wasm not found. Skipping shrinking $package.${no_color}"
     fi
