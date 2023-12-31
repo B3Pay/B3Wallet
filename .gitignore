@@ -32,3 +32,4 @@ yarn-error.log
 deps/pulled.json
 # ignore all files in the deps/candid directory
 deps/candid/*
+*/declarations/*
