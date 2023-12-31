@@ -29,13 +29,13 @@ impl UserState {
     pub fn user(&self, user_id: &UserId) -> Result<&User, OperationError> {
         self.0
             .get(user_id)
-            .ok_or(OperationError::UserNotFound(user_id.to_string()))
+            .ok_or(OperationError::UserNotFound(user_id.clone()))
     }
 
     pub fn user_mut(&mut self, user_id: &UserId) -> Result<&mut User, OperationError> {
         self.0
             .get_mut(user_id)
-            .ok_or(OperationError::UserNotFound(user_id.to_string()))
+            .ok_or(OperationError::UserNotFound(user_id.clone()))
     }
 
     pub fn contains(&self, user_id: &UserId) -> bool {

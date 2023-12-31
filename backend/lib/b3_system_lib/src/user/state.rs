@@ -1,102 +1,101 @@
 use super::{
     error::UserSystemError,
-    types::{UserStates, UserView, UserViews, Users},
+    store::{with_user, with_users_mut},
+    types::{CreateUserArgs, UserView},
     User,
 };
-use b3_utils::{
-    memory::types::DefaultStableBTreeMap,
-    types::{CanisterId, CanisterIds, UserId},
-};
+use b3_utils::types::{CanisterId, CanisterIds, UserId};
 
-pub type UserMap = DefaultStableBTreeMap<UserId, User>;
+#[cfg(test)]
+use b3_utils::mocks::id_mock as ic_cdk_caller;
+#[cfg(not(test))]
+use ic_cdk::api::caller as ic_cdk_caller;
 
-pub struct UserState {
-    pub users: UserMap,
+pub struct WriteUserState(pub UserId);
+
+impl WriteUserState {
+    pub fn update(&mut self, app_args: CreateUserArgs) -> Result<User, UserSystemError> {
+        with_users_mut(|users| {
+            let mut user = users.get(&self.0).ok_or(UserSystemError::UserNotFound)?;
+
+            user.update(app_args)?;
+
+            Ok(user.clone())
+        })
+    }
+
+    pub fn add_canister(&mut self, canister_id: CanisterId) -> Result<User, UserSystemError> {
+        with_users_mut(|users| {
+            let mut user = users.get(&self.0).ok_or(UserSystemError::UserNotFound)?;
+
+            user.add_canister(canister_id);
+
+            Ok(user.clone())
+        })
+    }
+
+    pub fn remove_canister(&mut self, canister_id: CanisterId) -> Result<User, UserSystemError> {
+        with_users_mut(|users| {
+            let mut user = users.get(&self.0).ok_or(UserSystemError::UserNotFound)?;
+
+            user.remove_canister(canister_id)?;
+
+            Ok(user.clone())
+        })
+    }
+
+    pub fn remove(&mut self) -> Result<(), UserSystemError> {
+        with_users_mut(|users| {
+            users.remove(&self.0).ok_or(UserSystemError::UserNotFound)?;
+
+            Ok(())
+        })
+    }
 }
 
-// Write to the UserState struct
+pub struct ReadUserState(pub UserId);
+
+impl ReadUserState {
+    pub fn user_view(&self) -> Result<UserView, UserSystemError> {
+        with_user(&self.0, |user| user.view())
+    }
+
+    pub fn user(&self) -> Result<User, UserSystemError> {
+        with_user(&self.0, |user| user.clone())
+    }
+
+    pub fn canisters(&self) -> Result<CanisterIds, UserSystemError> {
+        with_user(&self.0, |user| user.canisters())
+    }
+
+    pub fn verify_canister(&self, canister_id: &CanisterId) -> Result<(), UserSystemError> {
+        with_user(&self.0, |user| user.verify_canister(canister_id))?
+    }
+}
+
+pub struct UserState;
+
 impl UserState {
-    pub fn initialize_user(&mut self, user_id: UserId) -> Result<User, UserSystemError> {
-        if let Some(user_state) = self.users.get(&user_id) {
-            if !user_state.canisters().is_empty() {
+    pub fn create(app_args: CreateUserArgs) -> Result<User, UserSystemError> {
+        let user = User::new(app_args);
+        let user_id = ic_cdk_caller().into();
+
+        with_users_mut(|users| {
+            if users.contains_key(&user_id) {
                 return Err(UserSystemError::UserAlreadyExists);
             }
 
-            return Ok(user_state);
-        }
+            users.insert(user_id, user.clone());
 
-        let user_state = User::new(None);
-
-        self.users.insert(user_id, user_state.clone());
-
-        Ok(user_state)
+            Ok(user)
+        })
     }
 
-    pub fn get_user_or_initialize(
-        &mut self,
-        user_id: UserId,
-        canister_id: Option<CanisterId>,
-    ) -> Result<User, UserSystemError> {
-        if let Some(mut user) = self.users.get(&user_id) {
-            let mut user_state = user.update_rate()?;
-
-            if let Some(canister_id) = canister_id {
-                user_state.add_canister(canister_id);
-            }
-
-            return Ok(user_state);
-        }
-
-        let user_state = User::new(canister_id);
-
-        self.users.insert(user_id, user_state.clone());
-
-        Ok(user_state)
+    pub fn write(user_id: UserId) -> WriteUserState {
+        WriteUserState(user_id)
     }
 
-    pub fn add(&mut self, user: UserId, user_state: User) {
-        self.users.insert(user, user_state);
-    }
-
-    pub fn remove(&mut self, user: &UserId) {
-        self.users.remove(user);
-    }
-}
-
-// Read from the UserState struct
-impl UserState {
-    pub fn user_view(&self, user_id: &UserId) -> Result<UserView, UserSystemError> {
-        self.users
-            .get(user_id)
-            .ok_or(UserSystemError::UserNotFound)
-            .map(|state| state.view())
-    }
-
-    pub fn user(&self, user_id: &UserId) -> Option<User> {
-        self.users.get(user_id)
-    }
-
-    pub fn users_view(&self) -> UserViews {
-        self.users.iter().map(|(_, v)| v.view()).collect()
-    }
-
-    pub fn users(&self) -> UserStates {
-        self.users.iter().map(|(_, v)| v.clone()).collect()
-    }
-
-    pub fn canister_ids(&self) -> CanisterIds {
-        self.users
-            .iter()
-            .map(|(_, v)| v.canisters())
-            .flatten()
-            .collect()
-    }
-
-    pub fn user_ids(&self) -> Users {
-        self.users.iter().map(|(k, _)| k).collect()
-    }
-
-    pub fn number_of_users(&self) -> u64 {
-        self.users.len()
+    pub fn read(user_id: UserId) -> ReadUserState {
+        ReadUserState(user_id)
     }
 }

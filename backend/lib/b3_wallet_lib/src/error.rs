@@ -1,4 +1,4 @@
-use b3_utils::{api::error::ManagementError, error::HelperError};
+use b3_utils::{api::error::ManagementError, error::HelperError, types::UserId};
 use candid::{CandidType, Deserialize};
 use std::fmt;
 
@@ -21,8 +21,8 @@ pub enum WalletError {
     UnknownError,
     WasmNotLoaded,
     ExecutionError(String),
-    SignerAlreadyExists(String),
-    SignerDoesNotExist(String),
+    SignerAlreadyExists(UserId),
+    SignerDoesNotExist(UserId),
     UpdateSettingsError(String),
     NotifyTopUpError(String),
     CannotRemoveDefaultAccount,
@@ -53,8 +53,8 @@ impl fmt::Display for WalletError {
             WalletError::UpdateSettingsError(ref msg) => write!(f, "Update settings Error::{}", msg),
             WalletError::UnknownError => write!(f, "Unknown Error!"),
             WalletError::WasmNotLoaded => write!(f, "Wasm not loaded!"),
-            WalletError::SignerAlreadyExists(ref msg) => write!(f, "Signer ({}) already exists!", msg),
-            WalletError::SignerDoesNotExist(ref msg) => write!(f, "Signer ({}) does not exist!", msg),
+            WalletError::SignerAlreadyExists(ref user) => write!(f, "Signer ({}) already exists!", user),
+            WalletError::SignerDoesNotExist(ref user) => write!(f, "Signer ({}) does not exist!", user),
             WalletError::CannotRemoveDefaultAccount => write!(f, "Cannot remove default account!"),
             WalletError::WalletAlreadyInitialized => write!(f, "Wallet already initialized!"),
             WalletError::WalletAccountNotExists => write!(f, "Wallet account does not exist!"),

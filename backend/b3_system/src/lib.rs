@@ -3,7 +3,7 @@ use b3_system_lib::{
         constants::CREATE_APP_CANISTER_CYCLES,
         error::AppSystemError,
         state::AppState,
-        store::{with_app, with_release, with_release_mut, with_releases_mut},
+        store::{with_release, with_release_mut, with_releases_mut},
         types::{
             AppId, AppView, CreateAppArgs, CreateReleaseArgs, LoadRelease, ReleaseView,
             ReleaseViews, SystemCanisterStatus,
@@ -14,8 +14,9 @@ use b3_system_lib::{
     types::UserCanisterStatus,
     user::{
         error::UserSystemError,
-        store::{with_user, with_user_app, with_user_mut, with_user_state, with_user_state_mut},
-        types::{UserStatus, UserView, UserViews},
+        store::with_users,
+        types::{CreateUserArgs, UserStatus, UserView, UserViews},
+        UserState,
     },
 };
 use b3_utils::{
@@ -43,7 +44,7 @@ pub fn init() {}
 fn get_states() -> UserView {
     let user_id = ic_cdk::caller().into();
 
-    with_user(user_id, |s| s.view()).unwrap_or_else(revert)
+    UserState::read(user_id).user_view().unwrap_or_else(revert)
 }
 
 #[query]
@@ -53,21 +54,19 @@ fn get_create_canister_app_cycle() -> u128 {
 
 #[query(guard = "caller_is_controller")]
 fn get_user_ids() -> Vec<UserId> {
-    with_user_state(|s| s.user_ids())
+    with_users(|s| s.iter().map(|(k, _)| k.clone()).collect())
 }
 
 #[query(guard = "caller_is_controller")]
 fn get_user_states() -> UserViews {
-    with_user_state(|s| s.users_view())
+    with_users(|s| s.iter().map(|(_, v)| v.view()).collect())
 }
 
 #[query]
 async fn get_user_status() -> UserStatus {
-    let user_id: UserId = ic_cdk::caller().into();
+    let user = UserState::read(ic_cdk::caller().into());
 
-    let canisters = with_user(user_id, |rs| rs.canisters());
-
-    match canisters {
+    match user.canisters() {
         Ok(canisters) => match canisters.len() {
             0 => UserStatus::Registered,
             1 => UserStatus::SingleCanister(canisters[0].clone()),
@@ -79,9 +78,9 @@ async fn get_user_status() -> UserStatus {
 
 #[query]
 fn get_canisters() -> CanisterIds {
-    let user_id = ic_cdk::caller();
+    let user = UserState::read(ic_cdk::caller().into());
 
-    with_user(user_id.into(), |s| s.canisters()).unwrap_or_else(revert)
+    user.canisters().unwrap_or_else(revert)
 }
 
 // UPDATE CALLS
@@ -108,11 +107,11 @@ fn get_bugs(canister_id: CanisterId) -> AppBugs {
 
 #[query(composite = true)]
 async fn get_app_version(canister_id: CanisterId) -> AppVersion {
-    let user_id: UserId = ic_cdk::caller().into();
+    let user = UserState::read(ic_cdk::caller().into());
 
-    let app = with_user_app(user_id, &canister_id, |w| w.clone()).unwrap_or_else(revert);
+    user.verify_canister(&canister_id).unwrap_or_else(revert);
 
-    AppCall(app).version().await.unwrap_or_else(revert)
+    AppCall(canister_id).version().await.unwrap_or_else(revert)
 }
 
 #[update]
@@ -137,6 +136,13 @@ async fn get_canister_info(canister_id: CanisterId) -> CanisterInfoResponse {
 }
 
 #[update]
+async fn create_user(app_args: CreateUserArgs) -> UserView {
+    let user = UserState::create(app_args).unwrap_or_else(revert);
+
+    user.view()
+}
+
+#[update]
 async fn create_app_canister(app_id: AppId) -> Result<UserView, String> {
     AppState::read(app_id.clone())
         .validate()
@@ -144,27 +150,28 @@ async fn create_app_canister(app_id: AppId) -> Result<UserView, String> {
 
     let system_id = ic_cdk::id();
     let owner_id = ic_cdk::caller();
+
     let user_id: UserId = owner_id.into();
 
-    let mut user_state =
-        with_user_state_mut(|s| s.initialize_user(user_id.clone())).unwrap_or_else(revert);
+    let mut user = UserState::read(user_id.clone())
+        .user()
+        .unwrap_or_else(revert);
 
-    let canister_id = user_state
+    let canister_id = user
         .create_with_cycles(vec![owner_id, system_id], CREATE_APP_CANISTER_CYCLES)
         .await
         .unwrap_or_else(revert);
 
-    with_user_state_mut(|s| s.add(user_id, user_state.clone()));
+    UserState::write(user_id)
+        .add_canister(canister_id.clone())
+        .unwrap_or_else(revert);
 
     let init_args = AppInitArgs {
         owner_id,
         system_id,
     };
 
-    let install_arg_result =
-        AppState::read(app_id).install_args(CanisterInstallMode::Install, init_args);
-
-    match install_arg_result {
+    match AppState::read(app_id).install_args(CanisterInstallMode::Install, init_args) {
         Ok(install_arg) => {
             // Install the code.
             let install_result = AppCall(canister_id).install_code(install_arg).await;
@@ -176,7 +183,7 @@ async fn create_app_canister(app_id: AppId) -> Result<UserView, String> {
                 .await;
 
             match (install_result, update_result) {
-                (Ok(_), Ok(_)) => Ok(user_state.view()),
+                (Ok(_), Ok(_)) => Ok(user.view()),
                 (Err(err), _) => Err(err.to_string()),
                 (_, Err(err)) => Err(err.to_string()),
             }
@@ -196,38 +203,32 @@ async fn install_app(canister_id: CanisterId, app_id: AppId) -> Result<UserView,
 
     let user_id: UserId = owner_id.into();
 
-    let user_state = with_user_state_mut(|s| s.get_user_or_initialize(user_id, Some(canister_id)))
-        .unwrap_or_else(revert);
+    let user_view = UserState::read(user_id).user_view().unwrap_or_else(revert);
 
     let init_args = AppInitArgs {
         owner_id,
         system_id,
     };
 
-    let install_arg_result =
-        AppState::read(app_id).install_args(CanisterInstallMode::Upgrade, init_args);
-
-    match install_arg_result {
+    match AppState::read(app_id).install_args(CanisterInstallMode::Upgrade, init_args) {
         Ok(install_arg) => {
-            let wallet_canister = AppCall(canister_id);
+            let app_call = AppCall(canister_id);
 
-            let status = wallet_canister.status().await;
+            let status = app_call.status().await;
 
             if status.is_ok() {
-                revert(SystemError::WalletCanisterAlreadyInstalled)
+                revert(SystemError::AppCanisterAlreadyInstalled)
             }
 
             // Install the code.
-            let install_result = wallet_canister.install_code(install_arg).await;
+            let install_result = app_call.install_code(install_arg).await;
 
             // Update the controllers, and add the user and canister id as controller of itself.
             // this enables the canister to update itself.
-            let update_result = wallet_canister
-                .add_controllers(vec![owner_id, system_id])
-                .await;
+            let update_result = app_call.add_controllers(vec![owner_id, system_id]).await;
 
             match (install_result, update_result) {
-                (Ok(_), Ok(_)) => Ok(user_state.view()),
+                (Ok(_), Ok(_)) => Ok(user_view),
                 (Err(err), _) => Err(err.to_string()),
                 (_, Err(err)) => Err(err.to_string()),
             }
@@ -240,32 +241,36 @@ async fn install_app(canister_id: CanisterId, app_id: AppId) -> Result<UserView,
 async fn add_user_app(canister_id: CanisterId, app_id: AppId) {
     let user_id: UserId = ic_cdk::caller().into();
 
-    let wallet_canister = AppCall(canister_id);
+    UserState::read(user_id.clone())
+        .user()
+        .unwrap_or_else(revert);
 
-    let module_hash = wallet_canister.module_hash().await.unwrap_or_else(revert);
+    let app_call = AppCall(canister_id);
+
+    let module_hash = app_call.module_hash().await.unwrap_or_else(revert);
 
     match module_hash {
         Some(module_hash) => {
             let wasm_hash = vec_to_wasm_hash(module_hash);
-            let release = with_release(&wasm_hash, |r| r.clone()).unwrap_or_else(revert);
 
-            if release.id() == app_id {
-                let is_valid = wallet_canister
-                    .validate_signer(user_id.clone())
-                    .await
+            AppState::read(app_id.clone())
+                .verify_release(&wasm_hash)
+                .unwrap_or_else(revert);
+
+            let is_valid = app_call
+                .validate_user(user_id.clone())
+                .await
+                .unwrap_or_else(revert);
+
+            if is_valid {
+                UserState::write(user_id)
+                    .add_canister(canister_id)
                     .unwrap_or_else(revert);
-
-                if is_valid {
-                    with_user_state_mut(|s| s.get_user_or_initialize(user_id, Some(canister_id)))
-                        .unwrap_or_else(revert);
-                } else {
-                    revert(UserSystemError::InvalidUser)
-                }
             } else {
-                revert(AppSystemError::AppIdMismatch)
+                revert(UserSystemError::InvalidUser)
             }
         }
-        None => revert(SystemError::WalletCanisterNotFound),
+        None => revert(SystemError::AppCanisterNotFound),
     }
 }
 
@@ -273,10 +278,9 @@ async fn add_user_app(canister_id: CanisterId, app_id: AppId) {
 fn remove_user_app(canister_id: CanisterId) {
     let user_id: UserId = ic_cdk::caller().into();
 
-    with_user_mut(&user_id, |rs| {
-        rs.remove_canister(canister_id).unwrap_or_else(revert)
-    })
-    .unwrap_or_else(revert)
+    UserState::write(user_id)
+        .remove_canister(canister_id)
+        .unwrap_or_else(revert);
 }
 
 // TODO! Remove this update call for production.
@@ -284,7 +288,7 @@ fn remove_user_app(canister_id: CanisterId) {
 fn remove_user(user_principal: Principal) {
     let user_id: UserId = user_principal.into();
 
-    with_user_state_mut(|s| s.remove(&user_id));
+    UserState::write(user_id).remove().unwrap_or_else(revert);
 }
 
 #[update]
@@ -305,7 +309,9 @@ fn update_app(app_id: AppId, app_args: CreateAppArgs) -> AppView {
 
 #[query]
 fn releases(app_id: AppId) -> ReleaseViews {
-    with_app(&app_id, |app| app.release_views()).unwrap_or_else(revert)
+    AppState::read(app_id)
+        .release_views()
+        .unwrap_or_else(revert)
 }
 
 #[query]
@@ -361,7 +367,7 @@ pub async fn status() -> SystemCanisterStatus {
         .await
         .unwrap_or_else(revert);
 
-    let user_status = with_user_state(|s| s.number_of_users());
+    let user_status = with_users(|s| s.len());
     let status_at = NanoTimeStamp::now();
 
     SystemCanisterStatus {

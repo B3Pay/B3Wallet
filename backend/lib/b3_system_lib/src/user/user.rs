@@ -13,7 +13,10 @@ use ic_cdk::api::management_canister::{
 use serde::{Deserialize, Serialize};
 use std::io::Cursor;
 
-use super::{error::UserSystemError, types::UserView};
+use super::{
+    error::UserSystemError,
+    types::{CreateUserArgs, UserView},
+};
 
 #[derive(Deserialize, Serialize, Clone)]
 pub struct User {
@@ -25,10 +28,15 @@ pub struct User {
 
 // Create the User struct
 impl User {
-    pub fn new(opt_canister_id: Option<CanisterId>) -> Self {
+    pub fn new(user_args: CreateUserArgs) -> Self {
+        let CreateUserArgs {
+            canister_id,
+            metadata,
+        } = user_args;
+
         let mut canisters = Vec::new();
 
-        if let Some(canister_id) = opt_canister_id {
+        if let Some(canister_id) = canister_id {
             canisters.push(canister_id);
         }
 
@@ -36,13 +44,29 @@ impl User {
             canisters,
             updated_at: NanoTimeStamp::now(),
             created_at: NanoTimeStamp::now(),
-            metadata: Metadata::new(),
+            metadata,
         }
     }
 }
 
 // Write to the User struct
 impl User {
+    pub fn update(&mut self, user_args: CreateUserArgs) -> Result<User, UserSystemError> {
+        let CreateUserArgs {
+            canister_id,
+            metadata,
+        } = user_args;
+
+        if let Some(canister_id) = canister_id {
+            self.add_canister(canister_id);
+        }
+
+        self.metadata = metadata;
+        self.updated_at = NanoTimeStamp::now();
+
+        Ok(self.clone())
+    }
+
     /// get with updated_at.
     pub fn update_rate(&mut self) -> Result<User, UserSystemError> {
         self.check_rate()?;
@@ -109,6 +133,15 @@ impl User {
             updated_at: self.updated_at.clone(),
             created_at: self.created_at.clone(),
             metadata: self.metadata.clone(),
+        }
+    }
+
+    /// Verify the canister id.
+    pub fn verify_canister(&self, canister_id: &CanisterId) -> Result<(), UserSystemError> {
+        if !self.canisters.contains(canister_id) {
+            return Err(UserSystemError::WalletCanisterNotFound);
+        } else {
+            Ok(())
         }
     }
 

@@ -7,8 +7,8 @@ pub enum SystemError {
     HelperError(HelperError),
     InstallCodeError(String),
     WasmInstallError(String),
-    WalletCanisterNotFound,
-    WalletCanisterAlreadyInstalled,
+    AppCanisterNotFound,
+    AppCanisterAlreadyInstalled,
     WalletCanisterRateError(String),
     WalletCanisterDoesNotExist(String),
     WalletCanisterAlreadyExists(String),
@@ -30,10 +30,10 @@ impl fmt::Display for SystemError {
             SystemError::CanisterStatusError(e) => write!(f, "Wallet status error: {}", e),
             SystemError::CanisterIdNotFound => write!(f, "Canister id not found!"),
             SystemError::WalletCanisterRateError(e) => write!(f, "Wallet canister rate error: {}", e),
-            SystemError::WalletCanisterNotFound => write!(f, "Wallet Canister id not found!"),
+            SystemError::AppCanisterNotFound => write!(f, "Wallet Canister id not found!"),
             SystemError::WalletCanisterDoesNotExist(e) => write!(f, "Wallet does not exist: {}", e),
             SystemError::WalletCanisterAlreadyExists(e) => write!(f, "Wallet already exists: {}", e),
-            SystemError::WalletCanisterAlreadyInstalled => write!(f, "Wallet canister already installed!"),
+            SystemError::AppCanisterAlreadyInstalled => write!(f, "Wallet canister already installed!"),
         }
     }
 }

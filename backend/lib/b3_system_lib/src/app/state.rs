@@ -17,10 +17,9 @@ pub struct WriteAppState(pub AppId);
 impl WriteAppState {
     pub fn update(&mut self, app_args: CreateAppArgs) -> Result<App, AppSystemError> {
         with_apps_mut(|apps| {
-            let app = apps
-                .get(&self.0)
-                .ok_or(AppSystemError::AppNotFound)?
-                .update(app_args);
+            let mut app = apps.get(&self.0).ok_or(AppSystemError::AppNotFound)?;
+
+            app.update(app_args);
 
             apps.insert(self.0.clone(), app.clone());
 
@@ -75,8 +74,20 @@ impl ReadAppState {
         with_app(&self.0, |app| app.release(wasm_hash))?
     }
 
+    pub fn verify_release(&self, wasm_hash: &WasmHash) -> Result<(), AppSystemError> {
+        with_app(&self.0, |app| app.verify_release(wasm_hash))?
+    }
+
     pub fn latest_release(&self) -> Result<Release, AppSystemError> {
         with_app(&self.0, |app| app.latest_release())?
+    }
+
+    pub fn latest_release_view(&self) -> Result<ReleaseView, AppSystemError> {
+        with_app(&self.0, |app| app.latest_release_view())?
+    }
+
+    pub fn release_views(&self) -> Result<Vec<ReleaseView>, AppSystemError> {
+        with_app(&self.0, |app| app.release_views())
     }
 
     pub fn releases(&self) -> Result<Vec<Release>, AppSystemError> {

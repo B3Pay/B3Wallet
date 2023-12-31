@@ -112,13 +112,13 @@ impl PendingOperation {
         confirmed_responses * 2 > total_signers
     }
 
-    pub fn get_error(&self) -> Option<String> {
+    pub fn get_error(&self) -> Option<OperationError> {
         if self.is_rejected() {
-            return Some(OperationError::RequestRejected.to_string());
+            return Some(OperationError::RequestRejected);
         }
 
         if self.is_expired() {
-            return Some(OperationError::RequestExpired.to_string());
+            return Some(OperationError::RequestExpired);
         }
 
         None
@@ -126,11 +126,11 @@ impl PendingOperation {
 
     pub fn response(&mut self, user: UserId, response: Response) -> Result<(), OperationError> {
         if self.is_signed(&user) {
-            return Err(OperationError::RequestAlreadySigned(user.to_string()));
+            return Err(OperationError::RequestAlreadySigned(user));
         }
 
         if !self.is_allowed(&user) {
-            return Err(OperationError::UserNotAllowed(user.to_string()));
+            return Err(OperationError::UserNotAllowed(user));
         }
 
         self.responses.insert(user, response);

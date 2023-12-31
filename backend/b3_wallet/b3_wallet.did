@@ -8,7 +8,7 @@ type AddUser = record {
   threshold : opt nat8;
   name : text;
   role : Role;
-  signer_id : vec nat8;
+  signer_id : principal;
   expires_at : opt nat64;
 };
 type AppAccountsNonce = record {
@@ -267,13 +267,13 @@ type PendingEnum = variant {
 type PendingOperation = record {
   id : nat64;
   status : OperationStatus;
-  responses : vec record { vec nat8; Response };
-  allowed_signers : vec vec nat8;
+  responses : vec record { principal; Response };
+  allowed_signers : vec principal;
   request : Operation;
   deadline : nat64;
   consent_message : ConsentMessage;
   created_at : nat64;
-  created_by : vec nat8;
+  created_by : principal;
   version : text;
 };
 type ProcessedOperation = record {
@@ -290,7 +290,7 @@ type QueryStats = record {
   num_calls_total : nat;
   request_payload_bytes_total : nat;
 };
-type RemoveUser = record { signer_id : vec nat8 };
+type RemoveUser = record { signer_id : principal };
 type RenameAccount = record { account_id : text; new_name : text };
 type Response = variant { Reject; Confirm };
 type Result = variant { Ok : nat; Err : text };
@@ -370,7 +370,7 @@ type WalletSettings = record {
   compute_allocation : opt nat;
 };
 type WalletSettingsAndSigners = record {
-  signers : vec record { vec nat8; User };
+  signers : vec record { principal; User };
   settings : WalletSettings;
 };
 type WasmDetails = record { hash : vec nat8; size : nat64 };
@@ -405,7 +405,7 @@ service : () -> {
   get_pending_list : () -> (vec PendingOperation) query;
   get_processed_list : () -> (vec ProcessedOperation) query;
   get_roles : () -> (vec record { nat64; Role }) query;
-  get_signers : () -> (vec record { vec nat8; User }) query;
+  get_signers : () -> (vec record { principal; User }) query;
   init_wallet : (
       vec record { principal; text },
       opt vec record { text; Value },
@@ -437,8 +437,8 @@ service : () -> {
   role_add : (Role) -> (vec record { nat64; Role });
   role_remove : (nat64) -> (vec record { nat64; Role });
   setting_and_signer : () -> (WalletSettingsAndSigners) query;
-  signer_add : (vec nat8, Role) -> (vec record { vec nat8; User });
-  signer_remove : (vec nat8) -> (vec record { vec nat8; User });
+  signer_add : (principal, Role) -> (vec record { principal; User });
+  signer_remove : (principal) -> (vec record { principal; User });
   status : () -> (AppStatus);
   uninstall_wallet : () -> ();
   unload_wasm : () -> (nat64);
@@ -447,7 +447,7 @@ service : () -> {
     );
   update_settings : () -> ();
   upgrage_wallet : () -> ();
-  validate_signer : (vec nat8) -> (bool) query;
+  validate_signer : (principal) -> (bool) query;
   version : () -> (text) query;
   wasm_details : () -> (WasmDetails) query;
   wasm_hash : () -> (vec nat8) query;

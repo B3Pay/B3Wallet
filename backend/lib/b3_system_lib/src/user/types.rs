@@ -30,3 +30,9 @@ pub struct UserView {
     pub updated_at: NanoTimeStamp,
     pub metadata: Metadata,
 }
+
+#[derive(CandidType, Deserialize, Clone)]
+pub struct CreateUserArgs {
+    pub canister_id: Option<CanisterId>,
+    pub metadata: Metadata,
+}

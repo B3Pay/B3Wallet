@@ -13,9 +13,9 @@ use serde::{Deserialize, Serialize};
 use std::io::Cursor;
 
 #[cfg(test)]
-use b3_utils::mocks::id_mock as ic_cdk_id;
+use b3_utils::mocks::id_mock as ic_cdk_caller;
 #[cfg(not(test))]
-use ic_cdk::api::id as ic_cdk_id;
+use ic_cdk::api::caller as ic_cdk_caller;
 
 use super::{
     error::AppSystemError,
@@ -46,7 +46,7 @@ impl App {
             metadata,
         } = app_args;
 
-        let created_by = ic_cdk_id();
+        let created_by = ic_cdk_caller();
         let id = name_to_slug(&name);
 
         Self {
@@ -163,6 +163,22 @@ impl App {
 
     pub fn release_hashes(&self) -> Vec<WasmHash> {
         self.release_hashes.clone()
+    }
+
+    pub fn verify_release(&self, wasm_hash: &WasmHash) -> Result<(), AppSystemError> {
+        if let Ok(release) = self.release(wasm_hash) {
+            if release.is_deprecated() {
+                return Err(AppSystemError::AppIsDeprecated);
+            }
+
+            if !release.is_loaded() {
+                return Err(AppSystemError::WasmNotFound);
+            }
+
+            Ok(())
+        } else {
+            return Err(AppSystemError::ReleaseNotFound);
+        }
     }
 
     // DIRECT ACCESS TO RELEASES

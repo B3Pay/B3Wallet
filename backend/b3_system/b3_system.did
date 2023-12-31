@@ -103,6 +103,10 @@ type CreateReleaseArgs = record {
   version : text;
   wasm_hash : vec nat8;
 };
+type CreateUserArgs = record {
+  metadata : vec record { text; Value };
+  canister_id : opt principal;
+};
 type CreationRecord = record { controllers : vec principal };
 type DefiniteCanisterSettings = record {
   freezing_threshold : nat;
@@ -189,6 +193,7 @@ service : () -> {
   clear_bugs : (principal) -> ();
   create_app : (CreateAppArgs) -> (AppView);
   create_app_canister : (text) -> (Result);
+  create_user : (CreateUserArgs) -> (UserView);
   deprecate_release : (text, vec nat8) -> (ReleaseView);
   get_app_version : (principal) -> (text) composite_query;
   get_bugs : (principal) -> (vec AppBug) query;
@@ -199,7 +204,7 @@ service : () -> {
   get_release : (vec nat8) -> (ReleaseView) query;
   get_states : () -> (UserView) query;
   get_user_app_status : (principal) -> (UserCanisterStatus);
-  get_user_ids : () -> (vec vec nat8) query;
+  get_user_ids : () -> (vec principal) query;
   get_user_states : () -> (vec UserView) query;
   get_user_status : () -> (UserStatus) query;
   install_app : (principal, text) -> (Result);

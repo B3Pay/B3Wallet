@@ -39,7 +39,7 @@ impl From<ProcessedOperation> for PendingOperation {
 
 impl From<PendingOperation> for ProcessedOperation {
     fn from(request: PendingOperation) -> Self {
-        let error = request.get_error();
+        let error = request.get_error().map(|e| e.to_string());
 
         let status = if error.is_some() {
             OperationStatus::Fail

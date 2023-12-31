@@ -10,8 +10,8 @@ use super::release::Release;
 use super::types::AppId;
 use super::App;
 
-pub type ReleaseMap = DefaultStableBTreeMap<WasmHash, Release>;
 pub type AppMap = DefaultStableBTreeMap<AppId, App>;
+pub type ReleaseMap = DefaultStableBTreeMap<WasmHash, Release>;
 pub type WasmMap = DefaultStableBTreeMap<WasmHash, Wasm>;
 
 // The AppState starts from 1 to 9 to avoid conflicts with the user's stable memory

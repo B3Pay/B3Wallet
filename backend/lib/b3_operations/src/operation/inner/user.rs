@@ -38,7 +38,7 @@ impl OperationTrait for AddUser {
         let signer_id = self.signer_id.clone();
         with_users_mut(|users| {
             if users.contains(&signer_id) {
-                return Err(WalletError::SignerAlreadyExists(signer_id.to_string()));
+                return Err(WalletError::SignerAlreadyExists(signer_id));
             }
 
             let user = User::from(&self);
@@ -82,7 +82,7 @@ impl OperationTrait for RemoveUser {
         let signer_id = self.signer_id.clone();
         with_users_mut(|users| {
             if !users.contains(&signer_id) {
-                return Err(WalletError::SignerDoesNotExist(signer_id.to_string()));
+                return Err(WalletError::SignerDoesNotExist(signer_id));
             }
 
             users.remove(&signer_id);
@@ -95,7 +95,7 @@ impl OperationTrait for RemoveUser {
         // check if the user exists
         with_users(|users| {
             if !users.contains(&self.signer_id) {
-                return Err(OperationError::UserDoesNotExist(self.signer_id.to_string()));
+                return Err(OperationError::UserDoesNotExist(self.signer_id.clone()));
             }
 
             Ok(())

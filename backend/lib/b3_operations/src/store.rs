@@ -119,7 +119,7 @@ where
         if callback(user) {
             Ok(())
         } else {
-            Err(OperationError::UserNotAllowed(user_id.to_string()).to_string())
+            Err(OperationError::UserNotAllowed(user_id).to_string())
         }
     })
     .map_err(|err| err.to_string())?
