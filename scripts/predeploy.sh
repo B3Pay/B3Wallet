@@ -34,14 +34,23 @@ for app_root in "$backend_dir"/*; do
     fi
 
     # Check if ic-wasm is installed before attempting to shrink the wasm file
+    # you can install ic-wasm via `cargo install ic-wasm` for smaller wasm files
     if command -v ic-wasm >/dev/null 2>&1; then
-        # you can install ic-wasm via `cargo install ic-wasm` for smaller wasm files
-        echo -e "${green}Shrinking $package.wasm${no_color}"
+        # create the optimised target dir
         mkdir -p "$optimised_target_dir"
-        ic-wasm "$target_dir/$package.wasm" -o "$optimised_target_dir/$package.wasm" optimize Oz
         # copy the candid file to the optimised target dir
         cp "$did_file" "$optimised_target_dir/$package.did"
+
+        # add candid file into wasm file as metadata
+        echo -e "${green}Adding Candid file into $package.wasm${no_color}"
+        ic-wasm "$target_dir/$package.wasm" -o "$optimised_target_dir/$package.wasm" metadata candid:service -f "$optimised_target_dir/$package.did" -v public
+        echo -e "Size of $package.wasm with Candid metadata: $(ls -lh "$optimised_target_dir/$package.wasm" | awk '{print $5}')"
+        
+        # shrink wasm file
+        echo -e "${green}Shrinking $package.wasm${no_color}"
+        ic-wasm "$optimised_target_dir/$package.wasm" -o "$optimised_target_dir/$package.wasm" optimize O3
         echo -e "Size of shrunk $package.wasm: $(ls -lh "$optimised_target_dir/$package.wasm" | awk '{print $5}')"
+        
         # Gunzip target
         echo -e "${green}Gunzipping $package.wasm${no_color}"
         gzip -c "$optimised_target_dir/$package.wasm" > "$optimised_target_dir/$package.wasm.gz"
