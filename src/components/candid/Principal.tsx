@@ -8,7 +8,9 @@ import {
   FormMessage
 } from "components/ui/form"
 import { Input } from "components/ui/input"
-import { InfoCircledIcon } from "@radix-ui/react-icons"
+import { ClipboardIcon, InfoCircledIcon } from "@radix-ui/react-icons"
+import { Button } from "components/ui/button"
+import { Box } from "components/ui/box"
 
 interface PrincipalProps extends FieldRouteProps {}
 
@@ -66,21 +68,37 @@ const Principal: React.FC<PrincipalProps> = ({
   return (
     <FormItem>
       <FormLabel>{methodField.label.toTitleCase()}</FormLabel>
-      <FormControl>
-        <Input
-          icon={<InfoCircledIcon />}
-          type={methodField.type}
-          placeholder={methodField.type}
-          closeHandler={() => {
-            setValue(registerName as never, "" as never)
-          }}
-          {...register(registerName, {
-            ...methodField,
-            validate
-          })}
-          onBlur={blurHandler}
-        />
-      </FormControl>
+      <div className="flex items-center">
+        <FormControl>
+          <Input
+            icon={<InfoCircledIcon />}
+            roundSide="l"
+            type={methodField.type}
+            placeholder={methodField.type}
+            closeHandler={() => {
+              setValue(registerName as never, "" as never)
+            }}
+            {...register(registerName, {
+              ...methodField,
+              validate
+            })}
+            onBlur={blurHandler}
+          />
+        </FormControl>
+        <FormControl>
+          <Button
+            roundSide="r"
+            asIconButton
+            onClick={() => {
+              navigator.clipboard.readText().then(text => {
+                setValue(registerName as never, text as never)
+              })
+            }}
+          >
+            <ClipboardIcon />
+          </Button>
+        </FormControl>
+      </div>
       <FormMessage>{errorMessage}</FormMessage>
     </FormItem>
   )

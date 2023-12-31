@@ -26,7 +26,7 @@ const CandidField: React.FC<CandidProps> = ({
   })
 
   return (
-    <div className="p-2 max-w-3xl mx-auto">
+    <div>
       <MethodForm
         functionName={functionName}
         fields={fields}

@@ -8,14 +8,12 @@ function HomePage() {
       <Head>
         <title>B3Wallet</title>
       </Head>
-      <div>
-        {/* <CreateApp />
+      {/* <CreateApp />
         <CreateWallet />
         <UserStatus />
         <AppCanisterStatus />
         <AppCanisterVersion /> */}
-        <B3System />
-      </div>
+      <B3System />
       <Footer />
     </div>
   )

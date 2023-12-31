@@ -8,9 +8,7 @@ function HomePage() {
       <Head>
         <title>B3Wallet</title>
       </Head>
-      <div>
-        <B3Wallet />
-      </div>
+      <B3Wallet />
       <Footer />
     </div>
   )
