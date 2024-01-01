@@ -6,7 +6,8 @@ import { callMethod, loadSystemActor } from "./system"
 import {
   calculateWasmHash,
   chunkGenerator,
-  loadWasm,
+  hashToHex,
+  loadWasmFile,
   readVersion
 } from "./utils"
 
@@ -22,15 +23,18 @@ async function createApp(name: string) {
   })
 }
 
-async function addRelease(name: string, version: string) {
-  const wasm_hash = (await calculateWasmHash(name, false)) as number[]
-
+async function addRelease(
+  name: string,
+  version: string,
+  wasm_hash: number[],
+  size: bigint
+) {
   const release: CreateReleaseArgs = {
     id: name,
     version,
     wasm_hash,
     features: "",
-    size: BigInt(0)
+    size
   }
 
   return await callMethod("add_release", name, release)
@@ -56,7 +60,8 @@ export const load = async (name: string, reload: boolean) => {
 
   console.log(`Loading ${name} wasmModule v${version} in SystemCanister.`)
 
-  const wasm_hash = (await calculateWasmHash(name, false)) as number[]
+  const { wasmModule, wasm_hash, wasm_size } = await loadWasmFile(name)
+  console.log("Wasm size:", wasm_size, "hash:", hashToHex(wasm_hash))
 
   if (reload) {
     try {
@@ -66,9 +71,9 @@ export const load = async (name: string, reload: boolean) => {
     }
   }
 
-  await addRelease(name, version)
+  const release = await addRelease(name, version, wasm_hash, wasm_size)
 
-  const wasmModule = await loadWasm(name)
+  console.log("Release added:", release)
 
   await loadWasmChunk(wasm_hash, wasmModule)
 }

@@ -43,20 +43,18 @@ export const initIdentity = (mainnet: boolean) => {
   return decode(key)
 }
 
-export const loadWasm = async (name: string, withCandid?: boolean) => {
+export const loadWasmFile = async (name: string, withCandid?: boolean) => {
   const buffer = await readFile(
     `${process.cwd()}/wasm/${name}/${name}${
       withCandid ? "_candid" : ""
     }.wasm.gz`
   )
-  console.log(
-    "Wasm size:",
-    buffer.length,
-    "hash:",
-    await calculateSha256(buffer.buffer)
-  )
 
-  return [...new Uint8Array(buffer)]
+  const wasmModule = [...new Uint8Array(buffer.buffer)]
+  const wasm_hash = await calculateSha256(buffer.buffer, false)
+  const wasm_size = BigInt(buffer.length)
+
+  return { wasmModule, wasm_hash, wasm_size }
 }
 
 export const readVersion = async (name: string) => {
@@ -86,26 +84,29 @@ export const chunkGenerator = async function* (
   }
 }
 
-export async function calculateSha256(arrayBuffer: ArrayBuffer, asHex = true) {
-  // Use the SubtleCrypto interface to perform the SHA-256 hash
+export async function calculateSha256<B extends boolean>(
+  arrayBuffer: ArrayBuffer,
+  asHex: B = false as B
+): Promise<B extends true ? string : number[]> {
   const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer)
 
-  // Convert the hash to a hexadecimal string for easy comparison and display
   const hashArray = Array.from(new Uint8Array(hashBuffer))
 
-  if (!asHex) {
-    return hashArray
+  if (asHex === true) {
+    return hashToHex(hashArray) as any
   }
 
-  const hashHex = hashArray
-    .map(byte => byte.toString(16).padStart(2, "0"))
-    .join("")
+  return hashArray as any
+}
 
-  return hashHex
+export function hashToHex(hash: number[]) {
+  const hashHex = hash.map(byte => byte.toString(16).padStart(2, "0")).join("")
+
+  return `0x${hashHex}`
 }
 
 export async function calculateWasmHash(name: string, asHex: boolean) {
-  const buffer = await readFile(`${process.cwd()}/wasm/${name}/${name}.wasm`)
+  const buffer = await readFile(`${process.cwd()}/wasm/${name}/${name}.wasm.gz`)
 
   const hashBuffer = await crypto.subtle.digest("SHA-256", buffer.buffer)
 

@@ -85,9 +85,9 @@ impl App {
         self.release_hashes.push(wasm_hash);
     }
 
-    pub fn add_release(&mut self, release_args: CreateReleaseArgs) {
-        if let Ok(_) = self.release(&release_args.wasm_hash) {
-            return;
+    pub fn add_release(&mut self, release_args: CreateReleaseArgs) -> Release {
+        if let Ok(release) = self.release(&release_args.wasm_hash) {
+            return release;
         }
 
         let wasm_hash = release_args.wasm_hash.clone();
@@ -96,7 +96,9 @@ impl App {
 
         let release = Release::new(release_args);
 
-        with_releases_mut(|releases| releases.insert(wasm_hash, release));
+        with_releases_mut(|releases| releases.insert(wasm_hash, release.clone()));
+
+        release
     }
 
     pub fn update_release(&mut self, release_args: CreateReleaseArgs) {

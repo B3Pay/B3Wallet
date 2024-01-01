@@ -1,6 +1,6 @@
 import { B3Wallet } from "../old-frontend/src/service"
 import { walletActorIC, walletLocalActor } from "./actor"
-import { chunkGenerator, loadWasm, readVersion } from "./utils"
+import { chunkGenerator, loadWasmFile, readVersion } from "./utils"
 
 const resetRelease = (actor: B3Wallet) => actor.unload_wasm()
 
@@ -20,7 +20,9 @@ const loadRelease = async (
 }
 
 export const load = async (name: string, actor: B3Wallet) => {
-  const wasmModule = await loadWasm(name)
+  const { wasmModule, wasm_hash, wasm_size } = await loadWasmFile(name)
+  console.log("Wasm size:", wasm_size, "hash:", wasm_hash)
+
   const version = await readVersion(name)
 
   if (!version) {

@@ -35,15 +35,18 @@ impl WriteAppState {
         })
     }
 
-    pub fn add_release(&mut self, release_args: CreateReleaseArgs) -> Result<(), AppSystemError> {
+    pub fn add_release(
+        &mut self,
+        release_args: CreateReleaseArgs,
+    ) -> Result<Release, AppSystemError> {
         with_apps_mut(|apps| {
             let mut app = apps.get(&self.0).ok_or(AppSystemError::AppNotFound)?;
 
-            app.add_release(release_args);
+            let release = app.add_release(release_args);
 
             apps.insert(self.0.clone(), app.clone());
 
-            Ok(())
+            Ok(release)
         })
     }
 

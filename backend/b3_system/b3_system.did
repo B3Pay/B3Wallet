@@ -132,7 +132,7 @@ type Value = variant {
   Array : vec Value;
 };
 service : () -> {
-  add_release : (text, CreateReleaseArgs) -> ();
+  add_release : (text, CreateReleaseArgs) -> (ReleaseView);
   add_user_app : (principal, text) -> ();
   clear_bugs : (principal) -> ();
   create_app : (CreateAppArgs) -> (Result);
@@ -147,6 +147,7 @@ service : () -> {
   get_create_canister_app_cycle : () -> (nat) query;
   get_latest_release : (text) -> (Result_2) query;
   get_release : (vec nat8) -> (ReleaseView) query;
+  get_release_by_hash_string : (text) -> (ReleaseView) query;
   get_states : () -> (UserView) query;
   get_user_app_status : (principal) -> (UserCanisterStatus);
   get_user_ids : () -> (vec principal) query;

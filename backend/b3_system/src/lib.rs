@@ -24,7 +24,7 @@ use b3_utils::{
         bugs::{AppBug, AppBugs},
         AppCall, AppInitArgs, AppVersion, Management,
     },
-    caller_is_controller,
+    caller_is_controller, hex_string_with_0x_to_vec,
     principal::StoredPrincipal,
     revert,
     types::{CanisterId, CanisterIds, UserId},
@@ -334,11 +334,22 @@ fn get_release(wasm_hash: WasmHash) -> ReleaseView {
     with_release(&wasm_hash, |release| release.view()).unwrap_or_else(revert)
 }
 
+#[query]
+fn get_release_by_hash_string(wasm_hash_string: String) -> ReleaseView {
+    let hash = hex_string_with_0x_to_vec(wasm_hash_string).unwrap();
+
+    let wasm_hash = vec_to_wasm_hash(hash);
+
+    with_release(&wasm_hash, |release| release.view()).unwrap_or_else(revert)
+}
+
 #[update(guard = "caller_is_controller")]
-fn add_release(app_id: AppId, release_args: CreateReleaseArgs) {
-    AppState::write(app_id)
+fn add_release(app_id: AppId, release_args: CreateReleaseArgs) -> ReleaseView {
+    let release = AppState::write(app_id)
         .add_release(release_args)
         .unwrap_or_else(revert);
+
+    release.view()
 }
 
 #[update(guard = "caller_is_controller")]
