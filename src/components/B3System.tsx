@@ -41,7 +41,6 @@ const CandidField: React.FC<CandidProps> = ({
         defaultValues={defaultValues}
         actorCallHandler={call}
       />
-      {/* draw a line from middle of bottom card to top card */}
       {error || data || loading ? (
         <Card
           marginTop="sm"
