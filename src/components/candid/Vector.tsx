@@ -24,7 +24,7 @@ const Vector: React.FC<VectorProps> = ({
 
   return (
     <div>
-      <Box className="flex justify-between items-center">
+      <Box className="flex justify-between items-center mt-2">
         <Label className="flex-1 w-full block text-lg font-medium">
           {methodField.label.toTitleCase()}
         </Label>
@@ -33,7 +33,7 @@ const Vector: React.FC<VectorProps> = ({
         </Button>
       </Box>
       {fields.length > 0 && <Separator className="my-2" />}
-      <Box className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+      <Box className="grid gap-2">
         {fields.map((item, index) => (
           <Card
             key={item.id}

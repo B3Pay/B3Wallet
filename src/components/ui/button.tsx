@@ -4,7 +4,7 @@ import { cn, focusRing } from "lib/utils"
 import * as React from "react"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors whitespace-nowrap transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
+  "transition-border-radius inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors whitespace-nowrap transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
   {
     compoundVariants: [
       {
@@ -100,7 +100,7 @@ const buttonVariants = cva(
       },
       variant: {
         default: "border-2 shadow text-foreground hover:border-foreground",
-        filled: "text-foreground",
+        filled: "text-foreground focus:border-1",
         outline:
           "border-2 shadow bg-transparent hover:text-foreground hover:border-foreground",
         ghost: "shadow hover:bg-accent hover:text-accent-foreground",
@@ -115,6 +115,9 @@ const buttonVariants = cva(
       },
       asIconButton: {
         true: "p-0"
+      },
+      innerShadow: {
+        true: "shadow-button-inner"
       },
       noShadow: {
         true: "shadow-none"
@@ -135,6 +138,7 @@ export interface ButtonProps
   height?: string
   fullWidth?: boolean
   asIconButton?: boolean
+  innerShadow?: boolean
   noShadow?: boolean
   isLoading?: boolean
   iconSize?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "full" | null
@@ -154,6 +158,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       roundSize = "xl",
       diagonalRoundSide,
       roundSide,
+      innerShadow,
       asIconButton,
       height,
       noShadow,
@@ -187,7 +192,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             color,
             size,
             asIconButton,
-            noShadow
+            noShadow,
+            innerShadow
           }),
           fullWidth && "w-full",
           roundingClass,

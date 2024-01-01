@@ -2,33 +2,36 @@ import * as React from "react"
 import { VariantProps, cva } from "class-variance-authority"
 import { cn } from "lib/utils"
 import { Box, colorVariants, marginVariants, paddingVariants } from "./box"
-import { Icon } from "./icon"
+import { Icon, IconProps } from "./icon"
 
-const cardVariants = cva("bg-card shadow", {
-  variants: {
-    size: {
-      xs: "text-xs",
-      sm: "text-sm",
-      md: "text-base",
-      lg: "text-lg",
-      xl: "text-xl"
+const cardVariants = cva(
+  "bg-card transition-card-height transition-border-radius shadow",
+  {
+    variants: {
+      size: {
+        xs: "text-xs",
+        sm: "text-sm",
+        md: "text-base",
+        lg: "text-lg",
+        xl: "text-xl"
+      },
+      roundSize: {
+        none: "rounded-none",
+        xs: "rounded-xs",
+        sm: "rounded-sm",
+        md: "rounded-md",
+        lg: "rounded-lg",
+        xl: "rounded-xl",
+        "2xl": "rounded-2xl",
+        "3xl": "rounded-3xl"
+      }
     },
-    roundSize: {
-      none: "rounded-none",
-      xs: "rounded-xs",
-      sm: "rounded-sm",
-      md: "rounded-md",
-      lg: "rounded-lg",
-      xl: "rounded-xl",
-      "2xl": "rounded-2xl",
-      "3xl": "rounded-3xl"
+    defaultVariants: {
+      size: "md",
+      roundSize: "md"
     }
-  },
-  defaultVariants: {
-    size: "md",
-    roundSize: "md"
   }
-})
+)
 
 export interface CardProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, "color">,
@@ -43,6 +46,7 @@ export interface CardProps
   noShadow?: boolean
   border?: 0 | 1 | 2 | 3 | 4
   action?: React.ReactNode
+  iconProps?: IconProps
 }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
@@ -55,6 +59,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       color,
       border = 0,
       dashedBorder,
+      iconProps,
       padding,
       paddingBottom,
       paddingLeft,
@@ -100,12 +105,11 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
         <div className="flex justify-between w-full items-stretch">
           {icon && (
             <Icon
-              roundSide="tl"
-              size={size}
+              {...iconProps}
               className={cn(
-                "flex-none flex items-center justify-center rounded-br-xl",
+                "flex-none flex items-center justify-center",
                 `border-${border}`,
-                dashedBorder && "border-dashed"
+                dashedBorder ? "border-dashed" : "shadow-button-inner"
               )}
             >
               {icon}
@@ -115,7 +119,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
             color={color}
             size={size}
             className={cn(
-              "flex-1 pl-2 flex items-center font-semibold",
+              "flex-1 pl-2 flex items-center font-semibold leading-none tracking-tight",
               dashedBorder && "border-dashed",
               `border-t-${border}`
             )}

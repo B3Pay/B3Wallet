@@ -6,12 +6,14 @@ import {
 import MethodForm from "./candid/MethodForm"
 import { Card, CardContent } from "./ui/card"
 import { Box } from "./ui/box"
+import DisplayData from "./DisplayData"
+import { GlobeIcon } from "@radix-ui/react-icons"
 
 const Candid: React.FC = () => {
   const methodFields = useSystemMethodFields()
 
   return (
-    <Box className="space-y-4">
+    <Box className="grid gap-2">
       {methodFields.map((field, index) => (
         <CandidField {...field} key={index} />
       ))}
@@ -32,43 +34,27 @@ const CandidField: React.FC<CandidProps> = ({
   })
 
   return (
-    <div>
+    <div className="bg-line-middle">
       <MethodForm
         functionName={functionName}
         fields={fields}
         defaultValues={defaultValues}
         actorCallHandler={call}
       />
-      {error && (
-        <Card title={functionName.toTitleCase()}>
+      {/* draw a line from middle of bottom card to top card */}
+      {error || data || loading ? (
+        <Card
+          marginTop="sm"
+          icon={<GlobeIcon />}
+          iconProps={{
+            color: loading ? "warning" : error ? "error" : "success"
+          }}
+          title={`${functionName.toTitleCase()} ${
+            loading ? "Loading..." : error ? "Error!" : "Success"
+          }`}
+        >
           <CardContent>
-            <strong>Error</strong>
-            {error.message}
-          </CardContent>
-        </Card>
-      )}
-      {loading && (
-        <Card title={functionName.toTitleCase()}>
-          <CardContent>
-            <strong>Loading</strong>
-            Calling...
-          </CardContent>
-        </Card>
-      )}
-      {data ? (
-        <Card title={functionName.toTitleCase()}>
-          <CardContent>
-            <strong>Results</strong>
-            {!data ? (
-              <div>Calling...</div>
-            ) : (
-              JSON.stringify(
-                data,
-                (_, value) =>
-                  typeof value === "bigint" ? value.toString() : value,
-                2
-              )
-            )}
+            <DisplayData loading={loading} error={error} data={data} />
           </CardContent>
         </Card>
       ) : null}

@@ -4,7 +4,7 @@ import { cn } from "lib/utils"
 import * as React from "react"
 
 const iconVariants = cva(
-  "inline-flex items-center justify-center text-inherit p-0.5",
+  "transition-border-radius inline-flex items-center justify-center text-inherit p-0.5",
   {
     variants: {
       asButton: {
@@ -48,6 +48,7 @@ export interface IconProps
   asButton?: boolean
   asChild?: boolean
   noShadow?: boolean
+  diagonalRoundSide?: "r" | "l" | "none" | null
   roundSize?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | null
   roundSide?: "t" | "b" | "l" | "r" | "tl" | "tr" | "bl" | "br" | "none" | null
 }
@@ -58,6 +59,7 @@ const Icon = React.forwardRef<HTMLSpanElement, IconProps>(
       children,
       asButton,
       roundSize = "xl",
+      diagonalRoundSide,
       roundSide,
       variant,
       className,
@@ -75,6 +77,13 @@ const Icon = React.forwardRef<HTMLSpanElement, IconProps>(
       ? `rounded-${roundSide}-${roundSize}`
       : `rounded-${roundSize}`
 
+    const diagonalRoundingClass =
+      diagonalRoundSide === "r"
+        ? `rounded-tr-${roundSize} rounded-bl-${roundSize}`
+        : diagonalRoundSide === "l"
+        ? `rounded-tl-${roundSize} rounded-br-${roundSize}`
+        : ""
+
     return (
       <Comp
         ref={ref}
@@ -82,6 +91,7 @@ const Icon = React.forwardRef<HTMLSpanElement, IconProps>(
           iconVariants({ size, variant, color, asButton }),
           noShadow && "shadow-none",
           roundingClass,
+          diagonalRoundingClass,
           className
         )}
         {...props}

@@ -20,25 +20,23 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
       disableTransitionOnChange
     >
       <main className={`${inter.variable} font-sans`}>
-        <div className="flex justify-center flex-col space-y-5">
-          <div className="border-b">
-            <div className="flex h-16 items-center px-4 space-x-2">
-              <TeamSwitcher sharedClassName="w-screen md:w-[200px]" />
-              <div className="flex-1">
-                <MainNav className="hidden mx-6 md:flex" />
-              </div>
-              <div className="flex ml-auto items-center space-x-2">
-                <Icon
-                  variant="ghost"
-                  asButton
-                  noShadow
-                  asChild
-                  onClick={() => console.log("search")}
-                >
-                  <MagnifyingGlassIcon />
-                </Icon>
-                <UserNav />
-              </div>
+        <div className="flex justify-center flex-col space-y-2">
+          <div className="flex h-16 items-center px-4 space-x-2 bg-card">
+            <TeamSwitcher sharedClassName="w-screen md:w-[200px]" />
+            <div className="flex-1">
+              <MainNav className="hidden mx-6 md:flex" />
+            </div>
+            <div className="flex ml-auto items-center space-x-2">
+              <Icon
+                variant="ghost"
+                asButton
+                noShadow
+                asChild
+                onClick={() => console.log("search")}
+              >
+                <MagnifyingGlassIcon />
+              </Icon>
+              <UserNav />
             </div>
           </div>
           <div className="max-w-2xl mx-auto w-full">

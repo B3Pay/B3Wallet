@@ -5,13 +5,20 @@ import {
 } from "service/wallet"
 import MethodForm from "./candid/MethodForm"
 import { Card, CardContent } from "./ui/card"
+import { Box } from "./ui/box"
+import { GlobeIcon } from "@radix-ui/react-icons"
+import DisplayData from "./DisplayData"
 
 const Candid: React.FC = () => {
   const methodFields = useWalletMethodFields()
 
-  return methodFields.map((field, index) => (
-    <CandidField {...field} key={index} />
-  ))
+  return (
+    <Box className="grid gap-2">
+      {methodFields.map((field, index) => (
+        <CandidField {...field} key={index} />
+      ))}
+    </Box>
+  )
 }
 
 interface CandidProps extends WalletDynamicField {}
@@ -27,43 +34,26 @@ const CandidField: React.FC<CandidProps> = ({
   })
 
   return (
-    <div>
+    <div className="bg-line-middle">
       <MethodForm
         functionName={functionName}
         fields={fields}
         defaultValues={defaultValues}
         actorCallHandler={call}
       />
-      {error && (
-        <Card title={functionName.toTitleCase()}>
+      {error || data || loading ? (
+        <Card
+          marginTop="sm"
+          icon={<GlobeIcon />}
+          iconProps={{
+            color: loading ? "warning" : error ? "error" : "success"
+          }}
+          title={`${functionName.toTitleCase()} ${
+            loading ? "Loading..." : error ? "Error!" : "Success"
+          }`}
+        >
           <CardContent>
-            <strong>Error</strong>
-            {error.message}
-          </CardContent>
-        </Card>
-      )}
-      {loading && (
-        <Card title={functionName.toTitleCase()}>
-          <CardContent>
-            <strong>Loading</strong>
-            Calling...
-          </CardContent>
-        </Card>
-      )}
-      {data ? (
-        <Card title={functionName.toTitleCase()}>
-          <CardContent>
-            <strong>Results</strong>
-            {!data ? (
-              <div>Calling...</div>
-            ) : (
-              JSON.stringify(
-                data,
-                (_, value) =>
-                  typeof value === "bigint" ? value.toString() : value,
-                2
-              )
-            )}
+            <DisplayData loading={loading} error={error} data={data} />
           </CardContent>
         </Card>
       ) : null}

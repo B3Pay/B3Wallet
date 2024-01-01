@@ -11,7 +11,13 @@ import {
   CardDescription,
   CardFooter
 } from "components/ui/card"
-import { GlobeIcon, ResetIcon } from "@radix-ui/react-icons"
+import {
+  EyeClosedIcon,
+  EyeOpenIcon,
+  GlobeIcon,
+  ResetIcon
+} from "@radix-ui/react-icons"
+import { cn } from "lib/utils"
 
 type MethodFormProps = (SystemDynamicField | WalletDynamicField) & {
   actorCallHandler: (data: [any]) => Promise<any>
@@ -23,6 +29,7 @@ const MethodForm: React.FC<MethodFormProps> = ({
   fields,
   actorCallHandler
 }) => {
+  const [expanded, setExpanded] = useState(false)
   const [argState, setArgState] = useState<any>(null)
   const [argErrorState, setArgErrorState] = useState<any>(null)
 
@@ -80,75 +87,91 @@ const MethodForm: React.FC<MethodFormProps> = ({
 
   return (
     <Card
-      marginBottom="md"
       title={functionName.toTitleCase()}
       icon={<GlobeIcon />}
+      iconProps={{
+        roundSide: expanded ? "tl" : "l",
+        diagonalRoundSide: expanded ? "l" : "none"
+      }}
       action={
-        <Button
-          onClick={() => {
-            setArgState(null)
-            setArgErrorState(null)
-            methods.reset()
-          }}
-          noShadow
-          asIconButton
-          color="secondary"
-          variant="filled"
-          roundSide="tr"
-          className="rounded-bl-lg"
-        >
-          <ResetIcon />
-        </Button>
+        <div>
+          <Button
+            onClick={() => {
+              setArgState(null)
+              setArgErrorState(null)
+              methods.reset()
+            }}
+            asIconButton
+            variant="filled"
+            roundSide={expanded ? "bl" : "none"}
+            innerShadow
+            color="secondary"
+          >
+            <ResetIcon />
+          </Button>
+          <Button
+            onClick={() => setExpanded(prev => !prev)}
+            asIconButton
+            color="info"
+            variant="filled"
+            roundSide={expanded ? "tr" : "r"}
+            innerShadow
+          >
+            {expanded ? <EyeOpenIcon /> : <EyeClosedIcon />}
+          </Button>
+        </div>
       }
     >
-      <Form {...methods}>
-        <form noValidate onSubmit={methods.handleSubmit(onSubmit)}>
-          <CardContent>
-            {fields?.map((field, index) => (
-              <FieldRoute
-                key={index}
-                methodField={field}
-                registerName={`data.${functionName}-arg${index}`}
-                errors={
-                  (methods.formState.errors?.data as Record<string, any>)?.[
-                    `${functionName}-arg${index}`
-                  ]
-                }
-              />
-            ))}
-            <CardDescription className="flex flex-col mt-2 space-y-2 overflow-auto">
-              {argState && (
-                <span>
-                  (
-                  {argState
-                    .map((arg: any) => JSON.stringify(arg, null, 2))
-                    .join(", ")}
-                  )
-                </span>
-              )}
-              {argErrorState && (
-                <span>
-                  <strong>Arguments Error</strong>
-                  {argErrorState}
-                </span>
-              )}
-            </CardDescription>
-          </CardContent>
-          <CardFooter>
-            <Button type="submit" color="secondary" roundSide="l" fullWidth>
-              Verify Args
-            </Button>
-            <Button
-              color="primary"
-              onClick={methods.handleSubmit(callHandler)}
-              roundSide="r"
-              fullWidth
-            >
-              Call
-            </Button>
-          </CardFooter>
-        </form>
-      </Form>
+      {expanded && (
+        <Form {...methods}>
+          <form noValidate onSubmit={methods.handleSubmit(onSubmit)}>
+            <CardContent>
+              {fields?.map((field, index) => (
+                <FieldRoute
+                  key={index}
+                  methodField={field}
+                  registerName={`data.${functionName}-arg${index}`}
+                  errors={
+                    (methods.formState.errors?.data as Record<string, any>)?.[
+                      `${functionName}-arg${index}`
+                    ]
+                  }
+                />
+              ))}
+              <CardDescription className="flex flex-col mt-2 space-y-2 overflow-auto">
+                {argState && (
+                  <span>
+                    (
+                    {argState
+                      .map((arg: any) => JSON.stringify(arg, null, 2))
+                      .join(", ")}
+                    )
+                  </span>
+                )}
+                {argErrorState && (
+                  <span>
+                    <strong>Arguments Error</strong>
+                    {argErrorState}
+                  </span>
+                )}
+              </CardDescription>
+            </CardContent>
+            <CardFooter>
+              <Button type="submit" color="secondary" roundSide="l" fullWidth>
+                Verify Args
+              </Button>
+              <Button
+                color="primary"
+                onClick={methods.handleSubmit(callHandler)}
+                roundSide="r"
+                fullWidth
+              >
+                Call
+              </Button>
+            </CardFooter>
+          </form>
+        </Form>
+      )}
     </Card>
   )
 }

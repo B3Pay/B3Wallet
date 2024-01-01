@@ -49,6 +49,13 @@ module.exports = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)"
       },
+      boxShadow: {
+        "button-inner": "inset 0 0px 5px 0 rgba(0, 0, 0, 0.25)"
+      },
+      backgroundImage: {
+        "line-middle":
+          "linear-gradient(to right, transparent 49.8%, grey 49.8%, grey 50.2%, transparent 50.2%)"
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

@@ -60,7 +60,7 @@ input[type="number"] {
     }
 
     .dark {
-        --background: 300 71.4% 4.1%;
+        --background: 260 10% 15%;
         --foreground: 210 20% 98%;
         --card: 224 71.4% 4.1%;
         --card-foreground: 210 20% 98%;
@@ -85,4 +85,12 @@ input[type="number"] {
         --ring: 263.4 70% 50.4%;
         --radius: 1rem;
     }
+}
+
+.transition-border-radius {
+    transition: border-radius 0.25s ease-in-out;
+}
+
+.transition-card-height {
+    transition: height 0.5s ease-in-out;
 }
