@@ -97,8 +97,8 @@ type ReleaseView = record {
   deprecated : bool;
   wasm_hash : text;
 };
-type Result = variant { Ok : AppView; Err : text };
-type Result_1 = variant { Ok : UserView; Err : text };
+type Result = variant { Ok : UserView; Err : text };
+type Result_1 = variant { Ok : AppView; Err : text };
 type Result_2 = variant { Ok : ReleaseView; Err : text };
 type SystemCanisterStatus = record {
   user_status : nat64;
@@ -133,13 +133,13 @@ type Value = variant {
 };
 service : () -> {
   add_release : (text, CreateReleaseArgs) -> (ReleaseView);
-  add_user_app : (principal, text) -> ();
+  add_user_app : (principal, text) -> (Result);
   clear_bugs : (principal) -> ();
-  create_app : (CreateAppArgs) -> (Result);
-  create_app_canister : (text) -> (Result_1);
+  create_app : (CreateAppArgs) -> (Result_1);
+  create_app_canister : (text) -> (Result);
   create_user : (CreateUserArgs) -> (UserView);
   deprecate_release : (text, vec nat8) -> (ReleaseView);
-  get_app : (text) -> (Result);
+  get_app : (text) -> (Result_1);
   get_app_version : (principal) -> (text) composite_query;
   get_bugs : (principal) -> (vec AppBug) query;
   get_canister_info : (principal) -> (CanisterInfoResponse);
@@ -153,7 +153,7 @@ service : () -> {
   get_user_ids : () -> (vec principal) query;
   get_user_states : () -> (vec UserView) query;
   get_user_status : () -> (UserStatus) query;
-  install_app : (principal, text) -> (Result_1);
+  install_app : (principal, text) -> (Result);
   load_wasm_chunk : (vec nat8, vec nat8) -> (LoadRelease);
   releases : (text) -> (vec ReleaseView) query;
   remove_release : (vec nat8) -> ();
@@ -161,6 +161,6 @@ service : () -> {
   remove_user_app : (principal) -> ();
   report_bug : (AppBug) -> ();
   status : () -> (SystemCanisterStatus);
-  update_app : (text, CreateAppArgs) -> (Result);
+  update_app : (text, CreateAppArgs) -> (Result_1);
   version : () -> (text) query;
 }

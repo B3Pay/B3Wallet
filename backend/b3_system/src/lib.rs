@@ -235,16 +235,16 @@ async fn install_app(canister_id: CanisterId, app_id: AppId) -> Result<UserView,
 }
 
 #[update]
-async fn add_user_app(canister_id: CanisterId, app_id: AppId) {
+async fn add_user_app(canister_id: CanisterId, app_id: AppId) -> Result<UserView, String> {
     let user_id: UserId = ic_cdk::caller().into();
 
     UserState::read(user_id.clone())
         .user()
         .unwrap_or_else(revert);
 
-    let app_call = AppCall(canister_id);
+    let app = AppCall(canister_id);
 
-    let module_hash = app_call.module_hash().await.unwrap_or_else(revert);
+    let module_hash = app.module_hash().await.unwrap_or_else(revert);
 
     match module_hash {
         Some(module_hash) => {
@@ -254,15 +254,17 @@ async fn add_user_app(canister_id: CanisterId, app_id: AppId) {
                 .verify_release(&wasm_hash)
                 .unwrap_or_else(revert);
 
-            let is_valid = app_call
+            let is_valid = app
                 .validate_user(user_id.clone())
                 .await
                 .unwrap_or_else(revert);
 
             if is_valid {
-                UserState::write(user_id)
+                let user = UserState::write(user_id)
                     .add_canister(canister_id)
                     .unwrap_or_else(revert);
+
+                Ok(user.view())
             } else {
                 revert(UserSystemError::InvalidUser)
             }

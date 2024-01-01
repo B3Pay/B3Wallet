@@ -4,7 +4,7 @@ import { cn } from "lib/utils"
 import { Box, colorVariants, marginVariants, paddingVariants } from "./box"
 import { Icon } from "./icon"
 
-const cardVariants = cva("shadow", {
+const cardVariants = cva("bg-card shadow", {
   variants: {
     size: {
       xs: "text-xs",

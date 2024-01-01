@@ -23,7 +23,7 @@ const Vector: React.FC<VectorProps> = ({
   })
 
   return (
-    <Box className="my-2">
+    <div>
       <Box className="flex justify-between items-center">
         <Label className="flex-1 w-full block text-lg font-medium">
           {methodField.label.toTitleCase()}
@@ -33,64 +33,65 @@ const Vector: React.FC<VectorProps> = ({
         </Button>
       </Box>
       {fields.length > 0 && <Separator className="my-2" />}
-      {fields.map((item, index) => (
-        <Card
-          key={item.id}
-          noShadow
-          dashedBorder
-          color="primary"
-          marginBottom="sm"
-          border={2}
-          icon={index + 1}
-          title={methodField.label.toTitleCase()}
-          action={
-            <Box className="flex">
-              {index !== 0 && (
+      <Box className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+        {fields.map((item, index) => (
+          <Card
+            key={item.id}
+            noShadow
+            dashedBorder
+            color="primary"
+            border={2}
+            icon={index + 1}
+            title={methodField.label.toTitleCase()}
+            action={
+              <Box className="flex">
+                {index !== 0 && (
+                  <Button
+                    roundSide="bl"
+                    onClick={() => swap(index, index - 1)}
+                    color="secondary"
+                    asIconButton
+                    className="border-dashed "
+                  >
+                    ↑
+                  </Button>
+                )}
+                {index !== fields.length - 1 && (
+                  <Button
+                    roundSide={index > 0 ? "none" : "bl"}
+                    onClick={() => swap(index, index + 1)}
+                    color="info"
+                    asIconButton
+                    className="border-dashed"
+                  >
+                    ↓
+                  </Button>
+                )}
                 <Button
-                  roundSide="bl"
-                  onClick={() => swap(index, index - 1)}
-                  color="secondary"
+                  onClick={() => remove(index)}
+                  diagonalRoundSide={fields.length === 1 ? "r" : "none"}
+                  roundSide="tr"
                   asIconButton
-                  className="border-dashed "
-                >
-                  ↑
-                </Button>
-              )}
-              {index !== fields.length - 1 && (
-                <Button
-                  roundSide={index > 0 ? "none" : "bl"}
-                  onClick={() => swap(index, index + 1)}
-                  color="info"
-                  asIconButton
+                  noShadow
+                  color="error"
                   className="border-dashed"
                 >
-                  ↓
+                  <Cross1Icon />
                 </Button>
-              )}
-              <Button
-                onClick={() => remove(index)}
-                diagonalRoundSide={fields.length === 1 ? "r" : "none"}
-                roundSide="tr"
-                asIconButton
-                noShadow
-                color="error"
-                className="border-dashed"
-              >
-                <Cross1Icon />
-              </Button>
-            </Box>
-          }
-        >
-          <CardContent>
-            <FieldRoute
-              methodField={methodField.fields[0]}
-              errors={errors?.[index as never]}
-              registerName={`${registerName}.[${index}]`}
-            />
-          </CardContent>
-        </Card>
-      ))}
-    </Box>
+              </Box>
+            }
+          >
+            <CardContent>
+              <FieldRoute
+                methodField={methodField.fields[0]}
+                errors={errors?.[index as never]}
+                registerName={`${registerName}.[${index}]`}
+              />
+            </CardContent>
+          </Card>
+        ))}
+      </Box>
+    </div>
   )
 }
 
