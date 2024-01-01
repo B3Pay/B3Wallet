@@ -5,7 +5,7 @@ mod tests {
     use b3_utils::{ledger::Metadata, memory::types::Storable, name_to_slug, wasm::WasmHash};
 
     use crate::app::{
-        app::App,
+        app::AppData,
         types::{CreateAppArgs, CreateReleaseArgs},
     };
 
@@ -20,7 +20,7 @@ mod tests {
     fn release_mock() -> CreateReleaseArgs {
         CreateReleaseArgs {
             id: "Test App".to_string(),
-            size: 0,
+            size: 2,
             version: "0.0.1".to_string(),
             features: "".to_string(),
             wasm_hash: WasmHash::from([0; 32]),
@@ -30,7 +30,7 @@ mod tests {
     #[test]
     fn test_new_app() {
         let app_args = create_test_app_args();
-        let app = App::new(app_args.clone());
+        let app = AppData::new(app_args.clone());
 
         let expected_id = name_to_slug(&app_args.name);
 
@@ -41,38 +41,49 @@ mod tests {
     #[test]
     fn test_add_and_remove_release() {
         let app_args = create_test_app_args();
-        let mut app = App::new(app_args);
-        let hash = release_mock();
-        app.add_release(hash.clone());
+        let mut app_data = AppData::new(app_args);
+        let release_args = release_mock();
+        let mut release = app_data.add_release(release_args.clone());
 
-        assert_eq!(app.release_hashes().len(), 1);
+        assert_eq!(release.is_loaded(), false);
 
-        let _ = app.deprecate_release(hash.wasm_hash.clone());
-        assert_eq!(app.release_hashes().len(), 0);
+        let size = release
+            .load_wasm_chunk(&vec![0])
+            .unwrap_or_else(|_| panic!("Failed to load wasm chunk"));
+
+        assert_eq!(size, 1usize);
+        assert_eq!(release.is_loaded(), false);
+
+        assert_eq!(app_data.release_hashes().len(), 1);
+
+        let _ = app_data.deprecate_release(release_args.wasm_hash.clone());
+        assert_eq!(app_data.release_hashes().len(), 1);
     }
 
     #[test]
     fn test_update_release() {
         let app_args = create_test_app_args();
-        let mut app = App::new(app_args);
+        let mut app_data = AppData::new(app_args);
 
         let release = release_mock();
-        app.add_release(release.clone());
+        app_data.add_release(release.clone());
 
-        let _ = app.deprecate_release(release.wasm_hash.clone());
+        let release = app_data
+            .deprecate_release(release.wasm_hash.clone())
+            .unwrap_or_else(|_| panic!("Failed to deprecate release"));
 
-        assert!(app.release_hash(&release.wasm_hash).is_none());
+        assert!(release.is_deprecated());
 
         let new_release = release_mock();
-        app.add_release(new_release.clone());
+        app_data.add_release(new_release.clone());
 
-        assert!(app.release_hash(&new_release.wasm_hash).is_some());
+        assert!(app_data.release_hash(&new_release.wasm_hash).is_some());
     }
 
     #[test]
     fn test_get_release() {
         let app_args = create_test_app_args();
-        let mut app = App::new(app_args);
+        let mut app = AppData::new(app_args);
         let release = release_mock();
         app.add_release(release.clone());
 
@@ -84,9 +95,9 @@ mod tests {
     #[test]
     fn test_serialization_deserialization() {
         let app_args = create_test_app_args();
-        let app = App::new(app_args);
+        let app = AppData::new(app_args);
         let serialized = app.to_bytes();
-        let deserialized = App::from_bytes(Cow::Owned(serialized.into_owned()));
+        let deserialized = AppData::from_bytes(Cow::Owned(serialized.into_owned()));
 
         let app = app.view();
         let deserialized = deserialized.view();

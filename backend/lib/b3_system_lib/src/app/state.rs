@@ -9,13 +9,13 @@ use crate::app::{
     release::Release,
     store::{with_app, with_app_mut, with_apps_mut},
     types::{AppId, AppView, CreateAppArgs, CreateReleaseArgs, ReleaseView},
-    App,
+    AppData,
 };
 
 pub struct WriteAppState(pub AppId);
 
 impl WriteAppState {
-    pub fn update(&mut self, app_args: CreateAppArgs) -> Result<App, AppSystemError> {
+    pub fn update(&mut self, app_args: CreateAppArgs) -> Result<AppData, AppSystemError> {
         with_apps_mut(|apps| {
             let mut app = apps.get(&self.0).ok_or(AppSystemError::AppNotFound)?;
 
@@ -73,7 +73,7 @@ impl ReadAppState {
         with_app(&self.0, |app| app.view())
     }
 
-    pub fn app(&self) -> Result<App, AppSystemError> {
+    pub fn app(&self) -> Result<AppData, AppSystemError> {
         with_app(&self.0, |app| app.clone())
     }
 
@@ -150,8 +150,8 @@ impl ReadAppState {
 pub struct AppState;
 
 impl AppState {
-    pub fn create(app_args: CreateAppArgs) -> Result<App, AppSystemError> {
-        let app = App::new(app_args);
+    pub fn create(app_args: CreateAppArgs) -> Result<AppData, AppSystemError> {
+        let app = AppData::new(app_args);
         let app_id = app.id();
 
         with_apps_mut(|apps| {

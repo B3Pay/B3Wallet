@@ -153,17 +153,16 @@ async fn create_app_canister(app_id: AppId) -> Result<UserView, String> {
 
     let user_id: UserId = owner_id.into();
 
-    let mut user = UserState::read(user_id.clone())
+    UserState::read(user_id.clone())
         .user()
         .unwrap_or_else(revert);
 
-    let canister_id = user
-        .create_with_cycles(vec![owner_id, system_id], CREATE_APP_CANISTER_CYCLES)
+    let app = AppCall::create_with_cycles(vec![owner_id, system_id], CREATE_APP_CANISTER_CYCLES)
         .await
         .unwrap_or_else(revert);
 
-    UserState::write(user_id)
-        .add_canister(canister_id.clone())
+    let user = UserState::write(user_id)
+        .add_canister(app.canister_id())
         .unwrap_or_else(revert);
 
     let init_args = AppInitArgs {
@@ -174,13 +173,11 @@ async fn create_app_canister(app_id: AppId) -> Result<UserView, String> {
     match AppState::read(app_id).install_args(CanisterInstallMode::Install, init_args) {
         Ok(install_arg) => {
             // Install the code.
-            let install_result = AppCall(canister_id).install_code(install_arg).await;
+            let install_result = app.install_code(install_arg).await;
 
             // Update the controllers, and add canister id as controller of itself.
             // this enables the canister to update itself.
-            let update_result = AppCall(canister_id)
-                .add_controllers(vec![owner_id, system_id])
-                .await;
+            let update_result = app.add_controllers(vec![owner_id, system_id]).await;
 
             match (install_result, update_result) {
                 (Ok(_), Ok(_)) => Ok(user.view()),
@@ -212,20 +209,20 @@ async fn install_app(canister_id: CanisterId, app_id: AppId) -> Result<UserView,
 
     match AppState::read(app_id).install_args(CanisterInstallMode::Upgrade, init_args) {
         Ok(install_arg) => {
-            let app_call = AppCall(canister_id);
+            let app = AppCall(canister_id);
 
-            let status = app_call.status().await;
+            let status = app.status().await;
 
             if status.is_ok() {
                 revert(SystemError::AppCanisterAlreadyInstalled)
             }
 
             // Install the code.
-            let install_result = app_call.install_code(install_arg).await;
+            let install_result = app.install_code(install_arg).await;
 
             // Update the controllers, and add the user and canister id as controller of itself.
             // this enables the canister to update itself.
-            let update_result = app_call.add_controllers(vec![owner_id, system_id]).await;
+            let update_result = app.add_controllers(vec![owner_id, system_id]).await;
 
             match (install_result, update_result) {
                 (Ok(_), Ok(_)) => Ok(user_view),

@@ -1,15 +1,12 @@
 use b3_utils::{
-    api::Management,
     ledger::{constants::SYSTEM_RATE_LIMIT, Metadata},
     memory::types::{Bound, Storable},
-    types::{CanisterId, CanisterIds, ControllerId},
+    types::{CanisterId, CanisterIds},
     NanoTimeStamp,
 };
 use ciborium::de::from_reader;
 use ciborium::ser::into_writer;
-use ic_cdk::api::management_canister::{
-    main::CreateCanisterArgument, provisional::CanisterSettings,
-};
+
 use serde::{Deserialize, Serialize};
 use std::io::Cursor;
 
@@ -93,35 +90,6 @@ impl User {
         self.updated_at = NanoTimeStamp::now();
 
         Ok(())
-    }
-
-    /// create a new canister and save the canister id.
-    pub async fn create_with_cycles(
-        &mut self,
-        controllers: Vec<ControllerId>,
-        cycles: u128,
-    ) -> Result<CanisterId, UserSystemError> {
-        let args = CreateCanisterArgument {
-            settings: Some(CanisterSettings {
-                controllers: Some(controllers.clone()),
-                compute_allocation: None,
-                memory_allocation: None,
-                freezing_threshold: None,
-            }),
-        };
-
-        let result = Management::create_canister(args, cycles).await;
-
-        match result {
-            Ok(result) => {
-                let canister_id = result.canister_id;
-
-                self.add_canister(canister_id);
-
-                Ok(canister_id)
-            }
-            Err(err) => Err(UserSystemError::CreateCanisterError(err.to_string())),
-        }
     }
 }
 

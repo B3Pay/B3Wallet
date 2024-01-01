@@ -25,7 +25,7 @@ use super::{
 };
 
 #[derive(Deserialize, Serialize, Clone)]
-pub struct App {
+pub struct AppData {
     id: AppId,
     name: String,
     description: String,
@@ -38,7 +38,7 @@ pub struct App {
 }
 
 // Create the App struct
-impl App {
+impl AppData {
     pub fn new(app_args: CreateAppArgs) -> Self {
         let CreateAppArgs {
             name,
@@ -64,7 +64,7 @@ impl App {
 }
 
 // Write to the App struct
-impl App {
+impl AppData {
     pub fn update(&mut self, app_args: CreateAppArgs) -> Self {
         let CreateAppArgs {
             name,
@@ -121,7 +121,7 @@ impl App {
 }
 
 // Read from the App struct
-impl App {
+impl AppData {
     pub fn id(&self) -> String {
         self.id.clone()
     }
@@ -238,7 +238,7 @@ impl App {
     }
 }
 
-impl Storable for App {
+impl Storable for AppData {
     const BOUND: Bound = Bound::Unbounded;
 
     fn to_bytes(&self) -> std::borrow::Cow<[u8]> {

@@ -3,13 +3,7 @@ import {
   Value
 } from "../src/declarations/b3_system/b3_system.did"
 import { callMethod, loadSystemActor } from "./system"
-import {
-  calculateWasmHash,
-  chunkGenerator,
-  hashToHex,
-  loadWasmFile,
-  readVersion
-} from "./utils"
+import { chunkGenerator, hashToHex, loadWasmFile, readVersion } from "./utils"
 
 async function createApp(name: string) {
   const repo: Value = {

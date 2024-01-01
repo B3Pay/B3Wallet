@@ -8,9 +8,9 @@ use b3_utils::wasm::WasmHash;
 use super::error::AppSystemError;
 use super::release::Release;
 use super::types::AppId;
-use super::App;
+use super::AppData;
 
-pub type AppMap = DefaultStableBTreeMap<AppId, App>;
+pub type AppMap = DefaultStableBTreeMap<AppId, AppData>;
 pub type ReleaseMap = DefaultStableBTreeMap<WasmHash, Release>;
 pub type WasmMap = DefaultStableBTreeMap<WasmHash, Wasm>;
 
@@ -32,14 +32,14 @@ pub fn with_apps_mut<R>(f: impl FnOnce(&mut AppMap) -> R) -> R {
 
 pub fn with_app<F, T>(app_id: &AppId, f: F) -> Result<T, AppSystemError>
 where
-    F: FnOnce(App) -> T,
+    F: FnOnce(AppData) -> T,
 {
     with_apps(|state| state.get(&app_id).ok_or(AppSystemError::AppNotFound).map(f))
 }
 
 pub fn with_app_mut<F, T>(app_id: &AppId, f: F) -> Result<T, AppSystemError>
 where
-    F: FnOnce(&mut App) -> T,
+    F: FnOnce(&mut AppData) -> T,
 {
     with_apps_mut(|state| {
         state
