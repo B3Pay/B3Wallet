@@ -1,6 +1,11 @@
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn, focusRing } from "lib/utils"
+import {
+  bgColorVariants,
+  borderColorVariants,
+  hoverBgColorVariants
+} from "lib/variants"
 import * as React from "react"
 
 const buttonVariants = cva(
@@ -85,18 +90,13 @@ const buttonVariants = cva(
     ],
     variants: {
       color: {
-        primary:
-          "bg-primary/75 border-primary text-primary hover:bg-primary/50 focus:ring-primary",
-        secondary:
-          "bg-secondary/75 border-secondary text-secondary hover:bg-secondary/50 focus:ring-secondary",
-        error:
-          "bg-error/75 border-error text-error hover:bg-error/50 focus:ring-error",
-        success:
-          "bg-success/75 border-success text-success hover:bg-success/50 focus:ring-success",
-        warning:
-          "bg-warning/75 border-warning text-warning hover:bg-warning/50 focus:ring-warning",
-        info: "bg-info/75 border-info text-info hover:bg-info/50 focus:ring-info",
-        muted: "border-gray-500 hover:bg-gray-400/50"
+        primary: "focus:ring-primary",
+        secondary: "focus:ring-secondary",
+        error: "focus:ring-error",
+        success: "focus:ring-success",
+        warning: "focus:ring-warning",
+        info: "focus:ring-info",
+        muted: "border-gray-500"
       },
       variant: {
         default: "border-2 shadow text-foreground hover:border-foreground",
@@ -195,6 +195,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             noShadow,
             innerShadow
           }),
+          borderColorVariants({ borderColor: color }),
+          hoverBgColorVariants(50)({ hoverBgColor: color }),
+          bgColorVariants(75)({ bgColor: color }),
           fullWidth && "w-full",
           roundingClass,
           diagonalRoundingClass,

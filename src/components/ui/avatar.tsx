@@ -3,6 +3,7 @@ import * as React from "react"
 
 import { VariantProps, cva } from "class-variance-authority"
 import { cn } from "lib/utils"
+import { BgColorVariant } from "lib/variants"
 
 const avatarVariants = cva(
   "ml-1px shadow relative flex shrink-0 overflow-hidden",
@@ -94,7 +95,8 @@ export interface AvatarProps
       React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>,
       "color"
     >,
-    VariantProps<typeof avatarVariants> {
+    VariantProps<typeof avatarVariants>,
+    VariantProps<BgColorVariant> {
   asChild?: boolean
   noShadow?: boolean
   height?: string

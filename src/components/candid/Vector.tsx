@@ -39,7 +39,7 @@ const Vector: React.FC<VectorProps> = ({
             key={item.id}
             noShadow
             dashedBorder
-            color="primary"
+            bgColor="primary"
             border={2}
             icon={index + 1}
             title={methodField.label.toTitleCase()}

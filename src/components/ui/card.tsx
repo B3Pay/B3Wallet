@@ -1,8 +1,16 @@
 import * as React from "react"
 import { VariantProps, cva } from "class-variance-authority"
 import { cn } from "lib/utils"
-import { Box, colorVariants, marginVariants, paddingVariants } from "./box"
+import {
+  BgColorVariant,
+  MarginVariant,
+  PaddingVariant,
+  bgColorVariants,
+  marginVariants,
+  paddingVariants
+} from "lib/variants"
 import { Icon, IconProps } from "./icon"
+import { Box } from "./box"
 
 const cardVariants = cva(
   "bg-card transition-card-height transition-border-radius shadow",
@@ -35,10 +43,10 @@ const cardVariants = cva(
 
 export interface CardProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, "color">,
-    VariantProps<typeof colorVariants>,
     VariantProps<typeof cardVariants>,
-    VariantProps<typeof paddingVariants>,
-    VariantProps<typeof marginVariants> {
+    VariantProps<BgColorVariant>,
+    VariantProps<PaddingVariant>,
+    VariantProps<MarginVariant> {
   dashedBorder?: boolean
   icon?: React.ReactNode
   asChild?: boolean
@@ -56,7 +64,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       size,
       noShadow,
       noRadius,
-      color,
+      bgColor: color,
       border = 0,
       dashedBorder,
       iconProps,
@@ -98,7 +106,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
             marginRight,
             marginTop
           }),
-          colorVariants({ color }),
+          bgColorVariants()({ bgColor: color }),
           cardVariants({ size, roundSize })
         )}
       >
@@ -116,7 +124,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
             </Icon>
           )}
           <Box
-            color={color}
+            bgColor={color}
             size={size}
             className={cn(
               "flex-1 pl-2 flex items-center font-semibold leading-none tracking-tight",
@@ -131,7 +139,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
         <div
           ref={ref}
           className={cn(
-            colorVariants({ color }),
+            bgColorVariants()({ bgColor: color }),
             noRadius ? "rounded-none" : "rounded-b-lg",
             `border-${border}`,
             "border-t-0",

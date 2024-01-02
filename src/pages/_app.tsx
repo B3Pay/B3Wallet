@@ -1,4 +1,5 @@
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons"
+import ThemeToggle from "components/Theme"
 import { MainNav } from "components/main-nav"
 import TeamSwitcher from "components/team-switcher"
 import { ThemeProvider } from "components/theme-provider"
@@ -36,6 +37,7 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
               >
                 <MagnifyingGlassIcon />
               </Icon>
+              <ThemeToggle />
               <UserNav />
             </div>
           </div>

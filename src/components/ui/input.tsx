@@ -133,7 +133,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       : `rounded-${roundSize}`
 
     return (
-      <Box className={cn("relative", className)} color={color} hoverable>
+      <Box className={cn("relative", className)} bgColor={color} hoverable>
         {isIcon && (
           <Icon
             color={color}

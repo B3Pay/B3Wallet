@@ -21,11 +21,9 @@ const Candid: React.FC = () => {
   )
 }
 
-interface CandidProps extends SystemDynamicField {}
-
-const CandidField: React.FC<CandidProps> = ({
-  functionName,
+const CandidField: React.FC<SystemDynamicField> = ({
   fields,
+  functionName,
   defaultValues
 }) => {
   const { call, data, error, loading } = useSystemQuery({
