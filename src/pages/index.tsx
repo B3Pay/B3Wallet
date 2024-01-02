@@ -1,5 +1,9 @@
-import B3System from "components/B3System"
-import Footer from "components/Footer"
+import AppCanisterStatus from "components/AppCanisterStatus"
+import AppCanisterVersion from "components/AppCanisterVersion"
+import CreateApp from "components/CreateApp"
+import CreateWallet from "components/CreateWallet"
+import FetchCandid from "components/FetchCandid"
+import UserStatus from "components/UserStatus"
 import Head from "next/head"
 
 function HomePage() {
@@ -8,13 +12,12 @@ function HomePage() {
       <Head>
         <title>B3Wallet</title>
       </Head>
-      {/* <CreateApp />
-        <CreateWallet />
-        <UserStatus />
-        <AppCanisterStatus />
-        <AppCanisterVersion /> */}
-      <B3System />
-      <Footer />
+      <FetchCandid />
+      <CreateApp />
+      <CreateWallet />
+      <UserStatus />
+      <AppCanisterStatus />
+      <AppCanisterVersion />
     </div>
   )
 }

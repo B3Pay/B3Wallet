@@ -17,19 +17,21 @@ import {
   GlobeIcon,
   ResetIcon
 } from "@radix-ui/react-icons"
-import { cn } from "lib/utils"
 
 type MethodFormProps = (SystemDynamicField | WalletDynamicField) & {
+  expanded?: boolean
+  onExpand?: () => void
   actorCallHandler: (data: [any]) => Promise<any>
 }
 
 const MethodForm: React.FC<MethodFormProps> = ({
   functionName,
   defaultValues,
+  expanded = false,
+  onExpand,
   fields,
   actorCallHandler
 }) => {
-  const [expanded, setExpanded] = useState(false)
   const [argState, setArgState] = useState<any>(null)
   const [argErrorState, setArgErrorState] = useState<any>(null)
 
@@ -104,18 +106,18 @@ const MethodForm: React.FC<MethodFormProps> = ({
             asIconButton
             variant="filled"
             roundSide={expanded ? "bl" : "none"}
-            innerShadow
+            innerShadow={expanded}
             color="secondary"
           >
             <ResetIcon />
           </Button>
           <Button
-            onClick={() => setExpanded(prev => !prev)}
+            onClick={onExpand}
             asIconButton
             color="info"
             variant="filled"
             roundSide={expanded ? "tr" : "r"}
-            innerShadow
+            innerShadow={expanded}
           >
             {expanded ? <EyeOpenIcon /> : <EyeClosedIcon />}
           </Button>

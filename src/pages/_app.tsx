@@ -1,4 +1,5 @@
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons"
+import Footer from "components/Footer"
 import ThemeToggle from "components/Theme"
 import { MainNav } from "components/main-nav"
 import TeamSwitcher from "components/team-switcher"
@@ -41,9 +42,10 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
               <UserNav />
             </div>
           </div>
-          <div className="max-w-2xl mx-auto w-full">
+          <div className="max-w-2xl mx-auto w-full px-2">
             <Component {...pageProps} />
           </div>
+          <Footer />
         </div>
       </main>
     </ThemeProvider>

@@ -8,6 +8,7 @@ import { Card, CardContent } from "./ui/card"
 import { Box } from "./ui/box"
 import DisplayData from "./DisplayData"
 import { GlobeIcon } from "@radix-ui/react-icons"
+import { useState } from "react"
 
 const Candid: React.FC = () => {
   const methodFields = useSystemMethodFields()
@@ -26,6 +27,8 @@ const CandidField: React.FC<SystemDynamicField> = ({
   functionName,
   defaultValues
 }) => {
+  const [expanded, setExpanded] = useState(false)
+
   const { call, data, error, loading } = useSystemQuery({
     functionName,
     disableInitialCall: true
@@ -34,17 +37,21 @@ const CandidField: React.FC<SystemDynamicField> = ({
   return (
     <div className="bg-line-middle">
       <MethodForm
-        functionName={functionName}
         fields={fields}
-        defaultValues={defaultValues}
+        expanded={expanded}
         actorCallHandler={call}
+        functionName={functionName}
+        defaultValues={defaultValues}
+        onExpand={() => setExpanded(prev => !prev)}
       />
-      {error || data || loading ? (
+      {expanded && (error || data || loading) ? (
         <Card
           marginTop="sm"
           icon={<GlobeIcon />}
           iconProps={{
-            color: loading ? "warning" : error ? "error" : "success"
+            color: loading ? "warning" : error ? "error" : "success",
+            roundSide: "tl",
+            diagonalRoundSide: "l"
           }}
           title={`${functionName.toTitleCase()} ${
             loading ? "Loading..." : error ? "Error!" : "Success"
