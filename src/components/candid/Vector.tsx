@@ -39,9 +39,13 @@ const Vector: React.FC<VectorProps> = ({
             key={item.id}
             noShadow
             dashedBorder
-            bgColor="primary"
             border={2}
             icon={index + 1}
+            iconProps={{
+              color: "warning",
+              roundSide: "tl",
+              diagonalRoundSide: "l"
+            }}
             title={methodField.label.toTitleCase()}
             action={
               <Box className="flex">
@@ -51,6 +55,7 @@ const Vector: React.FC<VectorProps> = ({
                     onClick={() => swap(index, index - 1)}
                     color="secondary"
                     asIconButton
+                    innerShadow
                     className="border-dashed "
                   >
                     ↑
@@ -62,6 +67,7 @@ const Vector: React.FC<VectorProps> = ({
                     onClick={() => swap(index, index + 1)}
                     color="info"
                     asIconButton
+                    innerShadow
                     className="border-dashed"
                   >
                     ↓
@@ -72,6 +78,7 @@ const Vector: React.FC<VectorProps> = ({
                   diagonalRoundSide={fields.length === 1 ? "r" : "none"}
                   roundSide="tr"
                   asIconButton
+                  innerShadow
                   noShadow
                   color="error"
                   className="border-dashed"

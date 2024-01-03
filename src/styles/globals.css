@@ -49,7 +49,7 @@ input[type="number"] {
         --warning-foreground: 210 20% 98%;
         --success: 119 69% 50%;
         --success-foreground: 210 20% 98%;
-        --info: 199 74% 52%;
+        --info: 200 74% 52%;
         --info-foreground: 210 20% 98%;
         --border-pulse: 240, 5%, 90%;
         --border: 220 13% 91%;
@@ -60,9 +60,9 @@ input[type="number"] {
     }
 
     .dark {
-        --background: 260 10% 15%;
+        --background: 0 0% 20%;
         --foreground: 210 20% 98%;
-        --card: 224 71.4% 4.1%;
+        --card: 80 17.4% 10.1%;
         --card-foreground: 210 20% 98%;
         --popover: 224 71.4% 4.1%;
         --popover-foreground: 210 20% 98%;

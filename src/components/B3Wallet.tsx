@@ -8,6 +8,7 @@ import { Card, CardContent } from "./ui/card"
 import { Box } from "./ui/box"
 import { GlobeIcon } from "@radix-ui/react-icons"
 import DisplayData from "./DisplayData"
+import { useState } from "react"
 
 const Candid: React.FC = () => {
   const methodFields = useWalletMethodFields()
@@ -28,6 +29,8 @@ const CandidField: React.FC<CandidProps> = ({
   fields,
   defaultValues
 }) => {
+  const [expanded, setExpanded] = useState(false)
+
   const { call, data, error, loading } = useWalletQuery({
     functionName,
     disableInitialCall: true
@@ -36,17 +39,21 @@ const CandidField: React.FC<CandidProps> = ({
   return (
     <div className="bg-line-middle">
       <MethodForm
-        functionName={functionName}
         fields={fields}
-        defaultValues={defaultValues}
+        expanded={expanded}
         actorCallHandler={call}
+        functionName={functionName}
+        defaultValues={defaultValues}
+        onExpand={() => setExpanded(prev => !prev)}
       />
-      {error || data || loading ? (
+      {expanded && (error || data || loading) ? (
         <Card
           marginTop="sm"
           icon={<GlobeIcon />}
           iconProps={{
-            color: loading ? "warning" : error ? "error" : "success"
+            color: loading ? "warning" : error ? "error" : "success",
+            roundSide: "tl",
+            diagonalRoundSide: "l"
           }}
           title={`${functionName.toTitleCase()} ${
             loading ? "Loading..." : error ? "Error!" : "Success"

@@ -1,7 +1,8 @@
 import { useSystemUpdate } from "service/system"
 import DisplayData from "./DisplayData"
-import SystemMethod from "./SystemMethod"
-import { CreateAppArgs } from "declarations/b3_system/b3_system.did"
+import MethodForm from "./candid/MethodForm"
+import { GlobeIcon } from "@radix-ui/react-icons"
+import { Card, CardContent } from "./ui/card"
 
 interface CreateAppProps {}
 
@@ -10,20 +11,30 @@ const CreateApp: React.FC<CreateAppProps> = ({}) => {
     functionName: "create_app"
   })
 
-  console.log("field", field)
-
-  const onSubmit = (args: any) => {
-    console.log("args", args)
-    const create_app_args = Object.values(args) as [CreateAppArgs]
-
-    call(create_app_args)
-  }
-
   return (
     <div>
       <h2>Create App</h2>
-      {field ? <SystemMethod onSubmit={onSubmit} {...field} /> : null}
-      <DisplayData loading={loading} error={error} data={data} />
+      {field ? (
+        <MethodForm expanded actorCallHandler={call} {...field} />
+      ) : null}
+      {error || data || loading ? (
+        <Card
+          marginTop="sm"
+          icon={<GlobeIcon />}
+          iconProps={{
+            color: loading ? "warning" : error ? "error" : "success",
+            roundSide: "tl",
+            diagonalRoundSide: "l"
+          }}
+          title={`Create App ${
+            loading ? "Loading..." : error ? "Error!" : "Success"
+          }`}
+        >
+          <CardContent>
+            <DisplayData loading={loading} error={error} data={data} />
+          </CardContent>
+        </Card>
+      ) : null}{" "}
     </div>
   )
 }

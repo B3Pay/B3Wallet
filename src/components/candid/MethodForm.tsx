@@ -87,6 +87,8 @@ const MethodForm: React.FC<MethodFormProps> = ({
     [actorCallHandler]
   )
 
+  const expandable = onExpand !== undefined
+
   return (
     <Card
       title={functionName.toTitleCase()}
@@ -105,22 +107,24 @@ const MethodForm: React.FC<MethodFormProps> = ({
             }}
             asIconButton
             variant="filled"
-            roundSide={expanded ? "bl" : "none"}
+            roundSide={expandable && !expanded ? "none" : "bl"}
             innerShadow={expanded}
             color="secondary"
           >
             <ResetIcon />
           </Button>
-          <Button
-            onClick={onExpand}
-            asIconButton
-            color="info"
-            variant="filled"
-            roundSide={expanded ? "tr" : "r"}
-            innerShadow={expanded}
-          >
-            {expanded ? <EyeOpenIcon /> : <EyeClosedIcon />}
-          </Button>
+          {expandable && (
+            <Button
+              onClick={onExpand}
+              asIconButton
+              color="info"
+              variant="filled"
+              roundSide={expanded ? "tr" : "r"}
+              innerShadow={expanded}
+            >
+              {expanded ? <EyeOpenIcon /> : <EyeClosedIcon />}
+            </Button>
+          )}
         </div>
       }
     >
