@@ -1,10 +1,32 @@
-import { Actor, ActorMethod, ActorSubclass, HttpAgent } from "@dfinity/agent"
+import {
+  Actor,
+  ActorMethod,
+  ActorSubclass,
+  CanisterStatus,
+  HttpAgent
+} from "@dfinity/agent"
 import { IDL } from "@dfinity/candid"
 import { Principal } from "@dfinity/principal"
 
 const agent = new HttpAgent({ host: "https://ic0.app" })
 
-export async function getRemoteDidJs(canisterIdString: string) {
+export async function getIdlFactoryFromMetadata(canisterIdString: string) {
+  const canisterId = Principal.fromText(canisterIdString)
+
+  const status = await CanisterStatus.request({
+    agent,
+    canisterId,
+    paths: ["candid"]
+  })
+  const did = status.get("candid") as string | null
+  if (did) {
+    return didToFactory(did)
+  } else {
+    return undefined
+  }
+}
+
+export async function getIdlFactoryFromTmpHack(canisterIdString: string) {
   const canisterId = Principal.fromText(canisterIdString)
 
   type CommonInterface = {
@@ -23,10 +45,10 @@ export async function getRemoteDidJs(canisterIdString: string) {
 
   const data = await actor.__get_candid_interface_tmp_hack()
 
-  return didToActor(data, canisterId)
+  return didToFactory(data)
 }
 
-async function didToActor(candid_source: string, canisterId: Principal) {
+async function didToFactory(candid_source: string) {
   // call didjs canister
   const didjs_id = "a4gq6-oaaaa-aaaab-qaa4q-cai"
 
@@ -46,6 +68,5 @@ async function didToActor(candid_source: string, canisterId: Principal) {
     "data:text/javascript;charset=utf-8," + encodeURIComponent(js[0])
   const candid: any = await eval('import("' + dataUri + '")')
 
-  const actor = Actor.createActor(candid.idlFactory, { agent, canisterId })
-  console.log("actor", actor)
+  return candid.idlFactory
 }

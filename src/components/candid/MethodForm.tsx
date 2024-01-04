@@ -17,8 +17,13 @@ import {
   GlobeIcon,
   ResetIcon
 } from "@radix-ui/react-icons"
+import { ReActorMethodField } from "@ic-reactor/store"
 
-type MethodFormProps = (SystemDynamicField | WalletDynamicField) & {
+type MethodFormProps = (
+  | SystemDynamicField
+  | WalletDynamicField
+  | ReActorMethodField<any>
+) & {
   expanded?: boolean
   onExpand?: () => void
   actorCallHandler: (data: [any]) => Promise<any>
