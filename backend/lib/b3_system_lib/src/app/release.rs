@@ -32,7 +32,7 @@ pub struct Release {
 impl Release {
     pub fn new(release_args: CreateReleaseArgs) -> Self {
         Self {
-            app_id: release_args.id,
+            app_id: release_args.app_id,
             deprecated: false,
             size: release_args.size,
             date: NanoTimeStamp::now(),

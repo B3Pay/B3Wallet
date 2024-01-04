@@ -18,20 +18,20 @@ async function createApp(name: string) {
 }
 
 async function addRelease(
-  name: string,
+  app_id: string,
   version: string,
   wasm_hash: number[],
   size: bigint
 ) {
   const release: CreateReleaseArgs = {
-    id: name,
+    app_id,
     version,
     wasm_hash,
     features: "",
     size
   }
 
-  return await callMethod("add_release", name, release)
+  return await callMethod("add_release", app_id, release)
 }
 
 const loadWasmChunk = async (wasm_hash: number[], wasmModule: number[]) => {
@@ -40,36 +40,40 @@ const loadWasmChunk = async (wasm_hash: number[], wasmModule: number[]) => {
 
     console.log("Chunks: ", result)
   }
-
-  console.log("Loading done.")
 }
 
-export const load = async (name: string, reload: boolean) => {
-  const version = await readVersion(name)
+export const load = async (appId: string, reload: boolean) => {
+  const version = await readVersion(appId)
 
   if (!version) {
     console.error("Version for wasm cannot be read.")
     return
   }
 
-  console.log(`Loading ${name} wasmModule v${version} in SystemCanister.`)
+  console.log(`Loading ${appId} wasmModule v${version} in SystemCanister.`)
 
-  const { wasmModule, wasm_hash, wasm_size } = await loadWasmFile(name)
+  const { wasmModule, wasm_hash, wasm_size } = await loadWasmFile(appId)
   console.log("Wasm size:", wasm_size, "hash:", hashToHex(wasm_hash))
 
   if (reload) {
     try {
       await callMethod("remove_release", wasm_hash)
     } catch (e) {
-      console.error("Error removing release:", name, version)
+      console.error("Error removing release:", appId, version)
     }
   }
 
-  const release = await addRelease(name, version, wasm_hash, wasm_size)
+  const release = await addRelease(appId, version, wasm_hash, wasm_size)
 
   console.log("Release added:", release)
 
   await loadWasmChunk(wasm_hash, wasmModule)
+
+  console.log("Wasm loaded.")
+
+  const app = await callMethod("get_app", appId)
+
+  console.log("App:", app)
 }
 
 const loader = async (name: string, mainnet: boolean, reload: boolean) => {

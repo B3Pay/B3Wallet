@@ -6,13 +6,13 @@ type AppBug = record {
   version : text;
 };
 type AppView = record {
-  id : text;
   updated_at : nat64;
   metadata : vec record { text; Value };
   name : text;
   description : text;
   created_at : nat64;
   created_by : text;
+  app_id : text;
   latest_release : opt ReleaseView;
   install_count : nat64;
 };
@@ -59,10 +59,10 @@ type CreateAppArgs = record {
   description : text;
 };
 type CreateReleaseArgs = record {
-  id : text;
   features : text;
   size : nat64;
   version : text;
+  app_id : text;
   wasm_hash : vec nat8;
 };
 type CreateUserArgs = record {

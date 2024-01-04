@@ -19,7 +19,7 @@ mod tests {
 
     fn release_mock() -> CreateReleaseArgs {
         CreateReleaseArgs {
-            id: "Test App".to_string(),
+            app_id: "Test App".to_string(),
             size: 2,
             version: "0.0.1".to_string(),
             features: "".to_string(),

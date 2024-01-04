@@ -290,9 +290,17 @@ fn remove_user(user_principal: Principal) {
     UserState::write(user_id).remove().unwrap_or_else(revert);
 }
 
-#[update]
+#[update(guard = "caller_is_controller")]
 fn create_app(app_args: CreateAppArgs) -> Result<AppView, String> {
     match AppState::create(app_args) {
+        Ok(app) => Ok(app.view()),
+        Err(err) => Err(err.to_string()),
+    }
+}
+
+#[update(guard = "caller_is_controller")]
+fn update_app(app_id: AppId, app_args: CreateAppArgs) -> Result<AppView, String> {
+    match AppState::write(app_id).update(app_args) {
         Ok(app) => Ok(app.view()),
         Err(err) => Err(err.to_string()),
     }
@@ -302,14 +310,6 @@ fn create_app(app_args: CreateAppArgs) -> Result<AppView, String> {
 fn get_app(app_id: AppId) -> Result<AppView, String> {
     match AppState::read(app_id).app_view() {
         Ok(app) => Ok(app),
-        Err(err) => Err(err.to_string()),
-    }
-}
-
-#[update]
-fn update_app(app_id: AppId, app_args: CreateAppArgs) -> Result<AppView, String> {
-    match AppState::write(app_id).update(app_args) {
-        Ok(app) => Ok(app.view()),
         Err(err) => Err(err.to_string()),
     }
 }
@@ -343,7 +343,9 @@ fn get_release_by_hash_string(wasm_hash_string: String) -> ReleaseView {
 }
 
 #[update(guard = "caller_is_controller")]
-fn add_release(app_id: AppId, release_args: CreateReleaseArgs) -> ReleaseView {
+fn add_release(release_args: CreateReleaseArgs) -> ReleaseView {
+    let app_id = release_args.app_id.clone();
+
     let release = AppState::write(app_id)
         .add_release(release_args)
         .unwrap_or_else(revert);

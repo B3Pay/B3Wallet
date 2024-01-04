@@ -144,7 +144,7 @@ impl AppData {
 
     pub fn view(&self) -> AppView {
         AppView {
-            id: self.id(),
+            app_id: self.id(),
             name: self.name.clone(),
             metadata: self.metadata.clone(),
             created_at: self.created_at.clone(),

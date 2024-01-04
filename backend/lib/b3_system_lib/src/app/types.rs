@@ -27,7 +27,7 @@ pub struct ReleaseView {
 
 #[derive(CandidType, Debug)]
 pub struct AppView {
-    pub id: AppId,
+    pub app_id: AppId,
     pub name: String,
     pub description: String,
     pub created_by: String,
@@ -53,7 +53,7 @@ pub struct CreateAppArgs {
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct CreateReleaseArgs {
-    pub id: AppId,
+    pub app_id: AppId,
     pub size: usize,
     pub version: AppVersion,
     pub features: String,
