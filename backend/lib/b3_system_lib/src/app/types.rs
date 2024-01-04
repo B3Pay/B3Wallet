@@ -46,9 +46,9 @@ pub struct LoadRelease {
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct CreateAppArgs {
-    pub name: String,
-    pub description: String,
+    pub name: AppId,
     pub metadata: Metadata,
+    pub description: String,
 }
 
 #[derive(CandidType, Deserialize, Clone)]

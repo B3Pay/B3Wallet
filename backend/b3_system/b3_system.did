@@ -132,7 +132,7 @@ type Value = variant {
   Array : vec Value;
 };
 service : () -> {
-  add_release : (text, CreateReleaseArgs) -> (ReleaseView);
+  add_release : (CreateReleaseArgs) -> (ReleaseView);
   add_user_app : (principal, text) -> (Result);
   clear_bugs : (principal) -> ();
   create_app : (CreateAppArgs) -> (Result_1);

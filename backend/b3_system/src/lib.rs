@@ -24,7 +24,7 @@ use b3_utils::{
         bugs::{AppBug, AppBugs},
         AppCall, AppInitArgs, AppVersion, Management,
     },
-    caller_is_controller, hex_string_with_0x_to_vec,
+    caller_is_controller, hex_string_with_0x_to_vec, name_to_slug,
     principal::StoredPrincipal,
     revert,
     types::{CanisterId, CanisterIds, UserId},
@@ -299,7 +299,9 @@ fn create_app(app_args: CreateAppArgs) -> Result<AppView, String> {
 }
 
 #[update(guard = "caller_is_controller")]
-fn update_app(app_id: AppId, app_args: CreateAppArgs) -> Result<AppView, String> {
+fn update_app(app_args: CreateAppArgs) -> Result<AppView, String> {
+    let app_id = name_to_slug(&app_args.name);
+
     match AppState::write(app_id).update(app_args) {
         Ok(app) => Ok(app.view()),
         Err(err) => Err(err.to_string()),
@@ -307,7 +309,9 @@ fn update_app(app_id: AppId, app_args: CreateAppArgs) -> Result<AppView, String>
 }
 
 #[update]
-fn get_app(app_id: AppId) -> Result<AppView, String> {
+fn get_app(app_id_or_name: String) -> Result<AppView, String> {
+    let app_id = name_to_slug(&app_id_or_name);
+
     match AppState::read(app_id).app_view() {
         Ok(app) => Ok(app),
         Err(err) => Err(err.to_string()),

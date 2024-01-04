@@ -1,6 +1,7 @@
 {
   "canisters": {
     "b3_system": {
+      "name": "B3System",
       "build": "scripts/predeploy.sh",
       "candid": "wasm/b3_system/b3_system.did",
       "declarations": {
@@ -12,6 +13,7 @@
       "wasm": "wasm/b3_system/b3_system.wasm.gz"
     },
     "b3_wallet": {
+      "name": "B3Wallet",
       "build": "scripts/predeploy.sh",
       "candid": "wasm/b3_wallet/b3_wallet.did",
       "declarations": {
@@ -23,6 +25,7 @@
       "wasm": "wasm/b3_wallet/b3_wallet.wasm.gz"
     },
     "ckbtc": {
+      "name": "Ckbtc",
       "build": [
         "true"
       ],
@@ -40,6 +43,7 @@
       "wasm": "wasm/ckbtc/ledger.wasm"
     },
     "frontend": {
+      "name": "frontend",
       "build": "yarn build",
       "declarations": {
         "node_compatibility": true,
@@ -54,6 +58,7 @@
       "type": "assets"
     },
     "index": {
+      "name": "index",
       "build": [
         "true"
       ],
@@ -71,10 +76,12 @@
       "wasm": "wasm/index/index.wasm"
     },
     "internet-identity": {
+      "name": "internet-identity",
       "type": "pull",
       "id": "rdmx6-jaaaa-aaaaa-aaadq-cai"
     },
     "kyt": {
+      "name": "kyt",
       "build": [
         "true"
       ],
@@ -92,6 +99,7 @@
       "wasm": "wasm/kyt/kyt.wasm"
     },
     "minter": {
+      "name": "minter",
       "build": [
         "true"
       ],
