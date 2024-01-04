@@ -14,7 +14,7 @@
     "dfinity"
   ],
   "scripts": {
-    "dfx:start": "sh ./scripts/start.sh",
+    "dfx:start": "bash ./scripts/start.sh",
     "dfx:install": "yarn dfx:identity && sh ./scripts/install.sh",
     "dfx:identity": "dfx deps deploy internet-identity",
     "dfx:stop": "dfx stop",
