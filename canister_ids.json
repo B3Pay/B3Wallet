@@ -2,10 +2,10 @@
   "b3_payment": {
     "ic": "bwm34-gyaaa-aaaap-abduq-cai"
   },
-  "b3_system": {
+  "b3system": {
     "ic": "jdm7b-3iaaa-aaaap-abcbq-cai"
   },
-  "b3_wallet": {
+  "b3wallet": {
     "ic": "7uoyg-piaaa-aaaap-abbzq-cai"
   },
   "internet_identity": {

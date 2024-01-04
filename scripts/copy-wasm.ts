@@ -1,4 +1,4 @@
-// copy user wasm from wasm/b3_wallet/b3_wallet.wasm to public/wasm/b3_wallet.wasm
+// copy user wasm from wasm/b3wallet/b3wallet.wasm to public/wasm/b3wallet.wasm
 import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from "fs"
 import { copyFile } from "fs/promises"
 import path from "path"
@@ -20,7 +20,7 @@ const frontendReleasesPath = path.join(
   "releases"
 )
 
-const walletNames = ["b3_wallet"]
+const walletNames = ["b3wallet"]
 
 const copy = async () => {
   for await (const walletName of walletNames) {

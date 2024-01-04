@@ -1,33 +1,34 @@
 import { Actor, HttpAgent } from "@dfinity/agent"
 import { Principal } from "@dfinity/principal"
 import { readFileSync } from "fs"
-import { B3System, B3Wallet } from "../old-frontend/src/service"
-import { idlFactory as systemFactory } from "../src/declarations/b3_system"
-import { idlFactory as userFactory } from "../src/declarations/b3_wallet"
+import { idlFactory as systemFactory } from "../src/declarations/b3system"
+import { idlFactory as userFactory } from "../src/declarations/b3wallet"
 import { initIdentity } from "./utils"
+import { B3System } from "./system"
+import { B3Wallet } from "./wallet"
 
 const systemPrincipalIC = () => {
   const buffer = readFileSync("./canister_ids.json")
-  const { b3_system } = JSON.parse(buffer.toString("utf-8"))
-  return Principal.fromText(b3_system.ic)
+  const { b3system } = JSON.parse(buffer.toString("utf-8"))
+  return Principal.fromText(b3system.ic)
 }
 
 const systemPrincipalLocal = () => {
   const buffer = readFileSync("./.dfx/local/canister_ids.json")
-  const { b3_system } = JSON.parse(buffer.toString("utf-8"))
-  return Principal.fromText(b3_system.local)
+  const { b3system } = JSON.parse(buffer.toString("utf-8"))
+  return Principal.fromText(b3system.local)
 }
 
 const walletPrincipalLocal = () => {
   const buffer = readFileSync("./.dfx/local/canister_ids.json")
-  const { b3_wallet } = JSON.parse(buffer.toString("utf-8"))
-  return Principal.fromText(b3_wallet.local)
+  const { b3wallet } = JSON.parse(buffer.toString("utf-8"))
+  return Principal.fromText(b3wallet.local)
 }
 
 const walletPrincipalIC = () => {
   const buffer = readFileSync("./canister_ids.json")
-  const { b3_wallet } = JSON.parse(buffer.toString("utf-8"))
-  return Principal.fromText(b3_wallet.ic)
+  const { b3wallet } = JSON.parse(buffer.toString("utf-8"))
+  return Principal.fromText(b3wallet.ic)
 }
 
 export const icAgent = () => {

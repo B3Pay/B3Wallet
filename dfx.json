@@ -1,28 +1,26 @@
 {
   "canisters": {
-    "b3_system": {
+    "b3system": {
       "name": "B3System",
       "build": "scripts/predeploy.sh",
-      "candid": "wasm/b3_system/b3_system.did",
+      "candid": "wasm/b3system/b3system.did",
       "declarations": {
-        "node_compatibility": true,
-        "output": "src/declarations/b3_system"
+        "node_compatibility": true
       },
-      "package": "b3_system",
+      "package": "b3system",
       "type": "custom",
-      "wasm": "wasm/b3_system/b3_system.wasm.gz"
+      "wasm": "wasm/b3system/b3system.wasm.gz"
     },
-    "b3_wallet": {
+    "b3wallet": {
       "name": "B3Wallet",
       "build": "scripts/predeploy.sh",
-      "candid": "wasm/b3_wallet/b3_wallet.did",
+      "candid": "wasm/b3wallet/b3wallet.did",
       "declarations": {
-        "node_compatibility": true,
-        "output": "src/declarations/b3_wallet"
+        "node_compatibility": true
       },
-      "package": "b3_wallet",
+      "package": "b3wallet",
       "type": "custom",
-      "wasm": "wasm/b3_wallet/b3_wallet.wasm.gz"
+      "wasm": "wasm/b3wallet/b3wallet.wasm.gz"
     },
     "ckbtc": {
       "name": "Ckbtc",
@@ -31,8 +29,7 @@
       ],
       "candid": "wasm/ckbtc/ledger.did",
       "declarations": {
-        "node_compatibility": true,
-        "output": "src/declarations/ckbtc"
+        "node_compatibility": true
       },
       "remote": {
         "id": {
@@ -46,8 +43,7 @@
       "name": "frontend",
       "build": "yarn build",
       "declarations": {
-        "node_compatibility": true,
-        "output": "src/declarations/frontend"
+        "node_compatibility": true
       },
       "frontend": {
         "entrypoint": "out/index.html"
@@ -64,8 +60,7 @@
       ],
       "candid": "wasm/index/index.did",
       "declarations": {
-        "node_compatibility": true,
-        "output": "src/declarations/index"
+        "node_compatibility": true
       },
       "remote": {
         "id": {
@@ -87,8 +82,7 @@
       ],
       "candid": "wasm/kyt/kyt.did",
       "declarations": {
-        "node_compatibility": true,
-        "output": "src/declarations/kyt"
+        "node_compatibility": true
       },
       "remote": {
         "id": {
@@ -105,8 +99,7 @@
       ],
       "candid": "wasm/minter/minter.did",
       "declarations": {
-        "node_compatibility": true,
-        "output": "src/declarations/minter"
+        "node_compatibility": true
       },
       "remote": {
         "id": {

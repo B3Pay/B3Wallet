@@ -1,14 +1,14 @@
 import {
   CreateReleaseArgs,
   Value
-} from "../src/declarations/b3_system/b3_system.did"
+} from "../src/declarations/b3system/b3system.did"
 import { callMethod, loadSystemActor } from "./system"
 import { chunkGenerator, hashToHex, loadWasmFile, readVersion } from "./utils"
 import dfx from "../dfx.json"
 
 async function createApp(name: string) {
   const repo: Value = {
-    Text: "https://github.com/B3Pay/b3-wallet"
+    Text: "https://github.com/B3Pay/b3wallet"
   }
 
   return await callMethod("create_app", {
@@ -100,7 +100,7 @@ const loader = async (appId: AvailableAppIds, reload: boolean) => {
 
 type AvailableAppIds = keyof typeof dfx.canisters
 
-let appId: AvailableAppIds = "b3_wallet"
+let appId: AvailableAppIds = "b3wallet"
 let mainnet: boolean = false
 let reload: boolean = false
 
@@ -120,4 +120,6 @@ for (let i = 2; i < process.argv.length; i++) {
 console.log(`Network: ${mainnet ? "mainnet" : "local"}`) // Outputs: 'ic' if you ran: ts-node main.ts renrk-eyaaa-aaaaa-aaada-cai --network=ic --reload
 console.log(`Reload: ${reload}`) // Outputs: 'true' if you ran: ts-node main.ts renrk-eyaaa-aaaaa-aaada-cai --network=ic --reload
 
-loadSystemActor(mainnet).then(() => loader(appId, reload))
+loadSystemActor(mainnet)
+  .then(() => loader(appId, reload))
+  .catch(console.error)

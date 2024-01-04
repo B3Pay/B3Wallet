@@ -27,7 +27,7 @@ You can create a wallet or use the UI anonymously.
 
 To create a wallet, follow these steps:
 
-1. Choose the wallet type: 'b3_basic_wallet' (single owner) or 'b3_wallet' (multi-signature).
+1. Choose the wallet type: 'b3_basic_wallet' (single owner) or 'b3wallet' (multi-signature).
 2. You can create a new canister or use an existing one.
 
 - - You can create your own canister using the NNS dApp. Once it's created, copy the canister ID into the input box.
@@ -62,21 +62,21 @@ B3Wallet allows for self-upgrades, ensuring that you always have access to the l
 
 # Custom Wallet Creation Libraries
 
-Also, there are three libraries to facilitate other developers in building their own wallets seamlessly. These libraries, located in the [lib directory](https://github.com/B3Pay/b3-wallet/tree/main/backend/lib), aim to streamline the wallet creation process and allow developers to customize a wallet that meets their unique needs.
+Also, there are three libraries to facilitate other developers in building their own wallets seamlessly. These libraries, located in the [lib directory](https://github.com/B3Pay/b3wallet/tree/main/backend/lib), aim to streamline the wallet creation process and allow developers to customize a wallet that meets their unique needs.
 
 ## The Libraries:
 
 - `b3_utils`: This foundational library provides core functionalities essential for every wallet. It equips developers with fundamental tools to initiate and manage various wallet operations.
 
-- `b3_operations`: This library is designed to handle the authorization and permissions within the wallet. It simplifies the process of assigning and managing permissions for different wallet operations, enabling you to create wallets that support various levels of user access.
+- `operations`: This library is designed to handle the authorization and permissions within the wallet. It simplifies the process of assigning and managing permissions for different wallet operations, enabling you to create wallets that support various levels of user access.
 
-- `b3_wallet_lib`: This comprehensive library ties everything together and manages key aspects of wallet functionality. It handles account creation, key management, balance queries, and transfer processes for different blockchains and tokens. It also takes care of derivation processes, providing a versatile suite of wallet management tools. By using `b3_wallet_lib`, developers can interact with a clear and convenient interface, making the creation, management, and interaction with wallets a seamless experience.
+- `b3wallet_lib`: This comprehensive library ties everything together and manages key aspects of wallet functionality. It handles account creation, key management, balance queries, and transfer processes for different blockchains and tokens. It also takes care of derivation processes, providing a versatile suite of wallet management tools. By using `b3wallet_lib`, developers can interact with a clear and convenient interface, making the creation, management, and interaction with wallets a seamless experience.
 
 By utilizing these libraries, developers can create customized wallets tailored to their specific needs and innovative concepts.
 
 ## Use Cases
 
-The `b3_wallet` presents numerous practical applications in everyday life and the business world:
+The `b3wallet` presents numerous practical applications in everyday life and the business world:
 
 1. **Couples' Saving Wallet**: Couples can create a shared wallet to manage joint expenses or save for common goals, providing an intuitive and transparent way to handle shared finances.
 
@@ -86,18 +86,19 @@ The `b3_wallet` presents numerous practical applications in everyday life and th
 
 4. **Personal Finance**: Individuals can use this wallet to manage their crypto assets across multiple blockchains from a single interface. With its robust security features and easy recovery options, it offers a reliable and user-friendly tool for personal asset management.
 
-5. **Custom Wallets**: With the help of `b3_wallet_lib`, `b3_helper`, and `b3_permit`, developers can create custom wallet solutions tailored to specific needs. This opens up a world of possibilities for innovative financial products and services built on top of the `b3_wallet`.
+5. **Custom Wallets**: With the help of `b3wallet_lib`, `b3_helper`, and `b3_permit`, developers can create custom wallet solutions tailored to specific needs. This opens up a world of possibilities for innovative financial products and services built on top of the `b3wallet`.
 
-This project harnesses the power of the Internet Computer blockchain. By utilizing the blockchain's features such as scalability, security, and seamless interoperability, `b3_wallet` is able to provide a decentralized, robust, and versatile solution for managing crypto assets.
+This project harnesses the power of the Internet Computer blockchain. By utilizing the blockchain's features such as scalability, security, and seamless interoperability, `b3wallet` is able to provide a decentralized, robust, and versatile solution for managing crypto assets.
 
-As the digital economy continues to grow, the `b3_wallet` has the potential to play a crucial role in various sectors, making crypto asset management more accessible and secure for all, with the incredible capabilities of the Internet Computer blockchain backing it.
+As the digital economy continues to grow, the `b3wallet` has the potential to play a crucial role in various sectors, making crypto asset management more accessible and secure for all, with the incredible capabilities of the Internet Computer blockchain backing it.
 
 ## Future Plans
 
 I am considering the creation of a global wallet - a wallet that no one owns but everyone can sign. This revolutionary concept aims to bring the ethos of decentralization in blockchain technology to the next level. Stay tuned for more updates on this.
 
 # Setting Up and Running B3Wallet Locally
-Clone the repo : `git clone --recurse-submodules https://github.com/B3Pay/b3-wallet.git `.(b3_utils is a submodule)  
+
+Clone the repo : `git clone --recurse-submodules https://github.com/B3Pay/b3wallet.git `.(b3_utils is a submodule)
 
 Follow these instructions to set up and run the B3Wallet project on your local machine:
 

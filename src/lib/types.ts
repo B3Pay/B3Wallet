@@ -1,4 +1,4 @@
-import { CanisterStatusResponse } from "declarations/b3_system/b3_system.did"
+import { CanisterStatusResponse } from "declarations/b3system/b3system.did"
 
 export type ModuleHash = CanisterStatusResponse["module_hash"]
 

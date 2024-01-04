@@ -1,0 +1,32 @@
+[package]
+name = "b3wallet_lib"
+version = "0.1.33"
+edition = "2021"
+description = "This is wallet library for the B3Wallet project."
+license = "Apache-2.0"
+readme = "./README.md"
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+candid = { workspace = true }
+ic-cdk = { workspace = true }
+async-trait = { workspace = true }
+enum_dispatch = { workspace = true }
+b3_utils = { workspace = true, features = ["stable_memory", "sha2", "ledger"] }
+bech32 = "0.9.1"
+bs58 = "0.5.0"
+ripemd = "0.1.3"
+hex = "0.4"
+ciborium = "0.2"
+num-traits = "0.2"
+serde_bytes = "0.11"
+ethereum-rlp = "0.2"
+tiny-keccak = { version = "2.0.0", features = ["keccak"] }
+libsecp256k1 = "0.7.1"
+# for wasm build only
+getrandom = { version = "0.2", features = ["custom"] }
+
+[dev-dependencies]
+bitcoin = "0.31"
+proptest = "1.0"
+simple_asn1 = "0.6"

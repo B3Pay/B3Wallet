@@ -1,8 +1,8 @@
 import { createReActor } from "@ic-reactor/react"
 import { ReActorMethodField } from "@ic-reactor/store"
-import { b3_wallet, canisterId, idlFactory } from "declarations/b3_wallet"
+import { b3wallet, canisterId, idlFactory } from "declarations/b3wallet"
 
-export type B3Wallet = typeof b3_wallet
+export type B3Wallet = typeof b3wallet
 
 export const {
   useQueryCall: useWalletQuery,

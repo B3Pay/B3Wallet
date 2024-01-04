@@ -18,7 +18,6 @@
     "dfx:install": "yarn dfx:identity && sh ./scripts/install.sh",
     "dfx:identity": "dfx deps deploy internet-identity",
     "dfx:stop": "dfx stop",
-    "build:wallet": "./scripts/b3_wallet.sh",
     "predeploy": "sh ./scripts/predeploy.sh",
     "deploy": "dfx deploy",
     "generate": "dfx generate",

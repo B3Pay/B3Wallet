@@ -1,11 +1,11 @@
 [workspace]
 resolver = "2"
 members = [
-    "backend/b3_system",
-    "backend/b3_wallet",
-    "backend/lib/b3_system_lib",
-    "backend/lib/b3_wallet_lib",
-    "backend/lib/b3_operations",
+    "backend/b3system",
+    "backend/b3wallet",
+    "backend/lib/b3system_lib",
+    "backend/lib/b3wallet_lib",
+    "backend/lib/operations",
 ]
 
 [workspace.dependencies]

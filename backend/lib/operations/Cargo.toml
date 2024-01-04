@@ -1,0 +1,17 @@
+[package]
+name = "operations"
+version = "0.2.0"
+edition = "2021"
+description = "This is operation library for the B3Wallet project."
+license = "Apache-2.0"
+readme = "./README.md"
+
+[dependencies]
+serde = { workspace = true }
+candid = { workspace = true }
+ic-cdk = { workspace = true }
+async-trait = { workspace = true }
+enum_dispatch = { workspace = true }
+b3_utils = { workspace = true }
+
+b3wallet_lib = { path = "../b3wallet_lib" }

@@ -6,7 +6,7 @@ const call = async (name: string, asHex: boolean) => {
   console.log(hash)
 }
 
-let name: string = "b3_wallet"
+let name: string = "b3wallet"
 let asHex: boolean = false
 
 for (let i = 2; i < process.argv.length; i++) {

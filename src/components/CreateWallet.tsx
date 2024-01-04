@@ -7,7 +7,7 @@ interface CreateWalletProps {}
 const CreateWallet: React.FC<CreateWalletProps> = ({}) => {
   const { call, data, error, loading } = useSystemUpdate({
     functionName: "create_app_canister",
-    args: ["b3-wallet"]
+    args: ["b3wallet"]
   })
 
   return (

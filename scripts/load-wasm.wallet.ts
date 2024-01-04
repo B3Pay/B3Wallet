@@ -1,6 +1,6 @@
-import { B3Wallet } from "../old-frontend/src/service"
 import { walletActorIC, walletLocalActor } from "./actor"
 import { chunkGenerator, loadWasmFile, readVersion } from "./utils"
+import { B3Wallet } from "./wallet"
 
 const resetRelease = (actor: B3Wallet) => actor.unload_wasm()
 
@@ -40,7 +40,7 @@ const loader = async (name: string, mainnet: boolean) => {
   await load(name, actor)
 }
 
-let name: string = "b3_wallet"
+let name: string = "b3wallet"
 let mainnet: boolean = false
 const reload: boolean = false
 
