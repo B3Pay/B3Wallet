@@ -14,7 +14,7 @@ const Footer: React.FC<FooterProps> = ({}) => {
           <Image
             width={140}
             height={30}
-            src="/icp-logo.svg"
+            src="assets/icp-logo.svg"
             alt="DFINITY logo"
           />
         </a>

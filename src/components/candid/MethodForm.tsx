@@ -15,7 +15,6 @@ import {
   DownloadIcon,
   EyeClosedIcon,
   EyeOpenIcon,
-  GlobeIcon,
   ResetIcon,
   UploadIcon
 } from "@radix-ui/react-icons"

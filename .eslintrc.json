@@ -1,4 +1,5 @@
 {
+  "parser": "@typescript-eslint/parser",
   "extends": ["next/core-web-vitals"],
   "plugins": ["react"],
   "globals": {
@@ -40,6 +41,5 @@
     "no-restricted-syntax": 0,
     "arrow-body-style": 0,
     "prefer-const": 1
-  },
-  "ignorePatterns": ["src/declarations/**"]
+  }
 }

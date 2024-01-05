@@ -32,6 +32,9 @@ const cardVariants = cva(
         xl: "rounded-xl",
         "2xl": "rounded-2xl",
         "3xl": "rounded-3xl"
+      },
+      noShadow: {
+        true: "shadow-none"
       }
     },
     defaultVariants: {
@@ -42,11 +45,12 @@ const cardVariants = cva(
 )
 
 export interface CardProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, "color">,
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, "color" | "title">,
     VariantProps<typeof cardVariants>,
     VariantProps<BgColorVariant>,
     VariantProps<PaddingVariant>,
     VariantProps<MarginVariant> {
+  title?: React.ReactNode
   dashedBorder?: boolean
   icon?: React.ReactNode
   asChild?: boolean
@@ -107,7 +111,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
             marginTop
           }),
           bgColorVariants()({ bgColor: color }),
-          cardVariants({ size, roundSize })
+          cardVariants({ size, roundSize, noShadow })
         )}
       >
         <div className="flex justify-between w-full items-stretch">
