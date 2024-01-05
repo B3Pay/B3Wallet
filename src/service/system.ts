@@ -13,7 +13,8 @@ export const {
 } = createReActor<B3System>({
   canisterId,
   idlFactory,
-  withDevtools: true
+  withDevtools: true,
+  host: "https://ic0.app"
 })
 
 export type SystemDynamicField = ReActorMethodField<B3System>

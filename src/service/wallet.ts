@@ -13,7 +13,8 @@ export const {
 } = createReActor<B3Wallet>({
   canisterId,
   idlFactory,
-  withDevtools: true
+  withDevtools: true,
+  host: "https://ic0.app"
 })
 
 export type WalletDynamicField = ReActorMethodField<B3Wallet>
