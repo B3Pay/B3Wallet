@@ -2,10 +2,10 @@ import {
   useSystemMethodFields,
   SystemDynamicField,
   useSystemQuery
-} from "service/system"
-import MethodForm from "./candid/MethodForm"
-import { Box } from "./ui/box"
-import DisplayData from "./DisplayData"
+} from "@src/service/system"
+import MethodForm from "@src/components/candid/MethodForm"
+import { Box } from "@src/components/ui/box"
+import DisplayData from "@src/components/DisplayData"
 import { useState } from "react"
 
 const Candid: React.FC = () => {

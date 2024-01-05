@@ -1,7 +1,7 @@
 import * as React from "react"
 
 import { VariantProps, cva } from "class-variance-authority"
-import { cn, focusRing } from "lib/utils"
+import { cn, focusRing } from "@src/lib/utils"
 import { Box } from "./box"
 import { Icon } from "./icon"
 import { Cross2Icon } from "@radix-ui/react-icons"

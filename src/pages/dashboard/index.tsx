@@ -1,17 +1,22 @@
-import { Overview } from "components/overview"
-import { RecentSales } from "components/recent-sales"
-import { Button } from "components/ui/button"
+import { Overview } from "@src/components/overview"
+import { RecentSales } from "@src/components/recent-sales"
+import { Button } from "@src/components/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle
-} from "components/ui/card"
-import { CalendarDateRangePicker } from "components/ui/date-range-picker"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "components/ui/tabs"
+} from "@src/components/ui/card"
+import { CalendarDateRangePicker } from "@src/components/ui/date-range-picker"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
+} from "@src/components/ui/tabs"
 
-export default function Dashboard() {
+function Dashboard() {
   return (
     <div className="flex-col md:flex">
       <div className="flex-1 space-y-4 p-8 pt-6">
@@ -166,3 +171,5 @@ export default function Dashboard() {
     </div>
   )
 }
+
+export default Dashboard

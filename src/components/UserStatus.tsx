@@ -1,6 +1,6 @@
 import { ReloadIcon } from "@radix-ui/react-icons"
 import { useEffect } from "react"
-import { useSystemUpdate } from "service/system"
+import { useSystemUpdate } from "@src/service/system"
 import AddWallet from "./AddWallet"
 import DisplayData from "./DisplayData"
 import InstallWallet from "./InstallWallet"

@@ -6,10 +6,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage
-} from "components/ui/form"
-import { Input } from "components/ui/input"
+} from "@src/components/ui/form"
+import { Input } from "@src/components/ui/input"
 import { ClipboardIcon, InfoCircledIcon } from "@radix-ui/react-icons"
-import { Button } from "components/ui/button"
+import { Button } from "@src/components/ui/button"
 
 interface PrincipalProps extends FieldRouteProps {}
 

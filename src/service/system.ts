@@ -1,6 +1,6 @@
 import { createReActor } from "@ic-reactor/react"
 import { ReActorMethodField } from "@ic-reactor/store"
-import { b3system, canisterId, idlFactory } from "declarations/b3system"
+import { b3system, canisterId, idlFactory } from "@src/declarations/b3system"
 
 export type B3System = typeof b3system
 

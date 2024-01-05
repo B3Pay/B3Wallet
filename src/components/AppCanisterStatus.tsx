@@ -1,7 +1,7 @@
 import { Principal } from "@dfinity/principal"
 import { ShadowInnerIcon } from "@radix-ui/react-icons"
 import { useMemo, useState } from "react"
-import { useSystemUpdate } from "service/system"
+import { useSystemUpdate } from "@src/service/system"
 import DisplayData from "./DisplayData"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"

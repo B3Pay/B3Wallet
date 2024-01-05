@@ -70,7 +70,7 @@
       "type": "custom",
       "wasm": "wasm/index/index.wasm"
     },
-    "internet-identity": {
+    "internet_identity": {
       "name": "internet-identity",
       "type": "pull",
       "id": "rdmx6-jaaaa-aaaaa-aaadq-cai"

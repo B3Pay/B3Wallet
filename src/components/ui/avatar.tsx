@@ -2,8 +2,8 @@ import * as AvatarPrimitive from "@radix-ui/react-avatar"
 import * as React from "react"
 
 import { VariantProps, cva } from "class-variance-authority"
-import { cn } from "lib/utils"
-import { BgColorVariant } from "lib/variants"
+import { cn } from "@src/lib/utils"
+import { BgColorVariant } from "@src/lib/variants"
 
 const avatarVariants = cva(
   "ml-1px shadow relative flex shrink-0 overflow-hidden",

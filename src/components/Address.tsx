@@ -4,8 +4,8 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger
-} from "components/ui/tooltip"
-import { cn } from "lib/utils"
+} from "@src/components/ui/tooltip"
+import { cn } from "@src/lib/utils"
 import { useMemo, useState } from "react"
 import { Button } from "./ui/button"
 import { DropdownMenuShortcut } from "./ui/dropdown-menu"

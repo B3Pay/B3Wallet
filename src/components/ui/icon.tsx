@@ -1,6 +1,6 @@
 import { Slot } from "@radix-ui/react-slot"
 import { cva, VariantProps } from "class-variance-authority"
-import { cn } from "lib/utils"
+import { cn } from "@src/lib/utils"
 import * as React from "react"
 
 const iconVariants = cva(

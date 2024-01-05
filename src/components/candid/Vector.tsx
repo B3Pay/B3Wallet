@@ -1,12 +1,12 @@
 import React from "react"
 import { useFieldArray, useFormContext } from "react-hook-form"
-import { Button } from "components/ui/button"
+import { Button } from "@src/components/ui/button"
 import FieldRoute, { FieldRouteProps } from "./FieldRoute"
-import { Box } from "components/ui/box"
-import { Separator } from "components/ui/separator"
-import { Label } from "components/ui/label"
+import { Box } from "@src/components/ui/box"
+import { Separator } from "@src/components/ui/separator"
+import { Label } from "@src/components/ui/label"
 import { Cross1Icon, PlusIcon } from "@radix-ui/react-icons"
-import { Card, CardContent } from "components/ui/card"
+import { Card, CardContent } from "@src/components/ui/card"
 
 interface VectorProps extends FieldRouteProps {}
 

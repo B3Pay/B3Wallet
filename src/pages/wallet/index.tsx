@@ -1,7 +1,7 @@
-import B3Wallet from "components/B3Wallet"
+import B3Wallet from "./B3Wallet"
 import Head from "next/head"
 
-function HomePage() {
+function B3WalletPage() {
   return (
     <div>
       <Head>
@@ -12,4 +12,4 @@ function HomePage() {
   )
 }
 
-export default HomePage
+export default B3WalletPage

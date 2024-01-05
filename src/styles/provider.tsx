@@ -4,9 +4,11 @@ import { useState, useEffect } from "react"
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
   const [hasMounted, setHasMounted] = useState(false)
+
   useEffect(() => {
     setHasMounted(true)
   }, [])
+
   if (!hasMounted) {
     return null
   }

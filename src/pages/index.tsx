@@ -1,8 +1,8 @@
-import AppCanisterStatus from "components/AppCanisterStatus"
-import AppCanisterVersion from "components/AppCanisterVersion"
-import CreateApp from "components/CreateApp"
-import CreateWallet from "components/CreateWallet"
-import UserStatus from "components/UserStatus"
+import AppCanisterStatus from "@src/components/AppCanisterStatus"
+import AppCanisterVersion from "@src/components/AppCanisterVersion"
+import CreateApp from "@src/components/CreateApp"
+import CreateWallet from "@src/components/CreateWallet"
+import UserStatus from "@src/components/UserStatus"
 import Head from "next/head"
 
 function HomePage() {

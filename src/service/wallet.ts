@@ -1,6 +1,6 @@
 import { createReActor } from "@ic-reactor/react"
 import { ReActorMethodField } from "@ic-reactor/store"
-import { b3wallet, canisterId, idlFactory } from "declarations/b3wallet"
+import { b3wallet, canisterId, idlFactory } from "@src/declarations/b3wallet"
 
 export type B3Wallet = typeof b3wallet
 

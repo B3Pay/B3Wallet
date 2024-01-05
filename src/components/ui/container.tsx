@@ -1,6 +1,6 @@
 import { Slot } from "@radix-ui/react-slot"
 import { cva, VariantProps } from "class-variance-authority"
-import { cn } from "lib/utils"
+import { cn } from "@src/lib/utils"
 import * as React from "react"
 
 const containerVariants = cva("max-w-7xl mx-auto px-4 sm:px-6 lg:px-8", {

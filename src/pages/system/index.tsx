@@ -1,7 +1,7 @@
-import B3System from "components/B3System"
+import B3System from "./B3System"
 import Head from "next/head"
 
-function HomePage() {
+function B3SystemPage() {
   return (
     <div>
       <Head>
@@ -17,4 +17,4 @@ function HomePage() {
   )
 }
 
-export default HomePage
+export default B3SystemPage

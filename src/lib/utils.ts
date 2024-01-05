@@ -1,6 +1,6 @@
 import { toHexString } from "@dfinity/candid/lib/cjs"
 import { clsx, type ClassValue } from "clsx"
-import { CanisterStatusResponse } from "declarations/b3system/b3system.did"
+import { CanisterStatusResponse } from "@src/declarations/b3system/b3system.did"
 import { twMerge } from "tailwind-merge"
 
 export const errorHandler = (error: Error | unknown | null): string => {

@@ -1,9 +1,9 @@
 import { useReActor } from "@ic-reactor/react"
 import { ReActorMethodField } from "@ic-reactor/store"
 import { useState } from "react"
-import MethodForm from "./candid/MethodForm"
-import DisplayData from "./DisplayData"
-import { Box } from "./ui/box"
+import MethodForm from "@src/components/candid/MethodForm"
+import DisplayData from "@src/components/DisplayData"
+import { Box } from "@src/components/ui/box"
 
 interface FetchCandidProps {}
 

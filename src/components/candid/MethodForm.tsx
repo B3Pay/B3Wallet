@@ -1,16 +1,16 @@
 import { useCallback, useState } from "react"
-import { Button } from "components/ui/button"
+import { Button } from "@src/components/ui/button"
 import FieldRoute from "./FieldRoute"
 import { useForm } from "react-hook-form"
-import { SystemDynamicField } from "service/system"
-import { WalletDynamicField } from "service/wallet"
-import { Form } from "components/ui/form"
+import { SystemDynamicField } from "@src/service/system"
+import { WalletDynamicField } from "@src/service/wallet"
+import { Form } from "@src/components/ui/form"
 import {
   Card,
   CardContent,
   CardDescription,
   CardFooter
-} from "components/ui/card"
+} from "@src/components/ui/card"
 import {
   DownloadIcon,
   EyeClosedIcon,

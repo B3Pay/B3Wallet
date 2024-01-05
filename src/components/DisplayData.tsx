@@ -1,4 +1,4 @@
-import { errorHandler, objectToString } from "lib/utils"
+import { errorHandler, objectToString } from "@src/lib/utils"
 import { Card, CardContent } from "./ui/card"
 import { GlobeIcon } from "@radix-ui/react-icons"
 

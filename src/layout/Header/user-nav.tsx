@@ -1,5 +1,5 @@
 import { AvatarIcon } from "@radix-ui/react-icons"
-import { Avatar, AvatarFallback } from "components/ui/avatar"
+import { Avatar, AvatarFallback } from "@src/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,11 +9,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger
-} from "components/ui/dropdown-menu"
-import { cn } from "lib/utils"
-import { useSystemAuthClient } from "service/system"
-import Address from "./Address"
-import { Button } from "./ui/button"
+} from "@src/components/ui/dropdown-menu"
+import { cn } from "@src/lib/utils"
+import { useSystemAuthClient } from "@src/service/system"
+import Address from "@src/components/Address"
+import { Button } from "@src/components/ui/button"
 
 interface UserNavProps {
   className?: string

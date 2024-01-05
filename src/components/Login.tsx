@@ -1,5 +1,5 @@
-import { errorHandler } from "lib/utils"
-import { useSystemAuthClient } from "service/system"
+import { errorHandler } from "@src/lib/utils"
+import { useSystemAuthClient } from "@src/service/system"
 import Address from "./Address"
 import { Button } from "./ui/button"
 

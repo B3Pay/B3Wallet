@@ -1,6 +1,6 @@
 import * as React from "react"
 import { VariantProps, cva } from "class-variance-authority"
-import { cn } from "lib/utils"
+import { cn } from "@src/lib/utils"
 import {
   BgColorVariant,
   MarginVariant,
@@ -8,7 +8,7 @@ import {
   bgColorVariants,
   marginVariants,
   paddingVariants
-} from "lib/variants"
+} from "@src/lib/variants"
 import { Icon, IconProps } from "./icon"
 import { Box } from "./box"
 

@@ -7,14 +7,14 @@ import {
   SelectContent,
   SelectTrigger,
   SelectValue
-} from "components/ui/select"
+} from "@src/components/ui/select"
 import {
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage
-} from "components/ui/form"
+} from "@src/components/ui/form"
 
 interface VariantProps extends FieldRouteProps {}
 

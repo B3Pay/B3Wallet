@@ -1,4 +1,4 @@
-import { Box } from "components/ui/box"
+import { Box } from "@src/components/ui/box"
 import FieldRoute, { FieldRouteProps } from "./FieldRoute"
 
 interface RecordProps extends FieldRouteProps {}

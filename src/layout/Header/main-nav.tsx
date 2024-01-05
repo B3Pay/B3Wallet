@@ -1,6 +1,6 @@
 import Link from "next/link"
 
-import { cn } from "lib/utils"
+import { cn } from "@src/lib/utils"
 
 export function MainNav({
   className,
@@ -29,12 +29,12 @@ export function MainNav({
       >
         Candid
       </Link>
-      {/* <Link
-        href="/examples/dashboard"
+      <Link
+        href="/dashboard"
         className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
       >
-        Settings
-      </Link> */}
+        Dashboard
+      </Link>
     </nav>
   )
 }

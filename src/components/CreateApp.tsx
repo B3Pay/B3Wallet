@@ -1,4 +1,4 @@
-import { useSystemUpdate } from "service/system"
+import { useSystemUpdate } from "@src/service/system"
 import DisplayData from "./DisplayData"
 import MethodForm from "./candid/MethodForm"
 

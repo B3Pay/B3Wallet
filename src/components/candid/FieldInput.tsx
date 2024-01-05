@@ -5,8 +5,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage
-} from "components/ui/form"
-import { Input } from "components/ui/input"
+} from "@src/components/ui/form"
+import { Input } from "@src/components/ui/input"
 import { InfoCircledIcon } from "@radix-ui/react-icons"
 
 interface FieldInputProps extends FieldRouteProps {}

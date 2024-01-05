@@ -1,8 +1,8 @@
 import { ReActorProvider } from "@ic-reactor/react"
 import { ExternalLinkIcon } from "@radix-ui/react-icons"
-import FetchCandid from "components/FetchCandid"
-import { Button } from "components/ui/button"
-import { Card, CardContent } from "components/ui/card"
+import FetchCandid from "./FetchCandid"
+import { Button } from "@src/components/ui/button"
+import { Card, CardContent } from "@src/components/ui/card"
 import {
   Form,
   FormControl,
@@ -11,13 +11,13 @@ import {
   FormItem,
   FormLabel,
   FormMessage
-} from "components/ui/form"
-import { Input } from "components/ui/input"
+} from "@src/components/ui/form"
+import { Input } from "@src/components/ui/input"
 import Head from "next/head"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 
-function HomePage() {
+function CandidPage() {
   const [canisterId, setCanisterId] = useState("ss2fx-dyaaa-aaaar-qacoq-cai")
 
   const form = useForm({
@@ -89,4 +89,4 @@ function HomePage() {
   )
 }
 
-export default HomePage
+export default CandidPage

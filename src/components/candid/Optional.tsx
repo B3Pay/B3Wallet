@@ -1,8 +1,8 @@
 import { useFieldArray, useFormContext } from "react-hook-form"
 import FieldRoute, { FieldRouteProps } from "./FieldRoute"
-import { Switch } from "components/ui/switch"
-import { Box } from "components/ui/box"
-import { Label } from "components/ui/label"
+import { Switch } from "@src/components/ui/switch"
+import { Box } from "@src/components/ui/box"
+import { Label } from "@src/components/ui/label"
 
 interface OptionalProps extends FieldRouteProps {}
 

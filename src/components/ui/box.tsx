@@ -1,6 +1,6 @@
 import { Slot } from "@radix-ui/react-slot"
 import { cva, VariantProps } from "class-variance-authority"
-import { cn } from "lib/utils"
+import { cn } from "@src/lib/utils"
 import {
   BgColorVariant,
   bgColorVariants,
@@ -15,7 +15,7 @@ import {
   HoverColorVariant,
   BorderWidthVariant,
   borderWidthVariants
-} from "lib/variants"
+} from "@src/lib/variants"
 import * as React from "react"
 
 const boxVariants = cva("", {
