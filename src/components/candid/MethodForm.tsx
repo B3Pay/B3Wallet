@@ -115,6 +115,7 @@ const MethodForm: React.FC<MethodFormProps> = ({
               methods.reset()
             }}
             asIconButton
+            diagonalRoundSide={expandable ? "none" : "r"}
             variant="filled"
             roundSide={expandable && !expanded ? "none" : "bl"}
             innerShadow={expanded}

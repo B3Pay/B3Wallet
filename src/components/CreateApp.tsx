@@ -1,8 +1,6 @@
 import { useSystemUpdate } from "service/system"
 import DisplayData from "./DisplayData"
 import MethodForm from "./candid/MethodForm"
-import { GlobeIcon } from "@radix-ui/react-icons"
-import { Card, CardContent } from "./ui/card"
 
 interface CreateAppProps {}
 
@@ -17,24 +15,7 @@ const CreateApp: React.FC<CreateAppProps> = ({}) => {
       {field ? (
         <MethodForm expanded actorCallHandler={call} {...field} />
       ) : null}
-      {error || data || loading ? (
-        <Card
-          marginTop="sm"
-          icon={<GlobeIcon />}
-          iconProps={{
-            color: loading ? "warning" : error ? "error" : "success",
-            roundSide: "tl",
-            diagonalRoundSide: "l"
-          }}
-          title={`Create App ${
-            loading ? "Loading..." : error ? "Error!" : "Success"
-          }`}
-        >
-          <CardContent>
-            <DisplayData loading={loading} error={error} data={data} />
-          </CardContent>
-        </Card>
-      ) : null}{" "}
+      <DisplayData loading={loading} error={error} data={data} />
     </div>
   )
 }

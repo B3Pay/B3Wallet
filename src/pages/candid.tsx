@@ -1,5 +1,5 @@
 import { ReActorProvider } from "@ic-reactor/react"
-import { DownloadIcon, ExternalLinkIcon, GearIcon } from "@radix-ui/react-icons"
+import { ExternalLinkIcon } from "@radix-ui/react-icons"
 import FetchCandid from "components/FetchCandid"
 import { Button } from "components/ui/button"
 import { Card, CardContent } from "components/ui/card"

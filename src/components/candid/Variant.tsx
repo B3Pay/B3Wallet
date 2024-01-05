@@ -25,7 +25,6 @@ const Variant: React.FC<VariantProps> = ({
   registerName,
   errors
 }) => {
-  const currentRef = useRef<string>()
   const { control, unregister, setValue } = useFormContext()
 
   const selectName = useMemo(() => `select.select${recursiveCounter++}`, [])
@@ -37,17 +36,15 @@ const Variant: React.FC<VariantProps> = ({
       return {}
     }
 
-    if (currentRef.current) unregister(registerName)
-
+    unregister(registerName)
     const selectedName = `${registerName}.${selected}`
 
     setValue(selectedName, methodField.defaultValues?.[selected])
 
     const selectedField = methodField.fields.find(f => f.label === selected)
 
-    currentRef.current = selectedName
-
     return { selectedName, selectedField }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected, setValue])
 
   return (
