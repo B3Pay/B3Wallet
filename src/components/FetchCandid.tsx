@@ -2,8 +2,6 @@ import { useReActor } from "@ic-reactor/react"
 import { ReActorMethodField } from "@ic-reactor/store"
 import { useState } from "react"
 import MethodForm from "./candid/MethodForm"
-import { Card, CardContent } from "./ui/card"
-import { GlobeIcon } from "@radix-ui/react-icons"
 import DisplayData from "./DisplayData"
 import { Box } from "./ui/box"
 
@@ -45,24 +43,7 @@ const CandidField: React.FC<ReActorMethodField<any>> = ({
         functionName={functionName}
         onExpand={() => setExpanded(prev => !prev)}
       />
-      {expanded && (error || data || loading) ? (
-        <Card
-          marginTop="sm"
-          icon={<GlobeIcon />}
-          iconProps={{
-            color: loading ? "warning" : error ? "error" : "success",
-            roundSide: "tl",
-            diagonalRoundSide: "l"
-          }}
-          title={`${functionName.toTitleCase()} ${
-            loading ? "Loading..." : error ? "Error!" : "Success"
-          }`}
-        >
-          <CardContent>
-            <DisplayData loading={loading} error={error} data={data} />
-          </CardContent>
-        </Card>
-      ) : null}
+      {expanded && <DisplayData loading={loading} error={error} data={data} />}
     </div>
   )
 }

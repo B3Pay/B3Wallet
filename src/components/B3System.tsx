@@ -4,10 +4,8 @@ import {
   useSystemQuery
 } from "service/system"
 import MethodForm from "./candid/MethodForm"
-import { Card, CardContent } from "./ui/card"
 import { Box } from "./ui/box"
 import DisplayData from "./DisplayData"
-import { GlobeIcon } from "@radix-ui/react-icons"
 import { useState } from "react"
 
 const Candid: React.FC = () => {
@@ -23,9 +21,8 @@ const Candid: React.FC = () => {
 }
 
 const CandidField: React.FC<SystemDynamicField> = ({
-  fields,
   functionName,
-  defaultValues
+  ...fields
 }) => {
   const [expanded, setExpanded] = useState(false)
 
@@ -37,31 +34,13 @@ const CandidField: React.FC<SystemDynamicField> = ({
   return (
     <div className="bg-line-middle">
       <MethodForm
-        fields={fields}
+        {...fields}
         expanded={expanded}
         actorCallHandler={call}
         functionName={functionName}
-        defaultValues={defaultValues}
         onExpand={() => setExpanded(prev => !prev)}
       />
-      {expanded && (error || data || loading) ? (
-        <Card
-          marginTop="sm"
-          icon={<GlobeIcon />}
-          iconProps={{
-            color: loading ? "warning" : error ? "error" : "success",
-            roundSide: "tl",
-            diagonalRoundSide: "l"
-          }}
-          title={`${functionName.toTitleCase()} ${
-            loading ? "Loading..." : error ? "Error!" : "Success"
-          }`}
-        >
-          <CardContent>
-            <DisplayData loading={loading} error={error} data={data} />
-          </CardContent>
-        </Card>
-      ) : null}
+      {expanded && <DisplayData loading={loading} error={error} data={data} />}
     </div>
   )
 }

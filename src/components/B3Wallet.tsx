@@ -4,9 +4,7 @@ import {
   useWalletQuery
 } from "service/wallet"
 import MethodForm from "./candid/MethodForm"
-import { Card, CardContent } from "./ui/card"
 import { Box } from "./ui/box"
-import { GlobeIcon } from "@radix-ui/react-icons"
 import DisplayData from "./DisplayData"
 import { useState } from "react"
 
@@ -24,11 +22,7 @@ const Candid: React.FC = () => {
 
 interface CandidProps extends WalletDynamicField {}
 
-const CandidField: React.FC<CandidProps> = ({
-  functionName,
-  fields,
-  defaultValues
-}) => {
+const CandidField: React.FC<CandidProps> = ({ functionName, ...fields }) => {
   const [expanded, setExpanded] = useState(false)
 
   const { call, data, error, loading } = useWalletQuery({
@@ -39,31 +33,13 @@ const CandidField: React.FC<CandidProps> = ({
   return (
     <div className="bg-line-middle">
       <MethodForm
-        fields={fields}
+        {...fields}
         expanded={expanded}
         actorCallHandler={call}
         functionName={functionName}
-        defaultValues={defaultValues}
         onExpand={() => setExpanded(prev => !prev)}
       />
-      {expanded && (error || data || loading) ? (
-        <Card
-          marginTop="sm"
-          icon={<GlobeIcon />}
-          iconProps={{
-            color: loading ? "warning" : error ? "error" : "success",
-            roundSide: "tl",
-            diagonalRoundSide: "l"
-          }}
-          title={`${functionName.toTitleCase()} ${
-            loading ? "Loading..." : error ? "Error!" : "Success"
-          }`}
-        >
-          <CardContent>
-            <DisplayData loading={loading} error={error} data={data} />
-          </CardContent>
-        </Card>
-      ) : null}
+      {expanded && <DisplayData loading={loading} error={error} data={data} />}
     </div>
   )
 }
