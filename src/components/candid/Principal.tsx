@@ -10,7 +10,6 @@ import {
 import { Input } from "components/ui/input"
 import { ClipboardIcon, InfoCircledIcon } from "@radix-ui/react-icons"
 import { Button } from "components/ui/button"
-import { Box } from "components/ui/box"
 
 interface PrincipalProps extends FieldRouteProps {}
 

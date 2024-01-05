@@ -57,18 +57,13 @@ const Variant: React.FC<VariantProps> = ({
         control={control}
         rules={{
           required: true,
-          validate: value => {
-            console.log("value", value)
-            if (value === "select") {
-              return "Please select one"
-            }
-            return true
-          }
+          validate: value => (value === "select" ? "Please select one" : true)
         }}
         render={({ field }) => (
           <FormItem>
             <FormLabel>{methodField.label.toTitleCase()}</FormLabel>
             <Select
+              {...field}
               onValueChange={field.onChange}
               value={field.value || "select"}
             >

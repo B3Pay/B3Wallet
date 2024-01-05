@@ -57,6 +57,7 @@ function HomePage() {
                     <div className="flex items-center">
                       <FormControl>
                         <Input
+                          className="flex-grow"
                           placeholder="Canister ID"
                           roundSide="l"
                           closeHandler={() => form.setValue("canisterId", "")}
