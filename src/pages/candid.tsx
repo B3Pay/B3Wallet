@@ -1,5 +1,5 @@
 import { ReActorProvider } from "@ic-reactor/react"
-import { GlobeIcon } from "@radix-ui/react-icons"
+import { DownloadIcon, ExternalLinkIcon, GearIcon } from "@radix-ui/react-icons"
 import FetchCandid from "components/FetchCandid"
 import { Button } from "components/ui/button"
 import { Card, CardContent } from "components/ui/card"
@@ -33,8 +33,9 @@ function HomePage() {
       </Head>
       <Card
         marginBottom="sm"
-        icon={<GlobeIcon />}
+        icon={<ExternalLinkIcon />}
         iconProps={{
+          color: "secondary",
           roundSide: "tl",
           diagonalRoundSide: "l"
         }}
@@ -53,9 +54,14 @@ function HomePage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Canister ID</FormLabel>
-                    <div className="flex items-center w-full">
+                    <div className="flex items-center">
                       <FormControl>
-                        <Input placeholder="shadcn" roundSide="l" {...field} />
+                        <Input
+                          placeholder="Canister ID"
+                          roundSide="l"
+                          closeHandler={() => form.setValue("canisterId", "")}
+                          {...field}
+                        />
                       </FormControl>
                       <FormControl>
                         <Button type="submit" roundSide="r">

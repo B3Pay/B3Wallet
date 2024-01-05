@@ -24,9 +24,8 @@ const FetchCandid: React.FC<FetchCandidProps> = () => {
 }
 
 const CandidField: React.FC<ReActorMethodField<any>> = ({
-  fields,
   functionName,
-  defaultValues
+  ...fields
 }) => {
   const { useQueryCall } = useReActor()
 
@@ -40,11 +39,10 @@ const CandidField: React.FC<ReActorMethodField<any>> = ({
   return (
     <div className="bg-line-middle">
       <MethodForm
-        fields={fields}
+        {...fields}
         expanded={expanded}
         actorCallHandler={call}
         functionName={functionName}
-        defaultValues={defaultValues}
         onExpand={() => setExpanded(prev => !prev)}
       />
       {expanded && (error || data || loading) ? (

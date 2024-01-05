@@ -8,12 +8,12 @@ interface DisplayDataProps {
 
 const DisplayData: React.FC<DisplayDataProps> = ({ loading, error, data }) => {
   return (
-    <section>
+    <>
       <label>Response: &nbsp;</label>
       {loading ? <span>Loading...</span> : null}
       {error ? <span>Error: {errorHandler(error as Error)}</span> : null}
-      {data && <span>{objectToString(data)}</span>}
-    </section>
+      {data && <p className="break-all">{objectToString(data)}</p>}
+    </>
   )
 }
 

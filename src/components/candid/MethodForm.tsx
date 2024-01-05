@@ -12,10 +12,12 @@ import {
   CardFooter
 } from "components/ui/card"
 import {
+  DownloadIcon,
   EyeClosedIcon,
   EyeOpenIcon,
   GlobeIcon,
-  ResetIcon
+  ResetIcon,
+  UploadIcon
 } from "@radix-ui/react-icons"
 import { ReActorMethodField } from "@ic-reactor/store"
 
@@ -31,6 +33,7 @@ type MethodFormProps = (
 
 const MethodForm: React.FC<MethodFormProps> = ({
   functionName,
+  label,
   defaultValues,
   expanded = false,
   onExpand,
@@ -97,8 +100,9 @@ const MethodForm: React.FC<MethodFormProps> = ({
   return (
     <Card
       title={functionName.toTitleCase()}
-      icon={<GlobeIcon />}
+      icon={label === "query" ? <DownloadIcon /> : <UploadIcon />}
       iconProps={{
+        color: label === "query" ? "success" : "warning",
         roundSide: expanded ? "tl" : "l",
         diagonalRoundSide: expanded ? "l" : "none"
       }}

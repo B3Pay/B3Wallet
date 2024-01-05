@@ -200,6 +200,7 @@ const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
+  // dont allow to words overflow the card
   <div ref={ref} className={cn("p-4 py-2", className)} {...props} />
 ))
 CardContent.displayName = "CardContent"
