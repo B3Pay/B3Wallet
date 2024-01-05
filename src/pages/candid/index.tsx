@@ -16,6 +16,7 @@ import { Input } from "@src/components/ui/input"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import PageHeader from "@src/components/PageHeader"
+import { Box } from "@src/components/ui/box"
 
 function CandidPage() {
   const [defaultValues, setDefaultValues] = useState({
@@ -27,10 +28,9 @@ function CandidPage() {
   })
 
   return (
-    <div>
+    <Box className="grid gap-2">
       <PageHeader title="Candid" />
       <Card
-        marginBottom="sm"
         icon={<ExternalLinkIcon />}
         iconProps={{
           color: "secondary",
@@ -77,12 +77,12 @@ function CandidPage() {
         </CardContent>
       </Card>
       <ReActorProvider
-        host="https://ic0.app"
         canisterId={defaultValues.canisterId}
+        host="https://ic0.app"
       >
         <FetchCandid />
       </ReActorProvider>
-    </div>
+    </Box>
   )
 }
 

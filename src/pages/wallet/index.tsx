@@ -7,14 +7,12 @@ function B3WalletPage() {
   const methodFields = useWalletMethodFields()
 
   return (
-    <div>
+    <Box className="grid gap-2">
       <PageHeader title="B3Wallet" />
-      <Box className="grid gap-2">
-        {methodFields.map((field, index) => (
-          <B3Wallet {...field} key={index} />
-        ))}
-      </Box>
-    </div>
+      {methodFields.map((field, index) => (
+        <B3Wallet {...field} key={index} />
+      ))}
+    </Box>
   )
 }
 

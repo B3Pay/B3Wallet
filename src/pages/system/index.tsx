@@ -7,14 +7,12 @@ function B3SystemPage() {
   const methodFields = useSystemMethodFields()
 
   return (
-    <div>
+    <Box className="grid gap-2">
       <PageHeader title="B3System" />
-      <Box className="grid gap-2">
-        {methodFields.map((field, index) => (
-          <B3System {...field} key={index} />
-        ))}
-      </Box>
-    </div>
+      {methodFields.map((field, index) => (
+        <B3System {...field} key={index} />
+      ))}
+    </Box>
   )
 }
 

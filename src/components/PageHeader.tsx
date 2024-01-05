@@ -1,14 +1,13 @@
 import { useWalletAuthClient } from "@src/service/wallet"
-import { Card } from "@src/components/ui/card"
+import { Card, CardProps } from "@src/components/ui/card"
 import Image from "next/image"
-import { PropsWithChildren } from "react"
 import Head from "next/head"
 
-interface PageHeaderProps extends PropsWithChildren {
+interface PageHeaderProps extends CardProps {
   title: string
 }
 
-const PageHeader: React.FC<PageHeaderProps> = ({ children, title }) => {
+const PageHeader: React.FC<PageHeaderProps> = ({ title, ...rest }) => {
   const { identity } = useWalletAuthClient()
   return (
     <div>
@@ -20,11 +19,10 @@ const PageHeader: React.FC<PageHeaderProps> = ({ children, title }) => {
           <div className="flex flex-row justify-between items-center w-full">
             <h3 className="text-xl font-semibold">{title}</h3>
             <span className="text-sm px-4">
-              {identity?.getPrincipal().toString()}
+              {identity?.getPrincipal().toText()}
             </span>
           </div>
         }
-        marginBottom="sm"
         iconProps={{
           size: "xl",
           roundSide: "l",
@@ -32,14 +30,15 @@ const PageHeader: React.FC<PageHeaderProps> = ({ children, title }) => {
         }}
         icon={
           <Image
-            src="assets/wallet-logo.png"
+            src={`assets/logo/${title.toLowerCase()}.png`}
+            onError={e => (e.currentTarget.src = "assets/logo/b3.png")}
             width={35}
             height={35}
             alt="b3wallet"
           />
         }
+        {...rest}
       />
-      {children}
     </div>
   )
 }
