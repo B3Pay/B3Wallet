@@ -13,24 +13,22 @@ import {
   FormMessage
 } from "@src/components/ui/form"
 import { Input } from "@src/components/ui/input"
-import Head from "next/head"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
+import PageHeader from "@src/components/PageHeader"
 
 function CandidPage() {
-  const [canisterId, setCanisterId] = useState("ss2fx-dyaaa-aaaar-qacoq-cai")
+  const [defaultValues, setDefaultValues] = useState({
+    canisterId: "ss2fx-dyaaa-aaaar-qacoq-cai"
+  })
 
   const form = useForm({
-    defaultValues: {
-      canisterId
-    }
+    defaultValues
   })
 
   return (
     <div>
-      <Head>
-        <title>Candid</title>
-      </Head>
+      <PageHeader title="Candid" />
       <Card
         marginBottom="sm"
         icon={<ExternalLinkIcon />}
@@ -42,11 +40,7 @@ function CandidPage() {
         title="Fetch Candid"
       >
         <CardContent>
-          <form
-            onSubmit={form.handleSubmit(({ canisterId }) =>
-              setCanisterId(canisterId)
-            )}
-          >
+          <form onSubmit={form.handleSubmit(setDefaultValues)}>
             <Form {...form}>
               <FormField
                 control={form.control}
@@ -82,7 +76,10 @@ function CandidPage() {
           </form>
         </CardContent>
       </Card>
-      <ReActorProvider host="https://ic0.app" canisterId={canisterId}>
+      <ReActorProvider
+        host="https://ic0.app"
+        canisterId={defaultValues.canisterId}
+      >
         <FetchCandid />
       </ReActorProvider>
     </div>

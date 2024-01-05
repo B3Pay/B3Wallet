@@ -1,29 +1,11 @@
-import {
-  useSystemMethodFields,
-  SystemDynamicField,
-  useSystemQuery
-} from "@src/service/system"
+import { SystemDynamicField, useSystemQuery } from "@src/service/system"
 import MethodForm from "@src/components/candid/MethodForm"
-import { Box } from "@src/components/ui/box"
 import DisplayData from "@src/components/DisplayData"
 import { useState } from "react"
 
-const Candid: React.FC = () => {
-  const methodFields = useSystemMethodFields()
+interface B3SystemProps extends SystemDynamicField {}
 
-  return (
-    <Box className="grid gap-2">
-      {methodFields.map((field, index) => (
-        <CandidField {...field} key={index} />
-      ))}
-    </Box>
-  )
-}
-
-const CandidField: React.FC<SystemDynamicField> = ({
-  functionName,
-  ...fields
-}) => {
+const B3System: React.FC<B3SystemProps> = ({ functionName, ...fields }) => {
   const [expanded, setExpanded] = useState(false)
 
   const { call, data, error, loading } = useSystemQuery({
@@ -45,4 +27,4 @@ const CandidField: React.FC<SystemDynamicField> = ({
   )
 }
 
-export default Candid
+export default B3System

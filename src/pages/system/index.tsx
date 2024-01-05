@@ -1,40 +1,19 @@
-import HeadTitle from "@src/components/HeadTitle"
+import { useSystemMethodFields } from "@src/service/system"
 import B3System from "./B3System"
-import { useSystemAuthClient } from "@src/service/system"
-import { Card } from "@src/components/ui/card"
-import Image from "next/image"
+import PageHeader from "@src/components/PageHeader"
+import { Box } from "@src/components/ui/box"
 
 function B3SystemPage() {
-  const { identity } = useSystemAuthClient()
+  const methodFields = useSystemMethodFields()
 
   return (
     <div>
-      <HeadTitle title="B3System" />
-      <Card
-        title={
-          <div className="flex flex-row justify-between items-center w-full">
-            <h3 className="text-xl font-semibold">B3System</h3>
-            <span className="text-sm px-4">
-              {identity?.getPrincipal().toString()}
-            </span>
-          </div>
-        }
-        marginBottom="sm"
-        iconProps={{
-          size: "xl",
-          roundSide: "l",
-          color: "muted"
-        }}
-        icon={
-          <Image
-            src="assets/store-logo.png"
-            width={35}
-            height={35}
-            alt="b3wallet"
-          />
-        }
-      />
-      <B3System />
+      <PageHeader title="B3System" />
+      <Box className="grid gap-2">
+        {methodFields.map((field, index) => (
+          <B3System {...field} key={index} />
+        ))}
+      </Box>
     </div>
   )
 }

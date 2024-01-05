@@ -1,28 +1,11 @@
-import {
-  useWalletMethodFields,
-  WalletDynamicField,
-  useWalletQuery
-} from "@src/service/wallet"
+import { WalletDynamicField, useWalletQuery } from "@src/service/wallet"
 import MethodForm from "@src/components/candid/MethodForm"
-import { Box } from "@src/components/ui/box"
 import DisplayData from "@src/components/DisplayData"
 import { useState } from "react"
 
-const Candid: React.FC = () => {
-  const methodFields = useWalletMethodFields()
+interface B3WalletProps extends WalletDynamicField {}
 
-  return (
-    <Box className="grid gap-2">
-      {methodFields.map((field, index) => (
-        <CandidField {...field} key={index} />
-      ))}
-    </Box>
-  )
-}
-
-interface CandidProps extends WalletDynamicField {}
-
-const CandidField: React.FC<CandidProps> = ({ functionName, ...fields }) => {
+const B3Wallet: React.FC<B3WalletProps> = ({ functionName, ...fields }) => {
   const [expanded, setExpanded] = useState(false)
 
   const { call, data, error, loading } = useWalletQuery({
@@ -44,4 +27,4 @@ const CandidField: React.FC<CandidProps> = ({ functionName, ...fields }) => {
   )
 }
 
-export default Candid
+export default B3Wallet
