@@ -1,6 +1,7 @@
 import { createReActor } from "@ic-reactor/react"
-import { ReActorMethodField } from "@ic-reactor/store"
+import { ActorMethodField } from "@ic-reactor/store"
 import { b3system, canisterId, idlFactory } from "@src/declarations/b3system"
+import { agentManager } from "./agent"
 
 export type B3System = typeof b3system
 
@@ -14,7 +15,7 @@ export const {
   canisterId,
   idlFactory,
   withDevtools: true,
-  host: "https://ic0.app"
+  agentManager
 })
 
-export type SystemDynamicField = ReActorMethodField<B3System>
+export type SystemDynamicField = ActorMethodField<B3System>

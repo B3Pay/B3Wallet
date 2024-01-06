@@ -27,6 +27,14 @@ export const errorHandler = (error: Error | unknown | null): string => {
     // Return the extracted error message
     return match[1]
   } else {
+    const regex2 = /"Message": (.*)/
+
+    const match2 = errorString.match(regex2)
+
+    if (match2 && match2[1]) {
+      return match2[1]
+    }
+
     // Return a generic error message if no specific message was found
     return "An unknown error occurred."
   }

@@ -1,16 +1,16 @@
-import { useReActor } from "@ic-reactor/react"
-import { ReActorMethodField } from "@ic-reactor/store"
+import { useActor } from "@ic-reactor/react"
+import { ActorMethodField } from "@ic-reactor/store"
 import { useState } from "react"
 import MethodForm from "@src/components/candid/MethodForm"
 import DisplayData from "@src/components/DisplayData"
 import { Box } from "@src/components/ui/box"
 
-interface FetchCandidProps {}
+interface CandidProps {}
 
-const FetchCandid: React.FC<FetchCandidProps> = () => {
-  const { useActorStore } = useReActor()
+const Candid: React.FC<CandidProps> = () => {
+  const { useMethodFields } = useActor<any>()
 
-  const { methodFields } = useActorStore()
+  const methodFields = useMethodFields()
 
   return (
     <Box className="grid gap-2">
@@ -21,11 +21,11 @@ const FetchCandid: React.FC<FetchCandidProps> = () => {
   )
 }
 
-const CandidField: React.FC<ReActorMethodField<any>> = ({
+const CandidField: React.FC<ActorMethodField<any>> = ({
   functionName,
   ...fields
 }) => {
-  const { useQueryCall } = useReActor()
+  const { useQueryCall } = useActor()
 
   const [expanded, setExpanded] = useState(false)
 
@@ -48,4 +48,4 @@ const CandidField: React.FC<ReActorMethodField<any>> = ({
   )
 }
 
-export default FetchCandid
+export default Candid

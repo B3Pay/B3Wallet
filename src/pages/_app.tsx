@@ -5,6 +5,8 @@ import { AppProps } from "next/app"
 import { Inter } from "next/font/google"
 
 import "@src/styles/globals.css"
+import { AgentProvider } from "@ic-reactor/react"
+import { agentManager } from "@src/service/agent"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 
@@ -20,7 +22,9 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => {
         <div className="flex justify-center flex-col space-y-2">
           <Header />
           <div className="max-w-2xl mx-auto w-full px-2">
-            <Component {...pageProps} />
+            <AgentProvider agentManager={agentManager}>
+              <Component {...pageProps} />
+            </AgentProvider>
           </div>
           <Footer />
         </div>

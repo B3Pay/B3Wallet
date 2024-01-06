@@ -1,6 +1,7 @@
 import { createReActor } from "@ic-reactor/react"
-import { ReActorMethodField } from "@ic-reactor/store"
+import { ActorMethodField } from "@ic-reactor/store"
 import { b3wallet, canisterId, idlFactory } from "@src/declarations/b3wallet"
+import { agentManager } from "./agent"
 
 export type B3Wallet = typeof b3wallet
 
@@ -14,7 +15,7 @@ export const {
   canisterId,
   idlFactory,
   withDevtools: true,
-  host: "https://ic0.app"
+  agentManager
 })
 
-export type WalletDynamicField = ReActorMethodField<B3Wallet>
+export type WalletDynamicField = ActorMethodField<B3Wallet>

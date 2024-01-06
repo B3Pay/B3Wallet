@@ -18,12 +18,12 @@ import {
   ResetIcon,
   UploadIcon
 } from "@radix-ui/react-icons"
-import { ReActorMethodField } from "@ic-reactor/store"
+import { ActorMethodField } from "@ic-reactor/store"
 
 type MethodFormProps = (
   | SystemDynamicField
   | WalletDynamicField
-  | ReActorMethodField<any>
+  | ActorMethodField<any>
 ) & {
   expanded?: boolean
   onExpand?: () => void

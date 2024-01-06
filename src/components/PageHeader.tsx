@@ -1,14 +1,16 @@
-import { useWalletAuthClient } from "@src/service/wallet"
 import { Card, CardProps } from "@src/components/ui/card"
 import Image from "next/image"
 import Head from "next/head"
+import { useAgent } from "@ic-reactor/react"
 
 interface PageHeaderProps extends CardProps {
   title: string
 }
 
 const PageHeader: React.FC<PageHeaderProps> = ({ title, ...rest }) => {
-  const { identity } = useWalletAuthClient()
+  const { useAuthClient } = useAgent()
+  const { identity } = useAuthClient()
+
   return (
     <div>
       <Head>

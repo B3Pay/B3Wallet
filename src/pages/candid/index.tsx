@@ -1,6 +1,6 @@
-import { ReActorProvider } from "@ic-reactor/react"
+import { ActorProvider } from "@ic-reactor/react"
 import { ExternalLinkIcon } from "@radix-ui/react-icons"
-import FetchCandid from "./FetchCandid"
+import Candid from "./Candid"
 import { Button } from "@src/components/ui/button"
 import { Card, CardContent } from "@src/components/ui/card"
 import {
@@ -76,12 +76,17 @@ function CandidPage() {
           </form>
         </CardContent>
       </Card>
-      <ReActorProvider
+      <ActorProvider
         canisterId={defaultValues.canisterId}
-        host="https://ic0.app"
+        loadingComponent={
+          <div className="flex flex-col items-center justify-center h-80">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary" />
+            <div>Loading...</div>
+          </div>
+        }
       >
-        <FetchCandid />
-      </ReActorProvider>
+        <Candid />
+      </ActorProvider>
     </Box>
   )
 }
