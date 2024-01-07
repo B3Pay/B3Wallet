@@ -27,7 +27,7 @@ for app_root in "$backend_dir"/*; do
     fi
 
     did_file="$app_root/$package.did"
-    optimised_target_dir="./wasm/$package"
+    optimised_target_dir="./canisters/$package"
 
 
     if [ ! -f "$app_root/Cargo.toml" ]; then

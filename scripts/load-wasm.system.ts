@@ -1,7 +1,6 @@
 import {
   CreateAppArgs,
-  CreateReleaseArgs,
-  Value
+  CreateReleaseArgs
 } from "../src/declarations/b3system/b3system.did"
 import { callSystemMethod } from "./b3system"
 import {
@@ -14,22 +13,35 @@ import {
 import dfx from "../dfx.json"
 import { updateAgent } from "./agent"
 
-async function createApp(name: string) {
-  const repo: [string, Value] = [
-    "repo",
-    {
-      Text: "https://github.com/B3Pay/b3wallet"
-    }
-  ]
+interface Metadata {
+  name: string
+  repo: string
+  logo: string
+}
 
-  const logo: [string, Value] = [
-    "logo",
-    {
-      Text: loadImageFile("public/assets/logo/b3wallet.png")
-    }
-  ]
+async function createApp(appId: AvailableAppIds) {
+  const metadataJson: Metadata = require(`../canisters/${appId}/metadata.json`)
 
-  const metadata: CreateAppArgs["metadata"] = [repo, logo]
+  const name = metadataJson.name
+
+  const metadata: CreateAppArgs["metadata"] = Object.entries(
+    metadataJson
+  ).reduce((acc, [key, value]) => {
+    if (key === "logo") {
+      acc.push([
+        "logo",
+        {
+          Blob: loadImageFile(value, false)
+        }
+      ])
+      return acc
+    }
+
+    acc.push([key, { Text: value }])
+    return acc
+  }, [] as CreateAppArgs["metadata"])
+
+  console.log("Metadata:", metadata)
 
   return await callSystemMethod("create_app", {
     name,
@@ -101,8 +113,7 @@ const loader = async (appId: AvailableAppIds, reload: boolean) => {
   const app = await callSystemMethod("get_app", appId)
 
   if ("Err" in app) {
-    const name = dfx.canisters[appId].name
-    const appView = await createApp(name)
+    const appView = await createApp(appId)
     if ("Err" in appView) {
       console.error("Error creating app:", appView.Err)
       return

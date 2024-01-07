@@ -43,26 +43,33 @@ export const initIdentity = (mainnet: boolean) => {
   return decode(key)
 }
 
-export const loadImageFile = (imagePath: string) => {
+export const loadImageFile = <T extends boolean>(
+  imagePath: string,
+  asBase64: T = false as T
+): T extends true ? string : Buffer => {
   const fullPath = path.join(process.cwd(), imagePath)
   const image = readFileSync(fullPath)
 
   // Extract the file extension and determine the MIME type
   const ext = path.extname(fullPath).toLowerCase()
+
+  const imageBuffer = Buffer.from(image)
+
+  if (asBase64 === false) {
+    return imageBuffer as any
+  }
+
   let mimeType = "image/jpeg" // Default MIME type
   if (ext === ".png") mimeType = "image/png"
   else if (ext === ".svg") mimeType = "image/svg+xml"
 
-  // Convert the image to a Base64 string
-  const base64Image = Buffer.from(image).toString("base64")
-
   // Return the formatted Base64 string with the prefix
-  return `data:${mimeType};base64,${base64Image}`
+  return `data:${mimeType};base64,${imageBuffer.toString("base64")}` as any
 }
 
 export const loadWasmFile = async (name: string, withCandid?: boolean) => {
   const buffer = await readFile(
-    `${process.cwd()}/wasm/${name}/${name}${
+    `${process.cwd()}/canisters/${name}/${name}${
       withCandid ? "_candid" : ""
     }.wasm.gz`
   )
@@ -123,7 +130,9 @@ export function hashToHex(hash: number[]) {
 }
 
 export async function calculateWasmHash(name: string, asHex: boolean) {
-  const buffer = await readFile(`${process.cwd()}/wasm/${name}/${name}.wasm.gz`)
+  const buffer = await readFile(
+    `${process.cwd()}/canisters/${name}/${name}.wasm.gz`
+  )
 
   const hashBuffer = await crypto.subtle.digest("SHA-256", buffer.buffer)
 

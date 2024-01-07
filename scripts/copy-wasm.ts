@@ -1,4 +1,4 @@
-// copy user wasm from wasm/b3wallet/b3wallet.wasm to public/wasm/b3wallet.wasm
+// copy user wasm from wasm/b3wallet/b3wallet.wasm to public/canisters/b3wallet.wasm
 import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from "fs"
 import { copyFile } from "fs/promises"
 import path from "path"
