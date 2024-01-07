@@ -15,7 +15,7 @@ use b3system_lib::{
         constants::CREATE_APP_CANISTER_CYCLES,
         error::AppSystemError,
         state::AppState,
-        store::{with_release, with_release_mut, with_releases_mut},
+        store::{with_apps, with_release, with_release_mut, with_releases_mut},
         types::{
             AppId, AppView, CreateAppArgs, CreateReleaseArgs, LoadRelease, ReleaseView,
             ReleaseViews, SystemCanisterStatus,
@@ -170,7 +170,7 @@ async fn create_app_canister(app_id: AppId) -> Result<UserView, String> {
         system_id,
     };
 
-    match AppState::read(app_id).install_args(CanisterInstallMode::Install, init_args) {
+    match AppState::read(app_id.clone()).install_args(CanisterInstallMode::Install, init_args) {
         Ok(install_arg) => {
             // Install the code.
             let install_result = app.install_code(install_arg).await;
@@ -180,7 +180,10 @@ async fn create_app_canister(app_id: AppId) -> Result<UserView, String> {
             let update_result = app.add_controllers(vec![owner_id, system_id]).await;
 
             match (install_result, update_result) {
-                (Ok(_), Ok(_)) => Ok(user.view()),
+                (Ok(_), Ok(_)) => {
+                    let _ = AppState::write(app_id).increment_install_count();
+                    Ok(user.view())
+                }
                 (Err(err), _) => Err(err.to_string()),
                 (_, Err(err)) => Err(err.to_string()),
             }
@@ -200,18 +203,18 @@ async fn install_app(canister_id: CanisterId, app_id: AppId) -> Result<UserView,
 
     let user_id: UserId = owner_id.into();
 
-    let user_view = UserState::read(user_id).user_view().unwrap_or_else(revert);
+    UserState::read(user_id).user_view().unwrap_or_else(revert);
 
     let init_args = AppInitArgs {
         owner_id,
         system_id,
     };
 
-    match AppState::read(app_id).install_args(CanisterInstallMode::Upgrade, init_args) {
+    match AppState::read(app_id.clone()).install_args(CanisterInstallMode::Install, init_args) {
         Ok(install_arg) => {
             let app = AppCall(canister_id);
 
-            let status = app.status().await;
+            let status = app.version().await;
 
             if status.is_ok() {
                 revert(SystemError::AppCanisterAlreadyInstalled)
@@ -220,16 +223,45 @@ async fn install_app(canister_id: CanisterId, app_id: AppId) -> Result<UserView,
             // Install the code.
             let install_result = app.install_code(install_arg).await;
 
-            // Update the controllers, and add the user and canister id as controller of itself.
-            // this enables the canister to update itself.
+            // Update the controllers, and add the user and system id as controller of itself.
             let update_result = app.add_controllers(vec![owner_id, system_id]).await;
 
             match (install_result, update_result) {
-                (Ok(_), Ok(_)) => Ok(user_view),
+                (Ok(_), Ok(_)) => {
+                    let _ = AppState::write(app_id).increment_install_count();
+
+                    let user = UserState::write(user_id)
+                        .add_canister(canister_id)
+                        .unwrap_or_else(revert);
+
+                    Ok(user.view())
+                }
                 (Err(err), _) => Err(err.to_string()),
                 (_, Err(err)) => Err(err.to_string()),
             }
         }
+        Err(err) => Err(err.to_string()),
+    }
+}
+
+#[update]
+async fn uninstall_app(canister_id: CanisterId) -> Result<UserView, String> {
+    let user_id: UserId = ic_cdk::caller().into();
+
+    let user_view = UserState::read(user_id).user_view().unwrap_or_else(revert);
+
+    let app = AppCall(canister_id);
+
+    let status = app.version().await;
+
+    if status.is_err() {
+        revert(SystemError::AppCanisterNotInstalled)
+    }
+
+    let uninstall_result = app.uninstall_code().await;
+
+    match uninstall_result {
+        Ok(_) => Ok(user_view),
         Err(err) => Err(err.to_string()),
     }
 }
@@ -308,7 +340,12 @@ fn update_app(app_args: CreateAppArgs) -> Result<AppView, String> {
     }
 }
 
-#[update]
+#[query]
+fn get_apps() -> Vec<AppView> {
+    with_apps(|apps| apps.iter().map(|(_, v)| v.view()).collect())
+}
+
+#[query]
 fn get_app(app_id_or_name: String) -> Result<AppView, String> {
     let app_id = name_to_slug(&app_id_or_name);
 
@@ -316,6 +353,13 @@ fn get_app(app_id_or_name: String) -> Result<AppView, String> {
         Ok(app) => Ok(app),
         Err(err) => Err(err.to_string()),
     }
+}
+
+#[update(guard = "caller_is_controller")]
+fn remove_app(app_id_or_name: String) {
+    let app_id = name_to_slug(&app_id_or_name);
+
+    AppState::write(app_id).remove().unwrap_or_else(revert);
 }
 
 #[query]
@@ -376,11 +420,10 @@ fn remove_release(wasm_hash: WasmHash) {
 }
 
 #[update(guard = "caller_is_controller")]
-fn deprecate_release(app_id: AppId, wasm_hash: WasmHash) -> ReleaseView {
+fn deprecate_release(app_id: AppId, wasm_hash: WasmHash) {
     AppState::write(app_id)
         .deprecate_release(wasm_hash)
-        .unwrap_or_else(revert)
-        .view()
+        .unwrap_or_else(revert);
 }
 
 #[update(guard = "caller_is_controller")]

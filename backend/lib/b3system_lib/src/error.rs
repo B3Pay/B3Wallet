@@ -9,6 +9,7 @@ pub enum SystemError {
     WasmInstallError(String),
     AppCanisterNotFound,
     AppCanisterAlreadyInstalled,
+    AppCanisterNotInstalled,
     WalletCanisterRateError(String),
     WalletCanisterDoesNotExist(String),
     WalletCanisterAlreadyExists(String),
@@ -33,6 +34,7 @@ impl fmt::Display for SystemError {
             SystemError::AppCanisterNotFound => write!(f, "Wallet Canister id not found!"),
             SystemError::WalletCanisterDoesNotExist(e) => write!(f, "Wallet does not exist: {}", e),
             SystemError::WalletCanisterAlreadyExists(e) => write!(f, "Wallet already exists: {}", e),
+            SystemError::AppCanisterNotInstalled => write!(f, "Wallet canister not installed!"),
             SystemError::AppCanisterAlreadyInstalled => write!(f, "Wallet canister already installed!"),
         }
     }

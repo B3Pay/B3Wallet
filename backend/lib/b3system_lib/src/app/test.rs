@@ -70,8 +70,12 @@ mod tests {
         let release = release_mock();
         let _ = app_data.add_release(release.clone());
 
-        let release = app_data
+        app_data
             .deprecate_release(release.wasm_hash.clone())
+            .unwrap_or_else(|_| panic!("Failed to deprecate release"));
+
+        let release = app_data
+            .release(&release.wasm_hash)
             .unwrap_or_else(|_| panic!("Failed to deprecate release"));
 
         assert!(release.is_deprecated());

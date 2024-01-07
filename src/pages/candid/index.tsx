@@ -20,7 +20,7 @@ import { Box } from "@src/components/ui/box"
 
 function CandidPage() {
   const [defaultValues, setDefaultValues] = useState({
-    canisterId: "ss2fx-dyaaa-aaaar-qacoq-cai"
+    canisterId: "rdmx6-jaaaa-aaaaa-aaadq-cai"
   })
 
   const form = useForm({

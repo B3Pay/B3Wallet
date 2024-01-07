@@ -447,7 +447,7 @@ service : () -> {
     );
   update_settings : () -> ();
   upgrage_wallet : () -> ();
-  validate_signer : (principal) -> (bool) query;
+  validate_user : (principal) -> (bool) query;
   version : () -> (text) query;
   wasm_details : () -> (WasmDetails) query;
   wasm_hash : () -> (vec nat8) query;

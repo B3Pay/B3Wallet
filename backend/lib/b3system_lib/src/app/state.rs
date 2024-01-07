@@ -7,7 +7,7 @@ use ic_cdk::api::management_canister::main::CanisterInstallMode;
 use crate::app::{
     error::AppSystemError,
     release::Release,
-    store::{with_app, with_app_mut, with_apps_mut},
+    store::{with_app, with_apps_mut},
     types::{AppId, AppView, CreateAppArgs, CreateReleaseArgs, ReleaseView},
     AppData,
 };
@@ -27,7 +27,21 @@ impl WriteAppState {
         })
     }
 
+    pub fn increment_install_count(&mut self) -> Result<(), AppSystemError> {
+        with_apps_mut(|apps| {
+            let mut app = apps.get(&self.0).ok_or(AppSystemError::AppNotFound)?;
+
+            app.increment_install_count();
+
+            apps.insert(self.0.clone(), app.clone());
+
+            Ok(())
+        })
+    }
+
     pub fn remove(&mut self) -> Result<(), AppSystemError> {
+        self.remove_all_releases()?;
+
         with_apps_mut(|apps| {
             apps.remove(&self.0).ok_or(AppSystemError::AppNotFound)?;
 
@@ -54,11 +68,51 @@ impl WriteAppState {
         &mut self,
         release_args: CreateReleaseArgs,
     ) -> Result<(), AppSystemError> {
-        with_app_mut(&self.0, |app| app.update_release(release_args))
+        with_apps_mut(|apps| {
+            let mut app = apps.get(&self.0).ok_or(AppSystemError::AppNotFound)?;
+
+            app.update_release(release_args);
+
+            apps.insert(self.0.clone(), app.clone());
+
+            Ok(())
+        })
     }
 
-    pub fn deprecate_release(&mut self, wasm_hash: WasmHash) -> Result<Release, AppSystemError> {
-        with_app_mut(&self.0, |app| app.deprecate_release(wasm_hash))?
+    pub fn deprecate_release(&mut self, wasm_hash: WasmHash) -> Result<(), AppSystemError> {
+        with_apps_mut(|apps| {
+            let mut app = apps.get(&self.0).ok_or(AppSystemError::AppNotFound)?;
+
+            app.deprecate_release(wasm_hash)?;
+
+            apps.insert(self.0.clone(), app.clone());
+
+            Ok(())
+        })
+    }
+
+    pub fn remove_release(&mut self, wasm_hash: WasmHash) -> Result<(), AppSystemError> {
+        with_apps_mut(|apps| {
+            let mut app = apps.get(&self.0).ok_or(AppSystemError::AppNotFound)?;
+
+            app.remove_release(wasm_hash)?;
+
+            apps.insert(self.0.clone(), app.clone());
+
+            Ok(())
+        })
+    }
+
+    pub fn remove_all_releases(&mut self) -> Result<(), AppSystemError> {
+        with_apps_mut(|apps| {
+            let mut app = apps.get(&self.0).ok_or(AppSystemError::AppNotFound)?;
+
+            app.remove_all_releases()?;
+
+            apps.insert(self.0.clone(), app.clone());
+
+            Ok(())
+        })
     }
 }
 

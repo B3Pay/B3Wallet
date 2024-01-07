@@ -138,9 +138,10 @@ service : () -> {
   create_app : (CreateAppArgs) -> (Result_1);
   create_app_canister : (text) -> (Result);
   create_user : (CreateUserArgs) -> (UserView);
-  deprecate_release : (text, vec nat8) -> (ReleaseView);
-  get_app : (text) -> (Result_1);
+  deprecate_release : (text, vec nat8) -> ();
+  get_app : (text) -> (Result_1) query;
   get_app_version : (principal) -> (text) composite_query;
+  get_apps : () -> (vec AppView) query;
   get_bugs : (principal) -> (vec AppBug) query;
   get_canister_info : (principal) -> (CanisterInfoResponse);
   get_canisters : () -> (vec principal) query;
@@ -156,11 +157,13 @@ service : () -> {
   install_app : (principal, text) -> (Result);
   load_wasm_chunk : (vec nat8, vec nat8) -> (LoadRelease);
   releases : (text) -> (vec ReleaseView) query;
+  remove_app : (text) -> ();
   remove_release : (vec nat8) -> ();
   remove_user : (principal) -> ();
   remove_user_app : (principal) -> ();
   report_bug : (AppBug) -> ();
   status : () -> (SystemCanisterStatus);
+  uninstall_app : (principal) -> (Result);
   update_app : (CreateAppArgs) -> (Result_1);
   version : () -> (text) query;
 }

@@ -80,6 +80,10 @@ impl AppData {
         self.clone()
     }
 
+    pub fn increment_install_count(&mut self) {
+        self.install_count.increment();
+    }
+
     fn add_release_hash(&mut self, wasm_hash: WasmHash) {
         self.updated_at = NanoTimeStamp::now();
         self.release_hashes.push(wasm_hash);
@@ -114,12 +118,29 @@ impl AppData {
         }
     }
 
-    pub fn deprecate_release(&mut self, wasm_hash: WasmHash) -> Result<Release, AppSystemError> {
+    pub fn deprecate_release(&mut self, wasm_hash: WasmHash) -> Result<(), AppSystemError> {
         with_release_mut(&wasm_hash, |release| {
             release.deprecate();
-
-            release.clone()
         })
+    }
+
+    pub fn remove_release(&mut self, wasm_hash: WasmHash) -> Result<(), AppSystemError> {
+        self.deprecate_release(wasm_hash)?;
+
+        with_releases_mut(|releases| {
+            releases.remove(&wasm_hash);
+
+            Ok(())
+        })
+    }
+
+    pub fn remove_all_releases(&mut self) -> Result<(), AppSystemError> {
+        for wasm_hash in self.release_hashes.clone() {
+            self.deprecate_release(wasm_hash)?;
+            self.remove_release(wasm_hash)?;
+        }
+
+        Ok(())
     }
 }
 

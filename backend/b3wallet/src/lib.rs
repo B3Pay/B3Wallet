@@ -893,7 +893,7 @@ async fn request_upgrade_canister(wasm_version: String) -> OperationId {
 }
 
 #[query]
-fn validate_signer(signer_id: UserId) -> bool {
+fn validate_user(signer_id: UserId) -> bool {
     with_user(&signer_id, |_| true).is_ok()
 }
 

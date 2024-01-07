@@ -44,8 +44,20 @@ export const initIdentity = (mainnet: boolean) => {
 }
 
 export const loadImageFile = (imagePath: string) => {
-  const image = readFileSync(`${process.cwd()}/${imagePath}`)
-  return Buffer.from(image).toString("base64")
+  const fullPath = path.join(process.cwd(), imagePath)
+  const image = readFileSync(fullPath)
+
+  // Extract the file extension and determine the MIME type
+  const ext = path.extname(fullPath).toLowerCase()
+  let mimeType = "image/jpeg" // Default MIME type
+  if (ext === ".png") mimeType = "image/png"
+  else if (ext === ".svg") mimeType = "image/svg+xml"
+
+  // Convert the image to a Base64 string
+  const base64Image = Buffer.from(image).toString("base64")
+
+  // Return the formatted Base64 string with the prefix
+  return `data:${mimeType};base64,${base64Image}`
 }
 
 export const loadWasmFile = async (name: string, withCandid?: boolean) => {

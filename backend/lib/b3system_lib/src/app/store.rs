@@ -37,18 +37,6 @@ where
     with_apps(|state| state.get(&app_id).ok_or(AppSystemError::AppNotFound).map(f))
 }
 
-pub fn with_app_mut<F, T>(app_id: &AppId, f: F) -> Result<T, AppSystemError>
-where
-    F: FnOnce(&mut AppData) -> T,
-{
-    with_apps_mut(|state| {
-        state
-            .get(app_id)
-            .ok_or(AppSystemError::AppNotFound)
-            .map(|mut app| f(&mut app))
-    })
-}
-
 // RELEASES
 pub fn with_releases<R>(f: impl FnOnce(&ReleaseMap) -> R) -> R {
     RELEASE_MAP.with(|state| f(&state.borrow()))

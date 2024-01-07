@@ -20,6 +20,8 @@ impl WriteUserState {
 
             user.update(app_args)?;
 
+            users.insert(self.0.clone(), user.clone());
+
             Ok(user.clone())
         })
     }
@@ -30,6 +32,8 @@ impl WriteUserState {
 
             user.add_canister(canister_id);
 
+            users.insert(self.0.clone(), user.clone());
+
             Ok(user.clone())
         })
     }
@@ -39,6 +43,8 @@ impl WriteUserState {
             let mut user = users.get(&self.0).ok_or(UserSystemError::UserNotFound)?;
 
             user.remove_canister(canister_id)?;
+
+            users.insert(self.0.clone(), user.clone());
 
             Ok(user.clone())
         })

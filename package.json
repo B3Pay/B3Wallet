@@ -35,7 +35,7 @@
     "env": "node -e \"console.log(require('dotenv').config({ path: '.env' }))\""
   },
   "devDependencies": {
-    "@ic-reactor/store": "^0.3.4",
+    "@ic-reactor/store": "^0.3.5",
     "@types/node": "20.8.10",
     "@types/node-fetch": "^2.6.3",
     "@types/react": "18.2.36",
@@ -66,7 +66,7 @@
     "@dfinity/identity": "^0.20",
     "@dfinity/identity-secp256k1": "^0.20",
     "@dfinity/principal": "^0.20",
-    "@ic-reactor/react": "^0.3.6",
+    "@ic-reactor/react": "^0.3.7",
     "@peculiar/webcrypto": "1.4.3",
     "@radix-ui/react-avatar": "^1.0.4",
     "@radix-ui/react-dialog": "^1.0.5",
