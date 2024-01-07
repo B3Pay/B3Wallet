@@ -1,21 +1,40 @@
 import {
+  CreateAppArgs,
   CreateReleaseArgs,
   Value
 } from "../src/declarations/b3system/b3system.did"
 import { callSystemMethod } from "./b3system"
-import { chunkGenerator, hashToHex, loadWasmFile, readVersion } from "./utils"
+import {
+  chunkGenerator,
+  hashToHex,
+  loadImageFile,
+  loadWasmFile,
+  readVersion
+} from "./utils"
 import dfx from "../dfx.json"
 import { updateAgent } from "./agent"
 
 async function createApp(name: string) {
-  const repo: Value = {
-    Text: "https://github.com/B3Pay/b3wallet"
-  }
+  const repo: [string, Value] = [
+    "repo",
+    {
+      Text: "https://github.com/B3Pay/b3wallet"
+    }
+  ]
+
+  const logo: [string, Value] = [
+    "logo",
+    {
+      Text: loadImageFile("../public/logo/b3wallet.png")
+    }
+  ]
+
+  const metadata: CreateAppArgs["metadata"] = [repo, logo]
 
   return await callSystemMethod("create_app", {
     name,
     description: "Decentralized wallet for the Internet Computer",
-    metadata: [["repo", repo]]
+    metadata
   })
 }
 
@@ -122,5 +141,7 @@ console.log(`Network: ${mainnet ? "mainnet" : "local"}`) // Outputs: 'ic' if you
 console.log(`Reload: ${reload}`) // Outputs: 'true' if you ran: ts-node main.ts renrk-eyaaa-aaaaa-aaada-cai --network=ic --reload
 
 updateAgent(mainnet)
+  .then(() => callSystemMethod("version"))
+  .then(version => console.log("System version:", version))
   .then(() => loader(appId, reload))
   .catch(console.error)

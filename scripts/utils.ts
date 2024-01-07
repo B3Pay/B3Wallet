@@ -43,6 +43,11 @@ export const initIdentity = (mainnet: boolean) => {
   return decode(key)
 }
 
+export const loadImageFile = (imagePath: string) => {
+  const image = readFileSync(imagePath)
+  return Buffer.from(image).toString("base64")
+}
+
 export const loadWasmFile = async (name: string, withCandid?: boolean) => {
   const buffer = await readFile(
     `${process.cwd()}/wasm/${name}/${name}${

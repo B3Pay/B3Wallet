@@ -60,5 +60,7 @@ console.log(`Network: ${mainnet ? "mainnet" : "local"}`) // Outputs: 'ic' if you
 console.log(`Reload: ${reload}`) // Outputs: 'true' if you ran: ts-node main.ts renrk-eyaaa-aaaaa-aaada-cai --network=ic --reload
 
 updateAgent(mainnet)
+  .then(() => callWalletMethod("version"))
+  .then(version => console.log("Wallet version:", version))
   .then(() => load(appId, reload))
   .catch(console.error)
