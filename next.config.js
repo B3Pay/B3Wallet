@@ -5,7 +5,7 @@ const envList = require("dotenv").config({ path: "./.env" }).parsed || {}
 const { version } = require("./package.json")
 
 envList.NEXT_PUBLIC_IC_HOST =
-  envList.DFX_NETWORK === "ic" ? "https://icp-api.io" : "http://localhost:4943"
+  envList.DFX_NETWORK === "ic" ? "https://icp-api.io" : "http://127.0.0.1:4943"
 
 envList.NEXT_PUBLIC_VERSION = version
 
