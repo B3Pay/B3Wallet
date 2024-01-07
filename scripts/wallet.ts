@@ -1,15 +1,15 @@
 require("dotenv").config()
 import { createReActorStore } from "@ic-reactor/store"
+import { HttpAgent } from "@dfinity/agent"
 import { b3wallet, canisterId, idlFactory } from "../src/declarations/b3wallet"
 import { initIdentity } from "./utils"
 
 export type B3Wallet = typeof b3wallet
 
-export const { actorStore, callMethod, initialize } =
+export const { actorStore, callMethod, agentManager } =
   createReActorStore<B3Wallet>({
     canisterId,
-    idlFactory,
-    initializeOnMount: false
+    idlFactory
   })
 
 export const loadWalletActor = async (mainnet: boolean) => {
@@ -17,13 +17,12 @@ export const loadWalletActor = async (mainnet: boolean) => {
   console.log("Identity:", identity.getPrincipal().toText())
 
   try {
-    initialize(
-      {
-        host: mainnet ? "https://ic0.app" : "http://localhost:4943",
-        identity
-      },
-      !mainnet
-    )
+    const agent = new HttpAgent({
+      host: mainnet ? "https://ic0.app" : "http://localhost:4943",
+      identity
+    })
+
+    agentManager.updateAgent(agent)
 
     await new Promise<void>(resolve => {
       const unsubscribe = actorStore.subscribe(async state => {
@@ -33,7 +32,6 @@ export const loadWalletActor = async (mainnet: boolean) => {
         }
       })
     })
-
     const version = await callMethod("version")
     console.log("System Actor initialized. Version:", version)
   } catch (error) {

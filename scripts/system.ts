@@ -1,15 +1,15 @@
 require("dotenv").config()
 import { createReActorStore } from "@ic-reactor/store"
+import { HttpAgent } from "@dfinity/agent"
 import { b3system, canisterId, idlFactory } from "../src/declarations/b3system"
 import { initIdentity } from "./utils"
 
 export type B3System = typeof b3system
 
-export const { actorStore, callMethod, initialize } =
+export const { actorStore, callMethod, agentManager } =
   createReActorStore<B3System>({
     canisterId,
-    idlFactory,
-    initializeOnMount: false
+    idlFactory
   })
 
 export const loadSystemActor = async (mainnet: boolean) => {
@@ -17,13 +17,12 @@ export const loadSystemActor = async (mainnet: boolean) => {
   console.log("Identity:", identity.getPrincipal().toText())
 
   try {
-    initialize(
-      {
-        host: mainnet ? "https://ic0.app" : "http://localhost:4943",
-        identity
-      },
-      !mainnet
-    )
+    const agent = new HttpAgent({
+      host: mainnet ? "https://ic0.app" : "http://localhost:4943",
+      identity
+    })
+
+    agentManager.updateAgent(agent)
 
     await new Promise<void>(resolve => {
       const unsubscribe = actorStore.subscribe(async state => {

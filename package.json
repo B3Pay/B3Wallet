@@ -14,6 +14,7 @@
     "dfinity"
   ],
   "scripts": {
+    "start": "npx serve@latest out",
     "dfx:start": "bash ./scripts/start.sh",
     "dfx:install": "yarn dfx:identity && sh ./scripts/install.sh",
     "dfx:identity": "dfx deps deploy internet_identity",
