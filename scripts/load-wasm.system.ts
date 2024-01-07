@@ -2,16 +2,17 @@ import {
   CreateReleaseArgs,
   Value
 } from "../src/declarations/b3system/b3system.did"
-import { callMethod, loadSystemActor } from "./system"
+import { callSystemMethod } from "./b3system"
 import { chunkGenerator, hashToHex, loadWasmFile, readVersion } from "./utils"
 import dfx from "../dfx.json"
+import { updateAgent } from "./agent"
 
 async function createApp(name: string) {
   const repo: Value = {
     Text: "https://github.com/B3Pay/b3wallet"
   }
 
-  return await callMethod("create_app", {
+  return await callSystemMethod("create_app", {
     name,
     description: "Decentralized wallet for the Internet Computer",
     metadata: [["repo", repo]]
@@ -32,12 +33,12 @@ async function addRelease(
     size
   }
 
-  return await callMethod("add_release", release)
+  return await callSystemMethod("add_release", release)
 }
 
 const loadWasmChunk = async (wasm_hash: number[], wasmModule: number[]) => {
   for await (const chunks of chunkGenerator(wasmModule)) {
-    const result = await callMethod("load_wasm_chunk", wasm_hash, chunks)
+    const result = await callSystemMethod("load_wasm_chunk", wasm_hash, chunks)
 
     console.log("Chunks: ", result)
   }
@@ -58,7 +59,7 @@ export const load = async (appId: string, reload: boolean) => {
 
   if (reload) {
     try {
-      await callMethod("remove_release", wasm_hash)
+      await callSystemMethod("remove_release", wasm_hash)
     } catch (e) {
       console.error("Error removing release:", appId, version)
     }
@@ -72,13 +73,13 @@ export const load = async (appId: string, reload: boolean) => {
 
   console.log("Wasm loaded.")
 
-  const app = await callMethod("get_app", appId)
+  const app = await callSystemMethod("get_app", appId)
 
   console.log("App:", app)
 }
 
 const loader = async (appId: AvailableAppIds, reload: boolean) => {
-  const app = await callMethod("get_app", appId)
+  const app = await callSystemMethod("get_app", appId)
 
   if ("Err" in app) {
     const name = dfx.canisters[appId].name
@@ -120,6 +121,6 @@ for (let i = 2; i < process.argv.length; i++) {
 console.log(`Network: ${mainnet ? "mainnet" : "local"}`) // Outputs: 'ic' if you ran: ts-node main.ts renrk-eyaaa-aaaaa-aaada-cai --network=ic --reload
 console.log(`Reload: ${reload}`) // Outputs: 'true' if you ran: ts-node main.ts renrk-eyaaa-aaaaa-aaada-cai --network=ic --reload
 
-loadSystemActor(mainnet)
+updateAgent(mainnet)
   .then(() => loader(appId, reload))
   .catch(console.error)

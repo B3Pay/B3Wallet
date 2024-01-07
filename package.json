@@ -16,6 +16,7 @@
   "scripts": {
     "start": "npx serve@latest out",
     "dfx:start": "bash ./scripts/start.sh",
+    "dfx:pull": "dfx deps pull",
     "dfx:install": "yarn dfx:identity && sh ./scripts/install.sh",
     "dfx:identity": "dfx deps deploy internet_identity",
     "dfx:stop": "dfx stop",
@@ -25,8 +26,8 @@
     "type-check": "tsc --noEmit",
     "check": "npm run lint && npm run type-check",
     "generate": "dfx generate",
-    "load-wasm:wallet": "source .env && npx ts-node ./scripts/load-wasm.wallet.ts",
-    "load-wasm:system": "source .env && npx ts-node ./scripts/load-wasm.system.ts",
+    "load-wasm:wallet": "npx ts-node ./scripts/load-wasm.wallet.ts",
+    "load-wasm:system": "npx ts-node ./scripts/load-wasm.system.ts",
     "copy-wasm": "yarn build:wallet && ts-node ./scripts/copy-wasm.ts",
     "wasm-hash": "npx ts-node ./scripts/wasm-hash.ts",
     "dev": "npx next dev",

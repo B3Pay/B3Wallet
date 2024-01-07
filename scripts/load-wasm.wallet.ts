@@ -1,48 +1,47 @@
-import { walletActorIC, walletLocalActor } from "./actor"
-import { chunkGenerator, loadWasmFile, readVersion } from "./utils"
-import { B3Wallet } from "./wallet"
+import { callWalletMethod } from "./b3wallet"
+import { chunkGenerator, hashToHex, loadWasmFile, readVersion } from "./utils"
+import dfx from "../dfx.json"
+import { updateAgent } from "./agent"
 
-const resetRelease = (actor: B3Wallet) => actor.unload_wasm()
-
-const loadRelease = async (
-  actor: B3Wallet,
-  wasmModule: number[],
-  version: string
-) => {
-  console.log(`Loading wasm code ${version} in User Canister.`)
-
+const loadWasmChunk = async (wasmModule: number[]) => {
   for await (const chunks of chunkGenerator(wasmModule)) {
-    const result = await actor.load_wasm(chunks)
-    console.log(`Chunks :`, result)
-  }
+    const result = await callWalletMethod("load_wasm", chunks)
 
-  console.log(`Loading done.`)
+    console.log("Chunks: ", result)
+  }
 }
 
-export const load = async (name: string, actor: B3Wallet) => {
-  const { wasmModule, wasm_hash, wasm_size } = await loadWasmFile(name)
-  console.log("Wasm size:", wasm_size, "hash:", wasm_hash)
-
-  const version = await readVersion(name)
+export const load = async (appId: string, reload: boolean) => {
+  const version = await readVersion(appId)
 
   if (!version) {
-    console.error(`Version for wasm cannot be read.`)
+    console.error("Version for wasm cannot be read.")
     return
   }
 
-  await resetRelease(actor)
-  await loadRelease(actor, wasmModule, version)
+  console.log(`Loading ${appId} wasmModule v${version} in WalletCanister.`)
+
+  const { wasmModule, wasm_hash, wasm_size } = await loadWasmFile(appId)
+  console.log("Wasm size:", wasm_size, "hash:", hashToHex(wasm_hash))
+
+  if (reload) {
+    try {
+      await callWalletMethod("unload_wasm")
+    } catch (e) {
+      console.error("Error removing release:", appId, version)
+    }
+  }
+
+  await loadWasmChunk(wasmModule)
+
+  console.log("Wasm loaded.")
 }
 
-const loader = async (name: string, mainnet: boolean) => {
-  const actor = await (mainnet ? walletActorIC : walletLocalActor)()
+type AvailableAppIds = keyof typeof dfx.canisters
 
-  await load(name, actor)
-}
-
-let name: string = "b3wallet"
+let appId: AvailableAppIds = "b3wallet"
 let mainnet: boolean = false
-const reload: boolean = false
+let reload: boolean = false
 
 for (let i = 2; i < process.argv.length; i++) {
   if (process.argv[i].startsWith("--network=")) {
@@ -50,11 +49,16 @@ for (let i = 2; i < process.argv.length; i++) {
     if (network === "ic" || network === "mainnet") {
       mainnet = true
     }
+  } else if (process.argv[i] === "--reload") {
+    reload = true
   } else if (!process.argv[i].startsWith("--")) {
-    name = process.argv[i]
+    appId = process.argv[i] as AvailableAppIds
   }
 }
 
-console.log(`Network: ${mainnet}`) // Outputs: 'ic' if you ran: ts-node main.ts renrk-eyaaa-aaaaa-aaada-cai --network=ic --reload
+console.log(`Network: ${mainnet ? "mainnet" : "local"}`) // Outputs: 'ic' if you ran: ts-node main.ts renrk-eyaaa-aaaaa-aaada-cai --network=ic --reload
+console.log(`Reload: ${reload}`) // Outputs: 'true' if you ran: ts-node main.ts renrk-eyaaa-aaaaa-aaada-cai --network=ic --reload
 
-loader(name, mainnet)
+updateAgent(mainnet)
+  .then(() => load(appId, reload))
+  .catch(console.error)
