@@ -25,7 +25,7 @@ async function createApp(name: string) {
   const logo: [string, Value] = [
     "logo",
     {
-      Text: loadImageFile("../public/logo/b3wallet.png")
+      Text: loadImageFile("public/assets/logo/b3wallet.png")
     }
   ]
 

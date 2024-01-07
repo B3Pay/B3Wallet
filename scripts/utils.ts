@@ -44,7 +44,7 @@ export const initIdentity = (mainnet: boolean) => {
 }
 
 export const loadImageFile = (imagePath: string) => {
-  const image = readFileSync(imagePath)
+  const image = readFileSync(`${process.cwd()}/${imagePath}`)
   return Buffer.from(image).toString("base64")
 }
 
