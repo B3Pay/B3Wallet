@@ -22,7 +22,6 @@ target/
 
 .env
 .yarn
-/wasm/
 
 frontend/declarations/
 Cargo.lock
@@ -33,3 +32,6 @@ deps/pulled.json
 # ignore all files in the deps/candid directory
 deps/candid/*
 */declarations/*
+canisters/*/*.wasm
+canisters/*/*.did
+canisters/*/*.gz

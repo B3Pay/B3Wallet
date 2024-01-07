@@ -113,20 +113,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     },
     ref
   ) => {
+    const closable = !!closeHandler
     const isIcon = !!icon
-    const inputRef = React.useRef<HTMLInputElement>(null)
-
-    function refHandler(instance: HTMLInputElement) {
-      if (ref) {
-        if (typeof ref === "function") {
-          ref(instance)
-        } else {
-          ref.current = instance
-        }
-      }
-      // @ts-ignore
-      inputRef.current = instance
-    }
 
     const roundingClass = roundSide
       ? `rounded-${roundSide}-${roundSize}`
@@ -139,9 +127,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             color={color}
             className="absolute p-1.5 top-1/2 left-1 transform -translate-y-1/2"
             size={iconSize || size}
-            onClick={() => {
-              inputRef.current && inputRef.current.focus()
-            }}
             variant="ghost"
             noShadow
             asChild
@@ -156,13 +141,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             inputVariants({ variant, size, color, isIcon }),
             height,
             roundingClass,
-            noShadow && "shadow-none"
+            noShadow && "shadow-none",
+            closable && "pr-8"
           )}
-          ref={refHandler}
           {...props}
+          ref={ref}
         />
         {children}
-        {closeHandler && (
+        {closable && (
           <Icon
             color="error"
             variant="ghost"
@@ -171,7 +157,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             size={iconSize || size}
             onClick={() => {
               closeHandler()
-              inputRef.current && inputRef.current.focus()
             }}
           >
             <Cross2Icon />

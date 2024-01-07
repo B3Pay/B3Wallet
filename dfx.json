@@ -3,31 +3,31 @@
     "b3system": {
       "name": "B3System",
       "build": "scripts/predeploy.sh b3system",
-      "candid": "wasm/b3system/b3system.did",
+      "candid": "canisters/b3system/b3system.did",
       "declarations": {
         "node_compatibility": true
       },
       "package": "b3system",
       "type": "custom",
-      "wasm": "wasm/b3system/b3system.wasm.gz"
+      "wasm": "canisters/b3system/b3system.wasm.gz"
     },
     "b3wallet": {
       "name": "B3Wallet",
       "build": "scripts/predeploy.sh b3wallet",
-      "candid": "wasm/b3wallet/b3wallet.did",
+      "candid": "canisters/b3wallet/b3wallet.did",
       "declarations": {
         "node_compatibility": true
       },
       "package": "b3wallet",
       "type": "custom",
-      "wasm": "wasm/b3wallet/b3wallet.wasm.gz"
+      "wasm": "canisters/b3wallet/b3wallet.wasm.gz"
     },
     "ckbtc": {
       "name": "Ckbtc",
       "build": [
         "true"
       ],
-      "candid": "wasm/ckbtc/ledger.did",
+      "candid": "canisters/ckbtc/ledger.did",
       "declarations": {
         "node_compatibility": true
       },
@@ -37,7 +37,7 @@
         }
       },
       "type": "custom",
-      "wasm": "wasm/ckbtc/ledger.wasm"
+      "wasm": "canisters/ckbtc/ledger.wasm"
     },
     "frontend": {
       "name": "frontend",
@@ -58,7 +58,7 @@
       "build": [
         "true"
       ],
-      "candid": "wasm/index/index.did",
+      "candid": "canisters/index/index.did",
       "declarations": {
         "node_compatibility": true
       },
@@ -68,7 +68,7 @@
         }
       },
       "type": "custom",
-      "wasm": "wasm/index/index.wasm"
+      "wasm": "canisters/index/index.wasm"
     },
     "internet_identity": {
       "name": "internet-identity",
@@ -80,7 +80,7 @@
       "build": [
         "true"
       ],
-      "candid": "wasm/kyt/kyt.did",
+      "candid": "canisters/kyt/kyt.did",
       "declarations": {
         "node_compatibility": true
       },
@@ -90,14 +90,14 @@
         }
       },
       "type": "custom",
-      "wasm": "wasm/kyt/kyt.wasm"
+      "wasm": "canisters/kyt/kyt.wasm"
     },
     "minter": {
       "name": "minter",
       "build": [
         "true"
       ],
-      "candid": "wasm/minter/minter.did",
+      "candid": "canisters/minter/minter.did",
       "declarations": {
         "node_compatibility": true
       },
@@ -107,7 +107,7 @@
         }
       },
       "type": "custom",
-      "wasm": "wasm/minter/minter.wasm"
+      "wasm": "canisters/minter/minter.wasm"
     }
   },
   "output_env_file": ".env"

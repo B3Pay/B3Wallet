@@ -8,7 +8,7 @@ const CreateApp: React.FC<CreateAppProps> = ({}) => {
   const { call, data, error, loading, field } = useSystemUpdate({
     functionName: "create_app"
   })
-
+  console.log("field", field)
   return (
     <div>
       <h2>Create App</h2>

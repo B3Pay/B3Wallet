@@ -26,26 +26,26 @@ const Variant: React.FC<VariantProps> = ({
   errors
 }) => {
   const { control, unregister, setValue } = useFormContext()
+  const [selectedName, setSelectedName] = React.useState<string>()
 
   const selectName = useMemo(() => `select.select${recursiveCounter++}`, [])
 
   const selected = useWatch({ name: selectName })
 
-  const { selectedName, selectedField } = useMemo(() => {
-    if (!selected) {
-      return {}
+  React.useEffect(() => {
+    if (selected) {
+      unregister(registerName)
+      setValue(
+        `${registerName}.${selected}`,
+        methodField.defaultValues?.[selected]
+      )
+      setSelectedName(`${registerName}.${selected}`)
     }
+  }, [selected])
 
-    unregister(registerName)
-    const selectedName = `${registerName}.${selected}`
-
-    setValue(selectedName, methodField.defaultValues?.[selected])
-
-    const selectedField = methodField.fields.find(f => f.label === selected)
-
-    return { selectedName, selectedField }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selected, setValue])
+  const selectedField = useMemo(() => {
+    return selected ? methodField.fields.find(f => f.label === selected) : null
+  }, [selected])
 
   return (
     <div>
@@ -90,7 +90,7 @@ const Variant: React.FC<VariantProps> = ({
         )}
       />
       <FormMessage />
-      {selectedField && (
+      {selectedField && selectedName && (
         <FieldRoute
           registerName={selectedName}
           errors={errors?.[selected as never]}
