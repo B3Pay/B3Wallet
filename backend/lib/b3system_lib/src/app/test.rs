@@ -43,7 +43,9 @@ mod tests {
         let app_args = create_test_app_args();
         let mut app_data = AppData::new(app_args);
         let release_args = release_mock();
-        let mut release = app_data.add_release(release_args.clone());
+        let mut release = app_data
+            .add_release(release_args.clone())
+            .unwrap_or_else(|_| panic!("Failed to deprecate release"));
 
         assert_eq!(release.is_loaded(), false);
 
@@ -66,7 +68,7 @@ mod tests {
         let mut app_data = AppData::new(app_args);
 
         let release = release_mock();
-        app_data.add_release(release.clone());
+        let _ = app_data.add_release(release.clone());
 
         let release = app_data
             .deprecate_release(release.wasm_hash.clone())
@@ -75,7 +77,7 @@ mod tests {
         assert!(release.is_deprecated());
 
         let new_release = release_mock();
-        app_data.add_release(new_release.clone());
+        let _ = app_data.add_release(new_release.clone());
 
         assert!(app_data.release_hash(&new_release.wasm_hash).is_some());
     }
@@ -85,7 +87,7 @@ mod tests {
         let app_args = create_test_app_args();
         let mut app = AppData::new(app_args);
         let release = release_mock();
-        app.add_release(release.clone());
+        let _ = app.add_release(release.clone());
 
         // Mock implementation of `with_releases` needed here
         let release = app.release_hash(&release.wasm_hash);

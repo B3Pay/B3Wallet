@@ -2,7 +2,7 @@
   "canisters": {
     "b3system": {
       "name": "B3System",
-      "build": "scripts/predeploy.sh",
+      "build": "scripts/predeploy.sh b3system",
       "candid": "wasm/b3system/b3system.did",
       "declarations": {
         "node_compatibility": true
@@ -13,7 +13,7 @@
     },
     "b3wallet": {
       "name": "B3Wallet",
-      "build": "scripts/predeploy.sh",
+      "build": "scripts/predeploy.sh b3wallet",
       "candid": "wasm/b3wallet/b3wallet.did",
       "declarations": {
         "node_compatibility": true

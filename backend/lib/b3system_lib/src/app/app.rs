@@ -85,9 +85,12 @@ impl AppData {
         self.release_hashes.push(wasm_hash);
     }
 
-    pub fn add_release(&mut self, release_args: CreateReleaseArgs) -> Release {
-        if let Ok(release) = self.release(&release_args.wasm_hash) {
-            return release;
+    pub fn add_release(
+        &mut self,
+        release_args: CreateReleaseArgs,
+    ) -> Result<Release, AppSystemError> {
+        if let Ok(_) = self.release(&release_args.wasm_hash) {
+            return Err(AppSystemError::ReleaseAlreadyExists);
         }
 
         let wasm_hash = release_args.wasm_hash.clone();
@@ -98,7 +101,7 @@ impl AppData {
 
         with_releases_mut(|releases| releases.insert(wasm_hash, release.clone()));
 
-        release
+        Ok(release)
     }
 
     pub fn update_release(&mut self, release_args: CreateReleaseArgs) {
