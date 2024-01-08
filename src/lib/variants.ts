@@ -18,7 +18,24 @@ export const colorVariants = cva("text-inherit", {
 
 export type BgColorVariant = ReturnType<typeof bgColorVariants>
 
-export const bgColorVariants = (opacity: number = 100) =>
+export type Opacity =
+  | 0
+  | 5
+  | 10
+  | 20
+  | 25
+  | 30
+  | 40
+  | 50
+  | 60
+  | 70
+  | 75
+  | 80
+  | 90
+  | 95
+  | 100
+
+export const bgColorVariants = (opacity: Opacity = 75) =>
   cva("", {
     variants: {
       bgColor: {
@@ -29,11 +46,34 @@ export const bgColorVariants = (opacity: number = 100) =>
         warning: `bg-warning/${opacity}`,
         info: `bg-info/${opacity}`,
         muted: `bg-gray-400/${opacity}`,
-        inherit: "bg-inherit"
+        inherit: "bg-inherit",
+        card: "bg-card"
       }
     },
     defaultVariants: {
-      bgColor: "primary"
+      bgColor: "card"
+    }
+  })
+
+export type BgGradientVariant = ReturnType<typeof bgGradientVariants>
+
+export const bgGradientVariants = (opacity: Opacity = 75) =>
+  cva("", {
+    variants: {
+      bgGradient: {
+        primary: `bg-gradient-to-r from-primary to-primary-dark`,
+        secondary: `bg-gradient-to-r from-secondary to-secondary-dark`,
+        error: `bg-gradient-to-r from-error to-error-dark`,
+        success: `bg-gradient-to-r from-success to-success-dark`,
+        warning: `bg-gradient-to-r from-warning to-warning-dark`,
+        info: `bg-gradient-to-r from-info to-info-dark`,
+        muted: `bg-gradient-to-r from-gray-400 to-gray-500`,
+        inherit: "bg-inherit",
+        card: "bg-card"
+      }
+    },
+    defaultVariants: {
+      bgGradient: "card"
     }
   })
 

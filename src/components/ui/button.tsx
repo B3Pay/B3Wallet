@@ -152,7 +152,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     {
       className,
       children,
-      color,
+      color = "primary",
       variant,
       size,
       roundSize = "xl",
@@ -176,12 +176,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       ? `rounded-${roundSide}-${roundSize}`
       : `rounded-${roundSize}`
 
-    const diagonalRoundingClass =
+    const roundingClasses =
       diagonalRoundSide === "r"
         ? `rounded-tr-${roundSize} rounded-bl-${roundSize}`
         : diagonalRoundSide === "l"
         ? `rounded-tl-${roundSize} rounded-br-${roundSize}`
-        : ""
+        : roundingClass
 
     return (
       <Comp
@@ -199,8 +199,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           hoverBgColorVariants(50)({ hoverBgColor: color }),
           bgColorVariants(75)({ bgColor: color }),
           fullWidth && "w-full",
-          roundingClass,
-          diagonalRoundingClass,
+          roundingClasses,
           height,
           isLoading && "animate-border-pulse",
           className

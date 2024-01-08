@@ -9,7 +9,7 @@ const navItems = [
   },
   {
     title: "Wallet",
-    href: "/wallet"
+    href: "/app/b3wallet"
   },
   {
     title: "Candid",

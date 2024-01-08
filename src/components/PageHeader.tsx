@@ -28,11 +28,14 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, ...rest }) => {
         iconProps={{
           size: "xl",
           roundSide: "l",
+          diagonalRoundSide: "none",
           color: "muted"
         }}
         icon={
           <Image
-            src={`assets/logo/${title.toLowerCase()}.png`}
+            src={`${
+              window.location.origin
+            }/assets/logo/${title.toLowerCase()}.png`}
             onError={e => (e.currentTarget.src = "assets/logo/b3.png")}
             width={35}
             height={35}

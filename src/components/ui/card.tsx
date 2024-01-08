@@ -3,14 +3,16 @@ import { VariantProps, cva } from "class-variance-authority"
 import { cn } from "@src/lib/utils"
 import {
   BgColorVariant,
+  BgGradientVariant,
   MarginVariant,
   PaddingVariant,
   bgColorVariants,
+  bgGradientVariants,
   marginVariants,
   paddingVariants
 } from "@src/lib/variants"
 import { Icon, IconProps } from "./icon"
-import { Box } from "./box"
+import { Box, BoxProps } from "./box"
 
 const cardVariants = cva(
   "bg-card transition-card-height transition-border-radius shadow",
@@ -23,23 +25,12 @@ const cardVariants = cva(
         lg: "text-lg",
         xl: "text-xl"
       },
-      roundSize: {
-        none: "rounded-none",
-        xs: "rounded-xs",
-        sm: "rounded-sm",
-        md: "rounded-md",
-        lg: "rounded-lg",
-        xl: "rounded-xl",
-        "2xl": "rounded-2xl",
-        "3xl": "rounded-3xl"
-      },
       noShadow: {
         true: "shadow-none"
       }
     },
     defaultVariants: {
-      size: "md",
-      roundSize: "md"
+      size: "md"
     }
   }
 )
@@ -48,9 +39,11 @@ export interface CardProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, "color" | "title">,
     VariantProps<typeof cardVariants>,
     VariantProps<BgColorVariant>,
+    VariantProps<BgGradientVariant>,
     VariantProps<PaddingVariant>,
     VariantProps<MarginVariant> {
   title?: React.ReactNode
+  titleProps?: BoxProps
   dashedBorder?: boolean
   icon?: React.ReactNode
   asChild?: boolean
@@ -59,6 +52,8 @@ export interface CardProps
   border?: 0 | 1 | 2 | 3 | 4
   action?: React.ReactNode
   iconProps?: IconProps
+  roundSize?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | null
+  roundSide?: "t" | "b" | "l" | "r" | "tl" | "tr" | "bl" | "br" | "none" | null
 }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
@@ -68,10 +63,12 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       size,
       noShadow,
       noRadius,
-      bgColor: color,
+      bgColor,
+      bgGradient,
       border = 0,
       dashedBorder,
       iconProps,
+      titleProps,
       padding,
       paddingBottom,
       paddingLeft,
@@ -84,7 +81,8 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       marginTop,
       icon,
       title,
-      roundSize,
+      roundSize = "xl",
+      roundSide,
       action,
       children,
       ...props
@@ -92,6 +90,10 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     ref
   ) => {
     border = size === "xl" ? 3 : border
+
+    const roundingClass = roundSide
+      ? `rounded-${roundSide}-${roundSize}`
+      : `rounded-${roundSize}`
 
     return (
       <div
@@ -110,45 +112,50 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
             marginRight,
             marginTop
           }),
-          bgColorVariants()({ bgColor: color }),
-          cardVariants({ size, roundSize, noShadow })
+          cardVariants({ size, noShadow }),
+          bgColorVariants(50)({ bgColor }),
+          bgGradientVariants(50)({ bgGradient }),
+          roundingClass,
+          className
         )}
       >
-        <div className="flex justify-between w-full items-stretch">
-          {icon && (
-            <Icon
-              {...iconProps}
-              className={cn(
-                "flex-none flex items-center justify-center",
-                `border-${border}`,
-                dashedBorder ? "border-dashed" : "shadow-button-inner"
-              )}
-            >
-              {icon}
-            </Icon>
-          )}
-          <Box
-            bgColor={color}
-            size={size}
-            className={cn(
-              "flex-1 pl-2 flex items-center font-semibold leading-none tracking-tight",
-              dashedBorder && "border-dashed",
-              `border-t-${border}`
+        {(title || action) && (
+          <div className="flex justify-between w-full items-stretch">
+            {icon && (
+              <Icon
+                diagonalRoundSide="l"
+                {...iconProps}
+                className={cn(
+                  "flex-none flex items-center justify-center",
+                  `border-${border}`,
+                  dashedBorder ? "border-dashed" : "shadow-button-inner"
+                )}
+              >
+                {icon}
+              </Icon>
             )}
-          >
-            {title}
-          </Box>
-          {action}
-        </div>
+            <Box
+              bgColor={bgColor}
+              size={size}
+              className={cn(
+                "flex-1 pl-2 flex items-center font-semibold leading-none tracking-tight",
+                dashedBorder && "border-dashed",
+                `border-t-${border}`
+              )}
+              {...titleProps}
+            >
+              {title}
+            </Box>
+            {action}
+          </div>
+        )}
         <div
           ref={ref}
           className={cn(
-            bgColorVariants()({ bgColor: color }),
             noRadius ? "rounded-none" : "rounded-b-lg",
             `border-${border}`,
             "border-t-0",
-            dashedBorder && "border-dashed",
-            className
+            dashedBorder && "border-dashed"
           )}
           {...props}
         >

@@ -1,20 +1,20 @@
-import AppCanisterStatus from "@src/components/AppCanisterStatus"
-import AppCanisterVersion from "@src/components/AppCanisterVersion"
-import CreateApp from "@src/components/CreateApp"
-import CreateWallet from "@src/components/CreateWallet"
-import PageHeader from "@src/components/PageHeader"
-import UserStatus from "@src/components/UserStatus"
+import Apps from "@src/components/Apps"
+import { Box } from "@src/components/ui/box"
+import { Card } from "@src/components/ui/card"
+import { useSystemQuery } from "@src/service/system"
 
 function HomePage() {
   return (
-    <div>
-      <PageHeader title="Home" />
-      <CreateApp />
-      <CreateWallet />
-      <UserStatus />
-      <AppCanisterStatus />
-      <AppCanisterVersion />
-    </div>
+    <Box className="grid gap-2">
+      <Card
+        titleProps={{
+          className:
+            "text-2xl font-bold px-4 py-2 flex-1 flex items-center justify-center"
+        }}
+        title="ICP Apps"
+      />
+      <Apps />
+    </Box>
   )
 }
 

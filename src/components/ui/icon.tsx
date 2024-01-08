@@ -4,7 +4,7 @@ import { cn } from "@src/lib/utils"
 import * as React from "react"
 
 const iconVariants = cva(
-  "transition-border-radius inline-flex items-center justify-center text-inherit p-0.5",
+  "shadow transition-border-radius inline-flex items-center justify-center text-inherit p-0.5",
   {
     variants: {
       asButton: {
@@ -20,11 +20,11 @@ const iconVariants = cva(
         muted: "border-gray-500"
       },
       variant: {
-        default: "border-2 shadow text-foreground",
-        filled: "shadow text-foreground",
-        outline: "border-2 shadow bg-transparent",
-        ghost: "shadow bg-transparent",
-        link: "bg-transparent underline"
+        default: "border-2 text-foreground",
+        filled: "text-foreground",
+        outline: "border-2 bg-transparent",
+        ghost: "bg-transparent",
+        link: "shadow-none bg-transparent underline"
       },
       size: {
         xs: "h-5 w-5 text-xs",
@@ -73,9 +73,7 @@ const Icon = React.forwardRef<HTMLSpanElement, IconProps>(
   ) => {
     const Comp = asChild ? Slot : "span"
 
-    const roundingClass = roundSide
-      ? `rounded-${roundSide}-${roundSize}`
-      : `rounded-${roundSize}`
+    const roundingClass = roundSide ? `rounded-${roundSide}-${roundSize}` : ""
 
     const diagonalRoundingClass =
       diagonalRoundSide === "r"

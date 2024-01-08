@@ -29,7 +29,7 @@ const UserNav: React.FC<UserNavProps> = ({ className }) => {
     authenticating,
     authenticated
   } = useSystemAuthClient()
-
+  console.log(loginError)
   return authenticated ? (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -78,7 +78,7 @@ const UserNav: React.FC<UserNavProps> = ({ className }) => {
           identityProvider:
             process.env.DFX_NETWORK === "ic"
               ? "https://identity.ic0.app/#authorize"
-              : `http://rdmx6-jaaaa-aaaaa-aaadq-cai.127.0.0.1:4943/#authorize`
+              : `http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:4943/#authorize`
         })
       }
       disabled={loginLoading || authenticating}

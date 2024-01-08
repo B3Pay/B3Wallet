@@ -136,6 +136,30 @@ function generateTailwindSafelist() {
   const sizes = ["sm", "md", "lg", "xl", "2xl", "none", "0", "2", "3", "4"]
   const sides = ["", "t", "b", "l", "r", "tl", "tr", "bl", "br"]
   const properties = ["rounded", "border"]
+  const colors = [
+    "primary",
+    "secondary",
+    "error",
+    "success",
+    "warning",
+    "info",
+    "muted",
+    "inherit",
+    "card"
+  ]
+  const opacity = [
+    "5",
+    "10",
+    "20",
+    "30",
+    "40",
+    "50",
+    "60",
+    "70",
+    "80",
+    "90",
+    "100"
+  ]
 
   const safelist = []
 
@@ -153,6 +177,12 @@ function generateTailwindSafelist() {
         })
       })
     }
+  })
+
+  colors.forEach(color => {
+    opacity.forEach(opacity => {
+      safelist.push(`bg-${color}/${opacity}`)
+    })
   })
 
   return safelist
