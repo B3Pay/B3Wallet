@@ -17,12 +17,11 @@ interface Metadata {
   name: string
   repo: string
   logo: string
+  description: string
 }
 
 async function createApp(appId: AvailableAppIds) {
   const metadataJson: Metadata = require(`../canisters/${appId}/metadata.json`)
-
-  const name = metadataJson.name
 
   const metadata: CreateAppArgs["metadata"] = Object.entries(
     metadataJson
@@ -41,11 +40,9 @@ async function createApp(appId: AvailableAppIds) {
     return acc
   }, [] as CreateAppArgs["metadata"])
 
-  console.log("Metadata:", metadata)
-
   return await callSystemMethod("create_app", {
-    name,
-    description: "Decentralized wallet for the Internet Computer",
+    name: appId,
+    description: metadataJson.description,
     metadata
   })
 }
