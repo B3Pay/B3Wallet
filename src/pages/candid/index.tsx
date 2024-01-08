@@ -13,18 +13,29 @@ import {
   FormMessage
 } from "@src/components/ui/form"
 import { Input } from "@src/components/ui/input"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import PageHeader from "@src/components/PageHeader"
 import { Box } from "@src/components/ui/box"
+import { useRouter } from "next/router"
 
 function CandidPage() {
+  const { query } = useRouter()
+  console.log("query", query)
   const [defaultValues, setDefaultValues] = useState({
-    canisterId: "rdmx6-jaaaa-aaaaa-aaadq-cai"
+    canisterId: undefined as string | undefined
   })
 
+  useEffect(() => {
+    if (query.canisterId) {
+      setDefaultValues({
+        canisterId: query.canisterId as string
+      })
+    }
+  }, [query])
+
   const form = useForm({
-    defaultValues
+    defaultValues: defaultValues
   })
 
   return (
@@ -76,17 +87,19 @@ function CandidPage() {
           </form>
         </CardContent>
       </Card>
-      <ActorProvider
-        canisterId={defaultValues.canisterId}
-        loadingComponent={
-          <div className="flex flex-col items-center justify-center h-80">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary" />
-            <div>Loading...</div>
-          </div>
-        }
-      >
-        <Candid />
-      </ActorProvider>
+      {defaultValues.canisterId && (
+        <ActorProvider
+          canisterId={defaultValues.canisterId}
+          loadingComponent={
+            <div className="flex flex-col items-center justify-center h-80">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary" />
+              <div>Loading...</div>
+            </div>
+          }
+        >
+          <Candid />
+        </ActorProvider>
+      )}
     </Box>
   )
 }

@@ -4,6 +4,14 @@ import { usePathname } from "next/navigation"
 
 const navItems = [
   {
+    title: "Home",
+    href: "/"
+  },
+  {
+    title: "Forge",
+    href: "/forge"
+  },
+  {
     title: "System",
     href: "/system"
   },
@@ -14,10 +22,6 @@ const navItems = [
   {
     title: "Candid",
     href: "/candid"
-  },
-  {
-    title: "Dashboard",
-    href: "/dashboard"
   }
 ]
 

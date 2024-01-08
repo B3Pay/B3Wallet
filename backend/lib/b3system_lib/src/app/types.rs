@@ -33,7 +33,7 @@ pub struct AppView {
     pub created_by: String,
     pub created_at: NanoTimeStamp,
     pub updated_at: NanoTimeStamp,
-    pub latest_release: Option<ReleaseView>,
+    pub releases: Vec<ReleaseView>,
     pub metadata: Metadata,
     pub install_count: Nonce,
 }

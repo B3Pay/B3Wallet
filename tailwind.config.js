@@ -7,7 +7,12 @@ module.exports = {
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}"
   ],
-  safelist: generateTailwindSafelist(),
+  safelist: [
+    ...generateTailwindSafelist(),
+    "-rotate-y-0",
+    "-rotate-y-180",
+    "rotate-y-180"
+  ],
   theme: {
     container: {
       center: true,
@@ -17,6 +22,13 @@ module.exports = {
       }
     },
     extend: {
+      backfaceVisibility: {
+        hidden: "hidden",
+        visible: "visible"
+      },
+      transitionDuration: {
+        custom: "0.2s"
+      },
       fontFamily: {
         sans: ["var(--font-inter)"],
         mono: ["var(--font-roboto-mono)"]
@@ -129,7 +141,10 @@ module.exports = {
       }
     }
   },
-  plugins: [require("tailwindcss-animate")]
+  plugins: [
+    require("tailwindcss-animate"),
+    require("@xpd/tailwind-3dtransforms")
+  ]
 }
 
 function generateTailwindSafelist() {

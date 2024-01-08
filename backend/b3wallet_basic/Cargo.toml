@@ -1,0 +1,13 @@
+[package]
+name = "b3wallet_basic"
+version = "0.0.0-beta.1"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+b3wallet_lib = { path = "../lib/b3wallet_lib" }
+b3_utils = { workspace = true, features = ["logging", "owner"] }
+candid = { workspace = true }
+ic-cdk = { workspace = true }

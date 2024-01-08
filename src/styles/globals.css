@@ -90,7 +90,3 @@ input[type="number"] {
 .transition-border-radius {
     transition: border-radius 0.25s ease-in-out;
 }
-
-.transition-card-height {
-    transition: height 0.5s ease-in-out;
-}

@@ -17,8 +17,7 @@ pub type UserStates = Vec<User>;
 pub enum UserStatus {
     Registered,
     Unregistered,
-    SingleCanister(CanisterId),
-    MultipleCanister(CanisterIds),
+    Applications(CanisterIds),
 }
 
 pub type UserViews = Vec<UserView>;

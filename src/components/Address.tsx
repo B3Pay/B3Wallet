@@ -6,17 +6,20 @@ import {
   TooltipTrigger
 } from "@src/components/ui/tooltip"
 import { cn } from "@src/lib/utils"
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { Button } from "./ui/button"
 import { DropdownMenuShortcut } from "./ui/dropdown-menu"
+import useTruncated from "@src/lib/useTruncated"
 
 interface AddressWithCopyProps
   extends React.HTMLAttributes<HTMLParagraphElement> {
   address: string
   noIcon?: boolean
   hiddenAddress?: boolean
+  iconSize?: "xs" | "sm" | "md" | "lg" | "xl" | null
   size?: "xs" | "sm" | "md" | "lg" | "xl" | null
   asMenuItem?: boolean
+  prefix?: string
 }
 
 const Address: React.FC<AddressWithCopyProps> = ({
@@ -25,15 +28,14 @@ const Address: React.FC<AddressWithCopyProps> = ({
   hiddenAddress,
   className,
   asMenuItem,
+  prefix,
   size = "md",
+  iconSize = "md",
   ...rest
 }) => {
   const IconComp = asMenuItem ? DropdownMenuShortcut : "span"
 
   const [hasCopied, setHasCopied] = useState(false)
-  const [isLargerThan500, setIsLargerThan500] = useState(
-    window.innerWidth > 568
-  )
 
   const onCopy = () => {
     navigator.clipboard.writeText(address)
@@ -41,57 +43,45 @@ const Address: React.FC<AddressWithCopyProps> = ({
     setTimeout(() => setHasCopied(false), 2000)
   }
 
-  window.addEventListener("resize", () => {
-    setIsLargerThan500(window.innerWidth > 568)
-  })
-
-  const truncatedAddress = useMemo(() => {
-    if (address.length <= 20 || (isLargerThan500 && address.length <= 42)) {
-      return address
-    }
-
-    const maxLength = size === "xs" ? 8 : size === "sm" ? 12 : 20
-
-    const Start = address.slice(0, isLargerThan500 ? maxLength : 8)
-    const End = address.slice(isLargerThan500 ? -maxLength : -8)
-
-    return `${Start}...${End}`
-  }, [address, isLargerThan500])
+  const truncatedAddress = useTruncated(address, size)
 
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="flex items-center overflow-hidden" title={address}>
-            <p
+          <span className="flex items-center overflow-hidden" title={address}>
+            <span
               className={`overflow-hidden overflow-ellipsis whitespace-nowrap ${
                 hiddenAddress ? "hidden" : ""
               }`}
             >
+              {prefix && <span className="mr-1">{prefix}</span>}
               {truncatedAddress}
-            </p>
+            </span>
             {!noIcon && (
               <IconComp>
                 <Button
                   variant="link"
+                  size={iconSize}
+                  bgColor="inherit"
                   onClick={onCopy}
                   asIconButton
                   aria-label="Copy to clipboard"
                 >
                   {hasCopied ? (
-                    <CheckIcon className="h-5 w-5" />
+                    <CheckIcon className="h-4 w-4" />
                   ) : (
-                    <CopyIcon className="h-5 w-5" />
+                    <CopyIcon className="h-4 w-4" />
                   )}
                 </Button>
               </IconComp>
             )}
-          </div>
+          </span>
         </TooltipTrigger>
         <TooltipContent>
-          <p className={cn("text-xs", className)} {...rest}>
+          <span className={cn("text-xs", className)} {...rest}>
             {address}
-          </p>
+          </span>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

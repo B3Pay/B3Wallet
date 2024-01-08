@@ -69,8 +69,7 @@ async fn get_user_status() -> UserStatus {
     match user.canisters() {
         Ok(canisters) => match canisters.len() {
             0 => UserStatus::Registered,
-            1 => UserStatus::SingleCanister(canisters[0].clone()),
-            _ => UserStatus::MultipleCanister(canisters),
+            _ => UserStatus::Applications(canisters),
         },
         Err(_) => UserStatus::Unregistered,
     }

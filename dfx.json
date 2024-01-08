@@ -22,6 +22,17 @@
       "type": "custom",
       "wasm": "canisters/b3wallet/b3wallet.wasm.gz"
     },
+    "b3wallet_basic": {
+      "name": "B3Wallet(Basic)",
+      "build": "scripts/predeploy.sh b3wallet_basic",
+      "candid": "canisters/b3wallet_basic/b3wallet_basic.did",
+      "declarations": {
+        "node_compatibility": true
+      },
+      "package": "b3wallet_basic",
+      "type": "custom",
+      "wasm": "canisters/b3wallet_basic/b3wallet_basic.wasm.gz"
+    },
     "ckbtc": {
       "name": "Ckbtc",
       "build": [

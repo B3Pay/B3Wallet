@@ -12,8 +12,8 @@ type AppView = record {
   description : text;
   created_at : nat64;
   created_by : text;
+  releases : vec ReleaseView;
   app_id : text;
-  latest_release : opt ReleaseView;
   install_count : nat64;
 };
 type CanisterChange = record {
@@ -112,8 +112,7 @@ type UserCanisterStatus = record {
 };
 type UserStatus = variant {
   Unregistered;
-  SingleCanister : principal;
-  MultipleCanister : vec principal;
+  Applications : vec principal;
   Registered;
 };
 type UserView = record {

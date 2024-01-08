@@ -24,12 +24,11 @@ const UserNav: React.FC<UserNavProps> = ({ className }) => {
     login,
     logout,
     loginLoading,
-    loginError,
     identity,
     authenticating,
     authenticated
   } = useSystemAuthClient()
-  console.log(loginError)
+
   return authenticated ? (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

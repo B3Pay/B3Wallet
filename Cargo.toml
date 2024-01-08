@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "backend/b3system",
     "backend/b3wallet",
+    "backend/b3wallet_basic",
     "backend/lib/b3system_lib",
     "backend/lib/b3wallet_lib",
     "backend/lib/operations",

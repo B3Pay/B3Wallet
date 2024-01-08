@@ -2,8 +2,11 @@ import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn, focusRing } from "@src/lib/utils"
 import {
+  BgColorVariant,
   bgColorVariants,
+  BgGradientVariant,
   borderColorVariants,
+  HoverBgColorVariant,
   hoverBgColorVariants
 } from "@src/lib/variants"
 import * as React from "react"
@@ -83,7 +86,7 @@ const buttonVariants = cva(
         className: "w-12"
       },
       {
-        variant: "ghost",
+        variant: ["ghost", "link"],
         color: ["primary", "secondary", "error", "success", "warning", "info"],
         className: "bg-transparent"
       }
@@ -133,7 +136,10 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "color">,
-    VariantProps<typeof buttonVariants> {
+    VariantProps<typeof buttonVariants>,
+    VariantProps<BgColorVariant>,
+    VariantProps<BgGradientVariant>,
+    VariantProps<HoverBgColorVariant> {
   asChild?: boolean
   height?: string
   fullWidth?: boolean
@@ -153,6 +159,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       className,
       children,
       color = "primary",
+      hoverBgColor,
+      bgColor,
       variant,
       size,
       roundSize = "xl",
@@ -196,8 +204,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             innerShadow
           }),
           borderColorVariants({ borderColor: color }),
-          hoverBgColorVariants(50)({ hoverBgColor: color }),
-          bgColorVariants(75)({ bgColor: color }),
+          hoverBgColorVariants(50)({ hoverBgColor }),
+          bgColorVariants(75)({ bgColor: bgColor ? bgColor : color }),
           fullWidth && "w-full",
           roundingClasses,
           height,

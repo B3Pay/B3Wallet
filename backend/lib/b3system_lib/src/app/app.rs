@@ -170,13 +170,13 @@ impl AppData {
         AppView {
             app_id: self.id(),
             name: self.name.clone(),
+            releases: self.releases_view(),
             metadata: self.metadata.clone(),
             created_at: self.created_at.clone(),
             updated_at: self.updated_at.clone(),
             description: self.description.clone(),
             created_by: self.created_by.to_string(),
             install_count: self.install_count.clone(),
-            latest_release: self.latest_release_view().ok(),
         }
     }
 
@@ -257,6 +257,7 @@ impl AppData {
     pub fn releases_view(&self) -> Vec<super::types::ReleaseView> {
         self.releases()
             .iter()
+            .rev()
             .map(|release| release.view())
             .collect()
     }

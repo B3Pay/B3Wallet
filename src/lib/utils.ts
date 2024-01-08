@@ -43,7 +43,17 @@ export const errorHandler = (error: Error | unknown | null): string => {
 export const objectToString = (data: any) => {
   return JSON.stringify(
     data,
-    (_, value) => (typeof value === "bigint" ? value.toString() : value),
+    (name, value) => {
+      if (name === "Blob") {
+        return value.slice(0, 100) + "..."
+      }
+      switch (typeof value) {
+        case "bigint":
+          return value.toString()
+        default:
+          return value
+      }
+    },
     2
   )
 }

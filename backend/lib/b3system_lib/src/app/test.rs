@@ -113,7 +113,7 @@ mod tests {
         assert_eq!(app.updated_at, deserialized.updated_at);
         assert_eq!(app.name, deserialized.name);
         assert_eq!(app.description, deserialized.description);
-        assert_eq!(app.latest_release, deserialized.latest_release);
+        assert_eq!(app.releases, deserialized.releases);
         assert_eq!(app.metadata, deserialized.metadata);
     }
 }

@@ -1,46 +1,48 @@
 import { errorHandler } from "@src/lib/utils"
 import { useSystemAuthClient } from "@src/service/system"
-import Address from "./Address"
 import { Button } from "./ui/button"
+import { Card, CardContent, CardFooter } from "./ui/card"
 
 const Login = () => {
-  const {
-    login,
-    logout,
-    loginLoading,
-    loginError,
-    identity,
-    authenticating,
-    authenticated
-  } = useSystemAuthClient()
+  const { login, logout, identity, loginError, loginLoading, authenticated } =
+    useSystemAuthClient()
 
   return (
-    <div className="flex items-center">
+    <Card
+      titleProps={{
+        className:
+          "text-2xl font-bold px-4 py-2 flex-1 flex items-center justify-center"
+      }}
+    >
       {loginError ? (
         <div className="text-red-500">{errorHandler(loginError)}</div>
-      ) : loginLoading ? (
-        <div className="text-blue-500">Loading...</div>
-      ) : identity ? (
-        <Address size="sm" address={identity?.getPrincipal().toText()} />
       ) : null}
-      {authenticated ? (
-        <Button onClick={() => logout()}>Logout</Button>
+      {!authenticated ? (
+        <CardFooter className="flex flex-col space-y-2 items-center pt-4">
+          <p className="text-sm text-center">
+            Please login with your ICP wallet to view your installed apps.
+          </p>
+          <Button
+            onClick={() =>
+              login({
+                identityProvider:
+                  process.env.DFX_NETWORK === "ic"
+                    ? "https://identity.ic0.app/#authorize"
+                    : `http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:4943/#authorize`
+              })
+            }
+            disabled={loginLoading}
+            fullWidth
+          >
+            {loginLoading ? "Loading..." : "Login"}
+          </Button>
+        </CardFooter>
       ) : (
-        <Button
-          onClick={() =>
-            login({
-              identityProvider:
-                process.env.DFX_NETWORK === "ic"
-                  ? "https://identity.ic0.app/#authorize"
-                  : `http://rdmx6-jaaaa-aaaaa-aaadq-cai.127.0.0.1:4943/#authorize`
-            })
-          }
-          disabled={authenticating}
-        >
-          Login
+        <Button fullWidth onClick={() => logout()}>
+          Logout
         </Button>
       )}
-    </div>
+    </Card>
   )
 }
 

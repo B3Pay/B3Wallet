@@ -1,5 +1,5 @@
 {
-    "name": "B3Wallet",
+    "name": "B3Wallet(Basic)",
     "repo": "https://github.com/B3Pay/b3wallet",
     "logo": "canisters/b3wallet/logo.png",
     "description": "B3Wallet is a Decentralized wallet for the Internet Computer"
