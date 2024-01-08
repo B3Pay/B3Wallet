@@ -164,3 +164,9 @@ yarn load-wasm:system
 ```bash
 yarn dev
 ```
+
+8. **Start the development server**: Alternatively, you can autobuild with:
+
+```bash
+yarn autobuild
+```
