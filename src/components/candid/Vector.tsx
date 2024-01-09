@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 import { useFieldArray, useFormContext } from "react-hook-form"
 import { Button } from "@src/components/ui/button"
 import FieldRoute, { FieldRouteProps } from "./FieldRoute"
@@ -15,14 +15,45 @@ const Vector: React.FC<VectorProps> = ({
   errors,
   registerName
 }) => {
-  const { control } = useFormContext()
+  const { control, setValue } = useFormContext()
 
   const { fields, append, swap, remove } = useFieldArray({
     control,
     name: registerName as never
   })
+  // State to store the selected file name
+  const [selectedFileName, setSelectedFileName] = useState("")
 
-  return (
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      setSelectedFileName(file.name)
+      // Process the file here or pass it to the form handler
+      const reader = new FileReader()
+
+      reader.onload = function () {
+        // Use reader.result
+        const uint8Array = new Uint8Array(reader.result as ArrayBuffer)
+        console.log(ArrayBuffer.isView(uint8Array))
+
+        setValue(registerName, Array.from(uint8Array))
+      }
+
+      reader.readAsArrayBuffer(file)
+    }
+  }
+
+  return methodField.label === "vec nat8" ? (
+    <div>
+      <input
+        type="file"
+        onChange={handleFileChange}
+        style={{ marginBottom: "10px" }}
+      />
+      {selectedFileName && <div>Selected File: {selectedFileName}</div>}
+      {/* Add other UI elements as needed */}
+    </div>
+  ) : (
     <div>
       <Box className="flex justify-between items-center mt-2">
         <Label className="flex-1 w-full block text-lg font-medium">
