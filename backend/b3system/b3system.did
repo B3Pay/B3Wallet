@@ -99,7 +99,8 @@ type ReleaseView = record {
 };
 type Result = variant { Ok : UserView; Err : text };
 type Result_1 = variant { Ok : AppView; Err : text };
-type Result_2 = variant { Ok : ReleaseView; Err : text };
+type Result_2 = variant { Ok : principal; Err : text };
+type Result_3 = variant { Ok : ReleaseView; Err : text };
 type SystemCanisterStatus = record {
   user_status : nat64;
   status_at : nat64;
@@ -135,7 +136,7 @@ service : () -> {
   add_user_app : (principal, text) -> (Result);
   clear_bugs : (principal) -> ();
   create_app : (CreateAppArgs) -> (Result_1);
-  create_app_canister : (text) -> (Result);
+  create_app_canister : (text) -> (Result_2);
   create_user : (CreateUserArgs) -> (UserView);
   deprecate_release : (text, vec nat8) -> ();
   get_app : (text) -> (Result_1) query;
@@ -145,7 +146,7 @@ service : () -> {
   get_canister_info : (principal) -> (CanisterInfoResponse);
   get_canisters : () -> (vec principal) query;
   get_create_canister_app_cycle : () -> (nat) query;
-  get_latest_release : (text) -> (Result_2) query;
+  get_latest_release : (text) -> (Result_3) query;
   get_release : (vec nat8) -> (ReleaseView) query;
   get_release_by_hash_string : (text) -> (ReleaseView) query;
   get_states : () -> (UserView) query;

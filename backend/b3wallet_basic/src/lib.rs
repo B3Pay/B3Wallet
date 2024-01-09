@@ -27,6 +27,7 @@ use b3wallet_lib::{
     },
     types::{AccountId, WalletAccountView},
 };
+use candid::{CandidType, Deserialize};
 use ic_cdk::{
     api::{
         call::arg_data,
@@ -139,8 +140,14 @@ async fn account_update_balance(account_id: AccountId, network: BitcoinNetwork) 
     }
 }
 
+#[derive(CandidType, Deserialize)]
+struct AccountCreateArgs {
+    env: Option<Environment>,
+    name: Option<String>,
+}
+
 #[update(guard = "caller_is_owner")]
-fn account_create(env: Option<Environment>, name: Option<String>) {
+fn account_create(AccountCreateArgs { env, name }: AccountCreateArgs) {
     log_cycle!("Create account: {:?} on env: {:?}", name, env);
 
     let subaccount = with_wallet(|s| s.new_subaccount(env));

@@ -3,6 +3,11 @@ import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
 import { CheckIcon } from "@radix-ui/react-icons"
 
 import { cn } from "@src/lib/utils"
+import {
+  bgColorVariants,
+  borderColorVariants,
+  colorVariants
+} from "@src/lib/variants"
 
 const Checkbox = React.forwardRef<
   React.ElementRef<typeof CheckboxPrimitive.Root>,
@@ -11,7 +16,10 @@ const Checkbox = React.forwardRef<
   <CheckboxPrimitive.Root
     ref={ref}
     className={cn(
-      "peer h-4 w-4 shrink-0 rounded border border-slate-200 border-slate-900 shadow focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-slate-900 data-[state=checked]:text-slate-50 dark:border-slate-800 dark:border-slate-50 dark:focus-visible:ring-slate-300 dark:data-[state=checked]:bg-slate-50 dark:data-[state=checked]:text-slate-900",
+      colorVariants({ color: "primary" }),
+      borderColorVariants({ borderColor: "primary" }),
+      "peer h-4 w-4 shrink-0 rounded border shadow focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50",
+      "data-[state=checked]:bg-primary data-[state=checked]:text-background",
       className
     )}
     {...props}
@@ -19,7 +27,7 @@ const Checkbox = React.forwardRef<
     <CheckboxPrimitive.Indicator
       className={cn("flex items-center justify-center text-current")}
     >
-      <CheckIcon className="h-4 w-4" />
+      <CheckIcon className="h-3 w-3" />
     </CheckboxPrimitive.Indicator>
   </CheckboxPrimitive.Root>
 ))

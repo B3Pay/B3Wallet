@@ -142,7 +142,7 @@ async fn create_user(app_args: CreateUserArgs) -> UserView {
 }
 
 #[update]
-async fn create_app_canister(app_id: AppId) -> Result<UserView, String> {
+async fn create_app_canister(app_id: AppId) -> Result<CanisterId, String> {
     AppState::read(app_id.clone())
         .validate()
         .unwrap_or_else(revert);
@@ -160,7 +160,7 @@ async fn create_app_canister(app_id: AppId) -> Result<UserView, String> {
         .await
         .unwrap_or_else(revert);
 
-    let user = UserState::write(user_id)
+    UserState::write(user_id)
         .add_canister(app.canister_id())
         .unwrap_or_else(revert);
 
@@ -181,7 +181,7 @@ async fn create_app_canister(app_id: AppId) -> Result<UserView, String> {
             match (install_result, update_result) {
                 (Ok(_), Ok(_)) => {
                     let _ = AppState::write(app_id).increment_install_count();
-                    Ok(user.view())
+                    Ok(app.canister_id())
                 }
                 (Err(err), _) => Err(err.to_string()),
                 (_, Err(err)) => Err(err.to_string()),

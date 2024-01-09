@@ -21,6 +21,13 @@ import { useRouter } from "next/router"
 
 function CandidPage() {
   const { query } = useRouter()
+
+  const form = useForm({
+    defaultValues: {
+      canisterId: ""
+    }
+  })
+
   console.log("query", query)
   const [defaultValues, setDefaultValues] = useState({
     canisterId: undefined as string | undefined
@@ -31,12 +38,9 @@ function CandidPage() {
       setDefaultValues({
         canisterId: query.canisterId as string
       })
+      form.setValue("canisterId", query.canisterId as string)
     }
   }, [query])
-
-  const form = useForm({
-    defaultValues: defaultValues
-  })
 
   return (
     <Box className="grid gap-2">

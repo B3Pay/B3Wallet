@@ -1,3 +1,4 @@
+type AccountCreateArgs = record { env : opt Environment; name : opt text };
 type AppAccountsNonce = record {
   staging : nat64;
   production : nat64;
@@ -124,7 +125,7 @@ service : () -> {
   account_balance : (text, ChainEnum) -> (nat);
   account_btc_fees : (BitcoinNetwork, nat8) -> (nat64);
   account_check_pending : (text, ChainEnum, nat64) -> ();
-  account_create : (opt Environment, opt text) -> ();
+  account_create : (AccountCreateArgs) -> ();
   account_create_address : (text, ChainEnum) -> ();
   account_hide : (text) -> ();
   account_remove : (text) -> ();

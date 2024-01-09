@@ -18,14 +18,10 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ refreshHandler }) => {
     throwOnError: true,
     onError: error => {
       if (error?.message.includes("User already exists")) {
+        refreshHandler?.()
         toast.error("User already exists!")
       }
     }
-  })
-
-  const methods = useForm({
-    mode: "onChange",
-    defaultValues: field?.defaultValues
   })
 
   const onSubmit = useCallback(
@@ -37,6 +33,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ refreshHandler }) => {
       toast.promise(call(args), {
         loading: "Loading...",
         success: data => {
+          refreshHandler?.()
           return `Success: ${JSON.stringify(data)}`
         },
         error: "Error"
@@ -44,6 +41,11 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ refreshHandler }) => {
     },
     [field]
   )
+
+  const methods = useForm({
+    mode: "onChange",
+    defaultValues: field?.defaultValues
+  })
 
   return (
     <Card

@@ -57,9 +57,12 @@ const App: React.FC<AppProps> = ({
   const { call: createApp, loading } = useSystemUpdate({
     functionName: "create_app_canister",
     throwOnError: true,
-    onSuccess: () => {
-      refreshHandler?.()
-      toast.success(`${name} installed!`)
+    onSuccess: data => {
+      if (data && "Ok" in data) {
+        console.log("data", data)
+        refreshHandler?.()
+        toast.success(`${name} installed!`)
+      }
     }
   })
 

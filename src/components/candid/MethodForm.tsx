@@ -19,6 +19,7 @@ import {
   UploadIcon
 } from "@radix-ui/react-icons"
 import { ActorMethodField } from "@ic-reactor/store"
+import { toast } from "sonner"
 
 type MethodFormProps = (
   | SystemDynamicField
@@ -85,8 +86,16 @@ const MethodForm: React.FC<MethodFormProps> = ({
       setArgState(args)
 
       try {
-        const result = await actorCallHandler(args)
-        console.log("result", result)
+        if (label === "query") {
+          return await actorCallHandler(args)
+        }
+        return toast.promise(actorCallHandler(args), {
+          loading: `Calling ${functionName.toTitleCase()}...`,
+          success: data => {
+            return `Success`
+          },
+          error: "Error"
+        })
       } catch (error) {
         console.log("error", error)
       }
