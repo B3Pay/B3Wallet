@@ -59,9 +59,9 @@ const App: React.FC<AppProps> = ({
     throwOnError: true,
     onSuccess: data => {
       if (data && "Ok" in data) {
-        console.log("data", data)
+        console.log("data", data.Ok.toText())
         refreshHandler?.()
-        toast.success(`${name} installed!`)
+        toast.success(`${name} installed on (${data.Ok.toText()})`)
       }
     }
   })

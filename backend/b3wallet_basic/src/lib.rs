@@ -140,15 +140,16 @@ async fn account_update_balance(account_id: AccountId, network: BitcoinNetwork) 
     }
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Debug)]
 struct AccountCreateArgs {
     env: Option<Environment>,
     name: Option<String>,
 }
 
 #[update(guard = "caller_is_owner")]
-fn account_create(AccountCreateArgs { env, name }: AccountCreateArgs) {
-    log_cycle!("Create account: {:?} on env: {:?}", name, env);
+fn account_create(args: AccountCreateArgs) {
+    log_cycle!("Create account: {:?}", args);
+    let AccountCreateArgs { env, name } = args;
 
     let subaccount = with_wallet(|s| s.new_subaccount(env));
 

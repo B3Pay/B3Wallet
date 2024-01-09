@@ -104,7 +104,7 @@ const MethodForm: React.FC<MethodFormProps> = ({
   )
 
   const expandable = onExpand !== undefined
-
+  console.log({ functionName, fields })
   return (
     <Card
       title={functionName.toTitleCase()}
