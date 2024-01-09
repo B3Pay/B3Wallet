@@ -14,14 +14,15 @@ interface FieldInputProps extends FieldRouteProps {}
 const FieldInput: React.FC<FieldInputProps> = ({
   registerName,
   methodField,
-  errors
+  errors,
+  ...rest
 }) => {
   const { register, resetField } = useFormContext()
 
   const errorMessage = errors?.message?.toString()
 
   return (
-    <FormItem>
+    <FormItem {...rest}>
       <FormLabel>{methodField.label.toTitleCase()}</FormLabel>
       <FormControl>
         <Input

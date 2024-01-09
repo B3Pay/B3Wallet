@@ -6,7 +6,8 @@ interface RecordProps extends FieldRouteProps {}
 const Record: React.FC<RecordProps> = ({
   methodField,
   errors,
-  registerName
+  registerName,
+  ...rest
 }) => {
   return (
     <Box>
@@ -17,6 +18,7 @@ const Record: React.FC<RecordProps> = ({
           registerName={`${registerName}.${field.label}`}
           methodField={field}
           errors={errors?.[field.label as never]}
+          {...rest}
         />
       ))}
     </Box>

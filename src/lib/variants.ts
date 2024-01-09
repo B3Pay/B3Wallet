@@ -48,6 +48,13 @@ export const bgColorVariants = (opacity: Opacity = 75) =>
         muted: `bg-gray-400/${opacity}`,
         inherit: "bg-inherit",
         card: "bg-card"
+      },
+      variant: {
+        default: "",
+        filled: "",
+        outline: "",
+        ghost: "bg-transparent hover:bg-transparent",
+        link: "bg-transparent hover:bg-transparent"
       }
     },
     defaultVariants: {

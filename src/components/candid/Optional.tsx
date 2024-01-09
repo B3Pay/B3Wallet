@@ -9,7 +9,8 @@ interface OptionalProps extends FieldRouteProps {}
 const Optional: React.FC<OptionalProps> = ({
   methodField,
   registerName,
-  errors
+  errors,
+  ...rest
 }) => {
   const { control } = useFormContext()
 
@@ -19,7 +20,7 @@ const Optional: React.FC<OptionalProps> = ({
   })
 
   return (
-    <Box className="my-2">
+    <Box className="my-2" {...rest}>
       <Box className="flex justify-between items-center">
         <Label className="flex-1 w-full block text-lg font-medium">
           {methodField.label.toTitleCase()}

@@ -13,7 +13,8 @@ interface VectorProps extends FieldRouteProps {}
 const Vector: React.FC<VectorProps> = ({
   methodField,
   errors,
-  registerName
+  registerName,
+  ...rest
 }) => {
   const { control, setValue } = useFormContext()
 
@@ -124,6 +125,7 @@ const Vector: React.FC<VectorProps> = ({
                 methodField={methodField.fields[0]}
                 errors={errors?.[index as never]}
                 registerName={`${registerName}.[${index}]`}
+                {...rest}
               />
             </CardContent>
           </Card>

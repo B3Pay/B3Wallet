@@ -22,7 +22,6 @@ const DisplayData: React.FC<DisplayDataProps> = ({ loading, error, data }) => {
       title={loading ? "Loading..." : error ? "Error!" : "Success"}
     >
       <CardContent>
-        <label>Response: &nbsp;</label>
         {loading ? <span>Loading...</span> : null}
         {error ? <span>Error: {errorHandler(error as Error)}</span> : null}
         {data ? (

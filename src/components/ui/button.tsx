@@ -88,7 +88,7 @@ const buttonVariants = cva(
       {
         variant: ["ghost", "link"],
         color: ["primary", "secondary", "error", "success", "warning", "info"],
-        className: "bg-transparent"
+        className: "bg-transparent hover:bg-transparent"
       }
     ],
     variants: {
@@ -107,7 +107,7 @@ const buttonVariants = cva(
         outline:
           "border-2 shadow bg-transparent hover:text-foreground hover:border-foreground",
         ghost: "shadow hover:bg-accent hover:text-accent-foreground",
-        link: "bg-transparent hover:bg-transparent underline focus:ring-offset-0 focus:ring-0"
+        link: "underline focus:ring-offset-0 focus:ring-0"
       },
       size: {
         xs: "h-5 px-2 text-xs",
@@ -162,8 +162,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       hoverBgColor,
       bgColor,
       variant,
-      size,
-      roundSize = "xl",
+      size = "md",
       diagonalRoundSide,
       roundSide,
       innerShadow,
@@ -181,14 +180,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const Comp = asChild ? Slot : "button"
 
     const roundingClass = roundSide
-      ? `rounded-${roundSide}-${roundSize}`
-      : `rounded-${roundSize}`
+      ? `rounded-${roundSide}-${size}`
+      : `rounded-${size}`
 
     const roundingClasses =
       diagonalRoundSide === "r"
-        ? `rounded-tr-${roundSize} rounded-bl-${roundSize}`
+        ? `rounded-tr-${size} rounded-bl-${size}`
         : diagonalRoundSide === "l"
-        ? `rounded-tl-${roundSize} rounded-br-${roundSize}`
+        ? `rounded-tl-${size} rounded-br-${size}`
         : roundingClass
 
     return (
@@ -204,8 +203,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             innerShadow
           }),
           borderColorVariants({ borderColor: color }),
+          bgColorVariants(75)({ bgColor: bgColor ? bgColor : color, variant }),
           hoverBgColorVariants(50)({ hoverBgColor }),
-          bgColorVariants(75)({ bgColor: bgColor ? bgColor : color }),
           fullWidth && "w-full",
           roundingClasses,
           height,

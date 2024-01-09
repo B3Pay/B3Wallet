@@ -23,7 +23,8 @@ let recursiveCounter = 0
 const Variant: React.FC<VariantProps> = ({
   methodField,
   registerName,
-  errors
+  errors,
+  ...rest
 }) => {
   const { control, unregister, setValue } = useFormContext()
   const [selectedName, setSelectedName] = React.useState<string>()
@@ -95,6 +96,7 @@ const Variant: React.FC<VariantProps> = ({
           registerName={selectedName}
           errors={errors?.[selected as never]}
           methodField={selectedField}
+          {...rest}
         />
       )}
     </div>

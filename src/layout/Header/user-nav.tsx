@@ -32,12 +32,9 @@ const UserNav: React.FC<UserNavProps> = ({ className }) => {
   return authenticated ? (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Avatar className={cn("h-8 w-8", className)} asButton>
-          {/* <AvatarImage src="/avatars/01.png" alt="@shadcn" /> */}
-          <AvatarFallback>
-            {identity?.getPrincipal().toText().slice(0, 2)}
-          </AvatarFallback>
-        </Avatar>
+        <Button asIconButton>
+          {identity?.getPrincipal().toText().slice(0, 2)}
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">

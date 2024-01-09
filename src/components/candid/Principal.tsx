@@ -16,7 +16,8 @@ interface PrincipalProps extends FieldRouteProps {}
 const Principal: React.FC<PrincipalProps> = ({
   registerName,
   errors,
-  methodField
+  methodField,
+  ...rest
 }) => {
   const { setValue, register, resetField, setError } = useFormContext()
 
@@ -65,7 +66,7 @@ const Principal: React.FC<PrincipalProps> = ({
   const errorMessage = errors?.message?.toString()
 
   return (
-    <FormItem>
+    <FormItem {...rest}>
       <FormLabel>{methodField.label.toTitleCase()}</FormLabel>
       <div className="flex items-center">
         <FormControl>

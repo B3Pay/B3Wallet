@@ -56,7 +56,7 @@ input[type="number"] {
         --border-width: 2px;
         --input: 220 13% 91%;
         --ring: 262.1 83.3% 57.8%;
-        --radius: 1rem;
+        --radius: 0.6rem;
     }
 
     .dark {
@@ -83,7 +83,6 @@ input[type="number"] {
         --border-width: 2px;
         --input: 215 27.9% 16.9%;
         --ring: 263.4 70% 50.4%;
-        --radius: 1rem;
     }
 }
 

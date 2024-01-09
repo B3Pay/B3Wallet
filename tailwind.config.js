@@ -57,9 +57,11 @@ module.exports = {
         "5px": "5px"
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)"
+        xl: "calc(var(--radius) + 0.2rem)",
+        lg: "calc(var(--radius) + 0.1rem)",
+        md: "var(--radius)",
+        sm: "calc(var(--radius) - 0.1rem)",
+        xs: "calc(var(--radius) - 0.2rem)"
       },
       boxShadow: {
         "button-inner": "inset 0 0px 5px 0 rgba(0, 0, 0, 0.25)"
@@ -148,7 +150,19 @@ module.exports = {
 }
 
 function generateTailwindSafelist() {
-  const sizes = ["sm", "md", "lg", "xl", "2xl", "none", "0", "2", "3", "4"]
+  const sizes = [
+    "xs",
+    "sm",
+    "md",
+    "lg",
+    "xl",
+    "2xl",
+    "none",
+    "0",
+    "2",
+    "3",
+    "4"
+  ]
   const sides = ["", "t", "b", "l", "r", "tl", "tr", "bl", "br"]
   const properties = ["rounded", "border"]
   const colors = [

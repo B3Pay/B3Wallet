@@ -7,7 +7,8 @@ interface RecursiveProps extends FieldRouteProps {}
 const Recursive: React.FC<RecursiveProps> = ({
   methodField: field,
   errors,
-  registerName
+  registerName,
+  ...rest
 }) => {
   const [extractedField, setExtractedFields] = useState<ExtractedField>()
 
@@ -21,6 +22,7 @@ const Recursive: React.FC<RecursiveProps> = ({
       methodField={extractedField}
       registerName={registerName}
       errors={errors?.[field.label as never]}
+      {...rest}
     />
   ) : (
     <div>Loading...</div>

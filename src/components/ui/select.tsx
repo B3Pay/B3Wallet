@@ -6,7 +6,7 @@ import { VariantProps, cva } from "class-variance-authority"
 import { cn, focusRing } from "@src/lib/utils"
 
 const selectVariants = cva(
-  "ml-1px flex items-center text-foreground justify-between whitespace-nowrap bg-transparent px-3 py-2 text-sm shadow placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+  "flex items-center text-foreground justify-between whitespace-nowrap bg-transparent px-3 py-2 text-sm shadow placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
   {
     compoundVariants: [
       {

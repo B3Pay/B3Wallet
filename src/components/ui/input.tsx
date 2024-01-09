@@ -7,7 +7,7 @@ import { Icon } from "./icon"
 import { Cross2Icon } from "@radix-ui/react-icons"
 
 const inputVariants = cva(
-  "ml-1px flex h-9 w-full px-2 py-1 shadow text-foreground hover:border-foreground text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+  "flex h-9 w-full px-2 py-1 shadow text-foreground hover:border-foreground text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
   {
     compoundVariants: [
       {
