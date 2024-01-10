@@ -31,7 +31,7 @@
     "copy-wasm": "yarn build:wallet && ts-node ./scripts/copy-wasm.ts",
     "wasm-hash": "npx ts-node ./scripts/wasm-hash.ts",
     "dev": "npx next dev",
-    "build": "npx next build",
+    "build": "dfx generate && npx next build",
     "env": "node -e \"console.log(require('dotenv').config({ path: '.env' }))\""
   },
   "devDependencies": {

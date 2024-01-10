@@ -87,39 +87,3 @@ String.prototype.toTitleCase = function () {
     )
     .join(" ")
 }
-
-export function describeCandidType(type: string): string {
-  // Remove outermost "record" and trim whitespace
-  const trimmedType = type
-    .replace(/^record\s*{/, "")
-    .replace(/}$/, "")
-    .trim()
-
-  // Split the fields
-  const fields = trimmedType.split(";").map(field => field.trim())
-
-  // Describe each field
-  const descriptions = fields.map(field => {
-    if (field.startsWith("metadata:vec")) {
-      return "metadata as a list of records"
-    } else if (field.includes("text")) {
-      return `${field.split(":")[0]} as text`
-    } else {
-      return field // Fallback for unrecognized patterns
-    }
-  })
-
-  return `This is a record with fields: ${descriptions.join(", ")}.`
-}
-
-export function describeCandidValue(value: any): string {
-  if (typeof value === "object" && value !== null) {
-    if (Array.isArray(value)) {
-      return `This is a list with ${value.length} elements.`
-    } else {
-      return describeCandidType(value.__type)
-    }
-  } else {
-    return `This is a ${typeof value}.`
-  }
-}

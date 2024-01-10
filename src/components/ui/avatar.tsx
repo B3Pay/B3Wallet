@@ -3,7 +3,7 @@ import * as React from "react"
 
 import { VariantProps, cva } from "class-variance-authority"
 import { cn } from "@src/lib/utils"
-import { BgColorVariant } from "@src/lib/variants"
+import { BgColorVariant, bgColorVariants } from "@src/lib/variants"
 
 const avatarVariants = cva(
   "ml-1px shadow relative flex shrink-0 overflow-hidden",
@@ -59,7 +59,8 @@ const avatarVariants = cva(
         default: "border-2 shadow text-background",
         filled: "shadow text-background",
         outline: "border-2 shadow bg-transparent",
-        ghost: "shadow bg-transparent"
+        ghost: "shadow bg-transparent",
+        link: "shadow bg-transparent"
       },
       size: {
         xs: "h-6 w-6 text-xs",
@@ -117,6 +118,7 @@ const Avatar = React.forwardRef<
       size,
       round,
       variant,
+      bgColor,
       ...props
     },
     ref
@@ -130,6 +132,7 @@ const Avatar = React.forwardRef<
           size,
           round
         }),
+        bgColorVariants(75)({ bgColor }),
         `rounded-${round}-${size}`,
         noShadow && "shadow-none",
         asButton && "cursor-pointer",
