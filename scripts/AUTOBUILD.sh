@@ -122,10 +122,8 @@ print_help() { # Help message function
     echo "  deploy       Build & Deploy the application"
     echo "  --help       Display this help message"
     echo
-    echo "Options for 'clean'"
-    echo "  clean [github username]     Username of the repository developer"
     echo "Options for 'start':"
-    echo "  bitcoin                     Enable bitcoin support in DFX"
+    echo "  bitcoin      Enable bitcoin support in DFX"
     echo
     echo "Example:"
     echo "  $0 deploy         # Deploy the application"
@@ -141,14 +139,8 @@ CWD=$PWD
 if [ "$1" = "clean" ]
 then
 	rm -rf * .* 
-    if [[ ! -z $2 ]]
-    then
-        echo git clone https://github.com/$2/B3Wallet.git .
-        echo git clone https://github.com/$2/b3_utils.git ./backend/lib/b3_utils
-    else
-        echo git clone https://github.com/B3Pay/B3Wallet.git .
-        echo git clone https://github.com/B3Pay/b3_utils.git ./backend/lib/b3_utils
-    fi
+	git clone https://github.com/B3Pay/B3Wallet.git .
+	git clone https://github.com/B3Pay/b3_utils.git ./backend/lib/b3_utils
   exit
 fi
 
