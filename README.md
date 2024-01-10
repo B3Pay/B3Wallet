@@ -164,3 +164,9 @@ yarn load-wasm:system
 ```bash
 yarn dev
 ```
+
+
+# Using Autobuild
+```bash
+yarn autobuild
+```
