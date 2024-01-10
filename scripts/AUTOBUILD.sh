@@ -182,6 +182,7 @@ then
 	retry 1 0 "yarn install" 								"Installing NodeJS dependencies"
 	retry 1 1 "dfx deploy" 									"Deploying B3 on Network"
 	retry 1 0 "dfx generate" 								"Generating Candid for B3"
+	retry 1 0 "source .env" 								"Loading DFX Environment"
 	retry 1 0 "npx ts-node scripts/load-wasm.system.ts" 	"Uploading B3 System WASM"
 	cd $CWD
 fi
