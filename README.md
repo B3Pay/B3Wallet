@@ -173,9 +173,9 @@ yarn autobuild
 ## For Developers
 During rapid development, to fetch a fresh copy of the repository, use:
 ```bash
-bash scripts/AUTOBUIL.sh clean  # or  bash scripts/AUTOBUIL.sh clean [github username of the fork]
+bash scripts/AUTOBUILD.sh clean  # or  bash scripts/AUTOBUILD.sh clean [github username of the fork]
 ```
 To find out full functionality, use;
 ```bash
-bash scripts/AUTOBUIL.sh --help  
+bash scripts/AUTOBUILD.sh --help  
 ```
