@@ -171,7 +171,7 @@ yarn dev
 yarn autobuild deploy
 ```
 
-This will automatically build the project and deploy it to the local dfx instance. It will also generate the candid and typescript bindings. It will also load the wasm module to the system canister. Finally, it will start the development server.
+This will automatically build the project and deploy it to the local dfx instance. It will also generate the candid and typescript bindings. It will also load the wasm module to the system canister.
 
 During rapid development, to fetch a fresh copy of the repository, use:
 
