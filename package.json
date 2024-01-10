@@ -14,7 +14,7 @@
     "dfinity"
   ],
   "scripts": {
-    "autobuild":"bash ./scripts/AUTOBUILD.sh deploy",
+    "autobuild": "bash ./scripts/AUTOBUILD.sh",
     "start": "npx serve@latest out",
     "dfx:start": "bash ./scripts/start.sh",
     "dfx:pull": "dfx deps pull",
