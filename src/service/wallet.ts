@@ -1,5 +1,5 @@
 import { createReActor } from "@ic-reactor/react"
-import { ActorMethodField } from "@ic-reactor/store"
+import { ExtractedFunction } from "@ic-reactor/store"
 import { b3wallet, canisterId, idlFactory } from "@src/declarations/b3wallet"
 import { agentManager } from "./agent"
 
@@ -18,4 +18,4 @@ export const {
   agentManager
 })
 
-export type WalletDynamicField = ActorMethodField<B3Wallet>
+export type WalletDynamicField = ExtractedFunction<B3Wallet>

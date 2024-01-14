@@ -1,5 +1,5 @@
 import { WalletDynamicField, useWalletQuery } from "@src/service/wallet"
-import MethodForm from "@src/components/candid/MethodForm"
+import MethodForm from "@src/components/candid/old/MethodForm"
 import DisplayData from "@src/components/DisplayData"
 import { useState } from "react"
 

@@ -10,7 +10,7 @@ const B3System: React.FC<B3SystemProps> = ({ functionName, ...fields }) => {
 
   const { call, data, error, loading } = useSystemQuery({
     functionName,
-    disableInitialCall: true
+    refetchOnMount: true
   })
 
   return (

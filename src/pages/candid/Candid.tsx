@@ -1,7 +1,7 @@
 import { useActor } from "@ic-reactor/react"
 import { ActorMethodField } from "@ic-reactor/store"
 import { useState } from "react"
-import MethodForm from "@src/components/candid/MethodForm"
+import MethodForm from "@src/components/candid/old/MethodForm"
 import DisplayData from "@src/components/DisplayData"
 import { Box } from "@src/components/ui/box"
 

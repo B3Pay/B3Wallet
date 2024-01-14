@@ -1,6 +1,6 @@
 import { useSystemUpdate } from "@src/service/system"
 import DisplayData from "./DisplayData"
-import MethodForm from "./candid/MethodForm"
+import MethodForm from "./candid/old/MethodForm"
 
 interface CreateAppProps {}
 

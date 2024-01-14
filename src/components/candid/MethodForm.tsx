@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react"
 import { Button } from "@src/components/ui/button"
-import FieldRoute from "./FieldRoute"
-import { useForm } from "react-hook-form"
+import { Route } from "./route"
+import { FormProvider, useForm } from "react-hook-form"
 import { SystemDynamicField } from "@src/service/system"
 import { WalletDynamicField } from "@src/service/wallet"
 import { Form } from "@src/components/ui/form"
@@ -18,13 +18,13 @@ import {
   ResetIcon,
   UploadIcon
 } from "@radix-ui/react-icons"
-import { ActorMethodField } from "@ic-reactor/store"
+import { ExtractedFunction } from "@ic-reactor/store"
 import { toast } from "sonner"
 
 type MethodFormProps = (
   | SystemDynamicField
   | WalletDynamicField
-  | ActorMethodField<any>
+  | ExtractedFunction<any>
 ) & {
   expanded?: boolean
   onExpand?: () => void
@@ -33,8 +33,8 @@ type MethodFormProps = (
 
 const MethodForm: React.FC<MethodFormProps> = ({
   functionName,
-  label,
   defaultValues,
+  type,
   expanded = false,
   onExpand,
   fields,
@@ -48,9 +48,9 @@ const MethodForm: React.FC<MethodFormProps> = ({
     defaultValues
   })
 
-  const onSubmit = useCallback(
+  const onVerifyArgs = useCallback(
     (data: any) => {
-      console.log("data", data)
+      console.log(data)
       setArgState(null)
       setArgErrorState(null)
       const args = (Object.values(data?.data) || []) as any[]
@@ -78,7 +78,6 @@ const MethodForm: React.FC<MethodFormProps> = ({
 
   const callHandler = useCallback(
     async (data: any) => {
-      console.log("data", data)
       setArgState(null)
       setArgErrorState(null)
       const args = (Object.values(data.data) || []) as [any]
@@ -86,7 +85,7 @@ const MethodForm: React.FC<MethodFormProps> = ({
       setArgState(args)
 
       try {
-        if (label === "query") {
+        if (type === "query") {
           return await actorCallHandler(args)
         }
         return toast.promise(actorCallHandler(args), {
@@ -103,100 +102,108 @@ const MethodForm: React.FC<MethodFormProps> = ({
     [actorCallHandler]
   )
 
+  const resetHandler = useCallback(() => {
+    methods.reset(defaultValues)
+    setArgState(null)
+    setArgErrorState(null)
+  }, [defaultValues, methods])
+
   const expandable = onExpand !== undefined
 
   return (
-    <Card
-      title={functionName.toTitleCase()}
-      icon={label === "query" ? <DownloadIcon /> : <UploadIcon />}
-      iconProps={{
-        color: label === "query" ? "success" : "warning",
-        roundSide: expanded ? "tl" : "l",
-        diagonalRoundSide: expanded ? "l" : "none"
-      }}
-      action={
-        <div>
-          <Button
-            onClick={() => {
-              setArgState(null)
-              setArgErrorState(null)
-              methods.reset()
-            }}
-            asIconButton
-            diagonalRoundSide={expandable ? "none" : "r"}
-            variant="filled"
-            roundSide={expandable && !expanded ? "none" : "bl"}
-            innerShadow={expanded}
-            color="secondary"
-          >
-            <ResetIcon />
-          </Button>
-          {expandable && (
+    <FormProvider {...methods}>
+      <Card
+        title={functionName.toTitleCase()}
+        icon={type === "query" ? <DownloadIcon /> : <UploadIcon />}
+        iconProps={{
+          color: type === "query" ? "success" : "warning",
+          roundSide: expanded ? "tl" : "l",
+          diagonalRoundSide: expanded ? "l" : "none"
+        }}
+        action={
+          <div>
             <Button
-              onClick={onExpand}
+              onClick={() => {
+                setArgState(null)
+                setArgErrorState(null)
+                methods.reset()
+              }}
               asIconButton
-              color="info"
+              diagonalRoundSide={expandable ? "none" : "r"}
               variant="filled"
-              roundSide={expanded ? "tr" : "r"}
+              roundSide={expandable && !expanded ? "none" : "bl"}
               innerShadow={expanded}
+              color="secondary"
             >
-              {expanded ? <EyeOpenIcon /> : <EyeClosedIcon />}
+              <ResetIcon />
             </Button>
-          )}
-        </div>
-      }
-    >
-      {expanded && (
-        <Form {...methods}>
-          <form noValidate onSubmit={methods.handleSubmit(onSubmit)}>
-            <CardContent>
-              {fields?.map((field, index) => (
-                <FieldRoute
-                  key={index}
-                  methodField={field}
-                  registerName={`data.${functionName}-arg${index}`}
-                  errors={
-                    (methods.formState.errors?.data as Record<string, any>)?.[
-                      `${functionName}-arg${index}`
-                    ]
-                  }
-                />
-              ))}
-              <CardDescription className="flex flex-col mt-2 space-y-2 overflow-auto">
-                {argState && (
-                  <span>
-                    (
-                    {argState
-                      .map((arg: any) => JSON.stringify(arg, null, 2))
-                      .join(", ")}
-                    )
-                  </span>
-                )}
-                {argErrorState && (
-                  <span>
-                    <strong>Arguments Error</strong>
-                    {argErrorState}
-                  </span>
-                )}
-              </CardDescription>
-            </CardContent>
-            <CardFooter>
-              <Button type="submit" color="secondary" roundSide="l" fullWidth>
-                Verify Args
-              </Button>
+            {expandable && (
               <Button
-                color="primary"
-                onClick={methods.handleSubmit(callHandler)}
-                roundSide="r"
-                fullWidth
+                onClick={onExpand}
+                asIconButton
+                color="info"
+                variant="filled"
+                roundSide={expanded ? "tr" : "r"}
+                innerShadow={expanded}
               >
-                Call
+                {expanded ? <EyeOpenIcon /> : <EyeClosedIcon />}
               </Button>
-            </CardFooter>
-          </form>
-        </Form>
-      )}
-    </Card>
+            )}
+          </div>
+        }
+      >
+        {expanded && (
+          <Form {...methods}>
+            <form noValidate onSubmit={methods.handleSubmit(callHandler)}>
+              <CardContent>
+                {fields?.map((field, index) => (
+                  <Route
+                    key={index}
+                    extractedField={field}
+                    registerName={`data.${functionName}-arg${index}`}
+                    errors={
+                      (methods.formState.errors?.data as Record<string, any>)?.[
+                        `${functionName}-arg${index}`
+                      ]
+                    }
+                  />
+                ))}
+                <CardDescription className="flex flex-col mt-2 space-y-2 overflow-auto">
+                  {argState && (
+                    <span>
+                      (
+                      {argState
+                        .map((arg: any) => JSON.stringify(arg, null, 2))
+                        .join(", ")}
+                      )
+                    </span>
+                  )}
+                  {argErrorState && (
+                    <span>
+                      <strong>Arguments Error</strong>
+                      {argErrorState}
+                    </span>
+                  )}
+                </CardDescription>
+              </CardContent>
+              <CardFooter>
+                <Button type="submit" color="secondary" roundSide="l" fullWidth>
+                  Verify Args
+                </Button>
+                <Button
+                  color="primary"
+                  onClick={methods.handleSubmit(onVerifyArgs)}
+                  roundSide="r"
+                  fullWidth
+                >
+                  Call
+                </Button>
+              </CardFooter>
+            </form>
+          </Form>
+        )}
+      </Card>
+    </FormProvider>
   )
 }
 
