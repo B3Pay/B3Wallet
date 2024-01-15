@@ -1,10 +1,10 @@
 import { errorHandler } from "@src/lib/utils"
 import { useSystemAuthClient } from "@src/service/system"
 import { Button } from "./ui/button"
-import { Card, CardContent, CardFooter } from "./ui/card"
+import { Card, CardFooter } from "./ui/card"
 
 const Login = () => {
-  const { login, logout, identity, loginError, loginLoading, authenticated } =
+  const { login, logout, loginError, loginLoading, authenticated } =
     useSystemAuthClient()
 
   return (

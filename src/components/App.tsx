@@ -1,7 +1,7 @@
 import { useSystemQuery } from "@src/service/system"
 import { errorHandler, objectToString } from "@src/lib/utils"
 import { Card, CardContent } from "./ui/card"
-import { GlobeIcon, Link2Icon } from "@radix-ui/react-icons"
+import { GlobeIcon, Link2Icon, UpdateIcon } from "@radix-ui/react-icons"
 import { Principal } from "@dfinity/principal"
 import { Button } from "./ui/button"
 import { useRouter } from "next/router"
@@ -15,6 +15,7 @@ const App: React.FC<AppProps> = ({ principal }) => {
 
   const { call, data, error, loading } = useSystemQuery({
     functionName: "get_user_app_status",
+    refetchOnMount: true,
     args: [principal]
   })
 
@@ -30,21 +31,28 @@ const App: React.FC<AppProps> = ({ principal }) => {
       }}
       title={loading ? "Loading..." : error ? "Error!" : principal.toText()}
       action={
-        <Button
-          asIconButton
-          diagonalRoundSide="r"
-          variant="filled"
-          color="secondary"
-          onClick={() =>
-            push(
-              `${
-                window.location.origin
-              }/candid?canisterId=${principal.toText()}`
-            )
-          }
-        >
-          <Link2Icon />
-        </Button>
+        <div>
+          <Button
+            asIconButton
+            roundSide="bl"
+            variant="filled"
+            color="secondary"
+            innerShadow
+            onClick={() => push(`/candid?canisterId=${principal.toText()}`)}
+          >
+            <Link2Icon />
+          </Button>
+          <Button
+            asIconButton
+            innerShadow
+            color="info"
+            variant="filled"
+            roundSide="tr"
+            onClick={call}
+          >
+            <UpdateIcon />
+          </Button>
+        </div>
       }
     >
       <CardContent>

@@ -112,9 +112,11 @@ const App: React.FC<AppProps> = ({
           title={name}
           titleProps={{ padding: "sm", className: "text-xl font-bold" }}
           action={
-            <div>
+            // make this buttons animate slightly to top when hovered
+            <div className="relative">
               <Button
                 asIconButton
+                innerShadow
                 roundSide="bl"
                 variant="filled"
                 color="warning"
@@ -124,6 +126,7 @@ const App: React.FC<AppProps> = ({
               </Button>
               <Button
                 asIconButton
+                innerShadow
                 roundSide="none"
                 variant="filled"
                 color="secondary"
@@ -133,6 +136,7 @@ const App: React.FC<AppProps> = ({
               </Button>
               <Button
                 asIconButton
+                innerShadow
                 color="info"
                 variant="filled"
                 roundSide="tr"
@@ -213,6 +217,7 @@ const App: React.FC<AppProps> = ({
           }}
           action={
             <Button
+              innerShadow
               asIconButton
               color="info"
               variant="filled"

@@ -1,6 +1,6 @@
 import { useSystemUpdate } from "@src/service/system"
 import DisplayData from "./DisplayData"
-import MethodForm from "./candid/old/MethodForm"
+import { CandidForm } from "./candid"
 
 interface CreateAppProps {}
 
@@ -13,7 +13,7 @@ const CreateApp: React.FC<CreateAppProps> = ({}) => {
     <div>
       <h2>Create App</h2>
       {field ? (
-        <MethodForm expanded actorCallHandler={call} {...field} />
+        <CandidForm expanded actorCallHandler={call} {...field} />
       ) : null}
       <DisplayData loading={loading} error={error} data={data} />
     </div>

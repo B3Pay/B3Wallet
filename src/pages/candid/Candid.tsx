@@ -1,9 +1,9 @@
 import { useActor } from "@ic-reactor/react"
-import { ActorMethodField } from "@ic-reactor/store"
 import { useState } from "react"
-import MethodForm from "@src/components/candid/old/MethodForm"
+import { CandidForm } from "@src/components/candid/"
 import DisplayData from "@src/components/DisplayData"
 import { Box } from "@src/components/ui/box"
+import { ExtractedFunction } from "@ic-reactor/store"
 
 interface CandidProps {}
 
@@ -21,7 +21,7 @@ const Candid: React.FC<CandidProps> = () => {
   )
 }
 
-const CandidField: React.FC<ActorMethodField<any>> = ({
+const CandidField: React.FC<ExtractedFunction<any>> = ({
   functionName,
   ...fields
 }) => {
@@ -30,13 +30,12 @@ const CandidField: React.FC<ActorMethodField<any>> = ({
   const [expanded, setExpanded] = useState(false)
 
   const { call, data, error, loading } = useQueryCall({
-    functionName,
-    disableInitialCall: true
+    functionName
   })
 
   return (
     <div className="bg-line-middle">
-      <MethodForm
+      <CandidForm
         {...fields}
         expanded={expanded}
         actorCallHandler={call}

@@ -1,25 +1,28 @@
-import { SystemDynamicField, useSystemQuery } from "@src/service/system"
-import MethodForm from "@src/components/candid/MethodForm"
+import { useSystemMethodCall, B3System } from "@src/service/system"
+import { CandidForm } from "@src/components/candid"
 import DisplayData from "@src/components/DisplayData"
 import { useState } from "react"
+import { ServiceMethodType } from "@ic-reactor/store"
 
-interface B3SystemProps extends SystemDynamicField {}
+interface B3SystemProps {
+  functionName: keyof B3System
+  type: ServiceMethodType
+}
 
-const B3System: React.FC<B3SystemProps> = ({ functionName, ...fields }) => {
+const B3System: React.FC<B3SystemProps> = ({ functionName, type }) => {
   const [expanded, setExpanded] = useState(false)
 
-  const { call, data, error, loading } = useSystemQuery({
-    functionName,
-    refetchOnMount: true
+  const { call, data, error, loading, field } = useSystemMethodCall({
+    type,
+    functionName
   })
 
   return (
     <div className="bg-line-middle">
-      <MethodForm
-        {...fields}
+      <CandidForm
+        {...field}
         expanded={expanded}
         actorCallHandler={call}
-        functionName={functionName}
         onExpand={() => setExpanded(prev => !prev)}
       />
       {expanded && <DisplayData loading={loading} error={error} data={data} />}

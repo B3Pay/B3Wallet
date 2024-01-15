@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { Route, RouteProps } from "."
-import { DynamicFieldType } from "@ic-reactor/react/dist/types"
+import { DynamicFieldType } from "@ic-reactor/store"
 
 export interface RecursiveProps extends RouteProps<"recursive"> {}
 

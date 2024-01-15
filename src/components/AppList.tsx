@@ -9,7 +9,8 @@ interface AppListProps {
 
 const AppList: React.FC<AppListProps> = ({ refreshHandler }) => {
   const { call, data, error, loading } = useSystemQuery({
-    functionName: "get_apps"
+    functionName: "get_apps",
+    refetchOnMount: true
   })
 
   return (
@@ -24,10 +25,10 @@ const AppList: React.FC<AppListProps> = ({ refreshHandler }) => {
       {loading && <div>Loading...</div>}
       {error && <div>{error.message}</div>}
       {data &&
-        data?.map(appView => (
+        data.map(appView => (
           <InstallApp
             key={appView.app_id}
-            appRefresher={() => call()}
+            appRefresher={call}
             refreshHandler={refreshHandler}
             {...appView}
           />

@@ -6,11 +6,13 @@ import { agentManager } from "./agent"
 export type B3System = typeof b3system
 
 export const {
+  useMethodCall: useSystemMethodCall,
   useQueryCall: useSystemQuery,
   useUpdateCall: useSystemUpdate,
   useAuthClient: useSystemAuthClient,
   useActorStore: useSystemActorStore,
-  useMethodFields: useSystemMethodFields
+  useMethodFields: useSystemMethodFields,
+  useMethodNames: useSystemMethodNames
 } = createReActor<B3System>({
   canisterId,
   idlFactory,

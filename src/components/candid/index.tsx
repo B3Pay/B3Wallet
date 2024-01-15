@@ -21,7 +21,7 @@ import {
 import { ExtractedFunction } from "@ic-reactor/store"
 import { toast } from "sonner"
 
-type MethodFormProps = (
+type CandidFormProps = (
   | SystemDynamicField
   | WalletDynamicField
   | ExtractedFunction<any>
@@ -31,7 +31,7 @@ type MethodFormProps = (
   actorCallHandler: (data: [any]) => Promise<any>
 }
 
-const MethodForm: React.FC<MethodFormProps> = ({
+const CandidForm: React.FC<CandidFormProps> = ({
   functionName,
   defaultValues,
   type,
@@ -50,7 +50,6 @@ const MethodForm: React.FC<MethodFormProps> = ({
 
   const onVerifyArgs = useCallback(
     (data: any) => {
-      console.log(data)
       setArgState(null)
       setArgErrorState(null)
       const args = (Object.values(data?.data) || []) as any[]
@@ -81,7 +80,6 @@ const MethodForm: React.FC<MethodFormProps> = ({
       setArgState(null)
       setArgErrorState(null)
       const args = (Object.values(data.data) || []) as [any]
-      console.log("args", args)
       setArgState(args)
 
       try {
@@ -91,7 +89,8 @@ const MethodForm: React.FC<MethodFormProps> = ({
         return toast.promise(actorCallHandler(args), {
           loading: `Calling ${functionName.toTitleCase()}...`,
           success: data => {
-            return `Success`
+            if ("Ok" in data) return JSON.stringify(data.Ok, null, 2)
+            return JSON.stringify(data, null, 2)
           },
           error: "Error"
         })
@@ -99,7 +98,7 @@ const MethodForm: React.FC<MethodFormProps> = ({
         console.log("error", error)
       }
     },
-    [actorCallHandler]
+    [type, actorCallHandler]
   )
 
   const resetHandler = useCallback(() => {
@@ -123,11 +122,7 @@ const MethodForm: React.FC<MethodFormProps> = ({
         action={
           <div>
             <Button
-              onClick={() => {
-                setArgState(null)
-                setArgErrorState(null)
-                methods.reset()
-              }}
+              onClick={resetHandler}
               asIconButton
               diagonalRoundSide={expandable ? "none" : "r"}
               variant="filled"
@@ -156,7 +151,7 @@ const MethodForm: React.FC<MethodFormProps> = ({
           <Form {...methods}>
             <form noValidate onSubmit={methods.handleSubmit(callHandler)}>
               <CardContent>
-                {fields?.map((field, index) => (
+                {fields.map((field, index) => (
                   <Route
                     key={index}
                     extractedField={field}
@@ -187,15 +182,15 @@ const MethodForm: React.FC<MethodFormProps> = ({
                 </CardDescription>
               </CardContent>
               <CardFooter>
-                <Button type="submit" color="secondary" roundSide="l" fullWidth>
-                  Verify Args
-                </Button>
                 <Button
-                  color="primary"
+                  color="secondary"
+                  roundSide="l"
                   onClick={methods.handleSubmit(onVerifyArgs)}
-                  roundSide="r"
                   fullWidth
                 >
+                  Verify Args
+                </Button>
+                <Button type="submit" color="primary" roundSide="r" fullWidth>
                   Call
                 </Button>
               </CardFooter>
@@ -207,4 +202,4 @@ const MethodForm: React.FC<MethodFormProps> = ({
   )
 }
 
-export default MethodForm
+export { CandidForm }

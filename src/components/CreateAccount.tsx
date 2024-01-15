@@ -59,6 +59,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ refreshHandler }) => {
           color="secondary"
           onClick={refreshHandler}
           isLoading={loading}
+          innerShadow
         >
           <ReloadIcon />
         </Button>

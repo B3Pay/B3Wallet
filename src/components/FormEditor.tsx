@@ -18,8 +18,7 @@ import {
   DragHandleDots1Icon,
   FontRomanIcon,
   ListBulletIcon,
-  Pencil1Icon,
-  Pencil2Icon
+  Pencil1Icon
 } from "@radix-ui/react-icons"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardFooter } from "./ui/card"

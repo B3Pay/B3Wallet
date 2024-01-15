@@ -23,6 +23,7 @@ const extractStatus = (status: UserStatus) => {
 const Account: React.FC<AccountProps> = () => {
   const { call, data } = useSystemQuery({
     functionName: "get_user_status",
+    refetchOnMount: true,
     onError: error => {
       console.log("error", error)
     }
@@ -32,6 +33,7 @@ const Account: React.FC<AccountProps> = () => {
 
   switch (status.toString()) {
     case "Applications":
+      console.log("value", value)
       return (
         <div className="grid grid-cols-1 gap-1">
           {value.map((principal, index) => (
@@ -40,9 +42,9 @@ const Account: React.FC<AccountProps> = () => {
         </div>
       )
     case "Registered":
-      return <AppList refreshHandler={() => call()} />
+      return <AppList refreshHandler={call} />
     default:
-      return <CreateAccount refreshHandler={() => call()} />
+      return <CreateAccount refreshHandler={call} />
   }
 }
 

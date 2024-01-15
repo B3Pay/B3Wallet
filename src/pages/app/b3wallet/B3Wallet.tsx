@@ -1,5 +1,5 @@
 import { WalletDynamicField, useWalletQuery } from "@src/service/wallet"
-import MethodForm from "@src/components/candid/old/MethodForm"
+import { CandidForm } from "@src/components/candid"
 import DisplayData from "@src/components/DisplayData"
 import { useState } from "react"
 
@@ -10,12 +10,12 @@ const B3Wallet: React.FC<B3WalletProps> = ({ functionName, ...fields }) => {
 
   const { call, data, error, loading } = useWalletQuery({
     functionName,
-    disableInitialCall: true
+    refetchOnMount: true
   })
 
   return (
     <div className="bg-line-middle">
-      <MethodForm
+      <CandidForm
         {...fields}
         expanded={expanded}
         actorCallHandler={call}

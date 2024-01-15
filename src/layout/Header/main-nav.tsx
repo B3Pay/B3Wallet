@@ -1,6 +1,17 @@
-import Link from "next/link"
+import NextLink from "next/link"
+import * as React from "react"
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList
+} from "@src/components/ui/navigation-menu"
+import { useRouter } from "next/router"
+import {
+  NavigationMenuIndicator,
+  NavigationMenuLinkProps
+} from "@radix-ui/react-navigation-menu"
 import { cn } from "@src/lib/utils"
-import { usePathname } from "next/navigation"
 
 const navItems = [
   {
@@ -25,29 +36,41 @@ const navItems = [
   }
 ]
 
-export function MainNav({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLElement>) {
-  const pathname = usePathname()
+export function MainNav({ className }: React.HTMLAttributes<HTMLElement>) {
+  return (
+    <NavigationMenu className={className}>
+      <NavigationMenuList>
+        {navItems.map((item, index) => (
+          <NavigationMenuItem key={index} className="pr-2">
+            <Link href={item.href}>{item.title}</Link>
+          </NavigationMenuItem>
+        ))}
+        <NavigationMenuIndicator className="NavigationMenuIndicator" />
+      </NavigationMenuList>
+    </NavigationMenu>
+  )
+}
+
+interface LinkProps extends NavigationMenuLinkProps {
+  href: string
+}
+
+const Link: React.FC<LinkProps> = ({ href, ...props }) => {
+  const router = useRouter()
+  const isActive = router.asPath === href
 
   return (
-    <nav
-      className={cn("flex items-center space-x-4 lg:space-x-6", className)}
-      {...props}
-    >
-      {navItems.map((item, index) => (
-        <Link
-          href={item.href}
-          key={index}
-          className={cn(
-            "text-sm font-medium",
-            pathname === item.href ? "text-gray-900" : "text-gray-500"
-          )}
-        >
-          {item.title}
-        </Link>
-      ))}
-    </nav>
+    <NextLink href={href} passHref legacyBehavior>
+      <NavigationMenuLink
+        className={cn(
+          "flex h-7 items-center justify-center rounded-full px-4 text-center text-sm transition-colors hover:text-primary",
+          isActive
+            ? "bg-muted font-medium text-primary"
+            : "text-muted-foreground",
+          props.className
+        )}
+        {...props}
+      />
+    </NextLink>
   )
 }
