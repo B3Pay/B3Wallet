@@ -199,6 +199,7 @@ then
 	retry 1 1 "dfx deploy b3system" 						"Deploying B3System on Network"
 	retry 1 0 "dfx generate b3system" 						"Generating Candid for B3"
 	retry 1 0 "source .env" 								"Loading DFX Environment"
+	retry 1 0 "npx ts-node scripts/load-wasm.system.ts" 	"Creating B3Wallet App"
 	retry 1 0 "yarn dev" 									"Starting B3System in development mode"
 	cd $CWD
 fi
