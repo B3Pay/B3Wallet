@@ -130,9 +130,9 @@ print_help() { # Help message function
     echo "  $0 start bitcoin  # Start DFX with bitcoin support"
 }
 
-if [ "$1" = "--help" ]; then # Check if the first argument is --help
-    print_help
-    exit 0
+if [ -z "$1" ] || [ "$1" = "--help" ]; then
+	print_help
+	exit 0
 fi
 
 CWD=$PWD
