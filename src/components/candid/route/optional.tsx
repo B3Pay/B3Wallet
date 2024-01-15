@@ -36,7 +36,7 @@ const Optional: React.FC<OptionalProps> = ({
       {fields.map((field, index) => (
         <Route
           key={field.id}
-          extractedField={extractedField.fields?.[index]}
+          extractedField={extractedField.field}
           errors={errors?.[index as never]}
           registerName={`${registerName}.[${index}]`}
         />

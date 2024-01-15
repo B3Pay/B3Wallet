@@ -1,12 +1,12 @@
 import { useSystemUpdate } from "@src/service/system"
 import { Button } from "./ui/button"
-import FieldRoute from "./candid/old/FieldRoute"
 import { useForm } from "react-hook-form"
 import { Form } from "./ui/form"
 import { useCallback } from "react"
 import { Card, CardContent, CardFooter } from "./ui/card"
 import { PersonIcon, ReloadIcon } from "@radix-ui/react-icons"
 import { toast } from "sonner"
+import { Route } from "./candid/route"
 
 interface CreateAccountProps {
   refreshHandler?: () => void
@@ -68,9 +68,9 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ refreshHandler }) => {
         <form noValidate onSubmit={methods.handleSubmit(onSubmit)}>
           <CardContent>
             {field?.fields?.map((field, index) => (
-              <FieldRoute
+              <Route
                 key={index}
-                methodField={field}
+                extractedField={field}
                 registerName={`data.create_user-arg${index}`}
                 errors={
                   (methods.formState.errors?.data as Record<string, any>)?.[

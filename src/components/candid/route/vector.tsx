@@ -89,7 +89,7 @@ const Vector: React.FC<VectorProps> = ({
           >
             <CardContent>
               <Route
-                extractedField={extractedField.fields[0]}
+                extractedField={extractedField.field}
                 errors={errors?.[index as never]}
                 registerName={`${registerName}.[${index}]`}
               />
