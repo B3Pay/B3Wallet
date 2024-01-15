@@ -120,6 +120,7 @@ print_help() { # Help message function
     echo "  start        Start DFX, optionally with bitcoin support"
     echo "  predeploy    Run pre-deployment scripts"
     echo "  deploy       Build & Deploy the application"
+	echo "  system       Build & Deploy the B3System & Start in development mode"
     echo "  --help       Display this help message"
     echo
     echo "Options for 'start':"
@@ -184,6 +185,21 @@ then
 	retry 1 0 "dfx generate" 								"Generating Candid for B3"
 	retry 1 0 "source .env" 								"Loading DFX Environment"
 	retry 1 0 "npx ts-node scripts/load-wasm.system.ts" 	"Uploading B3 System WASM"
+	cd $CWD
+fi
+
+if [ "$1" = "system" ]
+then
+	log "${On_White}" "BUILDING:\\t B3System \\n"
+	retry 1 0 "dfx deps pull" 								"Pulling B3 Dependencies"
+	retry 1 0 "dfx deps init" 								"Initializing B3 Dependencies"
+	retry 1 0 "dfx deps deploy internet_identity" 			"Deploying Internet-Identity Canister"
+	retry 1 0 "yarn install" 								"Installing NodeJS dependencies"
+	retry 1 0 "yarn predeploy" 								"Predeploying all canisters"
+	retry 1 1 "dfx deploy b3system" 						"Deploying B3System on Network"
+	retry 1 0 "dfx generate b3system" 						"Generating Candid for B3"
+	retry 1 0 "source .env" 								"Loading DFX Environment"
+	retry 1 0 "yarn dev" 									"Starting B3System in development mode"
 	cd $CWD
 fi
 cd $CWD
