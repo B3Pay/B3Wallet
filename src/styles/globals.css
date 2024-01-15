@@ -51,6 +51,8 @@ input[type="number"] {
         --success-foreground: 210 20% 98%;
         --info: 200 74% 52%;
         --info-foreground: 210 20% 98%;
+        --alert: 24 90% 58%;
+        --alert-foreground: 210 20% 98%;
         --border-pulse: 240, 5%, 90%;
         --border: 220 13% 91%;
         --border-width: 2px;
@@ -72,6 +74,8 @@ input[type="number"] {
         --secondary: 331 80% 59%;
         --secondary-foreground: 210 20% 98%;
         --secondary-background: 331 80% 59%;
+        --alert: 24 90% 40%;
+        --alert-foreground: 210 20% 98%;
         --muted: 215 27.9% 16.9%;
         --muted-foreground: 217.9 10.6% 64.9%;
         --accent: 215 27.9% 16.9%;

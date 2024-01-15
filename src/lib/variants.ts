@@ -45,6 +45,7 @@ export const bgColorVariants = (opacity: Opacity = 75) =>
         success: `bg-success/${opacity}`,
         warning: `bg-warning/${opacity}`,
         info: `bg-info/${opacity}`,
+        alert: `bg-alert/${opacity}`,
         muted: `bg-gray-400/${opacity}`,
         inherit: "bg-inherit",
         card: "bg-card"
@@ -52,7 +53,7 @@ export const bgColorVariants = (opacity: Opacity = 75) =>
       variant: {
         default: "",
         filled: "",
-        outline: "",
+        outline: "bg-transparent hover:bg-transparent",
         ghost: "bg-transparent hover:bg-transparent",
         link: "bg-transparent hover:bg-transparent"
       }
@@ -112,6 +113,7 @@ export const hoverBgColorVariants = (opacity: number = 100) =>
         success: `hover:bg-success/${opacity}`,
         warning: `hover:bg-warning/${opacity}`,
         info: `hover:bg-info/${opacity}`,
+        alert: `hover:bg-alert/${opacity}`,
         muted: `hover:bg-gray-400/${opacity}`
       }
     }
@@ -147,6 +149,7 @@ export const borderColorVariants = cva("", {
       success: "border-success",
       warning: "border-warning",
       info: "border-info",
+      alert: "border-alert",
       muted: "border-gray-500"
     }
   },

@@ -6,6 +6,7 @@ import { agentManager } from "./agent"
 export type B3System = typeof b3system
 
 export const {
+  useUserPrincipal,
   useMethodCall: useSystemMethodCall,
   useQueryCall: useSystemQuery,
   useUpdateCall: useSystemUpdate,

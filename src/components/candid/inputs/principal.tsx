@@ -9,8 +9,13 @@ import {
   FormMessage
 } from "@src/components/ui/form"
 import { Input } from "@src/components/ui/input"
-import { ClipboardIcon, InfoCircledIcon } from "@radix-ui/react-icons"
+import {
+  ClipboardIcon,
+  InfoCircledIcon,
+  PersonIcon
+} from "@radix-ui/react-icons"
 import { Button } from "@src/components/ui/button"
+import { useUserPrincipal } from "@src/service/system"
 
 export interface PrincipalProps extends RouteProps {}
 
@@ -20,6 +25,7 @@ const Principal: React.FC<PrincipalProps> = ({
   extractedField,
   shouldUnregister
 }) => {
+  const userPrincipal = useUserPrincipal()
   const { setValue, resetField, setError } = useFormContext()
 
   const blurHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,6 +87,7 @@ const Principal: React.FC<PrincipalProps> = ({
                 {...field}
                 className="flex-1"
                 icon={<InfoCircledIcon />}
+                color="alert"
                 roundSide="l"
                 type={extractedField.type}
                 placeholder={extractedField.type}
@@ -92,19 +99,32 @@ const Principal: React.FC<PrincipalProps> = ({
             )}
           />
         </FormControl>
-        <FormControl>
+        {userPrincipal && (
           <Button
-            roundSide="r"
+            roundSide="none"
             asIconButton
+            color="alert"
+            variant="outline"
             onClick={() => {
-              navigator.clipboard.readText().then(text => {
-                setValue(registerName as never, text as never)
-              })
+              setValue(registerName as never, userPrincipal as never)
             }}
           >
-            <ClipboardIcon />
+            <PersonIcon />
           </Button>
-        </FormControl>
+        )}
+        <Button
+          roundSide="r"
+          variant="outline"
+          color="alert"
+          asIconButton
+          onClick={() => {
+            navigator.clipboard.readText().then(text => {
+              setValue(registerName as never, text as never)
+            })
+          }}
+        >
+          <ClipboardIcon />
+        </Button>
       </div>
       <FormMessage>{errorMessage}</FormMessage>
     </FormItem>

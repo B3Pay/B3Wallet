@@ -17,6 +17,7 @@ const iconVariants = cva(
         success: "bg-success/75 border-success text-success",
         warning: "bg-warning/75 border-warning text-warning",
         info: "bg-info/75 border-info text-info",
+        alert: "bg-alert/75 border-alert text-alert",
         muted: "border-gray-500"
       },
       variant: {

@@ -49,6 +49,7 @@ const inputVariants = cva(
         success: "bg-success/10 border-success hover:bg-success/25",
         warning: "bg-warning/10 border-warning hover:bg-warning/25",
         info: "bg-info/10 border-info hover:bg-info/25",
+        alert: "bg-alert/10 border-alert hover:bg-alert/25",
         muted: "bg-gray-400/10 border-gray-500 hover:bg-gray-400/25"
       },
       variant: {
