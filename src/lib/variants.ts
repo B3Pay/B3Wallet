@@ -1,5 +1,8 @@
 import { cva } from "class-variance-authority"
 
+export const focusRing =
+  "focusable-element focus:outline-none ring-inset focus:ring-1 focus:ring-foreground focus:ring-offset-1"
+
 export type ColorVariant = typeof colorVariants
 
 export const colorVariants = cva("text-inherit", {
@@ -53,7 +56,7 @@ export const bgColorVariants = (opacity: Opacity = 75) =>
       variant: {
         default: "",
         filled: "",
-        outline: "bg-transparent hover:bg-transparent",
+        outline: "bg-transparent",
         ghost: "bg-transparent hover:bg-transparent",
         link: "bg-transparent hover:bg-transparent"
       }
@@ -63,27 +66,26 @@ export const bgColorVariants = (opacity: Opacity = 75) =>
     }
   })
 
-export type BgGradientVariant = ReturnType<typeof bgGradientVariants>
+export type BgGradientVariant = typeof bgGradientVariants
 
-export const bgGradientVariants = (opacity: Opacity = 75) =>
-  cva("", {
-    variants: {
-      bgGradient: {
-        primary: `bg-gradient-to-r from-primary to-primary-dark`,
-        secondary: `bg-gradient-to-r from-secondary to-secondary-dark`,
-        error: `bg-gradient-to-r from-error to-error-dark`,
-        success: `bg-gradient-to-r from-success to-success-dark`,
-        warning: `bg-gradient-to-r from-warning to-warning-dark`,
-        info: `bg-gradient-to-r from-info to-info-dark`,
-        muted: `bg-gradient-to-r from-gray-400 to-gray-500`,
-        inherit: "bg-inherit",
-        card: "bg-card"
-      }
-    },
-    defaultVariants: {
-      bgGradient: "card"
+export const bgGradientVariants = cva("", {
+  variants: {
+    bgGradient: {
+      primary: `bg-gradient-to-r from-primary to-primary-dark`,
+      secondary: `bg-gradient-to-r from-secondary to-secondary-dark`,
+      error: `bg-gradient-to-r from-error to-error-dark`,
+      success: `bg-gradient-to-r from-success to-success-dark`,
+      warning: `bg-gradient-to-r from-warning to-warning-dark`,
+      info: `bg-gradient-to-r from-info to-info-dark`,
+      muted: `bg-gradient-to-r from-gray-400 to-gray-500`,
+      inherit: "bg-inherit",
+      card: "bg-card"
     }
-  })
+  },
+  defaultVariants: {
+    bgGradient: "card"
+  }
+})
 
 export type HoverColorVariant = typeof hoverColorVariants
 
@@ -103,7 +105,7 @@ export const hoverColorVariants = cva("", {
 
 export type HoverBgColorVariant = ReturnType<typeof hoverBgColorVariants>
 
-export const hoverBgColorVariants = (opacity: number = 100) =>
+export const hoverBgColorVariants = (opacity: number = 50) =>
   cva("", {
     variants: {
       hoverBgColor: {

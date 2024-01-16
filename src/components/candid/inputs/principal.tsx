@@ -1,6 +1,6 @@
 import { Principal as PrincipalId } from "@dfinity/principal"
 import { useFormContext } from "react-hook-form"
-import { RouteProps } from "../route"
+import { CandidRouteProps } from "../route"
 import {
   FormControl,
   FormField,
@@ -17,7 +17,7 @@ import {
 import { Button } from "@src/components/ui/button"
 import { useUserPrincipal } from "@src/service/system"
 
-export interface PrincipalProps extends RouteProps {}
+export interface PrincipalProps extends CandidRouteProps {}
 
 const Principal: React.FC<PrincipalProps> = ({
   registerName,

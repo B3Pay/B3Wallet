@@ -73,9 +73,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export const focusRing =
-  "focusable-element focus:outline-none ring-inset focus:ring-1 focus:ring-foreground focus:ring-offset-1"
-
 String.prototype.toTitleCase = function () {
   return this.split("_")
     .map(fragment =>

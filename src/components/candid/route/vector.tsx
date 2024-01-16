@@ -1,14 +1,14 @@
 import React from "react"
 import { useFieldArray } from "react-hook-form"
 import { Button } from "@src/components/ui/button"
-import { Route, RouteProps } from "."
+import { CandidRoute, CandidRouteProps } from "."
 import { Box } from "@src/components/ui/box"
 import { Label } from "@src/components/ui/label"
 import { Separator } from "@src/components/ui/separator"
 import { Cross1Icon, PlusIcon } from "@radix-ui/react-icons"
 import { Card, CardContent } from "@src/components/ui/card"
 
-export interface VectorProps extends RouteProps<"vector"> {}
+export interface VectorProps extends CandidRouteProps<"vector"> {}
 
 const Vector: React.FC<VectorProps> = ({
   extractedField,
@@ -88,7 +88,7 @@ const Vector: React.FC<VectorProps> = ({
             }
           >
             <CardContent>
-              <Route
+              <CandidRoute
                 extractedField={extractedField.field}
                 errors={errors?.[index as never]}
                 registerName={`${registerName}.[${index}]`}

@@ -6,7 +6,7 @@ import { useCallback } from "react"
 import { Card, CardContent, CardFooter } from "./ui/card"
 import { PersonIcon, ReloadIcon } from "@radix-ui/react-icons"
 import { toast } from "sonner"
-import { Route } from "./candid/route"
+import { CandidRoute } from "./candid/route"
 
 interface CreateAccountProps {
   refreshHandler?: () => void
@@ -69,7 +69,7 @@ const CreateAccount: React.FC<CreateAccountProps> = ({ refreshHandler }) => {
         <form noValidate onSubmit={methods.handleSubmit(onSubmit)}>
           <CardContent>
             {field?.fields?.map((field, index) => (
-              <Route
+              <CandidRoute
                 key={index}
                 extractedField={field}
                 registerName={`data.create_user-arg${index}`}

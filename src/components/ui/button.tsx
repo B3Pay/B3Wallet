@@ -1,7 +1,8 @@
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
-import { cn, focusRing } from "@src/lib/utils"
+import { cn } from "@src/lib/utils"
 import {
+  focusRing,
   BgColorVariant,
   bgColorVariants,
   BgGradientVariant,
@@ -149,6 +150,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         type="button"
         className={cn(
           focusRing,
+          bgColorVariants(75)({ bgColor: bgColor ?? color, variant }),
+          borderColorVariants({ borderColor: borderColor ?? color }),
           buttonVariants({
             variant,
             color,
@@ -157,9 +160,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             noShadow,
             innerShadow
           }),
-          borderColorVariants({ borderColor: borderColor ?? color }),
-          bgColorVariants(75)({ bgColor: bgColor ?? color, variant }),
-          hoverBgColorVariants(50)({ hoverBgColor: hoverBgColor ?? color }),
+          hoverBgColorVariants()({ hoverBgColor: hoverBgColor ?? color }),
           fullWidth && "w-full",
           roundingClasses,
           height,

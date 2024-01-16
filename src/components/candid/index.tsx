@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react"
 import { Button } from "@src/components/ui/button"
-import { Route } from "./route"
+import { CandidRoute } from "./route"
 import { FormProvider, useForm } from "react-hook-form"
 import { SystemDynamicField } from "@src/service/system"
 import { WalletDynamicField } from "@src/service/wallet"
@@ -152,7 +152,7 @@ const CandidForm: React.FC<CandidFormProps> = ({
             <form noValidate onSubmit={methods.handleSubmit(callHandler)}>
               <CardContent>
                 {fields.map((field, index) => (
-                  <Route
+                  <CandidRoute
                     key={index}
                     extractedField={field}
                     registerName={`data.${functionName}-arg${index}`}

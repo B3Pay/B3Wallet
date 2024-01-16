@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react"
-import { Route, RouteProps } from "."
+import { CandidRoute, CandidRouteProps } from "."
 import { DynamicFieldType } from "@ic-reactor/store"
 
-export interface RecursiveProps extends RouteProps<"recursive"> {}
+export interface RecursiveProps extends CandidRouteProps<"recursive"> {}
 
 const Recursive: React.FC<RecursiveProps> = ({
   extractedField,
@@ -17,7 +17,7 @@ const Recursive: React.FC<RecursiveProps> = ({
   }, [extractedField])
 
   return recursiveField ? (
-    <Route
+    <CandidRoute
       extractedField={recursiveField}
       registerName={registerName}
       errors={errors}

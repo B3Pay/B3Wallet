@@ -1,7 +1,7 @@
 import { Label } from "@src/components/ui/label"
-import { Route, RouteProps } from "."
+import { CandidRoute, CandidRouteProps } from "."
 
-export interface TupleProps extends RouteProps<"tuple"> {}
+export interface TupleProps extends CandidRouteProps<"tuple"> {}
 
 const Tuple: React.FC<TupleProps> = ({
   extractedField,
@@ -13,7 +13,7 @@ const Tuple: React.FC<TupleProps> = ({
     <div className="w-full">
       <Label>{extractedField.label}</Label>
       {extractedField.fields.map((field, index) => (
-        <Route
+        <CandidRoute
           key={index}
           registerName={`${registerName}.[${index}]`}
           errors={errors?.[index as never]}

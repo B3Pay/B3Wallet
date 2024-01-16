@@ -1,6 +1,6 @@
 import React, { useId } from "react"
 import { Controller, useWatch } from "react-hook-form"
-import { Route, RouteProps } from "."
+import { CandidRoute, CandidRouteProps } from "."
 import { FormItem, FormLabel, FormMessage } from "@src/components/ui/form"
 import {
   Select,
@@ -10,7 +10,7 @@ import {
   SelectValue
 } from "@src/components/ui/select"
 
-export interface VariantProps extends RouteProps<"variant"> {}
+export interface VariantProps extends CandidRouteProps<"variant"> {}
 
 const Variant: React.FC<VariantProps> = ({
   extractedField,
@@ -54,7 +54,7 @@ const Variant: React.FC<VariantProps> = ({
       {extractedField.fields.map(
         (field, index) =>
           selectedOption === field.label && (
-            <Route
+            <CandidRoute
               key={index}
               shouldUnregister
               extractedField={field}

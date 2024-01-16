@@ -14,26 +14,23 @@ import {
 import { Icon, IconProps } from "./icon"
 import { Box, BoxProps } from "./box"
 
-const cardVariants = cva(
-  "bg-card transition-card-height transition-border-radius shadow",
-  {
-    variants: {
-      size: {
-        xs: "text-xs",
-        sm: "text-sm",
-        md: "text-base",
-        lg: "text-lg",
-        xl: "text-xl"
-      },
-      noShadow: {
-        true: "shadow-none"
-      }
+const cardVariants = cva("shadow", {
+  variants: {
+    size: {
+      xs: "text-xs",
+      sm: "text-sm",
+      md: "text-base",
+      lg: "text-lg",
+      xl: "text-xl"
     },
-    defaultVariants: {
-      size: "md"
+    noShadow: {
+      true: "shadow-none"
     }
+  },
+  defaultVariants: {
+    size: "md"
   }
-)
+})
 
 export interface CardProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, "color" | "title">,
@@ -63,7 +60,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       size,
       noShadow,
       noRadius,
-      bgColor,
+      bgColor = "card",
       bgGradient,
       border = 0,
       dashedBorder,
@@ -97,6 +94,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
 
     return (
       <div
+        ref={ref}
         className={cn(
           paddingVariants({
             padding,
@@ -114,7 +112,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
           }),
           cardVariants({ size, noShadow }),
           bgColorVariants(50)({ bgColor }),
-          bgGradientVariants(50)({ bgGradient }),
+          bgGradientVariants({ bgGradient }),
           roundingClass,
           className
         )}
@@ -150,7 +148,6 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
           </div>
         )}
         <div
-          ref={ref}
           className={cn(
             noRadius ? "rounded-none" : "rounded-b-lg",
             `border-${border}`,

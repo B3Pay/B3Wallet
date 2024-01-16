@@ -1,10 +1,10 @@
 import { useFieldArray } from "react-hook-form"
-import { Route, RouteProps } from "."
+import { CandidRoute, CandidRouteProps } from "."
 import { Switch } from "@src/components/ui/switch"
 import { Box } from "@src/components/ui/box"
 import { Label } from "@src/components/ui/label"
 
-export interface OptionalProps extends RouteProps<"optional"> {}
+export interface OptionalProps extends CandidRouteProps<"optional"> {}
 
 const Optional: React.FC<OptionalProps> = ({
   extractedField,
@@ -34,7 +34,7 @@ const Optional: React.FC<OptionalProps> = ({
         />
       </Box>
       {fields.map((field, index) => (
-        <Route
+        <CandidRoute
           key={field.id}
           extractedField={extractedField.field}
           errors={errors?.[index as never]}

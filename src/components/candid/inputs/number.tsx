@@ -1,5 +1,5 @@
 import { useFormContext } from "react-hook-form"
-import { RouteProps } from "../route"
+import { CandidRouteProps } from "../route"
 import { InfoCircledIcon } from "@radix-ui/react-icons"
 import {
   FormItem,
@@ -9,7 +9,7 @@ import {
 } from "@src/components/ui/form"
 import { Input } from "@src/components/ui/input"
 
-export interface NumberProps extends RouteProps<"number"> {}
+export interface NumberProps extends CandidRouteProps<"number"> {}
 
 const Number: React.FC<NumberProps> = ({
   registerName,

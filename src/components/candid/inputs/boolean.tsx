@@ -1,7 +1,7 @@
-import { RouteProps } from "../route"
+import { CandidRouteProps } from "../route"
 import { FormField, FormItem } from "@src/components/ui/form"
 
-export interface BooleanProps extends RouteProps<"boolean"> {}
+export interface BooleanProps extends CandidRouteProps<"boolean"> {}
 
 const Boolean: React.FC<BooleanProps> = ({
   extractedField,

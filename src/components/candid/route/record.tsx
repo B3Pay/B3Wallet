@@ -1,7 +1,7 @@
 import { Label } from "@src/components/ui/label"
-import { Route, RouteProps } from "."
+import { CandidRoute, CandidRouteProps } from "."
 
-export interface RecordProps extends RouteProps<"record"> {}
+export interface RecordProps extends CandidRouteProps<"record"> {}
 
 const Record: React.FC<RecordProps> = ({
   extractedField,
@@ -13,7 +13,7 @@ const Record: React.FC<RecordProps> = ({
       <Label>{extractedField.label}</Label>
       <div className="ml-3">
         {extractedField.fields.map((field, index) => (
-          <Route
+          <CandidRoute
             key={index}
             registerName={`${registerName}.${field.label}`}
             extractedField={field}

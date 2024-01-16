@@ -1,7 +1,7 @@
-import { RouteProps } from "../route"
+import { CandidRouteProps } from "../route"
 import { FormField } from "@src/components/ui/form"
 
-export interface NullProps extends RouteProps<"null"> {}
+export interface NullProps extends CandidRouteProps<"null"> {}
 
 const Null: React.FC<NullProps> = ({ registerName, shouldUnregister }) => {
   return (

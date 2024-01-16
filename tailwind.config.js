@@ -176,6 +176,7 @@ function generateTailwindSafelist() {
     "success",
     "warning",
     "info",
+    "alert",
     "muted",
     "inherit",
     "card"
@@ -215,6 +216,7 @@ function generateTailwindSafelist() {
   colors.forEach(color => {
     opacity.forEach(opacity => {
       safelist.push(`bg-${color}/${opacity}`)
+      safelist.push(`hover:bg-${color}/${opacity}`)
     })
   })
 

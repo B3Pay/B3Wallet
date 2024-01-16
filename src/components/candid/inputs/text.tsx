@@ -1,5 +1,5 @@
 import { useFormContext } from "react-hook-form"
-import { RouteProps } from "../route"
+import { CandidRouteProps } from "../route"
 import { InfoCircledIcon } from "@radix-ui/react-icons"
 import {
   FormItem,
@@ -10,7 +10,7 @@ import {
 } from "@src/components/ui/form"
 import { Input } from "@src/components/ui/input"
 
-export interface TextProps extends RouteProps {}
+export interface TextProps extends CandidRouteProps {}
 
 const Text: React.FC<TextProps> = ({
   registerName,

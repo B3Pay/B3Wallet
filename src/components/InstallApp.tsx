@@ -18,6 +18,7 @@ import { useEffect, useRef, useState } from "react"
 import { cn } from "@src/lib/utils"
 import Address from "./Address"
 import { toast } from "sonner"
+import { useFlipResize } from "@src/lib/hook/useResize"
 
 interface AppProps extends AppView {
   refreshHandler?: () => void
@@ -35,24 +36,6 @@ const App: React.FC<AppProps> = ({
   updated_at,
   refreshHandler
 }) => {
-  const [isFlipped, setIsFlipped] = useState(false)
-  const frontRef = useRef<HTMLDivElement>(null)
-  const backRef = useRef<HTMLDivElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  const handleFlip = () => {
-    setIsFlipped(!isFlipped)
-  }
-
-  useEffect(() => {
-    if (containerRef.current) {
-      const currentHeight = isFlipped
-        ? backRef.current!.clientHeight
-        : frontRef.current!.clientHeight
-      containerRef.current.style.height = `${currentHeight}px`
-    }
-  }, [isFlipped])
-
   const { push } = useRouter()
   const { call: createApp, loading } = useSystemUpdate({
     functionName: "create_app_canister",
@@ -72,10 +55,11 @@ const App: React.FC<AppProps> = ({
 
   const [starred, setStarred] = useState(false)
 
+  const { isFlipped, flip, containerRef, backRef, frontRef } = useFlipResize()
+
   return (
     <Box
-      className="relative w-full perspective-800"
-      roundSize="xl"
+      className="relative transition-transform duration-800 transform-gpu"
       ref={containerRef}
     >
       <Box
@@ -164,12 +148,7 @@ const App: React.FC<AppProps> = ({
             </div>
           </CardContent>
           <CardFooter>
-            <Button
-              fullWidth
-              onClick={handleFlip}
-              roundSide="l"
-              color="secondary"
-            >
+            <Button fullWidth onClick={flip} roundSide="l" color="secondary">
               Select Release
             </Button>
             <Button
@@ -189,74 +168,64 @@ const App: React.FC<AppProps> = ({
           </CardFooter>
         </Card>
       </Box>
-      <Box
-        roundSize="xl"
+      <Card
+        noShadow
+        ref={backRef}
         className={cn(
-          "absolute w-full rounded-xl top-0 transform transition backface-hidden",
+          "absolute w-full top-0 transform-gpu transition backface-hidden",
           isFlipped ? "rotate-y-0" : "rotate-y-180"
         )}
-        ref={backRef}
+        key={app_id}
+        title={`${name} Releases`}
+        titleProps={{ padding: "sm", className: "text-xl font-bold" }}
+        icon={
+          <ImageFromBlob
+            imageData={logo}
+            name={name}
+            alt={name}
+            width={20}
+            height={20}
+          />
+        }
+        iconProps={{
+          color: "muted"
+        }}
+        action={
+          <Button
+            innerShadow
+            asIconButton
+            color="info"
+            variant="filled"
+            diagonalRoundSide="r"
+            onClick={refreshHandler}
+          >
+            <ReloadIcon />
+          </Button>
+        }
       >
-        <Card
-          noShadow
-          className="flex-grow"
-          key={app_id}
-          title={`${name} Releases`}
-          titleProps={{ padding: "sm", className: "text-xl font-bold" }}
-          icon={
-            <ImageFromBlob
-              imageData={logo}
-              name={name}
-              alt={name}
-              width={20}
-              height={20}
+        <CardContent>
+          {releases?.length > 0 && (
+            <ReleaseTable
+              releases={releases}
+              selectedRelease={selectedRelease}
+              selectHandler={setSelectedRelease}
             />
-          }
-          iconProps={{
-            color: "muted"
-          }}
-          action={
-            <Button
-              innerShadow
-              asIconButton
-              color="info"
-              variant="filled"
-              diagonalRoundSide="r"
-              onClick={refreshHandler}
-            >
-              <ReloadIcon />
-            </Button>
-          }
-        >
-          <CardContent>
-            {releases?.length > 0 && (
-              <ReleaseTable
-                releases={releases}
-                selectedRelease={selectedRelease}
-                selectHandler={setSelectedRelease}
-              />
-            )}
-          </CardContent>
-          <CardFooter>
-            <Button
-              fullWidth
-              roundSide="l"
-              color="secondary"
-              onClick={handleFlip}
-            >
-              Back
-            </Button>
-            <Button
-              fullWidth
-              roundSide="r"
-              disabled={loading}
-              onClick={() => createApp([app_id])}
-            >
-              Install {selectedRelease.version}
-            </Button>
-          </CardFooter>
-        </Card>
-      </Box>
+          )}
+        </CardContent>
+        <CardFooter>
+          <Button fullWidth roundSide="l" color="secondary" onClick={flip}>
+            Back
+          </Button>
+          <Button
+            fullWidth
+            roundSide="r"
+            disabled={loading}
+            onClick={() => createApp([app_id])}
+          >
+            Install {selectedRelease.version}
+          </Button>
+        </CardFooter>
+      </Card>
     </Box>
   )
 }
