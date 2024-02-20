@@ -1,6 +1,6 @@
 require("dotenv").config()
 
-import { createAgentManager } from "@ic-reactor/react"
+import { createAgentManager } from "@ic-reactor/core"
 import { initIdentity } from "./utils"
 
 export const agentManager = createAgentManager({

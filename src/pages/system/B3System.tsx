@@ -2,7 +2,7 @@ import { useSystemMethodCall, B3System } from "@src/service/system"
 import { CandidForm } from "@src/components/candid"
 import DisplayData from "@src/components/DisplayData"
 import { useState } from "react"
-import { ServiceMethodType } from "@ic-reactor/store"
+import { ServiceMethodType } from "@ic-reactor/core"
 
 interface B3SystemProps {
   functionName: keyof B3System

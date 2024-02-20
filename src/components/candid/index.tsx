@@ -18,7 +18,7 @@ import {
   ResetIcon,
   UploadIcon
 } from "@radix-ui/react-icons"
-import { ExtractedFunction } from "@ic-reactor/store"
+import { ExtractedFunction } from "@ic-reactor/core"
 import { toast } from "sonner"
 
 type CandidFormProps = (

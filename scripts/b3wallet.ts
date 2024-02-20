@@ -1,4 +1,4 @@
-import { createReActorStore } from "@ic-reactor/store"
+import { createReActorStore } from "@ic-reactor/core"
 import { agentManager } from "./agent"
 import { b3wallet, canisterId, idlFactory } from "../src/declarations/b3wallet"
 

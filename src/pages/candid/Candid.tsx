@@ -3,7 +3,7 @@ import { useState } from "react"
 import { CandidForm } from "@src/components/candid/"
 import DisplayData from "@src/components/DisplayData"
 import { Box } from "@src/components/ui/box"
-import { ExtractedFunction } from "@ic-reactor/store"
+import { ExtractedFunction } from "@ic-reactor/core"
 
 interface CandidProps {}
 

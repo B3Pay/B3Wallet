@@ -1,5 +1,5 @@
 import { createReActor } from "@ic-reactor/react"
-import { ExtractedFunction } from "@ic-reactor/store"
+import { ExtractedFunction } from "@ic-reactor/core"
 import { b3system, canisterId, idlFactory } from "@src/declarations/b3system"
 import { agentManager } from "./agent"
 

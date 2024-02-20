@@ -1,6 +1,6 @@
 import React from "react"
 import { FieldError, FieldErrorsImpl, Merge } from "react-hook-form"
-import { DynamicFieldType, ExtractedFieldType } from "@ic-reactor/store"
+import { DynamicFieldType, ExtractedFieldType } from "@ic-reactor/core"
 
 import { Tuple, TupleProps } from "./tuple"
 import { Vector, VectorProps } from "./vector"

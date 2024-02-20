@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { CandidRoute, CandidRouteProps } from "."
-import { DynamicFieldType } from "@ic-reactor/store"
+import { DynamicFieldType } from "@ic-reactor/core"
 
 export interface RecursiveProps extends CandidRouteProps<"recursive"> {}
 
