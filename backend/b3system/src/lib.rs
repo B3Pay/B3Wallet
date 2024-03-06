@@ -6,7 +6,7 @@ use b3_utils::{
     caller_is_controller, hex_string_with_0x_to_vec, name_to_slug,
     principal::StoredPrincipal,
     revert,
-    types::{CanisterId, CanisterIds, UserId},
+    types::{CanisterId, CanisterIds},
     wasm::{vec_to_wasm_hash, Blob, WasmHash},
     NanoTimeStamp,
 };
@@ -53,7 +53,7 @@ fn get_create_canister_app_cycle() -> u128 {
 }
 
 #[query(guard = "caller_is_controller")]
-fn get_user_ids() -> Vec<UserId> {
+fn get_user_ids() -> Vec<StoredPrincipal> {
     with_users(|s| s.iter().map(|(k, _)| k.clone()).collect())
 }
 
@@ -150,7 +150,7 @@ async fn create_app_canister(app_id: AppId) -> Result<CanisterId, String> {
     let system_id = ic_cdk::id();
     let owner_id = ic_cdk::caller();
 
-    let user_id: UserId = owner_id.into();
+    let user_id: StoredPrincipal = owner_id.into();
 
     UserState::read(user_id.clone())
         .user()
@@ -200,7 +200,7 @@ async fn install_app(canister_id: CanisterId, app_id: AppId) -> Result<UserView,
     let system_id = ic_cdk::id();
     let owner_id = ic_cdk::caller();
 
-    let user_id: UserId = owner_id.into();
+    let user_id: StoredPrincipal = owner_id.into();
 
     UserState::read(user_id).user_view().unwrap_or_else(revert);
 
@@ -245,7 +245,7 @@ async fn install_app(canister_id: CanisterId, app_id: AppId) -> Result<UserView,
 
 #[update]
 async fn uninstall_app(canister_id: CanisterId) -> Result<UserView, String> {
-    let user_id: UserId = ic_cdk::caller().into();
+    let user_id: StoredPrincipal = ic_cdk::caller().into();
 
     let user_view = UserState::read(user_id).user_view().unwrap_or_else(revert);
 
@@ -267,7 +267,7 @@ async fn uninstall_app(canister_id: CanisterId) -> Result<UserView, String> {
 
 #[update]
 async fn add_user_app(canister_id: CanisterId, app_id: AppId) -> Result<UserView, String> {
-    let user_id: UserId = ic_cdk::caller().into();
+    let user_id: StoredPrincipal = ic_cdk::caller().into();
 
     UserState::read(user_id.clone())
         .user()
@@ -286,7 +286,7 @@ async fn add_user_app(canister_id: CanisterId, app_id: AppId) -> Result<UserView
                 .unwrap_or_else(revert);
 
             let is_valid = app
-                .validate_user(user_id.clone())
+                .validate_user(user_id.into())
                 .await
                 .unwrap_or_else(revert);
 
@@ -306,7 +306,7 @@ async fn add_user_app(canister_id: CanisterId, app_id: AppId) -> Result<UserView
 
 #[update]
 fn remove_user_app(canister_id: CanisterId) {
-    let user_id: UserId = ic_cdk::caller().into();
+    let user_id: StoredPrincipal = ic_cdk::caller().into();
 
     UserState::write(user_id)
         .remove_canister(canister_id)
@@ -316,7 +316,7 @@ fn remove_user_app(canister_id: CanisterId) {
 // TODO! Remove this update call for production.
 #[update(guard = "caller_is_controller")]
 fn remove_user(user_principal: Principal) {
-    let user_id: UserId = user_principal.into();
+    let user_id: StoredPrincipal = user_principal.into();
 
     UserState::write(user_id).remove().unwrap_or_else(revert);
 }

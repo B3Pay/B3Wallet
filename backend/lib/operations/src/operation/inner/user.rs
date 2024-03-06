@@ -7,7 +7,7 @@ use crate::store::with_users_mut;
 use crate::user::User;
 use async_trait::async_trait;
 use b3_utils::ledger::Metadata;
-use b3_utils::types::UserId;
+use b3_utils::principal::StoredPrincipal;
 use b3wallet_lib::error::WalletError;
 use candid::{CandidType, Deserialize};
 
@@ -16,7 +16,7 @@ use candid::{CandidType, Deserialize};
 pub struct AddUser {
     pub name: String,
     pub role: Role,
-    pub signer_id: UserId,
+    pub signer_id: StoredPrincipal,
     pub expires_at: Option<u64>,
     pub threshold: Option<u8>,
 }
@@ -73,7 +73,7 @@ impl OperationTrait for AddUser {
 // REMOVE SIGNER
 #[derive(CandidType, Clone, Deserialize, PartialEq, Debug)]
 pub struct RemoveUser {
-    pub signer_id: UserId,
+    pub signer_id: StoredPrincipal,
 }
 
 #[async_trait]

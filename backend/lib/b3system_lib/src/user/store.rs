@@ -1,13 +1,13 @@
 use b3_utils::{
     memory::{init_stable_mem_refcell, types::DefaultStableBTreeMap},
-    types::UserId,
+    principal::StoredPrincipal,
 };
 
 use std::cell::RefCell;
 
 use super::{error::UserSystemError, user::User};
 
-pub type UserMap = DefaultStableBTreeMap<UserId, User>;
+pub type UserMap = DefaultStableBTreeMap<StoredPrincipal, User>;
 
 // The UserState starts from 10 to 19 to avoid conflicts with the app's stable memory
 thread_local! {
@@ -22,7 +22,7 @@ pub(crate) fn with_users_mut<R>(f: impl FnOnce(&mut UserMap) -> R) -> R {
     USER_MAP.with(|state| f(&mut *state.borrow_mut()))
 }
 
-pub(crate) fn with_user<F, T>(user_id: &UserId, f: F) -> Result<T, UserSystemError>
+pub(crate) fn with_user<F, T>(user_id: &StoredPrincipal, f: F) -> Result<T, UserSystemError>
 where
     F: FnOnce(User) -> T,
 {

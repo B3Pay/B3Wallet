@@ -30,7 +30,7 @@ use b3wallet_lib::{
 use candid::{CandidType, Deserialize};
 use ic_cdk::{
     api::{
-        call::arg_data,
+        call::{arg_data, ArgDecoderConfig},
         management_canister::{
             bitcoin::Satoshi,
             main::{install_code, uninstall_code, CanisterInstallMode, InstallCodeArgument},
@@ -45,7 +45,7 @@ fn init() {
     log_cycle!("init");
     // when the canister is created by another canister (e.g. the system canister)
     // this function is called with the arguments passed to the canister constructor.
-    let (call_arg,) = arg_data::<(Option<AppInitArgs>,)>();
+    let (call_arg,) = arg_data::<(Option<AppInitArgs>,)>(ArgDecoderConfig::default());
 
     match call_arg {
         Some(args) => {

@@ -1,4 +1,4 @@
-use b3_utils::types::{OperationId, UserId};
+use b3_utils::{principal::StoredPrincipal, types::OperationId};
 use b3wallet_lib::{
     error::WalletError,
     ledger::{error::LedgerError, evm::error::EvmError},
@@ -12,17 +12,17 @@ pub enum OperationError {
     WalletError(WalletError),
     LedgerError(LedgerError),
     EvmError(EvmError),
-    RequestAlreadySigned(UserId),
+    RequestAlreadySigned(StoredPrincipal),
     RequestRejected,
     RequestExpired,
     RequestNotFound(OperationId),
     RequestAlreadyProcessed(OperationId),
     RequestRemovedByAdmin(String),
     AccessDenied,
-    UserNotAllowed(UserId),
-    UserNotFound(UserId),
-    UserAlreadyExists(UserId),
-    UserDoesNotExist(UserId),
+    UserNotAllowed(StoredPrincipal),
+    UserNotFound(StoredPrincipal),
+    UserAlreadyExists(StoredPrincipal),
+    UserDoesNotExist(StoredPrincipal),
     UserRoleNotFound(String, String),
     UserRoleNotAuthorized(String, String),
     InvalidRequest,

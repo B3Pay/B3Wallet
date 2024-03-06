@@ -19,6 +19,7 @@ pub struct WalletSettings {
     pub compute_allocation: Option<Nat>,
     pub memory_allocation: Option<Nat>,
     pub freezing_threshold: Option<Nat>,
+    pub reserved_cycles_limit: Option<Nat>,
     pub initialised: bool,
 }
 
@@ -30,6 +31,7 @@ impl Default for WalletSettings {
             compute_allocation: None,
             memory_allocation: None,
             freezing_threshold: None,
+            reserved_cycles_limit: None,
             initialised: false,
         }
     }
@@ -134,9 +136,7 @@ impl WalletSettings {
             canister_id,
             settings: CanisterSettings {
                 controllers: Some(controller_ids.clone()),
-                compute_allocation: None,
-                memory_allocation: None,
-                freezing_threshold: None,
+                ..Default::default()
             },
         };
 
@@ -176,6 +176,7 @@ impl WalletSettings {
                 compute_allocation: self.compute_allocation.clone(),
                 memory_allocation: self.memory_allocation.clone(),
                 freezing_threshold: self.freezing_threshold.clone(),
+                reserved_cycles_limit: self.reserved_cycles_limit.clone(),
             },
         };
 
