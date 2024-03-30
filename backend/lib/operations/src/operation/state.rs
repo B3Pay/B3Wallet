@@ -3,10 +3,7 @@ use crate::{
     pending::{PendingOperation, RequestArgs},
     types::{PendingOperationMap, PendingOperations},
 };
-use b3_utils::{
-    nonce::Nonce,
-    types::{OperationId, UserId},
-};
+use b3_utils::{nonce::Nonce, principal::StoredPrincipal, types::OperationId};
 use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Deserialize, Clone)]
@@ -25,7 +22,7 @@ impl Default for OperationState {
 }
 
 impl OperationState {
-    pub fn new_request(&self, signer_id: UserId, args: RequestArgs) -> PendingOperation {
+    pub fn new_request(&self, signer_id: StoredPrincipal, args: RequestArgs) -> PendingOperation {
         let id = self.request_counter();
 
         PendingOperation::new(id, signer_id, args)

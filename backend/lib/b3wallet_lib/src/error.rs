@@ -1,4 +1,4 @@
-use b3_utils::{api::error::ManagementError, error::HelperError, types::UserId};
+use b3_utils::{api::error::ManagementError, error::HelperError, principal::StoredPrincipal};
 use candid::{CandidType, Deserialize};
 use std::fmt;
 
@@ -21,8 +21,8 @@ pub enum WalletError {
     UnknownError,
     WasmNotLoaded,
     ExecutionError(String),
-    SignerAlreadyExists(UserId),
-    SignerDoesNotExist(UserId),
+    SignerAlreadyExists(StoredPrincipal),
+    SignerDoesNotExist(StoredPrincipal),
     UpdateSettingsError(String),
     NotifyTopUpError(String),
     CannotRemoveDefaultAccount,

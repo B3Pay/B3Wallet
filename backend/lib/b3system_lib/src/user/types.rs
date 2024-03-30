@@ -1,6 +1,7 @@
 use b3_utils::{
     ledger::Metadata,
-    types::{CanisterId, CanisterIds, UserId},
+    principal::StoredPrincipal,
+    types::{CanisterId, CanisterIds},
     NanoTimeStamp,
 };
 use candid::CandidType;
@@ -9,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use crate::user::user::User;
 
 pub type Features = Vec<String>;
-pub type Users = Vec<UserId>;
+pub type Users = Vec<StoredPrincipal>;
 
 pub type UserStates = Vec<User>;
 

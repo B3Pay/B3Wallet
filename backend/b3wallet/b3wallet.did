@@ -35,6 +35,7 @@ type BtcTransfer = record {
 type CanisterSettings = record {
   freezing_threshold : opt nat;
   controllers : opt vec principal;
+  reserved_cycles_limit : opt nat;
   memory_allocation : opt nat;
   compute_allocation : opt nat;
 };
@@ -45,7 +46,8 @@ type CanisterStatusResponse = record {
   settings : DefiniteCanisterSettings;
   query_stats : QueryStats;
   idle_cycles_burned_per_day : nat;
-  module_hash : opt vec nat8;
+  module_hash : opt blob;
+  reserved_cycles : nat;
 };
 type CanisterStatusType = variant { stopped; stopping; running };
 type ChainEnum = variant {
@@ -61,6 +63,7 @@ type CreateAccount = record { env : opt Environment; name : opt text };
 type DefiniteCanisterSettings = record {
   freezing_threshold : nat;
   controllers : vec principal;
+  reserved_cycles_limit : nat;
   memory_allocation : nat;
   compute_allocation : nat;
 };
@@ -71,7 +74,7 @@ type EvmContractDeployed = record {
 };
 type EvmDeployContract = record {
   account_id : text;
-  hex_byte_code : vec nat8;
+  hex_byte_code : blob;
   max_priority_fee_per_gas : opt nat64;
   max_fee_per_gas : opt nat64;
   chain_id : nat64;
@@ -82,11 +85,11 @@ type EvmPending = record { block_index : nat64 };
 type EvmSignMessage = record {
   account_id : text;
   chain_id : nat64;
-  message : vec nat8;
+  message : blob;
 };
 type EvmSignRawTransaction = record {
   account_id : text;
-  hex_raw_tx : vec nat8;
+  hex_raw_tx : blob;
   chain_id : nat64;
 };
 type EvmSignTranscation = record {
@@ -247,7 +250,7 @@ type OperationResult = variant {
   EvmRawTransactionSigned : record { EvmSignRawTransaction; text };
   TopUpTransfered : record { TopUpTransfer; nat64 };
   AccountHidden : HideAccount;
-  EvmMessageSigned : record { EvmSignMessage; vec nat8 };
+  EvmMessageSigned : record { EvmSignMessage; blob };
   CanisterSettingsUpdated : UpdateCanisterSettings;
   SignerAdded : AddUser;
   CanisterUpgraded : UpgradeCanister;
@@ -256,7 +259,7 @@ type OperationResult = variant {
   AccountRemoved : HideAccount;
 };
 type OperationStatus = variant { Fail; Success; Expired; Pending };
-type OutPoint = record { txid : vec nat8; vout : nat32 };
+type OutPoint = record { txid : blob; vout : nat32 };
 type PendingEnum = variant {
   BTC : BtcPending;
   EVM : EvmPending;
@@ -297,11 +300,11 @@ type Result = variant { Ok : nat; Err : text };
 type Result_1 = variant { Ok : ProcessedOperation; Err : text };
 type RetrieveBtcStatus = variant {
   Signing;
-  Confirmed : record { txid : vec nat8 };
-  Sending : record { txid : vec nat8 };
+  Confirmed : record { txid : blob };
+  Sending : record { txid : blob };
   AmountTooLow;
   Unknown;
-  Submitted : record { txid : vec nat8 };
+  Submitted : record { txid : blob };
   Pending;
 };
 type Role = record { access_level : AccessLevel; name : text };
@@ -348,7 +351,7 @@ type Value = variant {
   Map : vec record { text; Value };
   Nat : nat;
   Nat64 : nat64;
-  Blob : vec nat8;
+  Blob : blob;
   Text : text;
   Array : vec Value;
 };
@@ -366,6 +369,7 @@ type WalletSettings = record {
   controllers : vec record { principal; text };
   initialised : bool;
   metadata : vec record { text; Value };
+  reserved_cycles_limit : opt nat;
   memory_allocation : opt nat;
   compute_allocation : opt nat;
 };
@@ -373,7 +377,7 @@ type WalletSettingsAndSigners = record {
   signers : vec record { principal; User };
   settings : WalletSettings;
 };
-type WasmDetails = record { hash : vec nat8; size : nat64 };
+type WasmDetails = record { hash : blob; size : nat64 };
 service : () -> {
   account_add_pending : (text, ChainEnum, PendingEnum) -> ();
   account_balance : (text, ChainEnum) -> (nat);
@@ -411,7 +415,7 @@ service : () -> {
       opt vec record { text; Value },
     ) -> ();
   is_connected : () -> (bool) query;
-  load_wasm : (vec nat8) -> (nat64);
+  load_wasm : (blob) -> (nat64);
   name : () -> (text) query;
   print_log_entries : () -> (vec LogEntry) query;
   refresh_settings : () -> ();
@@ -450,6 +454,6 @@ service : () -> {
   validate_user : (principal) -> (bool) query;
   version : () -> (text) query;
   wasm_details : () -> (WasmDetails) query;
-  wasm_hash : () -> (vec nat8) query;
+  wasm_hash : () -> (blob) query;
   wasm_hash_string : () -> (text) query;
 }

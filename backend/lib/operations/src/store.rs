@@ -8,7 +8,7 @@ use crate::{
     types::UserIds,
     user::{state::UserState, User},
 };
-use b3_utils::types::{OperationId, UserId};
+use b3_utils::{principal::StoredPrincipal, types::OperationId};
 use std::cell::RefCell;
 
 thread_local! {
@@ -99,7 +99,7 @@ where
 }
 
 /// Get a user.
-pub fn with_user<T, F>(user_id: &UserId, callback: F) -> Result<T, OperationError>
+pub fn with_user<T, F>(user_id: &StoredPrincipal, callback: F) -> Result<T, OperationError>
 where
     F: FnOnce(&User) -> T,
 {
@@ -111,7 +111,7 @@ where
 }
 
 /// Check if a user exists, and if it does, run the callback.
-pub fn with_verified_user<F>(user_id: UserId, callback: F) -> Result<(), String>
+pub fn with_verified_user<F>(user_id: StoredPrincipal, callback: F) -> Result<(), String>
 where
     F: FnOnce(&User) -> bool,
 {

@@ -4,14 +4,17 @@ use super::{
     types::{CreateUserArgs, UserView},
     User,
 };
-use b3_utils::types::{CanisterId, CanisterIds, UserId};
+use b3_utils::{
+    principal::StoredPrincipal,
+    types::{CanisterId, CanisterIds},
+};
 
 #[cfg(test)]
 use b3_utils::mocks::id_mock as ic_cdk_caller;
 #[cfg(not(test))]
 use ic_cdk::api::caller as ic_cdk_caller;
 
-pub struct WriteUserState(pub UserId);
+pub struct WriteUserState(pub StoredPrincipal);
 
 impl WriteUserState {
     pub fn update(&mut self, app_args: CreateUserArgs) -> Result<User, UserSystemError> {
@@ -59,7 +62,7 @@ impl WriteUserState {
     }
 }
 
-pub struct ReadUserState(pub UserId);
+pub struct ReadUserState(pub StoredPrincipal);
 
 impl ReadUserState {
     pub fn user_view(&self) -> Result<UserView, UserSystemError> {
@@ -97,11 +100,11 @@ impl UserState {
         })
     }
 
-    pub fn write(user_id: UserId) -> WriteUserState {
+    pub fn write(user_id: StoredPrincipal) -> WriteUserState {
         WriteUserState(user_id)
     }
 
-    pub fn read(user_id: UserId) -> ReadUserState {
+    pub fn read(user_id: StoredPrincipal) -> ReadUserState {
         ReadUserState(user_id)
     }
 }

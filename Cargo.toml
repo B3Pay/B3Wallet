@@ -4,6 +4,7 @@ members = [
     "backend/b3system",
     "backend/b3wallet",
     "backend/b3wallet_basic",
+    "backend/b3wallet_global",
     "backend/lib/b3system_lib",
     "backend/lib/b3wallet_lib",
     "backend/lib/operations",
@@ -12,7 +13,7 @@ members = [
 [workspace.dependencies]
 serde = "1"
 candid = "0.10"
-ic-cdk = "0.12"
+ic-cdk = "0.13"
 async-trait = "0.1"
 enum_dispatch = "0.3"
 ciborium = "0.2"

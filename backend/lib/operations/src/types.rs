@@ -7,7 +7,10 @@ use crate::{
     role::Role,
     user::{state::UserState, User},
 };
-use b3_utils::types::{OperationId, RoleId, UserId};
+use b3_utils::{
+    principal::StoredPrincipal,
+    types::{OperationId, RoleId},
+};
 use b3wallet_lib::setting::WalletSettings;
 use candid::{CandidType, Deserialize};
 use std::collections::{BTreeMap, HashMap};
@@ -16,17 +19,17 @@ pub type Signers = Vec<User>;
 
 pub type Roles = Vec<Role>;
 
-pub type UserIds = Vec<UserId>;
+pub type UserIds = Vec<StoredPrincipal>;
 
 pub type RoleMap = HashMap<RoleId, Role>;
 
-pub type UserMap = HashMap<UserId, User>;
+pub type UserMap = HashMap<StoredPrincipal, User>;
 
 pub type PendingOperations = Vec<PendingOperation>;
 
 pub type ProcessedOperations = Vec<ProcessedOperation>;
 
-pub type ResponseMap = BTreeMap<UserId, Response>;
+pub type ResponseMap = BTreeMap<StoredPrincipal, Response>;
 
 pub type PendingOperationMap = BTreeMap<OperationId, PendingOperation>;
 

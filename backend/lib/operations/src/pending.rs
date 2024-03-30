@@ -5,11 +5,7 @@ use crate::{
     response::Response,
     types::{ConsentMessage, ResponseMap, UserIds},
 };
-use b3_utils::{
-    api::AppVersion,
-    types::{OperationId, UserId},
-    NanoTimeStamp,
-};
+use b3_utils::{api::AppVersion, principal::StoredPrincipal, types::OperationId, NanoTimeStamp};
 use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
@@ -20,7 +16,7 @@ pub struct PendingOperation {
     pub responses: ResponseMap,
     pub deadline: NanoTimeStamp,
     pub created_at: NanoTimeStamp,
-    pub created_by: UserId,
+    pub created_by: StoredPrincipal,
     pub allowed_signers: UserIds,
     pub consent_message: ConsentMessage,
     pub version: AppVersion,
@@ -36,7 +32,11 @@ pub struct RequestArgs {
 }
 
 impl PendingOperation {
-    pub fn new(id: OperationId, created_by: UserId, args: RequestArgs) -> PendingOperation {
+    pub fn new(
+        id: OperationId,
+        created_by: StoredPrincipal,
+        args: RequestArgs,
+    ) -> PendingOperation {
         let deadline = if let Some(deadline) = args.deadline {
             deadline
         } else {
@@ -78,11 +78,11 @@ impl PendingOperation {
         &self.responses
     }
 
-    pub fn is_allowed(&self, signer_id: &UserId) -> bool {
+    pub fn is_allowed(&self, signer_id: &StoredPrincipal) -> bool {
         self.allowed_signers.iter().any(|id| id == signer_id)
     }
 
-    pub fn is_signed(&self, signer_id: &UserId) -> bool {
+    pub fn is_signed(&self, signer_id: &StoredPrincipal) -> bool {
         self.responses.keys().any(|id| id == signer_id)
     }
 
@@ -124,7 +124,11 @@ impl PendingOperation {
         None
     }
 
-    pub fn response(&mut self, user: UserId, response: Response) -> Result<(), OperationError> {
+    pub fn response(
+        &mut self,
+        user: StoredPrincipal,
+        response: Response,
+    ) -> Result<(), OperationError> {
         if self.is_signed(&user) {
             return Err(OperationError::RequestAlreadySigned(user));
         }

@@ -3,12 +3,16 @@ mod guard;
 use crate::guard::{caller_is_admin, caller_is_canister_or_admin, caller_is_signer};
 use b3_utils::{
     api::{bugs::AppBug, AppAccountsNonce, AppInitArgs, AppStatus, Management},
-    ledger::currency::{ICPToken, TokenAmount},
-    ledger::{Metadata, NotifyTopUpResult, TransferBlockIndex, Value},
+    ledger::{
+        currency::{ICPToken, TokenAmount},
+        Metadata, NotifyTopUpResult, TransferBlockIndex, Value,
+    },
     log_cycle,
     logs::{export_log, export_log_messages_page, LogEntry},
-    panic_log, report_log, throw_log,
-    types::{AppControllerMap, CanisterId, ControllerId, OperationId, RoleId, UserId},
+    panic_log,
+    principal::StoredPrincipal,
+    report_log, throw_log,
+    types::{AppControllerMap, CanisterId, ControllerId, OperationId, RoleId},
     wasm::{with_wasm_cache, with_wasm_mut_cache, WasmDetails, WasmHash, WasmSize},
     Environment, NanoTimeStamp, Subaccount,
 };
@@ -31,7 +35,7 @@ use b3wallet_lib::{
 };
 use ic_cdk::{
     api::{
-        call::arg_data,
+        call::{arg_data, ArgDecoderConfig},
         management_canister::{
             bitcoin::Satoshi,
             main::{install_code, uninstall_code, CanisterInstallMode, InstallCodeArgument},
@@ -72,7 +76,7 @@ fn init() {
     log_cycle!("init");
     // when the canister is created by another canister (e.g. the system canister)
     // this function is called with the arguments passed to the canister constructor.
-    let (call_arg,) = arg_data::<(Option<AppInitArgs>,)>();
+    let (call_arg,) = arg_data::<(Option<AppInitArgs>,)>(ArgDecoderConfig::default());
 
     let mut signers = UserMap::new();
 
@@ -745,7 +749,7 @@ fn request_remove_signer(
 fn request_connect(name: String) -> OperationId {
     log_cycle!("request_connect: {}", name);
 
-    let signer_id: UserId = ic_cdk::caller().into();
+    let signer_id: StoredPrincipal = ic_cdk::caller().into();
 
     let request = AddUser {
         role: Role::new(name.clone(), AccessLevel::Canister),
@@ -893,7 +897,7 @@ async fn request_upgrade_canister(wasm_version: String) -> OperationId {
 }
 
 #[query]
-fn validate_user(signer_id: UserId) -> bool {
+fn validate_user(signer_id: StoredPrincipal) -> bool {
     with_user(&signer_id, |_| true).is_ok()
 }
 
@@ -921,7 +925,7 @@ async fn report_bug(system_canister_id: CanisterId, message: String) {
 }
 
 #[update(guard = "caller_is_admin")]
-fn signer_add(signer_id: UserId, role: Role) -> UserMap {
+fn signer_add(signer_id: StoredPrincipal, role: Role) -> UserMap {
     log_cycle!("Add signer: {} with role: {:?}", signer_id, role);
 
     let signer = User::from(role);
@@ -956,7 +960,7 @@ fn role_remove(role_id: RoleId) -> RoleMap {
 }
 
 #[update(guard = "caller_is_admin")]
-fn signer_remove(signer_id: UserId) -> UserMap {
+fn signer_remove(signer_id: StoredPrincipal) -> UserMap {
     log_cycle!("Remove signer: {}", signer_id);
 
     with_users_mut(|users| {
